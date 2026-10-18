@@ -3,8 +3,10 @@ import SwiftUI
 import XCTest
 @testable import Gnotchi
 
-/// Sichtprüfung ohne App-Start: rendert die Insel (klein/groß, Notch/Pille) als PNG nach /tmp.
-/// Prüft nur, dass gerendert wird; das Aussehen beurteilt ein Mensch (Plan Aufgabe 10/14).
+/// Sichtprüfung ohne App-Start: rendert die Insel (klein/groß, Notch/Pille). Prüft nur, dass gerendert
+/// wird; das Aussehen beurteilt ein Mensch (Plan Aufgabe 10/14). PNGs nur auf Wunsch, z. B.:
+/// `TEST_RUNNER_GNOTCHI_RENDER_DIR=/tmp/gnotchi-render make test` (xcodebuild reicht Variablen mit
+/// Präfix `TEST_RUNNER_` ohne Präfix an den Testlauf durch).
 @MainActor
 final class IslandViewRenderTests: XCTestCase {
 
@@ -30,7 +32,10 @@ final class IslandViewRenderTests: XCTestCase {
         let state = IslandState(layout: layout)
         state.mode = mode
         let model = NowPlayingModel()
-        model.setPreviewState(info: Self.info(appBundleID: appBundleID), artwork: Self.artwork())
+        // Klein mit Pause: der Pegel steht, das Bild ist bei jedem Lauf gleich. Groß zeigt keinen Pegel;
+        // dort hält rate 0 die Zeit fest.
+        model.setPreviewState(info: Self.info(appBundleID: appBundleID, playing: mode == .expanded),
+                              artwork: Self.artwork())
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = mode == .expanded ? layout.expanded : layout.compact
@@ -52,15 +57,19 @@ final class IslandViewRenderTests: XCTestCase {
         renderer.scale = 2
         let cg = try XCTUnwrap(renderer.cgImage, "ImageRenderer lieferte kein Bild")
         XCTAssertEqual(cg.width, Int(canvas.width * 2))
+        guard let dir = ProcessInfo.processInfo.environment["GNOTCHI_RENDER_DIR"], !dir.isEmpty else { return }
         let png = try XCTUnwrap(NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]))
-        try png.write(to: URL(fileURLWithPath: "/tmp/gnotchi-island-\(name).png"))
+        let folder = URL(fileURLWithPath: dir, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try png.write(to: folder.appendingPathComponent("gnotchi-island-\(name).png"), options: .atomic)
     }
 
-    private static func info(appBundleID: String?) -> NowPlayingInfo {
+    private static func info(appBundleID: String?, playing: Bool) -> NowPlayingInfo {
         NowPlayingInfo(
             title: "Ein ziemlich langer Songtitel, der sicher abgeschnitten wird",
             artist: "Interpretin mit Namen", album: nil, appBundleID: appBundleID,
-            isPlaying: true, duration: 225, elapsedAtStamp: 83, stamp: Date(), rate: 0,
+            isPlaying: playing, duration: 225, elapsedAtStamp: 83,
+            stamp: Date(timeIntervalSince1970: 1_800_000_000), rate: 0,
             contentID: nil, artworkBase64: nil)
     }
 

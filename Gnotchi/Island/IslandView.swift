@@ -90,9 +90,13 @@ struct IslandView: View {
                     Spacer(minLength: 0)
                     HStack(spacing: 16) {
                         button("backward.fill", label: "Zurück") { model.previous() }
-                        button(info.isPlaying ? "pause.fill" : "play.fill", label: "Wiedergabe/Pause") { model.playPause() }
+                        // Beschriftung nennt, was der Knopf JETZT tut (VoiceOver).
+                        button(info.isPlaying ? "pause.fill" : "play.fill",
+                               label: info.isPlaying ? "Pause" : "Wiedergabe") { model.playPause() }
                         button("forward.fill", label: "Weiter") { model.next() }
                     }
+                    // Ohne Animation-Transaktion springt das Symbol; `.replace` braucht sie zum Überblenden.
+                    .animation(.snappy, value: info.isPlaying)
                 }
                 .frame(height: 56)
             }
@@ -117,8 +121,8 @@ struct IslandView: View {
     }
 
     @ViewBuilder private func appIcon(_ id: String?) -> some View {
-        if let id, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 16, height: 16)
+        if let id, let icon = AppIcons.icon(for: id) {
+            Image(nsImage: icon).resizable().frame(width: 16, height: 16)
                 .accessibilityHidden(true)
         }
     }
@@ -139,7 +143,8 @@ struct IslandView: View {
 private struct LevelBars: View {
     let playing: Bool
     var body: some View {
-        TimelineView(.animation(paused: !playing)) { ctx in
+        // 30 Bilder/s reichen für einen Pegel; ungebremst liefe er mit der Bildschirmrate (bis 120 Hz).
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !playing)) { ctx in
             let t = ctx.date.timeIntervalSinceReferenceDate
             HStack(alignment: .center, spacing: 2) {
                 ForEach(0..<4, id: \.self) { i in
@@ -157,36 +162,86 @@ private struct LevelBars: View {
 struct ProgressRow: View {
     let info: NowPlayingInfo
     let onSeek: (TimeInterval) -> Void
+    /// Wert während des Ziehens.
     @State private var dragValue: Double?
+    /// Nach dem Loslassen: Zielwert halten, bis die nächste Meldung kommt (sonst springt der Regler kurz zurück).
+    @State private var pending: PendingSeek?
 
     /// Anzeige, wenn es keine sinnvolle Zeit gibt (keine Dauer, unbrauchbarer Wert).
-    static let placeholder = "–:––"
+    nonisolated static let placeholder = "–:––"
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-            let dur = info.duration ?? 0
-            let upper = max(dur, 1)
-            let now = min(dragValue ?? info.elapsed(at: ctx.date), upper)
+            let shown = dragValue ?? pending?.value(for: info, now: ctx.date) ?? info.elapsed(at: ctx.date)
+            let d = Self.display(elapsed: shown, duration: info.duration)
             HStack(spacing: 8) {
-                Text(verbatim: Self.clock(now)).monospacedDigit()
-                Slider(value: Binding(get: { now }, set: { dragValue = $0 }), in: 0...upper) { editing in
-                    if !editing, let v = dragValue { onSeek(v); dragValue = nil }
+                Text(verbatim: d.elapsedLabel).monospacedDigit()
+                Slider(value: Binding(get: { d.sliderValue }, set: { dragValue = $0 }), in: 0...d.sliderUpper) { editing in
+                    guard !editing, let v = dragValue else { return }
+                    onSeek(v)
+                    pending = PendingSeek(value: v, info: info, released: Date())
+                    dragValue = nil
                 }
                 .controlSize(.mini)
                 // Weiß statt Akzentfarbe: wie die Wiedergabe-Steuerung im Kontrollzentrum.
                 .tint(.white)
-                .disabled(dur == 0)
+                .disabled(!d.seekable)
                 .accessibilityLabel(Text(verbatim: "Position"))
-                Text(verbatim: dur > 0 ? Self.clock(dur) : Self.placeholder).monospacedDigit()
+                .accessibilityValue(Text(verbatim: d.accessibilityValue))
+                Text(verbatim: d.durationLabel).monospacedDigit()
             }
             .font(.system(size: 10))
             .foregroundStyle(.secondary)
         }
     }
 
+    struct Display: Equatable {
+        let elapsedLabel: String
+        let durationLabel: String
+        let sliderValue: Double
+        let sliderUpper: Double
+        let seekable: Bool
+        let accessibilityValue: String
+    }
+
+    /// Begrenzt wird nur der Regler (Slider-Bereich); die Zeit links zeigt die echte Position.
+    /// Sonst stünde sie ohne Dauer (Livestream) bei 0:01 still (Review 18.10.).
+    nonisolated static func display(elapsed: TimeInterval, duration: TimeInterval?) -> Display {
+        let dur = duration.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+        let upper = dur ?? 1
+        let value = elapsed.isFinite ? min(max(elapsed, 0), upper) : 0
+        let e = clock(elapsed)
+        let d = dur.map(clock) ?? placeholder
+        return Display(elapsedLabel: e, durationLabel: d, sliderValue: value, sliderUpper: upper,
+                       seekable: dur != nil, accessibilityValue: dur == nil ? e : "\(e) von \(d)")
+    }
+
+    /// Gespulter Zielwert, gültig bis zur nächsten Meldung (anderer Zeitstempel), höchstens `maxWait`
+    /// (geht der Befehl verloren, darf die Zeit nicht stehen bleiben) und nur für denselben Titel.
+    struct PendingSeek: Equatable {
+        nonisolated static let maxWait: TimeInterval = 2
+        let value: TimeInterval
+        let stamp: Date
+        let track: String?
+        let released: Date
+
+        init(value: TimeInterval, info: NowPlayingInfo, released: Date) {
+            self.value = value
+            stamp = info.stamp
+            track = NowPlayingModel.artworkKey(for: info)
+            self.released = released
+        }
+
+        func value(for info: NowPlayingInfo, now: Date) -> TimeInterval? {
+            guard info.stamp == stamp, NowPlayingModel.artworkKey(for: info) == track,
+                  now.timeIntervalSince(released) <= Self.maxWait else { return nil }
+            return value
+        }
+    }
+
     /// m:ss bzw. h:mm:ss. NowPlayingInfo liefert nur endliche Werte ≤ 48 h; die Grenze hier
     /// sorgt trotzdem dafür, dass `Int(...)` nie abstürzen kann (NaN, ∞, 1e300).
-    static func clock(_ s: TimeInterval) -> String {
+    nonisolated static func clock(_ s: TimeInterval) -> String {
         guard s.isFinite, s <= NowPlayingInfo.maxDuration else { return placeholder }
         let t = Int(max(0, s).rounded(.down))
         return t >= 3600 ? String(format: "%d:%02d:%02d", t / 3600, t / 60 % 60, t % 60)

@@ -1273,6 +1273,8 @@ enum IslandGeometry {
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
     static let wing: CGFloat = 40
     static let pillSize = CGSize(width: 180, height: 24)
+    /// Inhaltsfläche der grossen Ansicht: 380 pt breit, 110 pt unterhalb der Notch (mit Notch 142 pt hoch;
+    /// nachgezogen 18.10. mit Aufgabe 10, Code: `expanded(…, extraHeight: notch.height, …)`).
     static let expandedSize = CGSize(width: 380, height: 110)
 
     static func layout(for m: ScreenMetrics) -> Layout {
