@@ -136,62 +136,96 @@ final class IslandControllerTests: XCTestCase {
 
     // Gemessen 18.10. (MacBook Air M5): Notch 645,5 … 824,5 × 0 … 32 (CG), eigenes Panel Ebene 27,
     // Thaws Menüleisten-Fenster Ebene 23/24 über die volle Breite.
-    private let notchCG = CGRect(x: 645.5, y: 0, width: 179, height: 32)
+    private let target = IslandController.NotchTarget(notch: CGRect(x: 645.5, y: 0, width: 179, height: 32),
+                                                      screen: CGRect(x: 0, y: 0, width: 1470, height: 956))
     private let ownPID: pid_t = 42
-    private let otherApp = IslandController.OtherApp(name: "NotchNook", bundleID: "lo.cafe.NotchNook",
-                                                     bundlePath: "/Applications/NotchNook.app", isUIApp: true)
+    private let notchApp = IslandController.OtherApp(name: "NotchNook", bundleID: "lo.cafe.NotchNook",
+                                                     bundlePath: "/Applications/NotchNook.app", isAccessory: true)
+    /// Typisches Notch-App-Fenster: oben bündig, breiter als die Notch, deckt sie ganz ab.
+    private let notchWindow = CGRect(x: 585, y: 0, width: 300, height: 200)
 
     private func competitor(_ windows: [IslandController.WindowInfo],
                             apps: [pid_t: IslandController.OtherApp]) -> String? {
-        IslandController.competingNotchApp(windows: windows, ownPID: ownPID, notchRects: [notchCG]) { apps[$0] }
+        IslandController.competingNotchApp(windows: windows, ownPID: ownPID, targets: [target]) { apps[$0] }
     }
 
-    private func win(pid: pid_t, layer: Int, _ bounds: CGRect? = nil) -> IslandController.WindowInfo {
-        .init(layer: layer, bounds: bounds ?? CGRect(x: 600, y: 0, width: 270, height: 40), isRegularApp: false, pid: pid)
+    private func win(pid: pid_t = 7, layer: Int = 27, _ bounds: CGRect? = nil) -> IslandController.WindowInfo {
+        .init(layer: layer, bounds: bounds ?? notchWindow, isRegularApp: false, pid: pid)
     }
 
-    func testOtherNotchAppFound() {
-        XCTAssertEqual(competitor([win(pid: 7, layer: 27)], apps: [7: otherApp]), "NotchNook")
+    func testAccessoryAppWithNotchWindowFound() {
+        XCTAssertEqual(competitor([win()], apps: [7: notchApp]), "NotchNook")
+        // Genau notch-groß reicht auch.
+        XCTAssertEqual(competitor([win(target.notch)], apps: [7: notchApp]), "NotchNook")
     }
 
     func testOwnPanelIgnored() {
-        XCTAssertNil(competitor([win(pid: ownPID, layer: 27)], apps: [ownPID: otherApp]))
+        XCTAssertNil(competitor([win(pid: ownPID)], apps: [ownPID: notchApp]))
+    }
+
+    /// Normale Apps (Dock-Symbol) sind keine Notch-Apps – z. B. ein Vollbild-Overlay eines Spiels.
+    func testRegularAppIgnored() {
+        let regular = IslandController.OtherApp(name: "Spiel", bundleID: "a.b", bundlePath: "/Applications/Spiel.app",
+                                                isAccessory: false)
+        XCTAssertNil(competitor([win()], apps: [7: regular]))
     }
 
     func testAppleSystemIgnored() {
         let cc = IslandController.OtherApp(name: "Kontrollzentrum", bundleID: "com.apple.controlcenter",
-                                           bundlePath: "/System/Library/CoreServices/ControlCenter.app", isUIApp: true)
+                                           bundlePath: "/System/Library/CoreServices/ControlCenter.app", isAccessory: true)
         let systemPath = IslandController.OtherApp(name: "X", bundleID: "x.y", bundlePath: "/System/Library/X.app",
-                                                   isUIApp: true)
-        XCTAssertNil(competitor([win(pid: 7, layer: 27), win(pid: 8, layer: 27)], apps: [7: cc, 8: systemPath]))
+                                                   isAccessory: true)
+        XCTAssertNil(competitor([win(pid: 7), win(pid: 8)], apps: [7: cc, 8: systemPath]))
     }
 
     /// Thaw (Menüleisten-Verwaltung) liegt auf Ebene 23/24 über der ganzen Menüleiste – kein Notch-Konkurrent.
     func testMenuBarLayerIgnored() {
-        let thaw = IslandController.OtherApp(name: "Thaw", bundleID: "com.stonerl.Thaw", bundlePath: "/Applications/Thaw.app",
-                                             isUIApp: true)
-        let bar = CGRect(x: 0, y: 0, width: 1470, height: 38)
-        XCTAssertNil(competitor([win(pid: 7, layer: 24, bar), win(pid: 7, layer: 23, bar)], apps: [7: thaw]))
+        XCTAssertNil(competitor([win(layer: 24), win(layer: 23)], apps: [7: notchApp]))
     }
 
-    func testNonIntersectingIgnored() {
-        // Statusmenü rechts in der Menüleiste und ein Fenster, das die Notch nur an der Kante berührt.
-        let right = CGRect(x: 1200, y: 0, width: 30, height: 32)
-        let touching = CGRect(x: 824.5, y: 0, width: 40, height: 32)
-        XCTAssertNil(competitor([win(pid: 7, layer: 25, right), win(pid: 7, layer: 27, touching)], apps: [7: otherApp]))
+    /// Bildschirmbreites Overlay (Abdunkler, Bildschirmlupe u. ä.) ist keine Notch-Anzeige.
+    func testFullWidthOverlayIgnored() {
+        XCTAssertNil(competitor([win(CGRect(x: 0, y: 0, width: 1470, height: 956))], apps: [7: notchApp]))
+        XCTAssertNil(competitor([win(CGRect(x: 0, y: 0, width: 1323, height: 40))], apps: [7: notchApp]))  // 90 %
     }
 
-    func testBackgroundOnlyOrUnknownProcessIgnored() {
-        let daemon = IslandController.OtherApp(name: "helperd", bundleID: "x.helper", bundlePath: nil, isUIApp: false)
-        XCTAssertNil(competitor([win(pid: 7, layer: 27), win(pid: 8, layer: 27)], apps: [7: daemon]))
+    /// Kleines Fenster (Symbol, 30 pt) im Notch-Bereich deckt weniger als die halbe Notch-Breite ab.
+    func testSmallIconWindowIgnored() {
+        XCTAssertNil(competitor([win(CGRect(x: 700, y: 0, width: 30, height: 30))], apps: [7: notchApp]))
+    }
+
+    /// Nur oben bündige Fenster (± 2 pt); weiter unten liegendes zählt nicht.
+    func testWindowNotAtTopIgnored() {
+        XCTAssertNil(competitor([win(CGRect(x: 585, y: 3, width: 300, height: 200))], apps: [7: notchApp]))
+        XCTAssertEqual(competitor([win(CGRect(x: 585, y: 2, width: 300, height: 200))], apps: [7: notchApp]), "NotchNook")
+    }
+
+    func testNonOverlappingIgnored() {
+        XCTAssertNil(competitor([win(CGRect(x: 1100, y: 0, width: 300, height: 32))], apps: [7: notchApp]))
+    }
+
+    func testUnknownProcessIgnored() {
+        XCTAssertNil(competitor([win(pid: 8)], apps: [:]))
     }
 
     /// Name aus der lokalen App (NSRunningApplication), bereinigt; ohne Namen die Bundle-ID.
     func testNameSanitizedOrBundleIDFallback() {
-        let odd = IslandController.OtherApp(name: "Not\u{202E}ch", bundleID: "a.b", bundlePath: nil, isUIApp: true)
-        XCTAssertEqual(competitor([win(pid: 7, layer: 27)], apps: [7: odd]), "Notch")
-        let nameless = IslandController.OtherApp(name: nil, bundleID: "com.example.island", bundlePath: nil, isUIApp: true)
-        XCTAssertEqual(competitor([win(pid: 7, layer: 27)], apps: [7: nameless]), "com.example.island")
+        let odd = IslandController.OtherApp(name: "Not\u{202E}ch", bundleID: "a.b", bundlePath: nil, isAccessory: true)
+        XCTAssertEqual(competitor([win()], apps: [7: odd]), "Notch")
+        let nameless = IslandController.OtherApp(name: nil, bundleID: "com.example.island", bundlePath: nil, isAccessory: true)
+        XCTAssertEqual(competitor([win()], apps: [7: nameless]), "com.example.island")
+    }
+
+    // Entprellen: Hinweis erst, wenn eine zweite Prüfung ~1,5 s später dieselbe App findet.
+
+    func testConfirmedOnlyWhenSecondCheckAgrees() {
+        XCTAssertEqual(IslandController.confirmedCompetitor(first: "NotchNook", second: "NotchNook"), "NotchNook")
+    }
+
+    func testSecondCheckMissingGivesNoWarning() {
+        XCTAssertNil(IslandController.confirmedCompetitor(first: "NotchNook", second: nil))
+        XCTAssertNil(IslandController.confirmedCompetitor(first: "NotchNook", second: "Alcove"))
+        XCTAssertNil(IslandController.confirmedCompetitor(first: nil, second: nil))
     }
 
     func testWarningText() {

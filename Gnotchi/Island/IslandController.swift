@@ -15,18 +15,8 @@ final class IslandController {
         var pid: pid_t = 0
     }
 
-    /// Was über eine fremde App bekannt ist – aus NSRunningApplication (lokal), nie aus der Fensterliste.
-    struct OtherApp: Equatable {
-        let name: String?
-        let bundleID: String?
-        let bundlePath: String?
-        /// Normale App oder Menüleisten-App (nicht: Hintergrunddienst).
-        let isUIApp: Bool
-    }
-
-    /// Ab dieser Ebene liegt ein Fenster über der Menüleiste (kCGStatusWindowLevel). Gemessen 18.10.:
-    /// eigenes Panel 27, Thaws Menüleisten-Fenster 23/24 (dürfen nicht zählen).
-    nonisolated static let competingMinLayer = 25
+    /// Zweite Prüfung, bevor der Hinweis erscheint (kurz aufblitzende Fenster lösen nichts aus).
+    private static let competitorConfirmDelay: Duration = .milliseconds(1500)
 
     private struct Entry {
         let panel: NSPanel
@@ -47,6 +37,8 @@ final class IslandController {
     /// Aufklapp-Verzögerung in Sekunden, bei jedem Überfahren neu gelesen (Einstellung wirkt sofort).
     private let expandDelay: @MainActor () -> TimeInterval
     private var spaceRecheck: Task<Void, Never>?
+    /// Läuft, solange ein gefundener Konkurrent auf die bestätigende zweite Prüfung wartet.
+    private var competitorCheck: Task<Void, Never>?
     private var screenDebounce: Task<Void, Never>?
     private var running = false
     /// Zählt Starts: Eine Beobachtung aus einem früheren Lauf meldet sich nach stop()/start() nicht neu an.
@@ -76,11 +68,14 @@ final class IslandController {
             MainActor.assumeIsolated { self?.screenParametersChanged() }
         })
         let ws = NSWorkspace.shared.notificationCenter
-        workspaceObservers.append(ws.addObserver(
-            forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.spaceChanged() }
-        })
+        // Space-Wechsel, App gestartet oder beendet: jetzt prüfen und nach dem Einschwingen noch einmal.
+        // Start/Ende, damit der Hinweis auf eine zweite Notch-App kommt bzw. verschwindet, wenn sie endet.
+        for name in [NSWorkspace.activeSpaceDidChangeNotification, NSWorkspace.didLaunchApplicationNotification,
+                     NSWorkspace.didTerminateApplicationNotification] {
+            workspaceObservers.append(ws.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.refreshAndRecheck() }
+            })
+        }
         workspaceObservers.append(ws.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -99,7 +94,14 @@ final class IslandController {
         cancelTasks()
         panels.values.forEach { $0.panel.orderOut(nil) }
         panels.removeAll()
-        model.competingNotchApp = nil
+        model.setCompetingNotchApp(nil)
+        model.setIslandShown(false)
+    }
+
+    /// Von außen (Einstellungen öffnen): Zustand und Hinweis neu prüfen.
+    func recheck() {
+        guard running else { return }
+        refresh()
     }
 
     // MARK: Reine Rechnungen (getestet)
@@ -130,7 +132,8 @@ final class IslandController {
     }
 
     /// Fensterliste → Ebene, Lage, normale App. Liest aus jedem Eintrag NUR Prozessnummer, Ebene und Lage
-    /// (SECURE-DESIGN G10): die Prozessnummer allein, um normale Apps zu erkennen – nie Namen oder Titel.
+    /// (SECURE-DESIGN G10) – nie Namen oder Titel. Mit der PID erkennt Gnotchi normale Apps; den Namen
+    /// einer zweiten Notch-App holt es nur über NSRunningApplication(PID), nie aus der Fensterliste.
     /// Eigene Fenster zählen nie als normale App. `isRegular` wird je Prozess nur einmal gefragt.
     nonisolated static func windows(from list: [[String: Any]], ownPID: pid_t,
                                     isRegular: (pid_t) -> Bool) -> [WindowInfo] {
@@ -151,34 +154,6 @@ final class IslandController {
             }
             return WindowInfo(layer: layer, bounds: bounds, isRegularApp: regular, pid: pid)
         }
-    }
-
-    /// Zeichnet eine andere App über der Notch (bzw. Pille)? Fremdes Fenster ab Ebene 25, das eine der
-    /// Flächen `notchRects` (CG-Koordinaten) echt überlappt, von einer App mit Oberfläche, die nicht zu
-    /// macOS gehört (Bundle-ID `com.apple.` oder Bundle unter `/System/`). Ergebnis: Name der App
-    /// (lokalisiert, bereinigt; ohne Namen die Bundle-ID) – nie ein Fenstertitel (G10).
-    nonisolated static func competingNotchApp(windows: [WindowInfo], ownPID: pid_t, notchRects: [CGRect],
-                                              app: (pid_t) -> OtherApp?) -> String? {
-        var checked: Set<pid_t> = []
-        for w in windows where w.layer >= competingMinLayer && w.pid != ownPID && !checked.contains(w.pid) {
-            let overlaps = notchRects.contains { r in
-                let i = r.intersection(w.bounds)
-                return !i.isNull && i.width > 0 && i.height > 0
-            }
-            guard overlaps else { continue }
-            checked.insert(w.pid)
-            guard let other = app(w.pid), other.isUIApp,
-                  other.bundleID?.hasPrefix("com.apple.") != true,
-                  other.bundlePath?.hasPrefix("/System/") != true else { continue }
-            if let name = AppIcons.cleanName(other.name) ?? other.bundleID.flatMap({ BundleID.isValid($0) ? $0 : nil }) {
-                return name
-            }
-        }
-        return nil
-    }
-
-    nonisolated static func competingWarning(name: String) -> String {
-        "„\(name)“ zeichnet ebenfalls über die Notch – bitte nur eine Notch-App verwenden."
     }
 
     /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt
@@ -229,6 +204,8 @@ final class IslandController {
         pointerInside.removeAll()
         spaceRecheck?.cancel()
         spaceRecheck = nil
+        competitorCheck?.cancel()
+        competitorCheck = nil
         screenDebounce?.cancel()
         screenDebounce = nil
     }
@@ -291,7 +268,7 @@ final class IslandController {
         return p
     }
 
-    private func spaceChanged() {
+    private func refreshAndRecheck() {
         refresh()
         spaceRecheck?.cancel()
         spaceRecheck = Task { [weak self] in
@@ -307,13 +284,8 @@ final class IslandController {
     private func refresh() {
         let windows = model.isVisible ? Self.onScreenWindows() : []
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
-        let competitor = model.isVisible ? Self.competingNotchApp(
-            windows: windows, ownPID: ProcessInfo.processInfo.processIdentifier,
-            notchRects: panels.values.map {
-                Self.cgWindowRect(fromAppKit: $0.state.layout.notch ?? $0.state.layout.compact, primaryHeight: primaryHeight)
-            },
-            app: Self.otherApp) : nil
-        if model.competingNotchApp != competitor { model.competingNotchApp = competitor }
+        updateCompetitor(model.isVisible ? competitor(in: windows) : nil)
+        defer { model.setIslandShown(panels.values.contains { $0.state.mode != .hidden }) }
         for (id, entry) in panels {
             let screen = NSScreen.screens.first { $0.displayID == id }
             let fullscreen = screen.map {
@@ -333,6 +305,38 @@ final class IslandController {
                 entry.panel.setFrame(f, display: true)
             }
             entry.panel.orderFrontRegardless()
+        }
+    }
+
+    /// Konkurrent in dieser Fensterliste (Notch bzw. Pille jedes Bildschirms).
+    private func competitor(in windows: [WindowInfo]) -> String? {
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        let targets: [NotchTarget] = panels.compactMap { id, entry in
+            guard let screen = NSScreen.screens.first(where: { $0.displayID == id }) else { return nil }
+            return NotchTarget(
+                notch: Self.cgWindowRect(fromAppKit: entry.state.layout.notch ?? entry.state.layout.compact,
+                                         primaryHeight: primaryHeight),
+                screen: Self.cgWindowRect(fromAppKit: screen.frame, primaryHeight: primaryHeight))
+        }
+        return Self.competingNotchApp(windows: windows, ownPID: ProcessInfo.processInfo.processIdentifier,
+                                      targets: targets, app: Self.otherApp)
+    }
+
+    /// Kein Konkurrent → Hinweis sofort weg. Neuer Konkurrent → erst nach bestätigender zweiter Prüfung.
+    private func updateCompetitor(_ candidate: String?) {
+        guard let candidate else {
+            competitorCheck?.cancel()
+            competitorCheck = nil
+            model.setCompetingNotchApp(nil)
+            return
+        }
+        guard model.competingNotchApp != candidate, competitorCheck == nil else { return }
+        competitorCheck = Task { [weak self] in
+            try? await Task.sleep(for: Self.competitorConfirmDelay)
+            guard !Task.isCancelled, let self, self.running else { return }
+            self.competitorCheck = nil
+            let second = self.model.isVisible ? self.competitor(in: Self.onScreenWindows()) : nil
+            self.model.setCompetingNotchApp(Self.confirmedCompetitor(first: candidate, second: second))
         }
     }
 
@@ -385,16 +389,18 @@ final class IslandController {
         e.state.mode = .expanded
     }
 
-    /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – aus dem lokalen Bundle, nicht aus der Fensterliste.
+    /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – nur über NSRunningApplication(PID) aus dem
+    /// lokalen Bundle, nie aus der Fensterliste.
     private static func otherApp(_ pid: pid_t) -> OtherApp? {
         guard let a = NSRunningApplication(processIdentifier: pid) else { return nil }
         return OtherApp(name: a.localizedName, bundleID: a.bundleIdentifier, bundlePath: a.bundleURL?.path,
-                        isUIApp: a.activationPolicy != .prohibited)
+                        isAccessory: a.activationPolicy == .accessory)
     }
 
     /// Ebene, Lage und Eigentümer-Art aller sichtbaren Fenster. Ohne Bildschirmaufnahme-Freigabe liefert
-    /// macOS keine Fenstertitel – Gnotchi liest bewusst nur Prozessnummer, Ebene und Lage (keine Titel,
-    /// keine App-Namen), braucht also keine Freigabe und erfährt nichts über Fensterinhalte.
+    /// macOS keine Fenstertitel – Gnotchi liest aus der Fensterliste bewusst nur Prozessnummer, Ebene und
+    /// Lage (keine Titel, keine App-Namen), braucht also keine Freigabe und erfährt nichts über Fensterinhalte.
+    /// Den Namen einer zweiten Notch-App holt es nur über NSRunningApplication(PID) (`otherApp`).
     private static func onScreenWindows() -> [WindowInfo] {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]] else { return [] }

@@ -207,14 +207,19 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   `CGWindowListCopyWindowInfo` nur Ebene, Lage und Eigentümer-PID – die PID ausschließlich, um
   normale Apps (`activationPolicy == .regular`) zu erkennen, nie Namen oder Titel (Lint-Regel
   `keine_fenstertitel`); keine Bildschirmaufnahme-Freigabe nötig.
-- **Ergänzt 18.10. – zweite Notch-App erkennen:** Im selben Durchgang (nur bei sichtbarer Insel)
-  sucht Gnotchi fremde Fenster ab Ebene 25 (über der Menüleiste; eigenes Panel 27, Thaw 23/24
-  gemessen), die Notch bzw. Pille echt überlappen. Für deren PID – und **nur für diesen Hinweis** –
-  holt Gnotchi über `NSRunningApplication(processIdentifier:)` lokal Name, Bundle-ID, Bundle-Pfad
-  und Art (keine Hintergrunddienste, nichts von macOS: `com.apple.` bzw. `/System/`). Weiterhin
-  **nie Fenstertitel oder `kCGWindowOwnerName`** aus der Fensterliste. Der Name (bereinigt wie
-  Strom-Texte, höchstens 40 Zeichen) erscheint nur per `Text(verbatim:)` in Menü und Einstellungen,
-  nicht im Protokoll. Entscheidung `IslandController.competingNotchApp` (Test).
+- **Ergänzt 18.10. – zweite Notch-App erkennen:** Im selben Durchgang (nur bei sichtbarer Insel,
+  außerdem bei App-Start/-Ende, Space-Wechsel und beim Öffnen der Einstellungen) liest Gnotchi aus der
+  Fensterliste weiterhin **nur PID, Ebene und Lage**. Ein fremdes Fenster zählt nur, wenn alles gilt:
+  Ebene ≥ 25 (über der Menüleiste; eigenes Panel 27, Thaw 23/24 gemessen), oben bündig (± 2 pt),
+  schmaler als 90 % des Bildschirms, deckt waagrecht mindestens die halbe Notch-/Pillenbreite ab.
+  Für die PID eines solchen Fensters – und **nur für diesen Hinweis** – holt Gnotchi über
+  `NSRunningApplication(processIdentifier:)` lokal Name, Bundle-ID, Bundle-Pfad und Art; zählen nur
+  Menüleisten-Apps (`.accessory`) außerhalb von macOS (`com.apple.` bzw. `/System/`). **Der App-Name
+  kommt nur aus NSRunningApplication(PID), nie aus der Fensterliste; nie Fenstertitel oder
+  `kCGWindowOwnerName`** (Lint-Regel `keine_fenstertitel`). Hinweis erst, wenn eine zweite Prüfung
+  ~1,5 s später dieselbe App findet; ohne Treffer sofort weg. Der Name (bereinigt wie Strom-Texte,
+  höchstens 40 Zeichen) erscheint nur per `Text(verbatim:)` in Menü und Einstellungen, nicht im
+  Protokoll. Entscheidung `IslandController.competingNotchApp`/`confirmedCompetitor` (Test).
 
 ### G11 – Updates wie Kalli/Seam (vormals Seam E9)
 - **Entschieden:** Sparkle 2.10.0 `exactVersion`, `Package.resolved` im Repo (Sparkle-Revision

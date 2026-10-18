@@ -113,6 +113,13 @@ final class AppModel {
         }
     }
 
+    /// Einstellungen geöffnet: Insel und Hinweis auf eine zweite Notch-App neu prüfen (nur wenn sie läuft –
+    /// sonst entstünde hier erst die Insel).
+    func recheckNotch() {
+        guard notchRunning else { return }
+        island.recheck()
+    }
+
     /// Insel zuerst abbauen, dann die Quelle: So reagiert keine Insel mehr auf das Leeren des Titels.
     private func stopNotch() {
         guard notchRunning else { return }
@@ -127,6 +134,11 @@ final class AppModel {
 protocol NotchPart: AnyObject {
     func start()
     func stop()
+    func recheck()
+}
+
+extension NotchPart {
+    func recheck() {}
 }
 
 extension NowPlayingModel: NotchPart {}

@@ -79,7 +79,10 @@ struct SettingsView: View {
         .tint(FamilyTheme.accent)
         .fixedSize(horizontal: false, vertical: true)
         .familyBackground()
-        .onAppear { login = LoginItem.state }
+        .onAppear {
+            login = LoginItem.state
+            model.recheckNotch()
+        }
     }
 
     /// „Sofort“, „0,3 s“, „0,6 s“, „1 s“ – deutsches Komma, ganze Sekunden ohne Nachkommastelle.

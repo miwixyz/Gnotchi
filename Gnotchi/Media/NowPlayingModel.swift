@@ -19,8 +19,11 @@ final class NowPlayingModel {
     /// sichtbar ist und Musik läuft; in der Pause bleibt der letzte Wert stehen.
     private(set) var route: PlaybackRoute = .local
     /// Name einer anderen App, die ebenfalls über die Notch zeichnet (Hinweis in Menü und Einstellungen).
-    /// Gesetzt vom IslandController bei jedem Durchgang durch die Fensterliste; nil = kein Konflikt.
-    var competingNotchApp: String?
+    /// Gesetzt vom IslandController (setCompetingNotchApp); nil = kein Konflikt.
+    private(set) var competingNotchApp: String?
+    /// Zeigt der IslandController gerade auf mindestens einem Bildschirm eine Insel (nicht nur „sichtbar“
+    /// laut Wiedergabe, sondern auch nicht vom Vollbild verdeckt)? Nur dann wird der Wiedergabeweg abgefragt.
+    @ObservationIgnored private var islandShown = false
 
     @ObservationIgnored private let adapter = MediaAdapter()
     /// G7: Spotify/Musik per AppleScript, solange der Adapter `unavailable` meldet; Spotify-Spulen immer.
@@ -201,7 +204,18 @@ final class NowPlayingModel {
         }
     }
 
-    /// Wiedergabeweg abfragen, solange die Insel sichtbar ist und Musik läuft – sonst keine Arbeit.
+    func setCompetingNotchApp(_ name: String?) {
+        if competingNotchApp != name { competingNotchApp = name }
+    }
+
+    func setIslandShown(_ shown: Bool) {
+        guard shown != islandShown else { return }
+        islandShown = shown
+        updateRouteMonitor()
+    }
+
+    /// Wiedergabeweg abfragen, solange eine Insel wirklich zu sehen ist (nicht vom Vollbild verdeckt) und
+    /// Musik läuft – sonst keine Arbeit.
     private func updateRouteMonitor() {
         let appID = info?.appBundleID
         if appID != routeAppID {
@@ -209,7 +223,7 @@ final class NowPlayingModel {
             silentSince = nil
             if route != .local { route = .local }
         }
-        guard isVisible, info?.isPlaying == true else {
+        guard isVisible, islandShown, info?.isPlaying == true else {
             routeTask?.cancel()
             routeTask = nil
             silentSince = nil
