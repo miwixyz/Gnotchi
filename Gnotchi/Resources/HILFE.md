@@ -1,56 +1,131 @@
 # Gnotchi – Hilfe
 
-Gnotchi lebt in der Menüleiste (Symbol: Kapsel). Ein Klick darauf öffnet das Menü mit
-Einstellungen, Hilfe, Update-Suche und Beenden. Rechtsklick auf die Insel öffnet Einstellungen und
-Hilfe. Ohne Musik: Gnotchi-Symbol in der Menüleiste.
+## Was ist Gnotchi
 
-## Musik in der Notch
+Gnotchi macht aus der Notch deines MacBook eine kleine Insel für Musik und Videos. Du siehst, was
+gerade läuft, und steuerst es, ohne die App zu suchen. Auf Bildschirmen ohne Notch erscheint
+dieselbe Insel als schwarze Pille oben in der Mitte. Jeder Bildschirm hat seine eigene.
 
-Läuft Musik oder ein Video, zeigt eine Insel in der Notch des MacBook (auf Bildschirmen ohne Notch
-eine Pille oben in der Mitte) klein Cover und Pegel. Beim Darüberfahren geht sie groß auf: Titel,
-Interpret, Tasten und Fortschritt. Im Fortschrittsbalken klicken oder ziehen spult. Gedacht für
-alle Quellen: Spotify, Musik und Browser wie Safari, Edge oder Helium.
+Gnotchi zeigt alles, was macOS als laufende Wiedergabe meldet: Spotify, Musik und Browser wie
+Safari, Edge oder Helium, auch Videos.
 
-**Welche App spielt:** Über dem Titel stehen Symbol und Name der App, z. B. „Spotify“ oder
-„Safari“; klein ein winziges Abzeichen am Cover. Der Name kommt aus der installierten App.
+## Die Insel
 
-**Wo die Musik spielt:** Läuft sie auf einem anderen Gerät (z. B. Spotify Connect auf externe
-Lautsprecher), steht in der großen Insel oben rechts „Auf anderem Gerät“. Bei AirPlay oder
-Bluetooth steht dort der Name des Geräts. Bei anderem Gerät und AirPlay zeigt die kleine Insel
-einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt –
-es hört nichts mit.
+**Klein:** Läuft etwas, zeigt die Insel links neben der Notch das Cover und rechts einen kleinen
+Pegel. Der Pegel ist nur eine Animation, Gnotchi misst dafür keinen Ton.
 
-## Nur eine Notch-App gleichzeitig
+**Groß:** Bleib mit der Maus auf der kleinen Insel, dann geht sie auf. Du siehst Cover, App, Titel,
+Interpret, die Tasten und den Fortschritt. Fährst du wieder weg, wird sie klein.
 
-Zwei Apps, die über die Notch zeichnen (z. B. NotchNook, Boring Notch, Alcove), überdecken sich
-gegenseitig. Erkennt Gnotchi eine solche App, steht oben im Menü und in den Einstellungen ein
-Hinweis mit ihrem Namen. Dann eine der beiden beenden oder deren Notch-Anzeige ausschalten.
-Gnotchi prüft das, während die Insel sichtbar ist, und liest dafür nur Lage und Ebene der Fenster
-und den Namen der App – keine Fenstertitel, keine Inhalte.
+Wie lange du darauf bleiben musst, stellst du unter „Aufklappen nach“ ein. Ab Werk sind es
+0,6 Sekunden, damit ein flüchtiges Überfahren nichts auslöst. Hältst du die Maustaste gedrückt,
+etwa beim Ziehen eines Fensters an den oberen Rand, geht die Insel nicht auf.
+
+Die Insel verschwindet, wenn nichts mehr läuft, und 5 Sekunden nach dem Pausieren. Läuft auf einem
+Bildschirm eine App im Vollbild, blendet sie sich dort aus.
+
+## Steuern und Spulen
+
+In der großen Insel stehen rechts die Tasten **Zurück**, **Wiedergabe/Pause** und **Weiter**.
+
+Darunter liegt der Fortschrittsbalken mit der gespielten Zeit links und der Gesamtzeit rechts.
+Klick an eine Stelle oder zieh den Punkt, gespult wird beim Loslassen. In Spotify klappt das auch,
+wenn die Musik über Spotify Connect auf einem Lautsprecher läuft. Hat ein Titel keine Gesamtzeit,
+etwa ein Livestream, ist der Balken gesperrt.
+
+## Welche App spielt
+
+Über dem Titel stehen Symbol und Name der App, zum Beispiel „Spotify“, „Musik“ oder „Safari“. In
+der kleinen Insel sitzt das Symbol als winziges Abzeichen am Cover. Den Namen nimmt Gnotchi aus der
+installierten App, nie von einer Website.
+
+## Auf anderem Gerät, AirPlay, Bluetooth
+
+Oben rechts in der großen Insel steht, wo der Ton herauskommt:
+
+- **Auf anderem Gerät:** Die App spielt, aber nicht auf diesem Mac, zum Beispiel Spotify Connect auf einem externen Lautsprecher.
+- **AirPlay:** der Name des AirPlay-Lautsprechers.
+- **Bluetooth:** der Name der Kopfhörer oder Box.
+
+Spielt der Mac selbst, steht dort nichts. Bei anderem Gerät und AirPlay zeigt die kleine Insel
+einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt.
+Es hört nichts mit.
 
 ## Einstellungen
 
-- **Musik in der Notch:** schaltet die Insel ein oder aus. Ab Werk an. Wirkt, sobald die Insel
-  da ist.
-- **Aufklappen nach:** wie lange die Maus über der kleinen Insel bleiben muss, bis sie groß aufgeht
-  (Sofort, 0,3 s, 0,6 s oder 1 s; ab Werk 0,6 s) – so stört ein flüchtiges Überfahren nicht.
-- **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden. Meldet macOS „wartet auf deine
-  Freigabe“, gib Gnotchi unter Systemeinstellungen → Allgemein → Anmeldeobjekte frei.
+- **Musik in der Notch:** schaltet die Insel ein oder aus. Ab Werk an. Aus heißt: keine Insel und kein Abfragen der Wiedergabe.
+- **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
+- **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
+- **Nach Updates suchen …:** sucht sofort nach einer neuen Version.
+
+## Menü und Rechtsklick
+
+Gnotchi hat ein Symbol in der Menüleiste. Ein Klick darauf öffnet das Menü mit „Einstellungen …“,
+„Hilfe …“, „Nach Updates suchen …“ und „Beenden“. Läuft keine Musik, gibt es keine Insel, dann
+erreichst du Gnotchi über dieses Symbol.
+
+Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit „Einstellungen …“ und
+„Hilfe …“. Die Insel klappt dabei nicht auf.
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Bedienungshilfen-Freigabe** und fragt auch nie danach.
+Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme und kein Mikrofon.
 
-Nur wenn macOS den systemweiten Zugriff auf die Wiedergabe sperrt, steuert Gnotchi Spotify und
-Musik direkt. Spulen in Spotify läuft immer direkt, sonst springt die Zeit über Spotify Connect
-zurück. Beim ersten Mal fragt macOS, ob Gnotchi diese App steuern darf. Erlauben oder später
-ändern unter Systemeinstellungen → Datenschutz & Sicherheit → Automation.
+macOS fragt höchstens in diesen Fällen:
 
-Titel, Interpret und Cover bleiben im Speicher. Gnotchi speichert sie nicht, schreibt sie nicht
-ins Protokoll und schickt sie nirgendwohin.
+- **Spotify steuern:** beim ersten Spulen in Spotify. Gnotchi spult Spotify direkt, sonst springt die Zeit über Spotify Connect zurück.
+- **Musik steuern:** nur, wenn Gnotchi auf den Ersatzweg umschalten muss (siehe „Wenn etwas nicht geht“).
+- **Anmeldeobjekt:** wenn du „Bei Anmeldung starten“ einschaltest. Steht in den Einstellungen „macOS wartet auf deine Freigabe“, klick auf „Freigeben …“ und schalte Gnotchi unter Systemeinstellungen → Allgemein → Anmeldeobjekte ein.
+
+Ändern oder widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → Gnotchi.
+Lehnst du Spotify ab, spult Gnotchi trotzdem, dann aber auf dem Weg, der über Spotify Connect
+nicht wirkt.
+
+## Datenschutz
+
+- Was du hörst und siehst, bleibt auf deinem Mac. Titel, Interpret und Cover liegen nur im Arbeitsspeicher und sind nach dem Beenden weg.
+- Gnotchi speichert sie nicht, schreibt sie nicht ins Protokoll und schickt sie nirgendwohin.
+- Gespeichert werden nur deine Einstellungen.
+- Gnotchi liest keine Fenstertitel und keine Inhalte anderer Apps und nimmt keinen Ton auf.
+- Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
+
+## Nur eine Notch-App gleichzeitig
+
+Zwei Apps, die über die Notch zeichnen (zum Beispiel NotchNook, Boring Notch oder Alcove),
+überdecken sich gegenseitig. Erkennt Gnotchi eine solche App, steht oben im Menü und in den
+Einstellungen ein Hinweis mit ihrem Namen. Beende dann eine der beiden oder schalte deren
+Notch-Anzeige aus. Der Hinweis verschwindet von selbst, sobald die andere App weg ist.
+
+Gnotchi prüft das nur, solange die Insel zu sehen ist, und liest dafür nur Lage und Ebene der
+Fenster und den Namen der App, keine Fenstertitel.
+
+## Wenn etwas nicht geht
+
+**Die Insel erscheint nicht.** Ist „Musik in der Notch“ an? Läuft gerade etwas, oder ist es länger
+als 5 Sekunden pausiert? Läuft auf diesem Bildschirm eine App im Vollbild? Ein maximiertes Fenster
+bei ausgeblendetem Dock zählt dabei wie Vollbild.
+
+Hinweise in den Einstellungen und was sie bedeuten:
+
+- **„… – nur Spotify und Musik“:** Gnotchi kann die Wiedergabe nicht für alle Apps lesen und nutzt den Ersatzweg. Dann zeigt und steuert es nur Spotify und Musik. Der Teil vor dem Strich sagt, warum:
+- **„macOS blockiert den Zugriff auf die Wiedergabe“:** macOS lässt den Weg nicht mehr zu, etwa nach einem System-Update. Spotify und Musik funktionieren über den Ersatzweg weiter.
+- **„Signatur des Programmpakets ungültig …“** oder **„Adapter fehlt im Programmpaket“:** Gnotchi ist verändert oder beschädigt. Lade es neu und ersetze es in *Programme*.
+- **„Adapter bricht wiederholt ab“:** Schalte „Musik in der Notch“ aus und wieder ein oder starte Gnotchi neu.
+- **„Automation für … nicht erlaubt“:** Du hast Gnotchi verboten, Spotify oder Musik zu steuern. Erlaube es unter Systemeinstellungen → Datenschutz & Sicherheit → Automation.
+- **„… zeichnet ebenfalls über die Notch“:** siehe „Nur eine Notch-App gleichzeitig“.
+- **„macOS meldet einen unbekannten Autostart-Status“:** Gnotchi kann „Bei Anmeldung starten“ gerade nicht lesen. Prüfe es unter Systemeinstellungen → Allgemein → Anmeldeobjekte.
+
+**Spulen geht nicht.** Bei Livestreams ohne Gesamtzeit ist der Balken gesperrt. Springt die Zeit
+in Spotify zurück, hat Gnotchi vermutlich keine Erlaubnis, Spotify zu steuern (siehe
+„Berechtigungen“).
+
+**Es wird die falsche App gezeigt.** Gnotchi zeigt, was macOS gerade als laufende Wiedergabe
+führt. Spielen zwei Apps gleichzeitig, entscheidet macOS.
 
 ## Updates
 
-„Nach Updates suchen …“ im Menü. Beim ersten Mal fragt Gnotchi, ob es selbst nach Updates suchen
-darf. Findet es eines, steht es oben im Menü. Updates sind signiert, Gnotchi installiert nur, was
-mit Michaels Schlüssel signiert ist.
+„Nach Updates suchen …“ steht im Menü und in den Einstellungen. Beim ersten Mal fragt Gnotchi, ob
+es selbst nach Updates suchen darf. Findet es eines, steht es oben im Menü, ohne Mitteilung.
+Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind.
+
+Was sich geändert hat, steht hier im Fenster unter „Änderungen“.
