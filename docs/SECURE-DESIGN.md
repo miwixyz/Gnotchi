@@ -400,8 +400,10 @@ Adresse aus dem offiziellen README (Slopsquat).
       Panel `.nonactivatingPanel` + `ignoresMouseEvents` im unsichtbaren Zustand
 - [ ] Sichttest: Erbt der Perl-Prozess Gnotchis Freigaben? Mit Gnotchi selbst gemessen, nicht aus
       dem Terminal (G2)
-- [ ] `codesign -d --entitlements - --xml` am signierten Build: App nur Apple Events, eingebetteter
-      Code ohne
+- [x] `codesign -d --entitlements - --xml` am signierten Build: App nur Apple Events, eingebetteter
+      Code ohne – gemessen 18.10. am heruntergeladenen v0.1.0-ZIP (Build 45): App nur
+      `automation.apple-events`; Test-Programm und Sparkle-Autoupdate tragen nur den von Xcode
+      eingesetzten `com.apple.application-identifier`, alle anderen Teile nichts
 - [x] Datenschutz-Gate (G16) in `make lint`, `release.sh` und Pre-Commit-Hook, Gegenprobe 18.10.
 - [x] `rafter-code-review` gegen G1–G16 (18.10., kein kritischer/hoher Fund, Härtungen B1–B12
       umgesetzt) und `rafter run` (18.10., Scan `c4fa8f06`, Standardmodus): 1 Warnung R-33E2F
