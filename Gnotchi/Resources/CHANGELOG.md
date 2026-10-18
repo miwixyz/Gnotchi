@@ -13,3 +13,9 @@ Alle nennenswerten Änderungen an Gnotchi.
   zeilenweise mit Längenlimit, Titel bereinigt, Cover begrenzt dekodiert.
 - Menüleisten-App mit Einstellungen („Musik in der Notch“, „Bei Anmeldung starten“), Hilfe,
   Update-Suche (Sparkle). Die Insel selbst folgt.
+
+### Geändert
+
+- Fortschritt in der großen Insel: dünner Balken wie im Kontrollzentrum statt Regler mit festem
+  Knopf. Der Knopf erscheint nur beim Überfahren oder Ziehen; Klicken oder Ziehen spult, gesendet
+  wird erst beim Loslassen. Ohne Dauer (Livestream) bleibt der Balken leer und gesperrt.

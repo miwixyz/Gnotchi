@@ -159,16 +159,19 @@ private struct LevelBars: View {
 }
 
 /// Fortschritt mit Zeiten, spulbar. Gespult wird erst beim Loslassen (sonst ein Befehl je Mausbewegung).
+/// Dünner Balken wie im Kontrollzentrum statt Regler mit festem Knopf (Michael, 18.10.).
 struct ProgressRow: View {
     let info: NowPlayingInfo
     let onSeek: (TimeInterval) -> Void
     /// Wert während des Ziehens.
     @State private var dragValue: Double?
-    /// Nach dem Loslassen: Zielwert halten, bis die nächste Meldung kommt (sonst springt der Regler kurz zurück).
+    /// Nach dem Loslassen: Zielwert halten, bis die nächste Meldung kommt (sonst springt der Balken kurz zurück).
     @State private var pending: PendingSeek?
 
     /// Anzeige, wenn es keine sinnvolle Zeit gibt (keine Dauer, unbrauchbarer Wert).
     nonisolated static let placeholder = "–:––"
+    /// Schritt für VoiceOver (Erhöhen/Verringern).
+    nonisolated static let accessibilityStep: TimeInterval = 10
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
@@ -176,23 +179,40 @@ struct ProgressRow: View {
             let d = Self.display(elapsed: shown, duration: info.duration)
             HStack(spacing: 8) {
                 Text(verbatim: d.elapsedLabel).monospacedDigit()
-                Slider(value: Binding(get: { d.sliderValue }, set: { dragValue = $0 }), in: 0...d.sliderUpper) { editing in
-                    guard !editing, let v = dragValue else { return }
-                    onSeek(v)
-                    pending = PendingSeek(value: v, info: info, released: Date())
-                    dragValue = nil
-                }
-                .controlSize(.mini)
-                // Weiß statt Akzentfarbe: wie die Wiedergabe-Steuerung im Kontrollzentrum.
-                .tint(.white)
-                .disabled(!d.seekable)
-                .accessibilityLabel(Text(verbatim: "Position"))
-                .accessibilityValue(Text(verbatim: d.accessibilityValue))
+                ScrubBar(fraction: d.fraction, enabled: d.seekable,
+                         onDrag: { x, width in dragValue = Self.seconds(atX: x, width: width, upper: d.sliderUpper) },
+                         onRelease: { release() })
+                    .accessibilityRepresentation {
+                        // Für VoiceOver ein echter Regler: Wert, Erhöhen/Verringern wie zuvor beim Slider.
+                        Slider(value: Binding(get: { d.sliderValue }, set: { seek($0) }), in: 0...d.sliderUpper,
+                               step: Self.accessibilityStep)
+                            .disabled(!d.seekable)
+                    }
+                    .accessibilityLabel(Text(verbatim: "Position"))
+                    .accessibilityValue(Text(verbatim: d.accessibilityValue))
                 Text(verbatim: d.durationLabel).monospacedDigit()
             }
             .font(.system(size: 10))
             .foregroundStyle(.secondary)
         }
+    }
+
+    private func release() {
+        guard let v = dragValue else { return }
+        seek(v)
+        dragValue = nil
+    }
+
+    private func seek(_ v: TimeInterval) {
+        onSeek(v)
+        pending = PendingSeek(value: v, info: info, released: Date())
+    }
+
+    /// Mausposition im Balken → Sekunden, festgehalten auf [0, upper]. Unbrauchbare Werte (Breite 0,
+    /// NaN, ∞) ergeben 0 – der Balken hat beim ersten Layout-Durchlauf noch keine Breite.
+    nonisolated static func seconds(atX x: CGFloat, width: CGFloat, upper: TimeInterval) -> TimeInterval {
+        guard x.isFinite, width.isFinite, width > 0, upper.isFinite, upper > 0 else { return 0 }
+        return Double(min(max(x / width, 0), 1)) * upper
     }
 
     struct Display: Equatable {
@@ -202,9 +222,15 @@ struct ProgressRow: View {
         let sliderUpper: Double
         let seekable: Bool
         let accessibilityValue: String
+
+        /// Füllstand des Balkens 0…1; ohne Dauer leer (nicht voll wie der gesperrte Regler vorher).
+        var fraction: Double {
+            guard seekable, sliderUpper > 0 else { return 0 }
+            return min(max(sliderValue / sliderUpper, 0), 1)
+        }
     }
 
-    /// Begrenzt wird nur der Regler (Slider-Bereich); die Zeit links zeigt die echte Position.
+    /// Begrenzt wird nur der Balken (Wertebereich); die Zeit links zeigt die echte Position.
     /// Sonst stünde sie ohne Dauer (Livestream) bei 0:01 still (Review 18.10.).
     nonisolated static func display(elapsed: TimeInterval, duration: TimeInterval?) -> Display {
         let dur = duration.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
@@ -247,5 +273,55 @@ struct ProgressRow: View {
         let t = Int(max(0, s).rounded(.down))
         return t >= 3600 ? String(format: "%d:%02d:%02d", t / 3600, t / 60 % 60, t % 60)
                          : String(format: "%d:%02d", t / 60, t % 60)
+    }
+}
+
+/// Dünner Balken (Kapsel, Weiß 20 % / Weiß gefüllt). Den Knopf gibt es nur beim Überfahren oder Ziehen.
+/// Klick oder Ziehen meldet die Position laufend (`onDrag`), gespult wird erst bei `onRelease`.
+/// Funktioniert mit dem ersten Klick im nie aktiven Panel (ClickableHostingView.acceptsFirstMouse).
+private struct ScrubBar: View {
+    let fraction: Double
+    let enabled: Bool
+    let onDrag: (CGFloat, CGFloat) -> Void
+    let onRelease: () -> Void
+    @State private var hovering = false
+    @State private var dragging = false
+
+    private var active: Bool { enabled && (hovering || dragging) }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let x = width * fraction
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.2))
+                Rectangle().fill(.white).frame(width: max(0, x))
+            }
+            .frame(height: active ? 4 : 3)
+            .clipShape(Capsule())
+            .overlay(alignment: .leading) {
+                Circle().fill(.white)
+                    .frame(width: 9, height: 9)
+                    .offset(x: x - 4.5)
+                    .opacity(active ? 1 : 0)
+            }
+            .frame(maxHeight: .infinity)
+            // Greifbar über die ganze Höhe, nicht nur über die 3 pt der Linie.
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { g in
+                    dragging = true
+                    onDrag(g.location.x, width)
+                }
+                .onEnded { _ in
+                    dragging = false
+                    onRelease()
+                })
+        }
+        .frame(height: 12)
+        .opacity(enabled ? 1 : 0.4)
+        .allowsHitTesting(enabled)
+        .onHover { hovering = $0 }
+        .animation(.snappy(duration: 0.2), value: active)
     }
 }

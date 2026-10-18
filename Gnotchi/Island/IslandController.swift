@@ -280,6 +280,11 @@ final class IslandController {
         }
         collapseTasks[displayID] = Task { [weak self] in
             try? await Task.sleep(for: Self.collapseDelay)
+            // Zieht man den Fortschrittsbalken über den Inselrand hinaus, nicht mitten im Ziehen zuklappen
+            // (das Ende des Ziehens und damit das Spulen ginge verloren) – erst nach dem Loslassen.
+            while !Task.isCancelled, NSEvent.pressedMouseButtons != 0 {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
             // Nur aus „groß“ zuklappen – ist die Insel inzwischen weg, bleibt sie weg.
             guard !Task.isCancelled, let self, let e = self.panels[displayID], e.state.mode == .expanded else { return }
             e.state.mode = .compact
