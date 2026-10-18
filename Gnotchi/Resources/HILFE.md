@@ -24,6 +24,8 @@ und den Namen der App – keine Fenstertitel, keine Inhalte.
 
 - **Musik in der Notch:** schaltet die Insel ein oder aus. Ab Werk an. Wirkt, sobald die Insel
   da ist.
+- **Aufklappen nach:** wie lange die Maus über der kleinen Insel bleiben muss, bis sie groß aufgeht
+  (Sofort, 0,3 s, 0,6 s oder 1 s; ab Werk 0,6 s) – so stört ein flüchtiges Überfahren nicht.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden. Meldet macOS „wartet auf deine
   Freigabe“, gib Gnotchi unter Systemeinstellungen → Allgemein → Anmeldeobjekte frei.
 

@@ -81,7 +81,7 @@ final class AppModel {
         let nowPlaying = NowPlayingModel()
         self.nowPlaying = nowPlaying
         self.source = source ?? nowPlaying
-        self.makeIsland = makeIsland ?? { IslandController(model: nowPlaying) }
+        self.makeIsland = makeIsland ?? { IslandController(model: nowPlaying, expandDelay: { prefs.expandDelay }) }
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.

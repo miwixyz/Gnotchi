@@ -16,6 +16,18 @@ struct SettingsView: View {
             card("Notch") {
                 toggleRow("Musik in der Notch", isOn: $prefs.notchMedia)
                     .onChange(of: prefs.notchMedia) { model.applyNotchSetting() }
+                // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
+                row("Aufklappen nach") {
+                    Picker("Aufklappen nach", selection: $prefs.expandDelay) {
+                        ForEach(Preferences.expandDelayChoices, id: \.self) { d in
+                            Text(verbatim: Self.delayLabel(d)).tag(d)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .fixedSize()
+                }
+                .disabled(!prefs.notchMedia)
                 // Grund steht für sich (z. B. „… – nur Spotify und Musik“): Der Rückfall läuft dann
                 // ja noch, ein Vorsatz „nicht verfügbar“ wäre falsch.
                 if prefs.notchMedia, let reason = model.nowPlaying.unavailableReason {
@@ -68,6 +80,13 @@ struct SettingsView: View {
         .fixedSize(horizontal: false, vertical: true)
         .familyBackground()
         .onAppear { login = LoginItem.state }
+    }
+
+    /// „Sofort“, „0,3 s“, „0,6 s“, „1 s“ – deutsches Komma, ganze Sekunden ohne Nachkommastelle.
+    nonisolated static func delayLabel(_ seconds: TimeInterval) -> String {
+        guard seconds > 0 else { return "Sofort" }
+        let text = seconds == seconds.rounded() ? String(Int(seconds)) : String(format: "%.1f", seconds)
+        return text.replacingOccurrences(of: ".", with: ",") + " s"
     }
 
     // MARK: - Bausteine (aus Seams SettingsView, 18.10.)

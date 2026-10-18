@@ -26,5 +26,7 @@ Alle nennenswerten Änderungen an Gnotchi.
   Lautsprecher), zeigt die große Insel oben rechts „Auf anderem Gerät“, bei AirPlay oder Bluetooth
   den Namen des Geräts. Klein ersetzt dann ein Lautsprecher den Pegel (bei anderem Gerät und
   AirPlay). Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt – es hört nichts mit.
+- Einstellung „Aufklappen nach“ (Sofort, 0,3 s, 0,6 s, 1 s; ab Werk 0,6 s): Die Insel geht erst
+  auf, wenn die Maus so lange darüber bleibt – flüchtiges Überfahren löst nichts mehr aus.
 - Nur eine Notch-App: Zeichnet eine andere App ebenfalls über die Notch (z. B. NotchNook), zeigt
   Gnotchi oben im Menü und in den Einstellungen einen Hinweis mit ihrem Namen.

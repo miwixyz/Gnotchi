@@ -40,6 +40,12 @@ final class IslandController {
     private var workspaceObservers: [NSObjectProtocol] = []
     /// Je Bildschirm: Sonst bräche das Aufgehen auf Bildschirm B das Zuklappen auf A ab.
     private var collapseTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
+    /// Je Bildschirm: Aufklappen erst nach der gewählten Verzögerung (Preferences.expandDelay).
+    private var expandTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
+    /// Je Bildschirm: Ist die Maus gerade über der Insel? Gilt nach Ablauf der Verzögerung.
+    private var pointerInside: [CGDirectDisplayID: Bool] = [:]
+    /// Aufklapp-Verzögerung in Sekunden, bei jedem Überfahren neu gelesen (Einstellung wirkt sofort).
+    private let expandDelay: @MainActor () -> TimeInterval
     private var spaceRecheck: Task<Void, Never>?
     private var screenDebounce: Task<Void, Never>?
     private var running = false
@@ -54,7 +60,10 @@ final class IslandController {
     /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
-    init(model: NowPlayingModel) { self.model = model }
+    init(model: NowPlayingModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 }) {
+        self.model = model
+        self.expandDelay = expandDelay
+    }
 
     func start() {
         guard !running else { return }
@@ -172,6 +181,12 @@ final class IslandController {
         "„\(name)“ zeichnet ebenfalls über die Notch – bitte nur eine Notch-App verwenden."
     }
 
+    /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt
+    /// ist (Fenster an den oberen Rand ziehen, Spezifikation) und die Insel klein ist (nicht weg, nicht schon groß).
+    nonisolated static func shouldExpand(stillInside: Bool, mouseDown: Bool, mode: IslandState.Mode) -> Bool {
+        stillInside && !mouseDown && mode == .compact
+    }
+
     /// Neu aufbauen nur, wenn sich Bildschirme oder deren Inselmaße wirklich geändert haben.
     nonisolated static func layoutsChanged(old: [CGDirectDisplayID: IslandGeometry.Layout],
                                            new: [CGDirectDisplayID: IslandGeometry.Layout]) -> Bool {
@@ -209,6 +224,9 @@ final class IslandController {
     private func cancelTasks() {
         collapseTasks.values.forEach { $0.cancel() }
         collapseTasks.removeAll()
+        expandTasks.values.forEach { $0.cancel() }
+        expandTasks.removeAll()
+        pointerInside.removeAll()
         spaceRecheck?.cancel()
         spaceRecheck = nil
         screenDebounce?.cancel()
@@ -320,14 +338,21 @@ final class IslandController {
 
     private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
         guard let entry = panels[displayID], entry.state.mode != .hidden else { return }
+        pointerInside[displayID] = inside
         collapseTasks[displayID]?.cancel()
         collapseTasks[displayID] = nil
+        // Maus vor Ablauf der Verzögerung wieder weg: nicht aufklappen.
+        expandTasks[displayID]?.cancel()
+        expandTasks[displayID] = nil
         if inside {
-            // Beim Ziehen eines Fensters an den oberen Rand nicht aufgehen (Spezifikation).
-            guard NSEvent.pressedMouseButtons == 0 else { return }
-            // Erst das Panel groß, dann der Zustand: sonst schnitte das kleine Panel die Animation ab.
-            entry.panel.setFrame(entry.state.layout.expanded, display: true)
-            entry.state.mode = .expanded
+            guard entry.state.mode == .compact else { return }
+            let delay = expandDelay()
+            guard delay > 0 else { return expandIfStillInside(displayID) }
+            expandTasks[displayID] = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled else { return }
+                self?.expandIfStillInside(displayID)
+            }
             return
         }
         collapseTasks[displayID] = Task { [weak self] in
@@ -337,13 +362,27 @@ final class IslandController {
             while !Task.isCancelled, NSEvent.pressedMouseButtons != 0 {
                 try? await Task.sleep(for: .milliseconds(100))
             }
-            // Nur aus „groß“ zuklappen – ist die Insel inzwischen weg, bleibt sie weg.
-            guard !Task.isCancelled, let self, let e = self.panels[displayID], e.state.mode == .expanded else { return }
-            e.state.mode = .compact
-            try? await Task.sleep(for: Self.animationTail)   // Animation auslaufen lassen, dann Panel verkleinern
+            // Ist die Insel inzwischen weg, bleibt sie weg.
+            guard !Task.isCancelled, let self, let e = self.panels[displayID] else { return }
+            if e.state.mode == .expanded {
+                e.state.mode = .compact
+                try? await Task.sleep(for: Self.animationTail)   // Animation auslaufen lassen, dann Panel verkleinern
+            }
+            // Auch „klein, Panel noch groß“ verkleinern: Kurz wieder drüber während des Zuklappens und vor
+            // Ablauf der Aufklapp-Verzögerung wieder weg – sonst finge das große Panel Menüleisten-Klicks ab.
             guard !Task.isCancelled, e.state.mode == .compact else { return }
             e.panel.setFrame(e.state.layout.compact, display: true)
         }
+    }
+
+    private func expandIfStillInside(_ displayID: CGDirectDisplayID) {
+        expandTasks[displayID] = nil
+        guard let e = panels[displayID],
+              Self.shouldExpand(stillInside: pointerInside[displayID] == true,
+                                mouseDown: NSEvent.pressedMouseButtons != 0, mode: e.state.mode) else { return }
+        // Erst das Panel groß, dann der Zustand: sonst schnitte das kleine Panel die Animation ab.
+        e.panel.setFrame(e.state.layout.expanded, display: true)
+        e.state.mode = .expanded
     }
 
     /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – aus dem lokalen Bundle, nicht aus der Fensterliste.

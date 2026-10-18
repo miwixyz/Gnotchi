@@ -199,6 +199,27 @@ final class IslandControllerTests: XCTestCase {
                        "„NotchNook“ zeichnet ebenfalls über die Notch – bitte nur eine Notch-App verwenden.")
     }
 
+    // MARK: Aufklappen nach Verzögerung
+
+    func testExpandsWhenStillInsideCompactNoButton() {
+        XCTAssertTrue(IslandController.shouldExpand(stillInside: true, mouseDown: false, mode: .compact))
+    }
+
+    func testNoExpandWhenPointerLeftDuringDelay() {
+        XCTAssertFalse(IslandController.shouldExpand(stillInside: false, mouseDown: false, mode: .compact))
+    }
+
+    /// Fenster an den oberen Rand ziehen: nicht aufgehen (Spezifikation).
+    func testNoExpandWhileMouseButtonDown() {
+        XCTAssertFalse(IslandController.shouldExpand(stillInside: true, mouseDown: true, mode: .compact))
+    }
+
+    /// Inzwischen ausgeblendet (Pause, Vollbild) oder schon groß: nichts tun.
+    func testNoExpandUnlessCompact() {
+        XCTAssertFalse(IslandController.shouldExpand(stillInside: true, mouseDown: false, mode: .hidden))
+        XCTAssertFalse(IslandController.shouldExpand(stillInside: true, mouseDown: false, mode: .expanded))
+    }
+
     // MARK: Bildschirm-Änderungen
 
     func testLayoutsChanged() {
