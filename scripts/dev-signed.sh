@@ -20,7 +20,10 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
-LOG=/tmp/gnotchi-dev-build.log
+# Eigene, frisch angelegte Logdatei im (gitignorierten) build-dev/ statt eines festen /tmp-Namens
+# (Security-Review 18.10., B5: ein fremder Prozess könnte /tmp/<fester Name> vorab als Symlink anlegen).
+mkdir -p build-dev
+LOG=$(mktemp "build-dev/dev-build.XXXXXX")
 if ! make build DERIVED=build-dev >"$LOG" 2>&1; then
     grep -E 'error:' "$LOG" | sort -u | head -8
     echo "✗ Build fehlgeschlagen — Log: $LOG" >&2

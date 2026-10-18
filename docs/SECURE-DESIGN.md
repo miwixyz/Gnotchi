@@ -270,6 +270,18 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   `/usr/bin/perl` laufen.
 - **Warum:** Wer Code in Gnotchi einschleust, erbt dessen Automation-Freigaben und dessen
   Verantwortung für den Perl-Prozess.
+- **Ergänzt 18.10. (Security-Review B2, B5, B12):** Die Positivliste prüft jetzt **jeden** eingebetteten
+  Code-Teil rekursiv (`scripts/entitlement-gate.sh`, von `release.sh` eingelesen): jedes Bundle (.app,
+  .xpc, .framework, .appex, .bundle, .plugin) und jede lose Mach-O-Datei unter `Contents/`, ohne
+  Symlinks – vorher nur `MacOS/*` und die oberste Ebene der Frameworks, Sparkles XPC-Dienste,
+  Updater.app und Autoupdate blieben ungeprüft. Sparkle 2.10.0 gemessen (Release-Build): keine
+  Berechtigungen außer `com.apple.application-identifier` an Autoupdate (geduldet). Trockenlauf
+  18.10.: Release-Build 12 Teile sauber, signierte Testkopie 14 Teile sauber; Gegenprobe:
+  `disable-library-validation` an Downloader.xpc bzw. an einer losen Datei unter
+  `Contents/Library/` bricht ab (Exit 1). `release.sh` vergleicht `sparkle:shortVersionString`
+  im Appcast und im veröffentlichten Feed genau statt als Teilstring. `dev-signed.sh`/
+  `install-signed.sh` schreiben ihr Build-Log in eine per `mktemp` frisch angelegte Datei unter
+  `build-dev/` statt an einen festen `/tmp`-Pfad.
 
 ### G13 – Niemand außer dem Nutzer steuert Gnotchi (vormals Seam E7)
 - **Entschieden:** Kein URL-Schema, kein `NSAppleScriptEnabled`, keine `NSServices`, keine

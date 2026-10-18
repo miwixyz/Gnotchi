@@ -9,7 +9,10 @@
 # Aufruf:  sh scripts/install-signed.sh   (oder: make install)
 set -eu
 cd "$(dirname "$0")/.."
-LOG=/tmp/gnotchi-install-build.log
+# Eigene, frisch angelegte Logdatei im (gitignorierten) build-dev/ statt eines festen /tmp-Namens
+# (Security-Review 18.10., B5: ein fremder Prozess könnte /tmp/<fester Name> vorab als Symlink anlegen).
+mkdir -p build-dev
+LOG=$(mktemp "build-dev/install-build.XXXXXX")
 if ! make build CONFIG=Release DERIVED=build-dev >"$LOG" 2>&1; then
     grep -E 'error:' "$LOG" | sort -u | head -8
     echo "✗ Build fehlgeschlagen — Log: $LOG" >&2

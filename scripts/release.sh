@@ -191,41 +191,20 @@ echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
     || fail "Falsches Team in der Signatur (erwartet LTKJ6Z2VYB)"
 # G12 maschinell (Seam-Muster E8, Code-Audit 09.10., S3): Positivliste statt „leer“.
 # - App: GENAU com.apple.security.automation.apple-events (AppleScript-Rückfall, G7).
-# - Eingebetteter Code (Contents/MacOS/* außer Gnotchi, Contents/Frameworks/*.framework):
-#   KEINE Berechtigungen. Das Test-Programm und das Framework laufen unter /usr/bin/perl;
-#   jede Berechtigung dort wäre eine, die der Adapter nicht braucht.
-# - In beiden Fällen geduldet: was Xcode beim Export mit Profil selbst einsetzt
+# - JEDER eingebettete Code-Teil, rekursiv (Sparkles XPC-Dienste, Updater.app, Autoupdate,
+#   Adapter-Framework, Test-Programm …): nur, was scripts/entitlement-gate.sh für ihn erlaubt –
+#   für alle derzeit nichts (Security-Review 18.10., B2: vorher nur die oberste Ebene geprüft).
+# - Überall geduldet: was Xcode beim Export mit Profil selbst einsetzt
 #   (com.apple.application-identifier, com.apple.developer.team-identifier). Alles andere,
 #   auch get-task-allow oder eine Hardened-Runtime-Ausnahme wie disable-library-validation,
 #   bricht das Release ab.
 # Geparst mit Python/plistlib statt grep (ugrep-Lehre, siehe Appcast-Prüfung unten).
-entitlement_keys() {
-    codesign -d --entitlements - --xml "$1" 2>/dev/null | python3 -c '
-import plistlib, sys
-raw = sys.stdin.buffer.read()
-print("\n".join(sorted(plistlib.loads(raw).keys())) if raw.strip() else "")
-' || fail "Berechtigungen von $1 nicht lesbar"
-}
-check_entitlements() {   # $1 = Pfad, $2 = erlaubte Schlüssel (durch Leerzeichen getrennt)
-    local key unexpected=""
-    for key in $(entitlement_keys "$1"); do
-        case " $2 com.apple.application-identifier com.apple.developer.team-identifier " in
-            *" ${key} "*) ;;
-            *) unexpected="${unexpected} ${key}" ;;
-        esac
-    done
-    [ -z "${unexpected}" ] || fail "Unerwartete Berechtigungen in ${1#"${APP_PATH}"/}:${unexpected} (SECURE-DESIGN G12)"
-}
-check_entitlements "${APP_PATH}" "com.apple.security.automation.apple-events"
-entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.automation.apple-events" \
+. scripts/entitlement-gate.sh
+gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events"
+gate_entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.automation.apple-events" \
     || fail "Apple-Events-Berechtigung fehlt in der App — der Spotify/Musik-Rückfall (G7) ginge nicht"
-NESTED=0
-for nested in "${APP_PATH}"/Contents/MacOS/* "${APP_PATH}"/Contents/Frameworks/*.framework; do
-    [ -e "${nested}" ] || continue
-    [ "${nested}" = "${APP_PATH}/Contents/MacOS/${APP}" ] && continue
-    check_entitlements "${nested}" ""
-    NESTED=$((NESTED + 1))
-done
+gate_check_nested "${APP_PATH}"
+NESTED="${GATE_COUNT}"
 [ -d "${APP_PATH}/Contents/Frameworks/MediaRemoteAdapter.framework" ] \
     || fail "MediaRemoteAdapter.framework fehlt im Bundle"
 [ -x "${APP_PATH}/Contents/MacOS/MediaRemoteAdapterTestClient" ] \
@@ -364,7 +343,13 @@ version, tag = sys.argv[1], sys.argv[2]
 xml = open("appcast.xml", encoding="utf-8").read()
 m = re.search(r'sparkle:edSignature="([^"]+)"', xml)
 if not m:                      sys.exit("Der Appcast traegt keine EdDSA-Signatur")
-if version not in xml:         sys.exit(f"Der Appcast nennt Version {version} nicht")
+# Genau vergleichen, nicht als Teilstring (Security-Review 18.10., B12): „0.1.1“ enthielte „0.1.1“ auch
+# in „10.1.10“. Sparkle 2 schreibt ein Element, ältere Fassungen ein Attribut – beides lesen.
+shorts = [a or b for a, b in re.findall(
+    r'<sparkle:shortVersionString>\s*([^<]*?)\s*</sparkle:shortVersionString>|sparkle:shortVersionString="([^"]*)"', xml)]
+if not shorts:                 sys.exit("Der Appcast nennt keine sparkle:shortVersionString")
+if any(s != version for s in shorts):
+                               sys.exit(f"Der Appcast nennt {shorts}, erwartet genau {version}")
 if f"releases/download/{tag}/" not in xml:
                                sys.exit(f"Die Download-URL zeigt nicht auf {tag}")
 open(".appcast-sig", "w").write(m.group(1))
@@ -403,7 +388,13 @@ fi
 # raw.githubusercontent.com cacht kurz — ein Fehlschlag hier ist kein Abbruch,
 # aber er wird gesagt statt verschwiegen.
 FEED="https://raw.githubusercontent.com/miwixyz/Gnotchi/main/appcast.xml"
-if curl -fsS --netrc-file /dev/null "${FEED}" 2>/dev/null | grep -q "${VERSION}"; then
+if curl -fsS --netrc-file /dev/null "${FEED}" 2>/dev/null | python3 -c '
+import re, sys
+xml = sys.stdin.read()
+shorts = [a or b for a, b in re.findall(
+    r"<sparkle:shortVersionString>\s*([^<]*?)\s*</sparkle:shortVersionString>|sparkle:shortVersionString=\"([^\"]*)\"", xml)]
+sys.exit(0 if sys.argv[1] in shorts else 1)
+' "${VERSION}"; then
     echo "  ✓ Feed unter ${FEED} nennt ${VERSION}"
 else
     echo "  ⚠️  Feed nennt ${VERSION} noch nicht — raw.githubusercontent cacht bis zu 5 Min."
