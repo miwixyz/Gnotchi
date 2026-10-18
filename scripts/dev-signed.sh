@@ -46,6 +46,13 @@ for part in "$APP/Contents/MacOS/MediaRemoteAdapterTestClient" \
             "$APP/Contents/Frameworks/MediaRemoteAdapter.framework"; do
     codesign --force --options runtime --sign "$IDENTITY" "$part"
 done
+# 2b. Debug-Build: Xcode lagert den App-Code in Gnotchi.debug.dylib (+ __preview.dylib) aus.
+# Ohne eigene Signatur lädt dyld sie nicht (anderes Team als die App, gemessen 18.10.:
+# Absturz beim Start „Library missing … different Team IDs“). Dylibs tragen keine Berechtigungen.
+for part in "$APP"/Contents/MacOS/*.dylib; do
+    [ -e "$part" ] || continue
+    codesign --force --options runtime --sign "$IDENTITY" "$part"
+done
 # 3. Die App zuletzt, als einzige mit Gnotchis Berechtigung (Apple Events).
 codesign --force --options runtime \
     --entitlements Gnotchi/Resources/Gnotchi.entitlements \
