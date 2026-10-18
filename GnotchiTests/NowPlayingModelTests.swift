@@ -73,4 +73,13 @@ final class NowPlayingModelTests: XCTestCase {
         XCTAssertNotEqual(NowPlayingModel.artworkKey(for: info(artist: "A")),
                           NowPlayingModel.artworkKey(for: info(artist: "B")))
     }
+
+    // MARK: Hinweis bei verweigerter Automation (G7)
+
+    func testDeniedReasonNamesTheApps() {
+        let one = NowPlayingModel.deniedReason(names: ["Spotify"])
+        XCTAssertTrue(one.hasPrefix("Automation für Spotify nicht erlaubt"), one)
+        XCTAssertTrue(one.contains("Datenschutz"))
+        XCTAssertTrue(NowPlayingModel.deniedReason(names: ["Spotify", "Musik"]).hasPrefix("Automation für Spotify und Musik nicht erlaubt"))
+    }
 }

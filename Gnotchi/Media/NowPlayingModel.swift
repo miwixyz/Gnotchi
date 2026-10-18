@@ -20,6 +20,8 @@ final class NowPlayingModel {
     /// G7: Spotify/Musik per AppleScript, nur solange der Adapter `unavailable` meldet.
     @ObservationIgnored private let fallback = AppleScriptSource()
     @ObservationIgnored private var usingFallback = false
+    /// Hinweis, solange der Rückfall läuft und nichts verweigert ist.
+    @ObservationIgnored private var fallbackReason: String?
     /// Wartefrist für unvollständige Meldungen; läuft ab der ERSTEN unvollständigen Meldung.
     @ObservationIgnored private var pending: Task<Void, Never>?
     /// Die jeweils neueste unvollständige Meldung innerhalb der laufenden Frist.
@@ -34,21 +36,31 @@ final class NowPlayingModel {
     init() {
         adapter.onInfo = { [weak self] i in self?.receive(i) }
         fallback.onInfo = { [weak self] i in self?.receive(i) }
-        fallback.onDenied = { [weak self] in
-            self?.unavailableReason = "Automation für Spotify/Musik nicht erlaubt (Systemeinstellungen → Datenschutz → Automation)"
+        fallback.onBlocked = { [weak self] ids in
+            guard let self, self.usingFallback else { return }
+            self.unavailableReason = ids.isEmpty ? self.fallbackReason : Self.deniedReason(names: ids.map(AppleScriptSource.appName))
         }
         adapter.onState = { [weak self] s in
             guard let self else { return }
             if case .unavailable(let r) = s {
-                self.unavailableReason = "\(r) – nur Spotify und Musik"
+                self.fallbackReason = "\(r) – nur Spotify und Musik"
+                self.unavailableReason = self.fallbackReason
                 self.usingFallback = true
                 self.fallback.start()
             } else {
+                let wasFallback = self.usingFallback
                 self.unavailableReason = nil
                 self.usingFallback = false
                 self.fallback.stop()
+                // Titel des Rückfalls nicht stehen lassen, bis der Adapter selbst meldet.
+                if wasFallback { self.receive(nil) }
             }
         }
+    }
+
+    /// Hinweis in den Einstellungen, wenn keine erlaubte Quelle bleibt – mit den betroffenen Apps.
+    nonisolated static func deniedReason(names: [String]) -> String {
+        "Automation für \(names.joined(separator: " und ")) nicht erlaubt (Systemeinstellungen → Datenschutz → Automation)"
     }
 
     func start() { adapter.start() }
