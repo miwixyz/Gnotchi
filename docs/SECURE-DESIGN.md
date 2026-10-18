@@ -82,6 +82,12 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   18.10.: Regel schlägt bei `AXIsProcessTrusted()` an).
 - **Warum:** Das ist der Grund für die Auslagerung aus Seam. Was Gnotchi nicht hat, kann der
   Perl-Prozess nicht erben.
+- **Kein Widerspruch, gemessen 18.10.:** Im TCC-Protokoll steht Gnotchi als *anfragend* bei
+  `kTCCServiceAccessibility`, mit `accessing` = Seam, Vorssaint o. Ä. Das ist der AX-Server von
+  macOS in jeder App: Liest ein Bedienungshilfen-Programm Gnotchis Fenster, prüft er dessen
+  Freigabe. Belegt mit `tools/ax-probe.swift`: 15 s Ruhe → 0 Einträge; Abfrage an Gnotchi →
+  40 ms später „Gnotchi prüft ax-probe“; dieselbe Abfrage an Finder → „Finder prüft ax-probe“.
+  Gnotchi fragt dabei nichts für sich selbst an und liest nichts.
 
 ### G2 – Bundle-Signatur und Identität vor jedem Start (vormals Seam E17a, Kern)
 - **Entschieden:** `/usr/bin/perl` prüft keine Signatur und lädt das Framework ohne
