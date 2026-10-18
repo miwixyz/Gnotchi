@@ -60,7 +60,9 @@ custom_rules:
   # MediaAdapter.swift — dort mit festem Programm, fester Umgebung, ohne Shell.
   kindprozess_nur_im_adapter:
     name: "Kindprozesse nur in MediaAdapter"
-    regex: '\b(Process\(\)|NSTask|posix_spawn\w*|system\(|popen\()'
+    # `(?<!\.)system\(`: `.font(.system(size:))` ist SwiftUIs Systemschrift, kein libc-`system()`
+    # (Fehlalarm in IslandView, 18.10.). Erkannt bleibt der freie Aufruf `system(…)`.
+    regex: '\b(Process\(\)|NSTask|posix_spawn\w*|(?<!\.)system\(|popen\()'
     included: 'Gnotchi/.*\.swift'
     # Tests ausgenommen: BundleIntegrityTests ruft codesign für ein Probe-Bundle auf.
     excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift'

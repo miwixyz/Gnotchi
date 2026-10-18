@@ -56,6 +56,14 @@ final class IslandGeometryTests: XCTestCase {
         }
     }
 
+    /// Gross: 110 pt Inhalt UNTER der Notch (Sichtprüfung 18.10.: sonst lief der Inhalt über die Hardware-Notch).
+    func testExpandedHeightAddsNotchHeight() throws {
+        let l = IslandGeometry.layout(for: measured)
+        let n = try XCTUnwrap(l.notch)
+        XCTAssertEqual(l.expanded.height, IslandGeometry.expandedSize.height + n.height)
+        XCTAssertEqual(IslandGeometry.layout(for: ext).expanded.height, IslandGeometry.expandedSize.height)
+    }
+
     /// Notch nicht mittig (ungleiche Seitenflächen): Kompakt folgt der Notch, nicht der Bildschirmmitte.
     func testOffCenterNotchCompactFollowsNotch() throws {
         let m = IslandGeometry.ScreenMetrics(

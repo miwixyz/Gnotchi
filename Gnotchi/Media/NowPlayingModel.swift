@@ -46,6 +46,16 @@ final class NowPlayingModel {
         apply(nil)
     }
 
+    #if DEBUG
+    /// Nur Tests/Vorschau (IslandViewRenderTests): Zustand direkt setzen, ohne Adapter.
+    /// Im Release-Build nicht vorhanden – dort kommt Zustand nur aus `receive(_:)`.
+    func setPreviewState(info: NowPlayingInfo?, artwork: NSImage?) {
+        self.info = info
+        self.artwork = artwork
+        isVisible = info != nil
+    }
+    #endif
+
     func playPause() { adapter.perform(.send(.toggle)) }
     func next() { adapter.perform(.send(.next)) }
     func previous() { adapter.perform(.send(.previous)) }

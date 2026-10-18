@@ -21,6 +21,8 @@ enum IslandGeometry {
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
     static let wing: CGFloat = 40
     static let pillSize = CGSize(width: 180, height: 24)
+    /// Inhaltsfläche der grossen Ansicht. Mit Notch kommt deren Höhe oben dazu: Die Hardware-Notch
+    /// verdeckt den oberen Streifen (Sichtprüfung 18.10.: 110 pt inkl. Notch reichten nicht).
     static let expandedSize = CGSize(width: 380, height: 110)
 
     static func layout(for m: ScreenMetrics) -> Layout {
@@ -32,20 +34,22 @@ enum IslandGeometry {
             let notch = CGRect(x: m.frame.minX + l, y: top - m.safeTop,
                                width: m.frame.width - l - r, height: m.safeTop)
             let compact = notch.insetBy(dx: -wing, dy: 0)
-            return Layout(notch: notch, compact: compact, expanded: expanded(midX: notch.midX, top: top, in: m.frame))
+            return Layout(notch: notch, compact: compact,
+                          expanded: expanded(midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
         let pill = CGRect(x: midX - pillSize.width / 2, y: top - pillSize.height,
                           width: pillSize.width, height: pillSize.height)
-        return Layout(notch: nil, compact: pill, expanded: expanded(midX: midX, top: top, in: m.frame))
+        return Layout(notch: nil, compact: pill, expanded: expanded(midX: midX, top: top, extraHeight: 0, in: m.frame))
     }
 
-    private static func expanded(midX: CGFloat, top: CGFloat, in frame: CGRect) -> CGRect {
+    private static func expanded(midX: CGFloat, top: CGFloat, extraHeight: CGFloat, in frame: CGRect) -> CGRect {
         // Schmaler Bildschirm: Breite auf die Bildschirmbreite kürzen, sonst ragt die Insel hinaus.
         let width = min(expandedSize.width, frame.width)
         var x = midX - width / 2
         x = min(max(x, frame.minX), frame.maxX - width)
-        return CGRect(x: x, y: top - expandedSize.height, width: width, height: expandedSize.height)
+        let height = expandedSize.height + extraHeight
+        return CGRect(x: x, y: top - height, width: width, height: height)
     }
 
     @MainActor
