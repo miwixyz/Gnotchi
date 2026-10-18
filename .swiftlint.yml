@@ -62,7 +62,10 @@ custom_rules:
     name: "Kindprozesse nur in MediaAdapter"
     # `(?<!\.)system\(`: `.font(.system(size:))` ist SwiftUIs Systemschrift, kein libc-`system()`
     # (Fehlalarm in IslandView, 18.10.). Erkannt bleibt der freie Aufruf `system(…)`.
-    regex: '\b(Process\(\)|NSTask|posix_spawn\w*|(?<!\.)system\(|popen\()'
+    # `\bProcess\s*\(` statt nur `Process()`: auch `Process ()` und `Process(…)`; `Process\.run\(` ist die
+    # Klassenmethode, die ohne `Process(` startet (Security-Review 18.10., B11). `perlProcess(` trifft
+    # das nicht (kein Wortanfang vor `Process`).
+    regex: '\b(Process\s*\(|Process\.run\(|NSTask|posix_spawn\w*|(?<!\.)system\(|popen\()'
     included: 'Gnotchi/.*\.swift'
     # Tests ausgenommen: BundleIntegrityTests ruft codesign für ein Probe-Bundle auf.
     excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift'

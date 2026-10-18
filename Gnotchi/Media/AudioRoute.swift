@@ -44,7 +44,7 @@ enum PlaybackRoute: Equatable, Sendable {
 /// Kein Ton wird aufgenommen oder abgegriffen (SECURE-DESIGN G15). Entscheidung als reine Funktion.
 enum AudioRoute {
 
-    struct Process: Equatable, Sendable {
+    struct AudioProcess: Equatable, Sendable {
         let pid: pid_t
         let bundleID: String?
         let isRunningOutput: Bool
@@ -57,7 +57,7 @@ enum AudioRoute {
     }
 
     struct Snapshot: Sendable {
-        let processes: [Process]
+        let processes: [AudioProcess]
         /// Für die nächste Abfrage mitgeben (`snapshot(known:)`): nur neue Objekte werden gelesen.
         let identities: [AudioObjectID: Identity]
         let outputTransport: UInt32?
@@ -94,7 +94,7 @@ enum AudioRoute {
     /// Gibt die Quell-App Ton aus? Zählt der Prozess mit `pid` und jeder mit gleicher Bundle-ID oder
     /// Unter-ID (`<id>.helper`: Edge, Helium, gemessen 18.10.). nil = unbekannt: kein Core-Audio-Objekt
     /// für die App, oder sie ist still, während der geteilte WebKit-Prozess spielt (könnte ihr Ton sein).
-    static func outputting(pid: pid_t?, bundleID: String?, processes: [Process]) -> Bool? {
+    static func outputting(pid: pid_t?, bundleID: String?, processes: [AudioProcess]) -> Bool? {
         let mine = processes.filter { p in
             if let pid, p.pid == pid { return true }
             guard let id = bundleID, let other = p.bundleID else { return false }
@@ -145,10 +145,10 @@ enum AudioRoute {
             guard let pid: pid_t = scalar(id, kAudioProcessPropertyPID) else { return nil }
             return Identity(pid: pid, bundleID: string(id, kAudioProcessPropertyBundleID))
         }
-        let processes = ids.compactMap { id -> Process? in
+        let processes = ids.compactMap { id -> AudioProcess? in
             guard let who = identities[id] else { return nil }
             let running: UInt32 = scalar(id, kAudioProcessPropertyIsRunningOutput) ?? 0
-            return Process(pid: who.pid, bundleID: who.bundleID, isRunningOutput: running != 0)
+            return AudioProcess(pid: who.pid, bundleID: who.bundleID, isRunningOutput: running != 0)
         }
         let device: AudioObjectID? = scalar(system, kAudioHardwarePropertyDefaultOutputDevice)
         let output = device.flatMap { $0 == kAudioObjectUnknown ? nil : $0 }

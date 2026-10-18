@@ -9,8 +9,8 @@ import XCTest
 final class AudioRouteTests: XCTestCase {
 
     private let t0 = Date(timeIntervalSince1970: 1000)
-    private func p(_ pid: pid_t, _ id: String?, _ out: Bool) -> AudioRoute.Process {
-        AudioRoute.Process(pid: pid, bundleID: id, isRunningOutput: out)
+    private func p(_ pid: pid_t, _ id: String?, _ out: Bool) -> AudioRoute.AudioProcess {
+        AudioRoute.AudioProcess(pid: pid, bundleID: id, isRunningOutput: out)
     }
 
     // MARK: outputting – gibt der Prozess der Quell-App Ton aus?

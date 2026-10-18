@@ -125,6 +125,10 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   Einzige Stelle, die einen Perl-Prozess baut: `MediaAdapter.perlProcess`. Maschinell:
   SwiftLint-Regel `kindprozess_nur_im_adapter` (kein `Process()`, `posix_spawn`, `system(`,
   `popen(` außerhalb von `MediaAdapter.swift`).
+- **Ergänzt 18.10. (Security-Review B11):** Lint-Regel `kindprozess_nur_im_adapter` erkennt jetzt auch
+  `Process (…)`/`Process(…)` mit Argumenten und die Klassenmethode `Process.run(…)`; Gegenprobe 18.10.
+  an einer Probedatei: alle drei Formen Fehler, `ProcessInfo` und Kommentare nicht. Dabei fiel
+  `AudioRoute.Process` auf (gleichnamig mit Foundation) → umbenannt in `AudioProcess`.
 
 ### G4 – Strom als nicht vertrauenswürdig lesen (vormals Seam E17c)
 - **Entschieden:** Zeilenweise, **max. 4 MB je Zeile** (längere verwerfen + zählen, auch über
