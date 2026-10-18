@@ -1,60 +1,63 @@
-<!-- Entwurf, vor Veröffentlichung durch /humanizer -->
 # Gnotchi
 
-**Die Notch zeigt, was gerade läuft, und ein Blick mit der Maus reicht, um es zu steuern.**
+**Die Notch zeigt, was gerade läuft. Mit der Maus darüber steuerst du es.**
 
 <img src="assets/render-insel-pille-gross.png" width="520" alt="Gnotchi: große Insel mit Cover, Titel, Tasten und Fortschritt">
 
-Kostenlos · Open Source (MIT) · für macOS 27 auf Macs mit Apple-Chip · kein Konto, keine Analyse
+Kostenlos und quelloffen (MIT). Für macOS 27 auf Macs mit Apple-Chip. Ohne Konto und ohne Nutzungsstatistik.
 
 ---
 
-## Das Problem
+## Warum es Gnotchi gibt
 
-Die Notch des MacBook ist ein schwarzer Fleck mitten in der Menüleiste, der nichts tut. Und wer
-beim Arbeiten Musik hört oder nebenher ein Video laufen hat, sucht zum Pausieren oder Weiterspringen
-erst die richtige App, das richtige Fenster oder den richtigen Browser-Tab.
+Die Notch am MacBook ist ein schwarzer Fleck mitten in der Menüleiste. Sie tut nichts. Und wenn
+beim Arbeiten Musik läuft oder nebenher ein Video, suche ich zum Pausieren jedes Mal erst die App
+oder den richtigen Browser-Tab.
+
+Es gibt Notch-Apps, die das lösen. Die meisten wollen aber viel mehr sein und sehen nach eigener
+App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, und sonst nichts tut.
 
 ## Was Gnotchi macht
 
 - Läuft Musik oder ein Video, zeigt die Notch klein das Cover und einen Pegel. Auf Bildschirmen
   ohne Notch sitzt dieselbe Insel als Pille oben in der Mitte.
-- Fährst du mit der Maus darüber, geht sie auf: Titel, Interpret, Zurück, Pause, Weiter und ein
-  Fortschrittsbalken, in dem du per Klick spulst.
-- Das klappt für Spotify, Musik und Browser wie Safari, Edge oder Helium, egal in welchem Fenster
-  sie gerade liegen.
-- Die Insel zeigt, welche App spielt und wo der Ton herauskommt: „Auf anderem Gerät“ bei Spotify
-  Connect, sonst der Name des AirPlay-Lautsprechers oder der Bluetooth-Kopfhörer.
-- Sie bleibt aus dem Weg. Ab Werk geht sie erst nach 0,6 Sekunden auf, 5 Sekunden nach dem
-  Pausieren verschwindet sie, und bei Apps im Vollbild ist sie gar nicht da.
+- Bleibt die Maus kurz darauf, klappt sie auf: Titel, Interpret, Zurück, Pause, Weiter und ein
+  Fortschrittsbalken zum Spulen.
+- Das funktioniert mit Spotify, Musik und mit Videos in Safari, Edge oder Helium. Egal, in
+  welchem Fenster sie gerade liegen.
+- Über dem Titel steht, welche App spielt. Läuft der Ton woanders, sagt die Insel es dir: „Auf
+  anderem Gerät“ bei Spotify Connect, bei AirPlay oder Bluetooth der Name des Lautsprechers.
+- Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf
+  Sekunden nach dem Pausieren ist sie weg, und bei Vollbild-Apps bleibt sie aus.
 
-## Sieht aus wie von Apple
+## Wie von Apple
 
-Die Insel ist tiefschwarz, liegt bündig an der Notch und rundet sich unten weich ab. Sie nutzt die
-Systemschrift und ist aufgebaut wie die Wiedergabe im Kontrollzentrum. Es gibt kein eigenes
-Farbschema, keinen Rahmen und kein Gnotchi-Logo in der Notch.
+Tiefschwarz, bündig an der Notch, unten weich gerundet. Systemschrift, Aufbau wie die Wiedergabe
+im Kontrollzentrum. In der Notch steht kein Logo und keine eigene Farbe.
 
-## Datenschutz als Argument
+## Datenschutz
 
-- **Keine Bedienungshilfen-Freigabe.** Gnotchi fragt nie danach, liest keine Fenstertitel und
-  löst keine Eingaben aus.
-- **Nichts verlässt deinen Mac** außer der Suche nach Updates. Titel, Interpret und Cover bleiben
-  im Arbeitsspeicher.
-- **Keine Titel im Protokoll.** Was du hörst, steht nirgends geschrieben.
-- **Kein Mithören.** Für „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt.
-- **Quelloffen unter MIT.** Jede dieser Aussagen lässt sich im Code und im Sicherheitsentwurf
-  nachprüfen.
+Gnotchi braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine
+Eingaben aus.
+
+Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um
+nach Updates zu suchen. Im Systemprotokoll steht nicht, was du hörst.
+
+Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt. Es hört
+nichts mit und nimmt nichts auf.
+
+Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 
 ## Voraussetzungen
 
 macOS 27 auf einem Mac mit Apple-Chip. Mit Notch am schönsten, ohne Notch läuft es als Pille.
-macOS fragt höchstens einmal, ob Gnotchi Spotify steuern darf, und zwar beim ersten Spulen in
-Spotify.
+Beim ersten Spulen in Spotify fragt macOS einmal, ob Gnotchi Spotify steuern darf. Dieselbe Frage
+kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sperrt.
 
 ## So bekommst du Gnotchi
 
-Version 0.1.0 folgt, signiert und von Apple notarisiert. Danach aktualisiert sich Gnotchi selbst,
-wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
+Version 0.1.0 kommt als signierte, von Apple notarisierte App. Danach aktualisiert sich Gnotchi
+selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 
 ---
 
