@@ -12,6 +12,14 @@ Gedacht für alle Quellen: Spotify, Musik und Browser wie Safari, Edge oder Heli
 
 Die Datenquelle dafür ist schon eingebaut und geprüft, die Insel selbst folgt.
 
+## Nur eine Notch-App gleichzeitig
+
+Zwei Apps, die über die Notch zeichnen (z. B. NotchNook, Boring Notch, Alcove), überdecken sich
+gegenseitig. Erkennt Gnotchi eine solche App, steht oben im Menü und in den Einstellungen ein
+Hinweis mit ihrem Namen. Dann eine der beiden beenden oder deren Notch-Anzeige ausschalten.
+Gnotchi prüft das, während die Insel sichtbar ist, und liest dafür nur Lage und Ebene der Fenster
+und den Namen der App – keine Fenstertitel, keine Inhalte.
+
 ## Einstellungen
 
 - **Musik in der Notch:** schaltet die Insel ein oder aus. Ab Werk an. Wirkt, sobald die Insel

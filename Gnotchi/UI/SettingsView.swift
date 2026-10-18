@@ -21,6 +21,10 @@ struct SettingsView: View {
                 if prefs.notchMedia, let reason = model.nowPlaying.unavailableReason {
                     note(reason, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                 }
+                if prefs.notchMedia, let other = model.nowPlaying.competingNotchApp {
+                    note(IslandController.competingWarning(name: other),
+                         symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                }
             }
             card("Allgemein") {
                 toggleRow("Bei Anmeldung starten", isOn: Binding(

@@ -8,6 +8,15 @@ struct MenuContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        // Zweite Notch-App (Michael, 18.10.: „sollen nicht vorkommen“): ganz oben, führt zur Hilfe.
+        // App-Name aus dem lokalen Bundle, trotzdem nur `Text(verbatim:)`.
+        if let other = model.nowPlaying.competingNotchApp {
+            Button { open("hilfe") } label: {
+                Label { Text(verbatim: IslandController.competingWarning(name: other)) }
+                    icon: { Image(systemName: "exclamationmark.triangle") }
+            }
+            Divider()
+        }
         // Wie Seam: keine Mitteilung bei einem gefundenen Update, stattdessen ein Eintrag hier.
         if let updater = model.updater, let version = updater.pendingVersion {
             Button("Update \(version) verfügbar …") { updater.checkForUpdates() }

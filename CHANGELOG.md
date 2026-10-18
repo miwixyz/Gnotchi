@@ -26,3 +26,5 @@ Alle nennenswerten Änderungen an Gnotchi.
   Lautsprecher), zeigt die große Insel oben rechts „Auf anderem Gerät“, bei AirPlay oder Bluetooth
   den Namen des Geräts. Klein ersetzt dann ein Lautsprecher den Pegel (bei anderem Gerät und
   AirPlay). Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt – es hört nichts mit.
+- Nur eine Notch-App: Zeichnet eine andere App ebenfalls über die Notch (z. B. NotchNook), zeigt
+  Gnotchi oben im Menü und in den Einstellungen einen Hinweis mit ihrem Namen.

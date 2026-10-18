@@ -18,6 +18,9 @@ final class NowPlayingModel {
     /// Wo die Musik herauskommt (anderes Gerät, AirPlay, Bluetooth). Abgefragt nur, solange die Insel
     /// sichtbar ist und Musik läuft; in der Pause bleibt der letzte Wert stehen.
     private(set) var route: PlaybackRoute = .local
+    /// Name einer anderen App, die ebenfalls über die Notch zeichnet (Hinweis in Menü und Einstellungen).
+    /// Gesetzt vom IslandController bei jedem Durchgang durch die Fensterliste; nil = kein Konflikt.
+    var competingNotchApp: String?
 
     @ObservationIgnored private let adapter = MediaAdapter()
     /// G7: Spotify/Musik per AppleScript, solange der Adapter `unavailable` meldet; Spotify-Spulen immer.

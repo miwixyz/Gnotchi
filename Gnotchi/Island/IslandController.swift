@@ -7,12 +7,26 @@ import SwiftUI
 @MainActor
 final class IslandController {
 
-    /// Ein Fenster aus der Fensterliste: nur Ebene, Lage und ob es einer normalen App gehört.
+    /// Ein Fenster aus der Fensterliste: nur Ebene, Lage, ob es einer normalen App gehört, und die PID.
     struct WindowInfo: Equatable {
         let layer: Int
         let bounds: CGRect
         let isRegularApp: Bool
+        var pid: pid_t = 0
     }
+
+    /// Was über eine fremde App bekannt ist – aus NSRunningApplication (lokal), nie aus der Fensterliste.
+    struct OtherApp: Equatable {
+        let name: String?
+        let bundleID: String?
+        let bundlePath: String?
+        /// Normale App oder Menüleisten-App (nicht: Hintergrunddienst).
+        let isUIApp: Bool
+    }
+
+    /// Ab dieser Ebene liegt ein Fenster über der Menüleiste (kCGStatusWindowLevel). Gemessen 18.10.:
+    /// eigenes Panel 27, Thaws Menüleisten-Fenster 23/24 (dürfen nicht zählen).
+    nonisolated static let competingMinLayer = 25
 
     private struct Entry {
         let panel: NSPanel
@@ -76,6 +90,7 @@ final class IslandController {
         cancelTasks()
         panels.values.forEach { $0.panel.orderOut(nil) }
         panels.removeAll()
+        model.competingNotchApp = nil
     }
 
     // MARK: Reine Rechnungen (getestet)
@@ -125,8 +140,36 @@ final class IslandController {
                 regular = isRegular(pid)
                 cache[pid] = regular
             }
-            return WindowInfo(layer: layer, bounds: bounds, isRegularApp: regular)
+            return WindowInfo(layer: layer, bounds: bounds, isRegularApp: regular, pid: pid)
         }
+    }
+
+    /// Zeichnet eine andere App über der Notch (bzw. Pille)? Fremdes Fenster ab Ebene 25, das eine der
+    /// Flächen `notchRects` (CG-Koordinaten) echt überlappt, von einer App mit Oberfläche, die nicht zu
+    /// macOS gehört (Bundle-ID `com.apple.` oder Bundle unter `/System/`). Ergebnis: Name der App
+    /// (lokalisiert, bereinigt; ohne Namen die Bundle-ID) – nie ein Fenstertitel (G10).
+    nonisolated static func competingNotchApp(windows: [WindowInfo], ownPID: pid_t, notchRects: [CGRect],
+                                              app: (pid_t) -> OtherApp?) -> String? {
+        var checked: Set<pid_t> = []
+        for w in windows where w.layer >= competingMinLayer && w.pid != ownPID && !checked.contains(w.pid) {
+            let overlaps = notchRects.contains { r in
+                let i = r.intersection(w.bounds)
+                return !i.isNull && i.width > 0 && i.height > 0
+            }
+            guard overlaps else { continue }
+            checked.insert(w.pid)
+            guard let other = app(w.pid), other.isUIApp,
+                  other.bundleID?.hasPrefix("com.apple.") != true,
+                  other.bundlePath?.hasPrefix("/System/") != true else { continue }
+            if let name = AppIcons.cleanName(other.name) ?? other.bundleID.flatMap({ BundleID.isValid($0) ? $0 : nil }) {
+                return name
+            }
+        }
+        return nil
+    }
+
+    nonisolated static func competingWarning(name: String) -> String {
+        "„\(name)“ zeichnet ebenfalls über die Notch – bitte nur eine Notch-App verwenden."
     }
 
     /// Neu aufbauen nur, wenn sich Bildschirme oder deren Inselmaße wirklich geändert haben.
@@ -241,9 +284,18 @@ final class IslandController {
     }
 
     /// Sichtbarkeit je Bildschirm: Musik läuft, und auf diesem Bildschirm ist keine App im Vollbild.
+    /// Im selben Durchgang: zeichnet eine zweite Notch-App über unserer Fläche? (Nur bei sichtbarer Insel –
+    /// sonst läuft keine Fensterliste, und ohne Insel gibt es auch keinen Konflikt.)
     private func refresh() {
         let windows = model.isVisible ? Self.onScreenWindows() : []
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        let competitor = model.isVisible ? Self.competingNotchApp(
+            windows: windows, ownPID: ProcessInfo.processInfo.processIdentifier,
+            notchRects: panels.values.map {
+                Self.cgWindowRect(fromAppKit: $0.state.layout.notch ?? $0.state.layout.compact, primaryHeight: primaryHeight)
+            },
+            app: Self.otherApp) : nil
+        if model.competingNotchApp != competitor { model.competingNotchApp = competitor }
         for (id, entry) in panels {
             let screen = NSScreen.screens.first { $0.displayID == id }
             let fullscreen = screen.map {
@@ -292,6 +344,13 @@ final class IslandController {
             guard !Task.isCancelled, e.state.mode == .compact else { return }
             e.panel.setFrame(e.state.layout.compact, display: true)
         }
+    }
+
+    /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – aus dem lokalen Bundle, nicht aus der Fensterliste.
+    private static func otherApp(_ pid: pid_t) -> OtherApp? {
+        guard let a = NSRunningApplication(processIdentifier: pid) else { return nil }
+        return OtherApp(name: a.localizedName, bundleID: a.bundleIdentifier, bundlePath: a.bundleURL?.path,
+                        isUIApp: a.activationPolicy != .prohibited)
     }
 
     /// Ebene, Lage und Eigentümer-Art aller sichtbaren Fenster. Ohne Bildschirmaufnahme-Freigabe liefert
