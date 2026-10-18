@@ -62,7 +62,18 @@ codesign --verify --deep --strict "$APP"
 mkdir -p build-test
 ln -sfn "$APP" build-test/Gnotchi.app
 
-pkill -x Gnotchi || true
+# Laufende Version freundlich beenden: Nur so kommt willTerminate an und Gnotchi stoppt den
+# perl-Kindprozess. Erst nach 3 s ohne Ende hart (pkill) – dann kann perl verwaisen
+# (killOrphans findet ihn nur unter demselben Pfad, jede Testkopie hat einen neuen).
+if pgrep -x Gnotchi >/dev/null; then
+    osascript -e 'tell application id "dev.mwlr.gnotchi" to quit' >/dev/null 2>&1 || true
+    i=0
+    while pgrep -x Gnotchi >/dev/null && [ "$i" -lt 30 ]; do
+        sleep 0.1
+        i=$((i + 1))
+    done
+    pkill -x Gnotchi || true
+fi
 sleep 1
 open "$APP" --args "$@"
 echo "✓ Testversion gestartet: $APP"

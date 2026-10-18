@@ -50,24 +50,38 @@ final class AppModel {
     /// Updates (Sparkle). Im Testlauf nicht gestartet: kein Netz aus dem Test-Host.
     private(set) var updater: Updater?
     /// Was die Insel zeigt (Adapter + AppleScript-Rückfall). Läuft ohne Bedienungshilfen-Freigabe.
-    let nowPlaying = NowPlayingModel()
+    let nowPlaying: NowPlayingModel
+    /// Quelle der Insel; im Betrieb `nowPlaying`, im Test eine Attrappe.
+    @ObservationIgnored private let source: NotchPart
+    @ObservationIgnored private let makeIsland: () -> NotchPart
     /// Erst beim ersten Einschalten angelegt: Bei „aus“ entsteht kein Panel, kein Beobachter.
-    @ObservationIgnored private lazy var island = IslandController(model: nowPlaying)
-    /// Ob Adapter und Insel laufen. Für den Test, dass der Testlauf nichts startet.
+    @ObservationIgnored private lazy var island: NotchPart = makeIsland()
+    /// false im Testlauf: Dann startet `applyNotchSetting` nichts (kein perl, keine Apple Events).
+    @ObservationIgnored private let allowStart: Bool
+    /// Ob Quelle und Insel laufen. Verhindert doppelte Starts und Stopps.
     private(set) var notchRunning = false
-    /// Abmelde-Token fürs Beenden. Lebt so lange wie die App; aufgehoben statt `_ =`, damit klar
-    /// ist, dass die Anmeldung gewollt bestehen bleibt.
+    /// Beobachter-Token der Beenden-Meldung. Lebt so lange wie die App; aufgehoben statt `_ =`,
+    /// damit klar ist, dass die Anmeldung gewollt bestehen bleibt.
     @ObservationIgnored private var terminateObserver: NSObjectProtocol?
 
     /// Im Testlauf startet die App als Test-Host. Dann weder Sparkle noch der Medien-Adapter
     /// (er startete perl, der Rückfall schickte Apple Events): Die Tests prüfen reine Logik.
-    static var isRunningTests: Bool {
+    nonisolated static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
-    /// `prefs` von außen nur für Tests: Der Test-Host teilt sich sonst die echten Einstellungen.
-    init(prefs: Preferences = Preferences()) {
+    /// Alle Parameter außer den Standardwerten nur für Tests: eigene Einstellungen (der Test-Host
+    /// teilt sich sonst die echten), Attrappen für Quelle und Insel, Start trotz Testlauf erlauben.
+    init(prefs: Preferences = Preferences(),
+         allowStart: Bool = !AppModel.isRunningTests,
+         source: NotchPart? = nil,
+         makeIsland: (() -> NotchPart)? = nil) {
         self.prefs = prefs
+        self.allowStart = allowStart
+        let nowPlaying = NowPlayingModel()
+        self.nowPlaying = nowPlaying
+        self.source = source ?? nowPlaying
+        self.makeIsland = makeIsland ?? { IslandController(model: nowPlaying) }
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.
@@ -88,9 +102,10 @@ final class AppModel {
     /// Schalter „Musik in der Notch“: an → Adapter und Insel starten, aus → beide stoppen.
     /// Beim Start und bei jeder Änderung des Schalters aufgerufen; im Testlauf wirkungslos.
     func applyNotchSetting() {
-        guard !Self.isRunningTests else { return }
+        guard allowStart else { return }
         if prefs.notchMedia {
-            nowPlaying.start()
+            guard !notchRunning else { return }
+            source.start()
             island.start()
             notchRunning = true
         } else {
@@ -102,10 +117,20 @@ final class AppModel {
     private func stopNotch() {
         guard notchRunning else { return }
         island.stop()
-        nowPlaying.stop()
+        source.stop()
         notchRunning = false
     }
 }
+
+/// Teil der Notch-Kette mit Start/Stopp. Nur, damit der Test die Reihenfolge an Attrappen prüfen kann.
+@MainActor
+protocol NotchPart: AnyObject {
+    func start()
+    func stop()
+}
+
+extension NowPlayingModel: NotchPart {}
+extension IslandController: NotchPart {}
 
 /// Fenster (Einstellungen, Hilfe) kommen in den Space, in dem man gerade ist. Ohne das holt
 /// macOS beim zweiten Öffnen den Space nach vorn, in dem das Fenster zuerst aufging
