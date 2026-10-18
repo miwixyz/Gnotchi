@@ -61,9 +61,9 @@ struct IslandView: View {
                 // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
                 .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
             Spacer()
-            // Pegel heißt „Ton kommt hier raus“ – bei anderem Gerät oder AirPlay ein Lautsprecher.
+            // Pegel heißt „Ton kommt hier raus“ – bei anderem Gerät oder AirPlay dasselbe Symbol wie groß.
             if model.route.replacesLevelBars {
-                Image(systemName: "hifispeaker.fill").font(.system(size: 11, weight: .semibold))
+                Image(systemName: model.route.symbol ?? "hifispeaker.fill").font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(height: 14)
                     .accessibilityHidden(true)

@@ -1,4 +1,5 @@
 import AppKit
+import CoreAudio
 import Observation
 
 /// Was die Insel zeigt. Eine Instanz für alle Bildschirme.
@@ -46,6 +47,9 @@ final class NowPlayingModel {
     @ObservationIgnored private var silentSince: Date?
     /// App, für die `route` gilt; eine andere App beginnt wieder bei „lokal“.
     @ObservationIgnored private var routeAppID: String?
+    /// PID der Quell-App (je App einmal über NSRunningApplication) und PID/Bundle-ID je Core-Audio-Objekt.
+    @ObservationIgnored private var routePID: pid_t?
+    @ObservationIgnored private var audioIdentities: [AudioObjectID: AudioRoute.Identity] = [:]
 
     init() {
         adapter.onInfo = { [weak self] i in self?.receive(i) }
@@ -220,6 +224,7 @@ final class NowPlayingModel {
         let appID = info?.appBundleID
         if appID != routeAppID {
             routeAppID = appID
+            routePID = nil
             silentSince = nil
             if route != .local { route = .local }
         }
@@ -243,8 +248,13 @@ final class NowPlayingModel {
     /// Prozessnummer der Quell-App über NSRunningApplication (die Adapter-Meldung enthält keine).
     private func pollRoute() async {
         guard let id = info?.appBundleID, info?.isPlaying == true else { return }
-        let pid = NSRunningApplication.runningApplications(withBundleIdentifier: id).first?.processIdentifier
-        let snap = await Task.detached(priority: .utility) { AudioRoute.snapshot() }.value
+        if routePID == nil {
+            routePID = NSRunningApplication.runningApplications(withBundleIdentifier: id).first?.processIdentifier
+        }
+        let pid = routePID
+        let known = audioIdentities
+        let snap = await Task.detached(priority: .utility) { AudioRoute.snapshot(known: known) }.value
+        audioIdentities = snap.identities
         // Inzwischen andere App, Pause oder gestoppt: Ergebnis verwerfen.
         guard !Task.isCancelled, let current = info, current.appBundleID == id, current.isPlaying else { return }
         let out = AudioRoute.outputting(pid: pid, bundleID: id, processes: snap.processes)

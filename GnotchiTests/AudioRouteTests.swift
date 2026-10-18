@@ -49,6 +49,26 @@ final class AudioRouteTests: XCTestCase {
         XCTAssertNil(AudioRoute.outputting(pid: 1, bundleID: "com.apple.Safari", processes: list))
     }
 
+    // MARK: identities – PID und Bundle-ID je Core-Audio-Objekt nur einmal lesen (Review M6)
+
+    func testKnownObjectsAreNotReadAgain() {
+        let known: [AudioObjectID: AudioRoute.Identity] = [10: .init(pid: 1, bundleID: "a")]
+        var read: [AudioObjectID] = []
+        let result = AudioRoute.identities(for: [10, 11], known: known) { id in
+            read.append(id)
+            return .init(pid: 2, bundleID: "b")
+        }
+        XCTAssertEqual(read, [11])
+        XCTAssertEqual(result, [10: .init(pid: 1, bundleID: "a"), 11: .init(pid: 2, bundleID: "b")])
+    }
+
+    /// Verschwundene Objekte fliegen raus (Zwischenspeicher wächst nicht); unlesbare werden nicht gemerkt.
+    func testVanishedAndUnreadableDropped() {
+        let known: [AudioObjectID: AudioRoute.Identity] = [10: .init(pid: 1, bundleID: "a")]
+        let result = AudioRoute.identities(for: [12], known: known) { _ in nil }
+        XCTAssertTrue(result.isEmpty)
+    }
+
     // MARK: nextSilentSince – Entprellen
 
     func testSilenceStartsClock() {

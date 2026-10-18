@@ -50,8 +50,16 @@ enum AudioRoute {
         let isRunningOutput: Bool
     }
 
+    /// PID und Bundle-ID eines Core-Audio-Prozessobjekts – ändern sich nicht, solange das Objekt lebt.
+    struct Identity: Equatable, Sendable {
+        let pid: pid_t
+        let bundleID: String?
+    }
+
     struct Snapshot: Sendable {
         let processes: [Process]
+        /// Für die nächste Abfrage mitgeben (`snapshot(known:)`): nur neue Objekte werden gelesen.
+        let identities: [AudioObjectID: Identity]
         let outputTransport: UInt32?
         let outputName: String?
     }
@@ -66,6 +74,16 @@ enum AudioRoute {
 
     // MARK: Reine Entscheidung (getestet)
 
+    /// Bekannte Objekte aus dem Zwischenspeicher, nur neue lesen; verschwundene und unlesbare fallen weg.
+    static func identities(for ids: [AudioObjectID], known: [AudioObjectID: Identity],
+                           read: (AudioObjectID) -> Identity?) -> [AudioObjectID: Identity] {
+        var result: [AudioObjectID: Identity] = [:]
+        for id in ids {
+            if let hit = known[id] ?? read(id) { result[id] = hit }
+        }
+        return result
+    }
+
     /// Gibt die Quell-App Ton aus? Zählt der Prozess mit `pid` und jeder mit gleicher Bundle-ID oder
     /// Unter-ID (`<id>.helper`: Edge, Helium, gemessen 18.10.). nil = unbekannt: kein Core-Audio-Objekt
     /// für die App, oder sie ist still, während der geteilte WebKit-Prozess spielt (könnte ihr Ton sein).
@@ -77,6 +95,8 @@ enum AudioRoute {
         }
         if mine.contains(where: \.isRunningOutput) { return true }
         if mine.isEmpty { return nil }
+        // Diese Regel kann eine Anzeige „Auf anderem Gerät“ nur VERHINDERN (Ergebnis unbekannt → lokal),
+        // nie erzeugen: Sie greift nur, wenn die App selbst schon still ist.
         if processes.contains(where: { $0.bundleID == webKitGPU && $0.isRunningOutput }) { return nil }
         return false
     }
@@ -110,16 +130,22 @@ enum AudioRoute {
 
     // MARK: Core Audio lesen (nur lesen; außerhalb des Hauptthreads aufrufen)
 
-    static func snapshot() -> Snapshot {
+    /// Je Abfrage: Objektliste und „gibt Ton aus“ je Objekt; PID/Bundle-ID nur für neue Objekte (`known`).
+    static func snapshot(known: [AudioObjectID: Identity]) -> Snapshot {
         let system = AudioObjectID(kAudioObjectSystemObject)
-        let processes = objectList(system, kAudioHardwarePropertyProcessObjectList).compactMap { id -> Process? in
+        let ids = objectList(system, kAudioHardwarePropertyProcessObjectList)
+        let identities = identities(for: ids, known: known) { id in
             guard let pid: pid_t = scalar(id, kAudioProcessPropertyPID) else { return nil }
+            return Identity(pid: pid, bundleID: string(id, kAudioProcessPropertyBundleID))
+        }
+        let processes = ids.compactMap { id -> Process? in
+            guard let who = identities[id] else { return nil }
             let running: UInt32 = scalar(id, kAudioProcessPropertyIsRunningOutput) ?? 0
-            return Process(pid: pid, bundleID: string(id, kAudioProcessPropertyBundleID), isRunningOutput: running != 0)
+            return Process(pid: who.pid, bundleID: who.bundleID, isRunningOutput: running != 0)
         }
         let device: AudioObjectID? = scalar(system, kAudioHardwarePropertyDefaultOutputDevice)
         let output = device.flatMap { $0 == kAudioObjectUnknown ? nil : $0 }
-        return Snapshot(processes: processes,
+        return Snapshot(processes: processes, identities: identities,
                         outputTransport: output.flatMap { scalar($0, kAudioDevicePropertyTransportType) },
                         outputName: output.flatMap { string($0, kAudioObjectPropertyName) })
     }
