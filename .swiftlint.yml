@@ -1,0 +1,95 @@
+# SwiftLint — Gnotchi (übernommen von Seam, 2026-10-18; dort von Kalli)
+# Jede Abweichung vom Default ist bewusst entschieden, Begründung steht dabei.
+# Lauf: `make lint` (oder `swiftlint lint`).
+
+included:
+  - Gnotchi
+  - GnotchiTests
+
+excluded:
+  - build
+  - build-dev
+  - dist
+  - .build
+  - Vendor
+
+disabled_rules:
+  # Komma nach dem letzten Element macht Diffs sauberer (eine Zeile statt zwei).
+  - trailing_comma
+  # `var x: T? = nil` ist explizit und schadet nicht — reine Stilfrage.
+  - implicit_optional_initialization
+
+identifier_name:
+  # r/g/b bei Farben, v/c in Closures, `.on` als Enum-Fall: kurz ist hier lesbarer.
+  min_length:
+    warning: 1
+    error: 1
+
+line_length:
+  warning: 150
+  error: 250
+  ignores_comments: true
+  ignores_urls: true
+  # Die langen Zeilen sind os_log-Meldungen mit Interpolation — umbrechen macht sie
+  # schlechter lesbar, nicht besser.
+  ignores_interpolated_strings: true
+
+# Sperrklinke statt Refactoring (Kalli-Werte). Wächst eine Datei darüber hinaus,
+# ist das der Moment zum Aufteilen — nicht vorher.
+file_length:
+  warning: 650
+  error: 800
+type_body_length:
+  warning: 350
+  error: 450
+
+custom_rules:
+  # Gnotchi, docs/SECURE-DESIGN.md G1: Gnotchi hat KEINE Bedienungshilfen-Freigabe und fragt
+  # keine an. Damit kann der Perl-Kindprozess (G2) sie auch nicht erben. Weder Abfrage noch
+  # Anfrage, keine AX-Elemente, keine Event-Taps, keine künstlichen Eingaben.
+  keine_bedienungshilfen:
+    name: "Keine Bedienungshilfen, keine Eingaben"
+    regex: '\b(AXIsProcessTrusted\w*|AXUIElement\w*|AXObserver\w*|kAXTrustedCheckOptionPrompt|CGEventTapCreate\w*|CGEventPost\w*|addGlobalMonitorForEvents|IOHIDManager\w*)\b|CGEvent\.tapCreate|\.post\(tap:'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Gnotchi nutzt keine Bedienungshilfen und erzeugt/beobachtet keine Eingaben (SECURE-DESIGN G1)."
+    severity: error
+
+  # Gnotchi, docs/SECURE-DESIGN.md G3/G9: Kindprozesse (Perl, pgrep) entstehen nur in
+  # MediaAdapter.swift — dort mit festem Programm, fester Umgebung, ohne Shell.
+  kindprozess_nur_im_adapter:
+    name: "Kindprozesse nur in MediaAdapter"
+    regex: '\b(Process\(\)|NSTask|posix_spawn\w*|system\(|popen\()'
+    included: 'Gnotchi/.*\.swift'
+    excluded: 'Gnotchi/Media/MediaAdapter\.swift'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Kindprozesse nur über MediaAdapter (feste Umgebung, keine Shell, SECURE-DESIGN G3)."
+    severity: error
+
+  # Tippi, 2026-09-14: `NSApp.delegate as? AppDelegate` an 21 Stellen. In einer
+  # SwiftUI-App mit @NSApplicationDelegateAdaptor ist NSApp.delegate NICHT die
+  # eigene AppDelegate-Instanz — der Cast liefert immer nil, `?.` verschluckt es,
+  # nichts passiert, kein Fehler. Vier Stunden Fehlersuche.
+  # Stattdessen: AppDelegate-Instanz explizit durchreichen oder ein eigenes
+  # statisches `AppDelegate.shared` setzen.
+  dead_app_delegate_cast:
+    name: "Toter AppDelegate-Cast"
+    regex: 'NSApp(lication\.shared)?\.delegate\s+as[?!]\s*AppDelegate'
+    # Nur Code, keine Kommentare: Die Warnkommentare, die genau vor diesem Cast
+    # warnen, zitieren ihn — ohne Ausschluss meldete die Regel beim Tippi-Rollout
+    # (2026-09-25) 3 Treffer, alle in solchen Kommentaren.
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "NSApp.delegate ist unter SwiftUI nicht die eigene AppDelegate — Cast liefert still nil. AppDelegate explizit durchreichen."
+    severity: error
+
+cyclomatic_complexity:
+  # Reine Zuordnungstabellen (`switch` über Textstile in FamilyTheme.font(_:weight:),
+  # gespiegelt aus der Vault-Vorlage 04 Ressourcen/App-Design-System) zählen sonst
+  # jeden `case` als Verzweigung — Komplexität 20 bei null echter Logik. Gleiche
+  # Einstellung wie Tippi/Seam.
+  ignores_case_statements: true

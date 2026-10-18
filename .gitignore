@@ -1,0 +1,13 @@
+build/
+*.xcodeproj/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+dist/
+release.env
+release.env.*
+build-dev/
+build-test/
+
+# Code-Abdeckung/LLVM-Messdateien (Code-Audit 09.10.)
+*.profraw

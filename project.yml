@@ -1,0 +1,133 @@
+name: Gnotchi
+options:
+  bundleIdPrefix: dev.mwlr
+  deploymentTarget:
+    macOS: "27.0"
+  developmentLanguage: de
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "27.0"
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+# Genau EINE Paket-Abhängigkeit: Sparkle für Updates (docs/SECURE-DESIGN.md G11, gleiche
+# Vorlage wie Kalli/Seam). `exactVersion` statt `from:` und `Package.resolved` im Repo:
+# Bei einem Updater darf nicht der Auflösungszeitpunkt entscheiden, welche Fassung
+# ausgeliefert wird. Der Medien-Adapter ist kein Paket, sondern eingespielter Quelltext (Vendor/).
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
+
+targets:
+  Gnotchi:
+    type: application
+    platform: macOS
+    sources:
+      - path: Gnotchi
+      # Perl-Skript des Medien-Adapters nach Contents/Resources. Als Quelle mit
+      # buildPhase, weil XcodeGen den Schlüssel `resources:` nicht kennt.
+      - path: Vendor/mediaremote-adapter/bin/mediaremote-adapter.pl
+        buildPhase: resources
+    resources:
+      - path: Gnotchi/Resources/HILFE.md
+      - path: Gnotchi/Resources/CHANGELOG.md
+      - path: Gnotchi/Resources/THIRD-PARTY-LICENSES.md
+      - path: Gnotchi/Resources/PlusJakartaSans-Variable.ttf
+    dependencies:
+      - package: Sparkle
+        product: Sparkle
+      - target: MediaRemoteAdapter
+        embed: true
+        link: false
+        codeSign: true
+      - target: MediaRemoteAdapterTestClient
+        embed: true
+        link: false
+        codeSign: true
+        copy:
+          destination: executables
+    settings:
+      base:
+        INFOPLIST_FILE: Gnotchi/Resources/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi
+        CODE_SIGN_ENTITLEMENTS: Gnotchi/Resources/Gnotchi.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        # App-Symbol fehlt noch (kommt separat von Michael). Sobald es da ist:
+        # ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon + Ressource Gnotchi/Resources/AppIcon.icon.
+        CODE_SIGN_STYLE: Automatic
+        COMBINE_HIDPI_IMAGES: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+
+  # Prüft reine Logik (Zeilen schneiden, Adapter-Zeile bereinigen, Cover-Grenzen, Signaturprüfung,
+  # Argumente des Kindprozesses). Die App erkennt den Testlauf und startet dann weder Sparkle
+  # noch den Adapter (GnotchiApp).
+  GnotchiTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: GnotchiTests
+    dependencies:
+      - target: Gnotchi
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_TESTABILITY: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.tests
+
+  # Medien-Adapter (Vendor/, BSD-3). Gnotchi lädt dieses Framework NIE selbst:
+  # /usr/bin/perl lädt es als Kindprozess (docs/SECURE-DESIGN.md G2). Deshalb
+  # eingebettet, aber nicht gelinkt.
+  MediaRemoteAdapter:
+    type: framework
+    platform: macOS
+    sources:
+      - path: Vendor/mediaremote-adapter/src/adapter
+      - path: Vendor/mediaremote-adapter/src/private
+      - path: Vendor/mediaremote-adapter/src/utility
+      - path: Vendor/mediaremote-adapter/include
+        buildPhase: headers
+        headerVisibility: public
+    dependencies:
+      - sdk: Foundation.framework
+      - sdk: AppKit.framework
+      - sdk: UniformTypeIdentifiers.framework
+    settings:
+      base:
+        PRODUCT_NAME: MediaRemoteAdapter
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.mediaremoteadapter
+        GENERATE_INFOPLIST_FILE: YES
+        CLANG_ENABLE_OBJC_ARC: YES
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/mediaremote-adapter/src $(SRCROOT)/Vendor/mediaremote-adapter/include"
+        OTHER_CFLAGS: "-fvisibility=default"
+        DEFINES_MODULE: NO
+        SKIP_INSTALL: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        GCC_TREAT_WARNINGS_AS_ERRORS: NO
+        # Fremdcode bleibt unverändert; seine ~40 Warnungen würden echte Gnotchi-Warnungen verdecken.
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+
+  # Abhängigkeiten wie in Upstreams CMakeLists.txt (nicht eingespielt): Foundation + MediaPlayer.
+  MediaRemoteAdapterTestClient:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Vendor/mediaremote-adapter/src/test
+    dependencies:
+      - sdk: Foundation.framework
+      - sdk: MediaPlayer.framework
+    settings:
+      base:
+        PRODUCT_NAME: MediaRemoteAdapterTestClient
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.mediaremoteadapter.testclient
+        CLANG_ENABLE_OBJC_ARC: YES
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Vendor/mediaremote-adapter/src $(SRCROOT)/Vendor/mediaremote-adapter/include"
+        SKIP_INSTALL: YES
+        ENABLE_HARDENED_RUNTIME: YES

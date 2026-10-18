@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<!-- CFBundleIconName fehlt absichtlich: Das App-Symbol kommt separat (18.10.). -->
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<!-- Menüleisten-App: kein Dock-Symbol, kein Hauptfenster. -->
+	<key>LSUIElement</key>
+	<true/>
+	<!-- AppleScript-Rückfall (docs/SECURE-DESIGN.md G7): nur Spotify und Musik, feste Skripte.
+	     macOS zeigt diesen Text, wenn Gnotchi zum ersten Mal eine der beiden Apps steuert. -->
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Gnotchi steuert Spotify und Musik in der Notch, wenn macOS den systemweiten Zugriff sperrt.</string>
+	<!-- Sparkle (docs/SECURE-DESIGN.md G11, Muster Kalli/Seam). Appcast IM REPO: jede Änderung
+	     ist ein öffentlicher, datierter Commit. SUPublicEDKey ist der ÖFFENTLICHE Teil des
+	     Signierschlüssels (derselbe wie Kalli/Tippi/Seam); der private liegt nur im
+	     Login-Schlüsselbund des Entwickler-Macs.
+	     SUEnableAutomaticChecks fehlt ABSICHTLICH: Sparkle fragt beim ersten Mal, ob es
+	     automatisch suchen darf. Netzzugriff wird erteilt, nicht geerbt.
+	     SUVerifyUpdateBeforeExtraction: EdDSA-Signatur ist vor dem Entpacken Pflicht,
+	     sonst genügt Sparkle EINE der beiden Prüfungen (Kalli-Audit K-S4). -->
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/miwixyz/Gnotchi/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>iE2bazGoslgGEsgo2MJUwphVYlEKkeRcsWdzwbGge4w=</string>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
+	<!-- Seam-Code-Audit 09.10. (S1): auch der Feed selbst ist signiert, nicht nur das Archiv.
+	     generate_appcast signiert ihn, sobald dieser Schlüssel in der App steht (bei Seam gemessen
+	     09.10.: Feed-Signatur geschrieben, sign_update verifiziert, manipulierter Feed abgelehnt). -->
+	<key>SURequireSignedFeed</key>
+	<true/>
+	<!-- Bewusst KEIN URL-Schema, KEIN AppleScript-Empfang (NSAppleScriptEnabled), KEINE
+	     NSServices: Niemand außer dem Nutzer soll Gnotchi steuern können — sonst könnten andere
+	     Programme über Gnotchi Spotify/Musik fernsteuern. docs/SECURE-DESIGN.md G13. -->
+</dict>
+</plist>
