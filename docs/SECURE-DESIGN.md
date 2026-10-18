@@ -157,6 +157,12 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   als formatierte Zahl. Automation nur für Spotify und Musik, angefragt erst, wenn der Rückfall
   greift. Dafür trägt die App die Berechtigung `com.apple.security.automation.apple-events` und
   `NSAppleEventsUsageDescription` (G12). (Umsetzung Plan Aufgabe 11a.)
+- **Umgesetzt (`Gnotchi/Media/AppleScriptSource.swift`):** Skripte nur an `com.spotify.client`/
+  `com.apple.Music` – jede andere Bundle-ID ergibt kein Skript (Test); nur an Apps, die schon
+  laufen (sonst würde `tell application` sie starten); eigene serielle Queue, weil die erste
+  Abfrage auf den Automation-Dialog wartet. Antworten laufen durch `NowPlayingInfo.sanitize` und
+  dieselbe Dauerprüfung wie der Adapter (G4). Verweigert der Nutzer (Fehler -1743), fragt Gnotchi
+  diese App bis zum nächsten Start des Rückfalls nicht mehr.
 
 ### G8 – Protokoll ohne Inhalte (vormals Seam E17g/E11)
 - **Entschieden:** `os.Logger`, Subsystem `dev.mwlr.gnotchi`. Ins Protokoll nur Zustandswechsel

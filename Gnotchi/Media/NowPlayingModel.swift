@@ -17,6 +17,9 @@ final class NowPlayingModel {
     private(set) var unavailableReason: String?
 
     @ObservationIgnored private let adapter = MediaAdapter()
+    /// G7: Spotify/Musik per AppleScript, nur solange der Adapter `unavailable` meldet.
+    @ObservationIgnored private let fallback = AppleScriptSource()
+    @ObservationIgnored private var usingFallback = false
     /// Wartefrist für unvollständige Meldungen; läuft ab der ERSTEN unvollständigen Meldung.
     @ObservationIgnored private var pending: Task<Void, Never>?
     /// Die jeweils neueste unvollständige Meldung innerhalb der laufenden Frist.
@@ -30,8 +33,21 @@ final class NowPlayingModel {
 
     init() {
         adapter.onInfo = { [weak self] i in self?.receive(i) }
+        fallback.onInfo = { [weak self] i in self?.receive(i) }
+        fallback.onDenied = { [weak self] in
+            self?.unavailableReason = "Automation für Spotify/Musik nicht erlaubt (Systemeinstellungen → Datenschutz → Automation)"
+        }
         adapter.onState = { [weak self] s in
-            if case .unavailable(let r) = s { self?.unavailableReason = r } else { self?.unavailableReason = nil }
+            guard let self else { return }
+            if case .unavailable(let r) = s {
+                self.unavailableReason = "\(r) – nur Spotify und Musik"
+                self.usingFallback = true
+                self.fallback.start()
+            } else {
+                self.unavailableReason = nil
+                self.usingFallback = false
+                self.fallback.stop()
+            }
         }
     }
 
@@ -43,6 +59,8 @@ final class NowPlayingModel {
         pending = nil
         pendingInfo = nil
         adapter.stop()
+        fallback.stop()
+        usingFallback = false
         apply(nil)
     }
 
@@ -56,10 +74,14 @@ final class NowPlayingModel {
     }
     #endif
 
-    func playPause() { adapter.perform(.send(.toggle)) }
-    func next() { adapter.perform(.send(.next)) }
-    func previous() { adapter.perform(.send(.previous)) }
-    func seek(to seconds: TimeInterval) { adapter.perform(.seek(seconds)) }
+    func playPause() { route(.send(.toggle)) }
+    func next() { route(.send(.next)) }
+    func previous() { route(.send(.previous)) }
+    func seek(to seconds: TimeInterval) { route(.seek(seconds)) }
+
+    private func route(_ call: MediaAdapter.Call) {
+        if usingFallback { fallback.perform(call) } else { adapter.perform(call) }
+    }
 
     nonisolated static func isVisible(hasInfo: Bool, playing: Bool, pausedSince: Date?, now: Date) -> Bool {
         guard hasInfo else { return false }

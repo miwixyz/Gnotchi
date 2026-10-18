@@ -80,7 +80,8 @@ struct NowPlayingInfo: Equatable, Sendable {
             artworkBase64: p.artworkData.flatMap { $0.utf8.count <= maxArtworkBase64Bytes ? $0 : nil })
     }
 
-    private static func validDuration(_ d: TimeInterval) -> TimeInterval? {
+    /// Auch vom AppleScript-Rückfall genutzt: endlich, > 0, höchstens `maxDuration`.
+    static func validDuration(_ d: TimeInterval) -> TimeInterval? {
         d.isFinite && d > 0 && d <= maxDuration ? d : nil
     }
 
