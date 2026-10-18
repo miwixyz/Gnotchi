@@ -2140,6 +2140,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 | 13 | Protokoll | `log show --last 5m --predicate 'subsystem == "dev.mwlr.seam" AND category == "medien"'` enthält **keine** Titel |
 | 13b | Adapter-Pfad sperren (Skript im Testbundle ändern, Nr. 12) und Spotify abspielen | Rückfall: Insel zeigt Spotify, macOS fragt einmal nach Automation |
 | 13c | Vollbild-App und „Menüleiste automatisch ausblenden“ auf dem MacBook | Notch-Erkennung bleibt (safeAreaInsets.top weiter 32, Review Task 9: ~75 % vermutet); Insel im Vollbild aus, danach wieder an der Notch |
+| 13d | Steuern bei Wiedergabe auf anderem Gerät (Spotify Connect, AirPlay): ⏯ ⏭ Spulen | wirkt am Lautsprecher, kein Rücksprung (Lehre 18.10.: MediaRemote-Spulen wird von Connect ignoriert, nur lokal getestet war zu wenig) |
 | 14 | E17a-Messung: erbt der Perl-Prozess Seams Freigabe? | In Systemeinstellungen → Datenschutz → Bedienungshilfen nachsehen, ob „perl“ auftaucht; `log stream --predicate 'subsystem == "com.apple.TCC"'` während des Adapter-Starts mitlesen und den „responsible“-Prozess notieren |
 
 - [ ] **Step 3: Ergebnisse festhalten** – Punkt 14 in `docs/SECURE-DESIGN.md` E17a nachtragen („gemessen 18.10.: …“), Abweichungen als neue Aufgaben. Commit:
