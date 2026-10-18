@@ -8,10 +8,14 @@ struct GnotchiApp: App {
     @State private var model = AppModel()
 
     var body: some Scene {
-        // Platzhalter-Symbol, bis Michaels App-Symbol da ist.
-        MenuBarExtra("Gnotchi", systemImage: "capsule.fill") {
+        // Menüleisten-Symbol „Insel mit Pegel“ (Michael, 18.10.: Variante C) als Vorlagenbild:
+        // macOS färbt es selbst für hell, dunkel, Glas und getönt.
+        MenuBarExtra {
             MenuContent()
                 .environment(model)
+        } label: {
+            Image(nsImage: MenuBarGlyph.image)
+                .accessibilityLabel("Gnotchi")
         }
 
         Window("Gnotchi – Einstellungen", id: "einstellungen") {

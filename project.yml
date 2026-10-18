@@ -59,8 +59,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi
         CODE_SIGN_ENTITLEMENTS: Gnotchi/Resources/Gnotchi.entitlements
         ENABLE_HARDENED_RUNTIME: YES
-        # App-Symbol fehlt noch (kommt separat von Michael). Sobald es da ist:
-        # ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon + Ressource Gnotchi/Resources/AppIcon.icon.
+        # Ebenen-Symbol aus Icon Composer (Gnocchi-Notch + Pegel, 18.10.). Liegt unter
+        # Gnotchi/Resources/AppIcon.icon und kommt über `sources: Gnotchi` ins Bundle.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
         COMBINE_HIDPI_IMAGES: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"

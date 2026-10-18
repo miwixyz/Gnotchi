@@ -1,0 +1,28 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "srgb:0.20392,0.21569,0.24314,1.00000",
+      "srgb:0.07843,0.08235,0.09412,1.00000"
+    ],
+    "orientation": { "start": { "x": 0.5, "y": 0 }, "stop": { "x": 0.5, "y": 1 } }
+  },
+  "fill-specializations": [
+    { "appearance": "dark", "value": { "solid": "srgb:0.05490,0.05882,0.07059,1.00000" } }
+  ],
+  "groups": [
+    {
+      "name": "Notch",
+      "layers": [ { "image-name": "notch.svg", "name": "notch", "glass": false } ],
+      "shadow": { "kind": "neutral", "opacity": 0.45 },
+      "specular": false
+    },
+    {
+      "name": "Pegel",
+      "layers": [ { "image-name": "pegel.svg", "name": "pegel", "glass": true } ],
+      "shadow": { "kind": "layer-color", "opacity": 0.55 },
+      "specular": true,
+      "translucency": { "enabled": true, "value": 0.15 }
+    }
+  ],
+  "supported-platforms": { "squares": [ "macOS" ] }
+}
