@@ -1,0 +1,19 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Gnotchi</title>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>Sun, 18 Oct 2026 21:23:29 +0200</pubDate>
+            <link>https://github.com/miwixyz/Gnotchi</link>
+            <sparkle:version>45</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.1.0/Gnotchi-0.1.0.zip" length="3462583" type="application/octet-stream" sparkle:edSignature="3jSHr05yv2PEntvXQwg9Ok4j/Ng7LmHv8twpkA6bzWVSYv1pE+q8AwucKe1/Y72yz/vgOoZhGJ8v7ss1phzfAw=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: 4JAK//myjbSGSk67aixuTwAfNwS/dd0DedD8g3VMPQLbw5GxHM/R4n0QgL9g9Leqjx6IrkxO6veoxjLnaBbmDA==
+length: 1098
+-->
