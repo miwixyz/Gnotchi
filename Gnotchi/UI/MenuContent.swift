@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// Menü am Menüleisten-Symbol. Die Insel selbst kommt später (Plan Aufgaben 8–12);
-/// bis dahin ist das Menü der einzige Zugang zu Einstellungen, Hilfe und Updates.
+/// Menü am Menüleisten-Symbol: einziger Zugang zu Einstellungen, Hilfe und Updates.
+/// Die Insel zeigt nur den Titel und steuert die Wiedergabe.
 struct MenuContent: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow

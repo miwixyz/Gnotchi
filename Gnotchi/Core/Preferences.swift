@@ -13,8 +13,8 @@ final class Preferences {
 
     private let defaults: UserDefaults
 
-    /// Musik in der Notch zeigen. Ab Werk an. Noch nicht mit der Insel verdrahtet
-    /// (Plan Aufgabe 12); bis dahin startet Gnotchi den Adapter gar nicht.
+    /// Musik in der Notch zeigen. Ab Werk an. Aus = weder Adapter noch Insel laufen
+    /// (`AppModel.applyNotchSetting`).
     var notchMedia: Bool { didSet { defaults.set(notchMedia, forKey: Key.notchMedia) } }
 
     init(defaults: UserDefaults = .standard) {

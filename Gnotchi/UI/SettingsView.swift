@@ -15,8 +15,12 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
             card("Notch") {
                 toggleRow("Musik in der Notch", isOn: $prefs.notchMedia)
-                note("Die Insel ist in Arbeit, der Schalter wirkt ab der nächsten Version",
-                     symbol: "info.circle", color: FamilyTheme.textSecondary)
+                    .onChange(of: prefs.notchMedia) { model.applyNotchSetting() }
+                // Grund steht für sich (z. B. „… – nur Spotify und Musik“): Der Rückfall läuft dann
+                // ja noch, ein Vorsatz „nicht verfügbar“ wäre falsch.
+                if prefs.notchMedia, let reason = model.nowPlaying.unavailableReason {
+                    note(reason, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                }
             }
             card("Allgemein") {
                 toggleRow("Bei Anmeldung starten", isOn: Binding(
@@ -96,8 +100,10 @@ struct SettingsView: View {
         }
     }
 
+    /// `Text(verbatim:)`: Hinweise können App-Namen enthalten (Automation verweigert) – nie als
+    /// Markdown oder Übersetzungsschlüssel lesen.
     private func note(_ text: String, symbol: String, color: Color) -> some View {
-        Label(text, systemImage: symbol)
+        Label { Text(verbatim: text) } icon: { Image(systemName: symbol) }
             .font(FamilyTheme.font(.callout))
             .foregroundStyle(color)
             .padding(.vertical, FamilyTheme.Space.xs)

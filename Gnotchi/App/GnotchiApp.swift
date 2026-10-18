@@ -46,17 +46,28 @@ final class AppModel {
 
     private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "start")
 
-    let prefs = Preferences()
+    let prefs: Preferences
     /// Updates (Sparkle). Im Testlauf nicht gestartet: kein Netz aus dem Test-Host.
     private(set) var updater: Updater?
+    /// Was die Insel zeigt (Adapter + AppleScript-Rückfall). Läuft ohne Bedienungshilfen-Freigabe.
+    let nowPlaying = NowPlayingModel()
+    /// Erst beim ersten Einschalten angelegt: Bei „aus“ entsteht kein Panel, kein Beobachter.
+    @ObservationIgnored private lazy var island = IslandController(model: nowPlaying)
+    /// Ob Adapter und Insel laufen. Für den Test, dass der Testlauf nichts startet.
+    private(set) var notchRunning = false
+    /// Abmelde-Token fürs Beenden. Lebt so lange wie die App; aufgehoben statt `_ =`, damit klar
+    /// ist, dass die Anmeldung gewollt bestehen bleibt.
+    @ObservationIgnored private var terminateObserver: NSObjectProtocol?
 
-    /// Im Testlauf startet die App als Test-Host. Dann weder Sparkle noch (später) der
-    /// Medien-Adapter: Die Tests prüfen reine Logik.
+    /// Im Testlauf startet die App als Test-Host. Dann weder Sparkle noch der Medien-Adapter
+    /// (er startete perl, der Rückfall schickte Apple Events): Die Tests prüfen reine Logik.
     static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
-    init() {
+    /// `prefs` von außen nur für Tests: Der Test-Host teilt sich sonst die echten Einstellungen.
+    init(prefs: Preferences = Preferences()) {
+        self.prefs = prefs
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.
@@ -65,6 +76,34 @@ final class AppModel {
         guard !Self.isRunningTests else { return }
         updater = Updater()
         Self.log.notice("Start")
+        applyNotchSetting()
+        // Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
+        terminateObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.stopNotch() }
+        }
+    }
+
+    /// Schalter „Musik in der Notch“: an → Adapter und Insel starten, aus → beide stoppen.
+    /// Beim Start und bei jeder Änderung des Schalters aufgerufen; im Testlauf wirkungslos.
+    func applyNotchSetting() {
+        guard !Self.isRunningTests else { return }
+        if prefs.notchMedia {
+            nowPlaying.start()
+            island.start()
+            notchRunning = true
+        } else {
+            stopNotch()
+        }
+    }
+
+    /// Insel zuerst abbauen, dann die Quelle: So reagiert keine Insel mehr auf das Leeren des Titels.
+    private func stopNotch() {
+        guard notchRunning else { return }
+        island.stop()
+        nowPlaying.stop()
+        notchRunning = false
     }
 }
 
