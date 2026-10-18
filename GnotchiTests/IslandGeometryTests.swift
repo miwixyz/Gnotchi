@@ -89,4 +89,60 @@ final class IslandGeometryTests: XCTestCase {
         XCTAssertEqual(l.expanded.height, IslandGeometry.expandedSize.height)
         XCTAssertTrue(m.frame.contains(l.expanded))
     }
+
+    /// Verschobene Rahmen (Zweitbildschirm links bzw. oben): alles bezieht sich auf frame.maxY/minX, nie auf 0.
+    func testShiftedFramesStayAnchoredToTheirScreen() {
+        let notchLeft = IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: -1920, y: 200, width: 1470, height: 956), safeTop: 32, auxLeftWidth: 645.5, auxRightWidth: 645.5)
+        let pillAbove = IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 956, width: 2560, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil)
+        for m in [notchLeft, pillAbove] {
+            let l = IslandGeometry.layout(for: m)
+            XCTAssertEqual(l.compact.maxY, m.frame.maxY)
+            XCTAssertEqual(l.expanded.maxY, m.frame.maxY)
+            XCTAssertTrue(m.frame.contains(l.expanded))
+            XCTAssertEqual(l.expanded.midX, l.compact.midX, accuracy: 0.01)
+        }
+        XCTAssertEqual(IslandGeometry.layout(for: notchLeft).compact.midX, -1920 + 735, accuracy: 0.01)
+        XCTAssertEqual(IslandGeometry.layout(for: pillAbove).compact.midX, 1280, accuracy: 0.01)
+    }
+
+    /// Notch-Bedingung: beide Teile müssen zusammenpassen, sonst Pille.
+    func testSafeTopWithoutAuxAreasFallsBackToPill() {
+        let m = IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 1470, height: 956), safeTop: 32, auxLeftWidth: nil, auxRightWidth: nil)
+        let l = IslandGeometry.layout(for: m)
+        XCTAssertNil(l.notch)
+        XCTAssertEqual(l.compact.size, IslandGeometry.pillSize)
+    }
+
+    func testAuxAreasWithoutSafeTopFallBackToPill() {
+        let m = IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 1470, height: 956), safeTop: 0, auxLeftWidth: 645.5, auxRightWidth: 645.5)
+        let l = IslandGeometry.layout(for: m)
+        XCTAssertNil(l.notch)
+        XCTAssertEqual(l.compact.size, IslandGeometry.pillSize)
+    }
+
+    /// Notch nahe am rechten Rand: Gross wird nach links geschoben.
+    func testExpandedClampedAtRightEdge() {
+        let m = IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 1470, height: 956), safeTop: 32, auxLeftWidth: 1241, auxRightWidth: 50)
+        let l = IslandGeometry.layout(for: m)
+        XCTAssertEqual(l.expanded.maxX, 1470)
+        XCTAssertEqual(l.expanded.width, IslandGeometry.expandedSize.width)
+        XCTAssertTrue(m.frame.contains(l.expanded))
+    }
+
+    /// Entartete Seitenflächen (Summe >= Breite): keine Notch mit Breite 0 oder negativ, stattdessen Pille.
+    func testDegenerateAuxWidthsFallBackToPill() {
+        for (l, r) in [(735.0, 735.0), (800.0, 700.0)] {
+            let m = IslandGeometry.ScreenMetrics(
+                frame: CGRect(x: 0, y: 0, width: 1470, height: 956), safeTop: 32, auxLeftWidth: l, auxRightWidth: r)
+            let layout = IslandGeometry.layout(for: m)
+            XCTAssertNil(layout.notch)
+            XCTAssertEqual(layout.compact.size, IslandGeometry.pillSize)
+            XCTAssertEqual(layout.compact.midX, m.frame.midX, accuracy: 0.01)
+        }
+    }
 }

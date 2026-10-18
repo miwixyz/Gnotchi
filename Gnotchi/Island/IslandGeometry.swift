@@ -25,7 +25,8 @@ enum IslandGeometry {
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY
-        if m.safeTop > 0, let l = m.auxLeftWidth, let r = m.auxRightWidth {
+        // `l + r < Breite`: sonst hätte die Notch Breite <= 0 (kaputte Messwerte) — dann lieber Pille.
+        if m.safeTop > 0, let l = m.auxLeftWidth, let r = m.auxRightWidth, l + r < m.frame.width {
             // Die Notch ist die Lücke zwischen den beiden Seitenflächen. Sind die ungleich
             // breit, sitzt sie nicht mittig — Kompakt und Gross folgen ihr, nicht der Bildschirmmitte.
             let notch = CGRect(x: m.frame.minX + l, y: top - m.safeTop,
