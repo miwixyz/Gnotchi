@@ -24,7 +24,8 @@ Die Datenquelle dafür ist schon eingebaut und geprüft, die Insel selbst folgt.
 Gnotchi braucht **keine Bedienungshilfen-Freigabe** und fragt auch nie danach.
 
 Nur wenn macOS den systemweiten Zugriff auf die Wiedergabe sperrt, steuert Gnotchi Spotify und
-Musik direkt. Dann fragt macOS einmal, ob Gnotchi diese App steuern darf. Erlauben oder später
+Musik direkt. Spulen in Spotify läuft immer direkt, sonst springt die Zeit über Spotify Connect
+zurück. Beim ersten Mal fragt macOS, ob Gnotchi diese App steuern darf. Erlauben oder später
 ändern unter Systemeinstellungen → Datenschutz & Sicherheit → Automation.
 
 Titel, Interpret und Cover bleiben im Speicher. Gnotchi speichert sie nicht, schreibt sie nicht

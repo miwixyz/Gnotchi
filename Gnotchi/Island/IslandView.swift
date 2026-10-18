@@ -219,7 +219,8 @@ struct ProgressRow: View {
     /// Gespulter Zielwert, gültig bis zur nächsten Meldung (anderer Zeitstempel), höchstens `maxWait`
     /// (geht der Befehl verloren, darf die Zeit nicht stehen bleiben) und nur für denselben Titel.
     struct PendingSeek: Equatable {
-        nonisolated static let maxWait: TimeInterval = 2
+        /// Gemessen 18.10.: Connect folgt nach ~3 s – darunter spränge der Regler kurz zurück.
+        nonisolated static let maxWait: TimeInterval = 4
         let value: TimeInterval
         let stamp: Date
         let track: String?

@@ -60,6 +60,13 @@ final class ProgressRowDisplayTests: XCTestCase {
         XCTAssertNil(p.value(for: info(stamp: t0, title: "B"), now: t0))
     }
 
+    /// Spotify Connect: MediaRemote folgt der neuen Position erst nach ~3 s (gemessen 18.10.).
+    func testPendingSeekHoldsThroughConnectDelay() {
+        let i = info(stamp: t0)
+        let p = ProgressRow.PendingSeek(value: 120, info: i, released: t0)
+        XCTAssertEqual(p.value(for: i, now: t0.addingTimeInterval(3.5)), 120)
+    }
+
     /// Kommt nie eine neue Meldung (Befehl verloren), darf die Zeit nicht ewig stehen.
     func testPendingSeekExpires() {
         let i = info(stamp: t0)
