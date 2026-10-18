@@ -62,7 +62,8 @@ custom_rules:
     name: "Kindprozesse nur in MediaAdapter"
     regex: '\b(Process\(\)|NSTask|posix_spawn\w*|system\(|popen\()'
     included: 'Gnotchi/.*\.swift'
-    excluded: 'Gnotchi/Media/MediaAdapter\.swift'
+    # Tests ausgenommen: BundleIntegrityTests ruft codesign für ein Probe-Bundle auf.
+    excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift'
     excluded_match_kinds:
       - comment
       - doccomment
