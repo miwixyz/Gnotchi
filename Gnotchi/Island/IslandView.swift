@@ -170,6 +170,7 @@ struct IslandView: View {
                 appIcon(id, size: 16)
                 if let name {
                     Text(verbatim: name).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                        .lineLimit(1).truncationMode(.tail)
                 }
             }
             .frame(height: 16)
@@ -235,7 +236,9 @@ struct ProgressRow: View {
                 Text(verbatim: d.elapsedLabel).monospacedDigit()
                 ScrubBar(fraction: d.fraction, enabled: d.seekable,
                          onDrag: { x, width in dragValue = Self.seconds(atX: x, width: width, upper: d.sliderUpper) },
-                         onRelease: { release() })
+                         onRelease: { x, width in seek(Self.seconds(atX: x, width: width, upper: d.sliderUpper)) },
+                         // Ziehen ohne Ende abgebrochen (Insel zu, Panel weg): Balken nicht eingefroren lassen.
+                         onDragStateReset: { dragValue = nil })
                     .accessibilityRepresentation {
                         // Für VoiceOver ein echter Regler: Wert, Erhöhen/Verringern wie zuvor beim Slider.
                         Slider(value: Binding(get: { d.sliderValue }, set: { seek($0) }), in: 0...d.sliderUpper,
@@ -251,15 +254,10 @@ struct ProgressRow: View {
         }
     }
 
-    private func release() {
-        guard let v = dragValue else { return }
-        seek(v)
-        dragValue = nil
-    }
-
     private func seek(_ v: TimeInterval) {
         onSeek(v)
         pending = PendingSeek(value: v, info: info, released: Date())
+        dragValue = nil
     }
 
     /// Mausposition im Balken → Sekunden, festgehalten auf [0, upper]. Unbrauchbare Werte (Breite 0,
@@ -331,15 +329,18 @@ struct ProgressRow: View {
 }
 
 /// Dünner Balken (Kapsel, Weiß 20 % / Weiß gefüllt). Den Knopf gibt es nur beim Überfahren oder Ziehen.
-/// Klick oder Ziehen meldet die Position laufend (`onDrag`), gespult wird erst bei `onRelease`.
+/// Klick oder Ziehen meldet die Position laufend (`onDrag`), gespult wird erst bei `onRelease` – mit der
+/// Endposition, unabhängig davon, ob `onDragStateReset` vorher oder nachher kommt. `@GestureState` setzt
+/// sich auch zurück, wenn SwiftUI das Ziehen ohne `onEnded` abbricht; dann meldet `onDragStateReset`.
 /// Funktioniert mit dem ersten Klick im nie aktiven Panel (ClickableHostingView.acceptsFirstMouse).
 private struct ScrubBar: View {
     let fraction: Double
     let enabled: Bool
     let onDrag: (CGFloat, CGFloat) -> Void
-    let onRelease: () -> Void
+    let onRelease: (CGFloat, CGFloat) -> Void
+    let onDragStateReset: () -> Void
     @State private var hovering = false
-    @State private var dragging = false
+    @GestureState private var dragging = false
 
     private var active: Bool { enabled && (hovering || dragging) }
 
@@ -363,15 +364,11 @@ private struct ScrubBar: View {
             // Greifbar über die ganze Höhe, nicht nur über die 3 pt der Linie.
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { g in
-                    dragging = true
-                    onDrag(g.location.x, width)
-                }
-                .onEnded { _ in
-                    dragging = false
-                    onRelease()
-                })
+                .updating($dragging) { _, state, _ in state = true }
+                .onChanged { g in onDrag(g.location.x, width) }
+                .onEnded { g in onRelease(g.location.x, width) })
         }
+        .onChange(of: dragging) { _, now in if !now { onDragStateReset() } }
         .frame(height: 12)
         .opacity(enabled ? 1 : 0.4)
         .allowsHitTesting(enabled)
