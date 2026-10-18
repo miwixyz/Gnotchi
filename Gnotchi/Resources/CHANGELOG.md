@@ -28,5 +28,7 @@ Alle nennenswerten Änderungen an Gnotchi.
   AirPlay). Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt – es hört nichts mit.
 - Einstellung „Aufklappen nach“ (Sofort, 0,3 s, 0,6 s, 1 s; ab Werk 0,6 s): Die Insel geht erst
   auf, wenn die Maus so lange darüber bleibt – flüchtiges Überfahren löst nichts mehr aus.
+- Rechtsklick (oder Ctrl-Klick) auf die Insel öffnet ein Menü mit „Einstellungen …“ und
+  „Hilfe …“. Die Insel klappt dabei nicht auf.
 - Nur eine Notch-App: Zeichnet eine andere App ebenfalls über die Notch (z. B. NotchNook), zeigt
   Gnotchi oben im Menü und in den Einstellungen einen Hinweis mit ihrem Namen.

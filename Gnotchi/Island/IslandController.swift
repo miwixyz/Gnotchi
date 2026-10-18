@@ -36,6 +36,10 @@ final class IslandController {
     private var pointerInside: [CGDirectDisplayID: Bool] = [:]
     /// Aufklapp-Verzögerung in Sekunden, bei jedem Überfahren neu gelesen (Einstellung wirkt sofort).
     private let expandDelay: @MainActor () -> TimeInterval
+    /// Öffnet ein App-Fenster (Einstellungen, Hilfe) über AppModel – das Panel hat kein eigenes `openWindow`.
+    private let openWindow: @MainActor (String) -> Void
+    /// Bildschirme, auf denen gerade das Kontextmenü offen ist: Überfahren-Ereignisse dort ignorieren.
+    private var menuOpen: Set<CGDirectDisplayID> = []
     private var spaceRecheck: Task<Void, Never>?
     /// Läuft, solange ein gefundener Konkurrent auf die bestätigende zweite Prüfung wartet.
     private var competitorCheck: Task<Void, Never>?
@@ -52,9 +56,11 @@ final class IslandController {
     /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
-    init(model: NowPlayingModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 }) {
+    init(model: NowPlayingModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
+         openWindow: @escaping @MainActor (String) -> Void = { _ in }) {
         self.model = model
         self.expandDelay = expandDelay
+        self.openWindow = openWindow
     }
 
     func start() {
@@ -263,6 +269,7 @@ final class IslandController {
         let view = IslandView(state: state) { [weak self] inside in self?.hover(inside, displayID: displayID) }
             .environment(model)
         let host = ClickableHostingView(rootView: view)
+        host.onContextClick = { [weak self] event, view in self?.showContextMenu(event, in: view, displayID: displayID) }
         // Die Größe bestimmt der Controller (setFrame), nicht der SwiftUI-Inhalt.
         host.sizingOptions = []
         p.contentView = host
@@ -351,8 +358,29 @@ final class IslandController {
         }
     }
 
-    private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
+    /// Kontextmenü (Einstellungen, Hilfe). Klappt die Insel nicht auf: Eine laufende Aufklapp-Verzögerung
+    /// wird abgebrochen, die Insel bleibt, wie sie ist. `popUpContextMenu` kehrt erst nach dem Schließen
+    /// zurück; Überfahren-Meldungen währenddessen werden ignoriert und danach an der Mauslage nachgeholt.
+    private func showContextMenu(_ event: NSEvent, in view: NSView, displayID: CGDirectDisplayID) {
         guard let entry = panels[displayID], entry.state.mode != .hidden else { return }
+        expandTasks[displayID]?.cancel()
+        expandTasks[displayID] = nil
+        collapseTasks[displayID]?.cancel()
+        collapseTasks[displayID] = nil
+        let menu = NSMenu()
+        for item in Self.contextMenuItems {
+            menu.addItem(ClosureMenuItem(title: item.title) { [weak self] in self?.openWindow(item.windowID) })
+        }
+        menuOpen.insert(displayID)
+        NSMenu.popUpContextMenu(menu, with: event, for: view)
+        menuOpen.remove(displayID)
+        let inside = entry.panel.frame.contains(NSEvent.mouseLocation)
+        pointerInside[displayID] = inside
+        if !inside { hover(false, displayID: displayID) }
+    }
+
+    private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
+        guard !menuOpen.contains(displayID), let entry = panels[displayID], entry.state.mode != .hidden else { return }
         pointerInside[displayID] = inside
         collapseTasks[displayID]?.cancel()
         collapseTasks[displayID] = nil
@@ -422,9 +450,24 @@ final class IslandController {
 }
 
 /// `acceptsFirstMouse` ist ab Werk false; vorsorglich gesetzt, damit die Tasten auf den ersten Klick
-/// reagieren, obwohl das Panel nie Key wird (Tippi-Muster).
+/// reagieren, obwohl das Panel nie Key wird (Tippi-Muster). Rechtsklick und Ctrl-Klick gehen an
+/// `onContextClick` (Kontextmenü), nicht an SwiftUI – ein Ctrl-Klick auf eine Taste löst sie nicht aus.
 private final class ClickableHostingView<Content: View>: NSHostingView<Content> {
+    var onContextClick: ((NSEvent, NSView) -> Void)?
+
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func rightMouseDown(with event: NSEvent) {
+        guard let onContextClick else { return super.rightMouseDown(with: event) }
+        onContextClick(event, self)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        if IslandController.isContextClick(type: event.type, modifiers: event.modifierFlags), let onContextClick {
+            return onContextClick(event, self)
+        }
+        super.mouseDown(with: event)
+    }
 }
 
 extension NSScreen {

@@ -1,7 +1,8 @@
 # Gnotchi – Hilfe
 
 Gnotchi lebt in der Menüleiste (Symbol: Kapsel). Ein Klick darauf öffnet das Menü mit
-Einstellungen, Hilfe, Update-Suche und Beenden.
+Einstellungen, Hilfe, Update-Suche und Beenden. Rechtsklick auf die Insel öffnet Einstellungen und
+Hilfe. Ohne Musik: Gnotchi-Symbol in der Menüleiste.
 
 ## Musik in der Notch
 

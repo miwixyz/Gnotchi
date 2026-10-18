@@ -11,7 +11,7 @@ struct MenuContent: View {
         // Zweite Notch-App (Michael, 18.10.: „sollen nicht vorkommen“): ganz oben, führt zur Hilfe.
         // App-Name aus dem lokalen Bundle, trotzdem nur `Text(verbatim:)`.
         if let other = model.nowPlaying.competingNotchApp {
-            Button { open("hilfe") } label: {
+            Button { open(AppModel.WindowID.help) } label: {
                 Label { Text(verbatim: IslandController.competingWarning(name: other)) }
                     icon: { Image(systemName: "exclamationmark.triangle") }
             }
@@ -22,9 +22,9 @@ struct MenuContent: View {
             Button("Update \(version) verfügbar …") { updater.checkForUpdates() }
             Divider()
         }
-        Button("Einstellungen …") { open("einstellungen") }
+        Button("Einstellungen …") { open(AppModel.WindowID.settings) }
             .keyboardShortcut(",")
-        Button("Hilfe …") { open("hilfe") }
+        Button("Hilfe …") { open(AppModel.WindowID.help) }
         Button("Nach Updates suchen …") { model.updater?.checkForUpdates() }
             .disabled(!(model.updater?.canCheck ?? false))
         Divider()
@@ -32,13 +32,10 @@ struct MenuContent: View {
             .keyboardShortcut("q")
     }
 
+    /// Meldet zugleich `openWindow` an AppModel (falls das Menüleisten-Symbol es nicht schon getan hat).
     private func open(_ id: String) {
-        openWindow(id: id)
-        // Menüleisten-App ohne Dock-Symbol: aktivieren und das neue Fenster ausdrücklich zum
-        // Schlüsselfenster machen, sonst liegt es oben, bleibt aber inaktiv (Seam, gemessen 09.10.).
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            NSApp.activate()
-            NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true }?.makeKeyAndOrderFront(nil)
-        }
+        let action = openWindow
+        model.registerWindowOpener { action(id: $0) }
+        model.showWindow(id)
     }
 }

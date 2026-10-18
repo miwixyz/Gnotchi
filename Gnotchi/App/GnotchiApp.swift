@@ -14,11 +14,10 @@ struct GnotchiApp: App {
             MenuContent()
                 .environment(model)
         } label: {
-            Image(nsImage: MenuBarGlyph.image)
-                .accessibilityLabel("Gnotchi")
+            MenuBarLabel(model: model)
         }
 
-        Window("Gnotchi – Einstellungen", id: "einstellungen") {
+        Window("Gnotchi – Einstellungen", id: AppModel.WindowID.settings) {
             SettingsView()
                 .environment(model)
                 .environment(model.prefs)
@@ -28,7 +27,7 @@ struct GnotchiApp: App {
 
         // Hilfe, Änderungen, Fremdcode-Lizenzen (Sparkle, Plus Jakarta Sans und mediaremote-adapter
         // verlangen, dass ihr Lizenztext mit ausgeliefert und erreichbar ist).
-        Window("Gnotchi", id: "hilfe") {
+        Window("Gnotchi", id: AppModel.WindowID.help) {
             HelpView()
                 .padding(16)
                 .frame(width: 520)
@@ -46,6 +45,12 @@ final class AppModel {
 
     private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "start")
 
+    /// IDs der Fenster-Szenen; gebraucht von Menüleisten-Menü und Kontextmenü der Insel.
+    enum WindowID {
+        static let settings = "einstellungen"
+        static let help = "hilfe"
+    }
+
     let prefs: Preferences
     /// Updates (Sparkle). Im Testlauf nicht gestartet: kein Netz aus dem Test-Host.
     private(set) var updater: Updater?
@@ -53,9 +58,14 @@ final class AppModel {
     let nowPlaying: NowPlayingModel
     /// Quelle der Insel; im Betrieb `nowPlaying`, im Test eine Attrappe.
     @ObservationIgnored private let source: NotchPart
-    @ObservationIgnored private let makeIsland: () -> NotchPart
+    @ObservationIgnored private let makeIsland: (() -> NotchPart)?
     /// Erst beim ersten Einschalten angelegt: Bei „aus“ entsteht kein Panel, kein Beobachter.
-    @ObservationIgnored private lazy var island: NotchPart = makeIsland()
+    @ObservationIgnored private lazy var island: NotchPart = makeIsland?() ?? IslandController(
+        model: nowPlaying, expandDelay: { [prefs] in prefs.expandDelay },
+        openWindow: { [weak self] id in self?.showWindow(id) })
+    /// `openWindow` aus einer SwiftUI-Szene (Menüleisten-Symbol, Menü). Das Insel-Panel liegt außerhalb
+    /// jeder Szene und hat keins – es öffnet Fenster über `showWindow`.
+    @ObservationIgnored private var windowOpener: ((String) -> Void)?
     /// false im Testlauf: Dann startet `applyNotchSetting` nichts (kein perl, keine Apple Events).
     @ObservationIgnored private let allowStart: Bool
     /// Ob Quelle und Insel laufen. Verhindert doppelte Starts und Stopps.
@@ -81,7 +91,7 @@ final class AppModel {
         let nowPlaying = NowPlayingModel()
         self.nowPlaying = nowPlaying
         self.source = source ?? nowPlaying
-        self.makeIsland = makeIsland ?? { IslandController(model: nowPlaying, expandDelay: { prefs.expandDelay }) }
+        self.makeIsland = makeIsland
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.
@@ -110,6 +120,25 @@ final class AppModel {
             notchRunning = true
         } else {
             stopNotch()
+        }
+    }
+
+    func registerWindowOpener(_ open: @escaping (String) -> Void) {
+        windowOpener = open
+    }
+
+    /// Fenster öffnen und nach vorn holen. Menüleisten-App ohne Dock-Symbol: aktivieren und das Fenster
+    /// ausdrücklich zum Schlüsselfenster machen, sonst liegt es oben, bleibt aber inaktiv (Seam, gemessen 09.10.).
+    func showWindow(_ id: String) {
+        guard let windowOpener else {
+            Self.log.error("Fenster \(id, privacy: .public) nicht geöffnet: noch keine Szene hat openWindow gemeldet")
+            return
+        }
+        windowOpener(id)
+        guard !Self.isRunningTests else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NSApp.activate()
+            NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true }?.makeKeyAndOrderFront(nil)
         }
     }
 
@@ -143,6 +172,19 @@ extension NotchPart {
 
 extension NowPlayingModel: NotchPart {}
 extension IslandController: NotchPart {}
+
+/// Menüleisten-Symbol. Meldet beim Erscheinen (gleich beim Start) `openWindow` an AppModel, damit auch
+/// das Kontextmenü der Insel Fenster öffnen kann, bevor das Menü je offen war.
+private struct MenuBarLabel: View {
+    let model: AppModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Image(nsImage: MenuBarGlyph.image)
+            .accessibilityLabel("Gnotchi")
+            .onAppear { model.registerWindowOpener { openWindow(id: $0) } }
+    }
+}
 
 /// Fenster (Einstellungen, Hilfe) kommen in den Space, in dem man gerade ist. Ohne das holt
 /// macOS beim zweiten Öffnen den Space nach vorn, in dem das Fenster zuerst aufging
