@@ -1,3 +1,4 @@
+// SYNTHETISCH – erfundene Beispieldaten, keine echten Hördaten (Datenschutz-Gate, SECURE-DESIGN G16)
 import XCTest
 @testable import Gnotchi
 

@@ -113,8 +113,11 @@ echo "  ✓ notarytool-Profil: ${NOTARY_PROFILE}"
 # ---------------------------------------------------------------------------
 # 1. Doku-Gate — derselbe Prüfer wie bei `make install`
 # ---------------------------------------------------------------------------
-step "[1/10] Doku-Gate"
+step "[1/10] Doku-Gate und Datenschutz-Gate"
 bash scripts/docs-gate.sh
+# Keine echten Hördaten im ausgelieferten Stand (G16). `make release` prüft das schon über
+# `make lint`, aber dieses Skript lässt sich auch direkt aufrufen.
+sh scripts/privacy-gate.sh || fail "Datenschutz-Gate nicht bestanden (siehe oben)"
 
 # ---------------------------------------------------------------------------
 # 2. Tests

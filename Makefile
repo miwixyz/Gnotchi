@@ -1,4 +1,4 @@
-.PHONY: docs gen lock build test lint dev install release release-dry-run clean
+.PHONY: docs gen lock build test lint hooks dev install release release-dry-run clean
 
 APP = Gnotchi
 CONFIG ?= Debug
@@ -38,9 +38,16 @@ test: gen
 		-derivedDataPath $(DERIVED) \
 		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates test
 
+# Datenschutz-Gate zuerst (docs/SECURE-DESIGN.md G16): keine echten Hördaten im Repo.
 lint:
+	@sh scripts/privacy-gate.sh
 	@command -v swiftlint >/dev/null || { echo "swiftlint fehlt -> brew install swiftlint"; exit 1; }
 	swiftlint lint --quiet --strict
+
+# Einmal je Klon: Git-Hooks aus .githooks/ benutzen (Datenschutz-Gate vor jedem Commit).
+hooks:
+	git config core.hooksPath .githooks
+	@echo "✓ core.hooksPath = $$(git config core.hooksPath)"
 
 # Testversion: bauen, mit Developer ID signierte KOPIE unter /tmp starten.
 # Developer ID, damit die Signaturprüfung vor dem Adapter-Start (G2) besteht und

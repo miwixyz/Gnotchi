@@ -25,6 +25,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G13 | E7 | niemand außer dem Nutzer steuert Gnotchi |
 | G14 | E10 | gespeicherte Daten |
 | G15 | – (neu) | Wiedergabeweg aus Core Audio, nur lesen |
+| G16 | – (neu) | keine echten Hördaten im Repo |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -297,7 +298,7 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 - **Ergänzt 18.10. (Security-Review) – keine echten Hördaten im Repo:** Testzeilen, Spezifikation und
   `spike/nowplaying-beispiel.jsonl` haben Aufbau, Zahlen und Zeitpunkte des Mitschnitts vom 18.10.,
   aber erfundene Titel, Interpreten, Alben, Werbetitel und IDs. Neue Mitschnitte vor dem Einchecken
-  genauso umschreiben; echte Werte nur lokal außerhalb des Repos.
+  genauso umschreiben; echte Werte nur lokal außerhalb des Repos. Seit dem 18.10. maschinell geprüft, siehe G16.
 
 ### G15 – Wiedergabeweg aus Core Audio, nur lesen (neu, 2026-10-18)
 - **Entschieden:** Um „Auf anderem Gerät“ (Spotify Connect) und AirPlay/Bluetooth anzuzeigen, liest
@@ -313,6 +314,32 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 - **Fehlalarm vermeiden:** „Anderes Gerät“ erst nach > 2 s Stille bei laufender Wiedergabe; Helfer-
   Prozesse derselben App (`<id>.…`) zählen mit; spielt der geteilte `com.apple.WebKit.GPU`-Prozess,
   gilt Stille der App als unbekannt (Safari); kein Core-Audio-Objekt → unbekannt → nichts angezeigt.
+
+### G16 – Keine echten Hördaten im Repo (neu, 2026-10-18)
+- **Vorfall 18.10.:** Ein echter Now-Playing-Mitschnitt von Michaels Mac (was er an dem Morgen
+  gehört und gesehen hat) wurde als Messgrundlage in `spike/` eingecheckt, echte Titel standen in
+  Testzeilen und Spezifikation. Bemerkt im Security-Review desselben Tages. Die Daten wurden
+  durch erfundene ersetzt (G14) und die Git-Historie mit `git filter-repo` umgeschrieben, damit
+  die echten Werte in keinem Commit mehr stehen. Das Repo war zu dem Zeitpunkt nur lokal, nichts
+  wurde veröffentlicht. Die Regel aus G14 („vor dem Einchecken umschreiben“) gab es da schon als
+  Vorsatz – er hat nicht gereicht.
+- **Regel:** **Messdaten nur nach `/tmp`, nie in einen Repo-Ordner.** Ins Repo kommt ein Beispiel
+  erst, wenn Titel, Interpreten, Alben, Werbetitel und IDs erfunden sind.
+- **Entschieden – Mechanismus statt Vorsatz:** `scripts/privacy-gate.sh` (POSIX sh) lehnt ab:
+  (a) Pfade mit „mitschnitt“ oder „capture“ im Namen (Groß-/Kleinschreibung egal), `.jsonl`
+  außerhalb von `spike/` und jede Datei in `spike/`, deren Zeile 1 nicht `SYNTHETISCH` enthält
+  (bei `.jsonl` die Zeile `{"_hinweis":"SYNTHETISCH – …"}`, ohne `payload` – der Adapter-Leser
+  überspringt sie, Test `testSyntheticMarkerLineIsSkipped`); (b) Dateien unter `GnotchiTests/`
+  mit einer Now-Playing-Zeile (`"payload"` und `"title"` in einer Zeile) ohne `// SYNTHETISCH` in
+  den ersten 10 Zeilen. Jeder Fund nennt Datei und „→ ZU TUN“. Kein Übergehen per Variable.
+- **Verdrahtet an drei Stellen:** `make lint` (Index und ungetrackte Dateien), `scripts/release.sh`
+  vor dem Bauen, `.githooks/pre-commit` nur auf den gestagten Inhalt (`--staged`, liest aus dem
+  Index). Den Hook schaltet `make hooks` ein (`git config core.hooksPath .githooks`), einmal je
+  Klon. Gegenprobe 18.10.: eine gestagte `spike/test-mitschnitt.jsonl` blockiert den Commit.
+- **Grenze:** Ob ein Titel echt ist, kann kein Skript erkennen. Die Markierung `SYNTHETISCH` ist
+  eine bewusste Unterschrift dessen, der die Daten umgeschrieben hat; das Gate erzwingt, dass
+  niemand sie vergisst, und fängt die naheliegenden Dateinamen ab. Spezifikationen (`specs/`)
+  prüft es nicht – dort gilt die Regel weiter als Vorsatz.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
@@ -373,4 +400,5 @@ Adresse aus dem offiziellen README (Slopsquat).
       dem Terminal (G2)
 - [ ] `codesign -d --entitlements - --xml` am signierten Build: App nur Apple Events, eingebetteter
       Code ohne
-- [ ] `rafter-code-review` gegen G1–G14 und `rafter run` – braucht das Repo auf GitHub (noch lokal)
+- [x] Datenschutz-Gate (G16) in `make lint`, `release.sh` und Pre-Commit-Hook, Gegenprobe 18.10.
+- [ ] `rafter-code-review` gegen G1–G16 und `rafter run` – braucht das Repo auf GitHub (noch lokal)

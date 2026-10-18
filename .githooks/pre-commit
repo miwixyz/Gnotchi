@@ -1,0 +1,5 @@
+#!/bin/sh
+# Datenschutz-Gate vor jedem Commit (docs/SECURE-DESIGN.md G16): nur was gerade committet wird.
+# Eingeschaltet per `make hooks` (git config core.hooksPath .githooks).
+cd "$(git rev-parse --show-toplevel)" || exit 1
+exec sh scripts/privacy-gate.sh --staged

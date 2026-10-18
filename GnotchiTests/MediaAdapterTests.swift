@@ -1,3 +1,4 @@
+// SYNTHETISCH – erfundene Beispieldaten, keine echten Hördaten (Datenschutz-Gate, SECURE-DESIGN G16)
 import XCTest
 @testable import Gnotchi
 
@@ -87,6 +88,16 @@ final class MediaAdapterTests: XCTestCase {
     /// Leeres payload als letzte Zeile heißt weiterhin „nichts läuft“.
     func testEmptyPayloadLastClears() {
         XCTAssertEqual(MediaAdapter.latestEvent(in: [line(infoA), line(empty)]).event, .clear)
+    }
+
+    /// Die Hinweiszeile aus spike/ (G16) hat kein payload: keine Meldung, leert nicht, wird als unbrauchbar gezählt.
+    func testSyntheticMarkerLineIsSkipped() {
+        let marker = #"{"_hinweis":"SYNTHETISCH – erfundene Beispieldaten, keine echten Hördaten"}"#
+        XCTAssertNil(NowPlayingInfo.parse(line: line(marker)))
+        let r = MediaAdapter.latestEvent(in: [line(infoA), line(marker)])
+        guard case .info(let i)? = r.event else { return XCTFail("keine Meldung") }
+        XCTAssertEqual(i.title, "Beispieltitel Eins")
+        XCTAssertEqual(r.badLines, 1)
     }
 
     /// Unlesbare letzte Zeile leert nicht – die letzte brauchbare davor zählt, die kaputte wird gezählt.
