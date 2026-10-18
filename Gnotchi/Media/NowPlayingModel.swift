@@ -42,6 +42,13 @@ final class NowPlayingModel {
     @ObservationIgnored private var shownArtworkKey: String?
     /// Schlüssel, für den schon ein Dekodieren gestartet wurde – auch ein gescheitertes wird nicht je Meldung wiederholt.
     @ObservationIgnored private var decodeStartedKey: String?
+    /// Höchstens ein Cover-Dekodieren gleichzeitig; währenddessen wartet nur das neueste (Security-Review B3).
+    @ObservationIgnored private var artworkFlight = LatestWins<ArtworkJob>()
+
+    private struct ArtworkJob {
+        let key: String
+        let base64: String
+    }
     @ObservationIgnored private var routeTask: Task<Void, Never>?
     /// Seit wann die spielende App laut Core Audio still ist (Entprellen, AudioRoute.remoteAfter).
     @ObservationIgnored private var silentSince: Date?
@@ -191,7 +198,7 @@ final class NowPlayingModel {
 
     /// G6: Cover dekodieren dauert bis ~0,3 s – nie auf dem Hauptthread. Anderer Titel: Cover sofort leeren.
     /// Gleicher Titel: vorhandenes Cover behalten, ein fehlendes nachladen, sobald eine Meldung eins mitbringt.
-    /// Ein Ergebnis für einen schon abgelösten Titel wird verworfen.
+    /// Ein Ergebnis für einen schon abgelösten Titel wird verworfen. Höchstens eins gleichzeitig (`artworkFlight`).
     private func updateArtwork(_ new: NowPlayingInfo?) {
         let key = Self.artworkKey(for: new)
         if key != shownArtworkKey {
@@ -201,10 +208,19 @@ final class NowPlayingModel {
         }
         guard let key, artwork == nil, decodeStartedKey != key, let base64 = new?.artworkBase64 else { return }
         decodeStartedKey = key
+        if let job = artworkFlight.submit(ArtworkJob(key: key, base64: base64)) { decode(job) }
+    }
+
+    private func decode(_ job: ArtworkJob) {
         Task { [weak self] in
+            let base64 = job.base64
             let image = await Task.detached(priority: .utility) { Artwork.decode(base64: base64) }.value
-            guard let self, self.shownArtworkKey == key, let image else { return }
-            self.artwork = NSImage(cgImage: image, size: .zero)
+            guard let self else { return }
+            if self.shownArtworkKey == job.key, let image { self.artwork = NSImage(cgImage: image, size: .zero) }
+            // Wartendes nur, wenn es noch zum angezeigten Titel gehört; sonst gleich frei werden.
+            while let next = self.artworkFlight.finish() {
+                if next.key == self.shownArtworkKey { return self.decode(next) }
+            }
         }
     }
 

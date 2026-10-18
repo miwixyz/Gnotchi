@@ -138,6 +138,10 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   übernommen); Safari meldet den WebKit-Hilfsprozess, deshalb zuerst die Eltern-App (Mitschnitt
   18.10., `spike/`). Eine unlesbare Zeile leert die Anzeige nicht (sonst Flackern), sie wird
   gezählt; leeres `payload` heißt „nichts läuft“.
+- **Ergänzt 18.10. (Security-Review B3):** Zeilen schneiden und JSON dekodieren laufen auf dem
+  Lese-Thread (`StreamReader`), nicht auf dem MainActor; zum Hauptthread geht nur das Ergebnis. Je
+  Paket zählt nur die letzte brauchbare Zeile (von hinten dekodiert, `MediaAdapter.latestEvent`,
+  Test) – frühere sind überholt. Leeres `payload` leert weiterhin, unlesbare Zeilen nicht.
 
 ### G5 – Anzeige ohne Interpretation (vormals Seam E17d)
 - **Entschieden:** Titel/Interpret nur über `Text(verbatim:)` – SwiftUI würde Markdown in
@@ -152,6 +156,9 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   kosten (Dekompressionsbombe). Dann `CGImageSourceCreateThumbnailAtIndex` mit max. 256 px,
   außerhalb des Hauptthreads (bis ~0,3 s). **Nie URLs aus dem Strom laden** (kein
   `artworkURL`-Abruf → kein SSRF, kein Tracking-Pixel).
+- **Ergänzt 18.10. (Security-Review B3):** Höchstens ein Dekodieren gleichzeitig; was währenddessen
+  kommt, wartet – nur das neueste (`LatestWins`, Test). Ein wartendes Cover eines schon abgelösten
+  Titels wird nicht mehr dekodiert.
 
 ### G7 – AppleScript fest im Code (vormals Seam E17f)
 - **Entschieden:** Rückfall-Skripte sind Konstanten; einzige variable Größe ist die Spulposition
@@ -199,6 +206,9 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   (trifft sonst Fremdes, z. B. `less …/mediaremote-adapter.pl` oder den Adapter einer zweiten
   Instanz). Gemessen 18.10.: ein per `Process` gestartetes, verwaistes Perl erscheint als
   `/usr/bin/perl <Skript> …` mit Eltern-PID 1.
+- **Ergänzt 18.10. (Security-Review B4):** Höchstens ein Befehls-Prozess (Play/Pause, Weiter, Zurück,
+  Spulen) gleichzeitig; weitere Klicks werden verworfen, nicht angestaut (`OneAtATime`, Test) – wie
+  beim AppleScript-Weg.
 
 ### G10 – Insel stört nichts (vormals Seam E17i)
 - **Entschieden:** `NSPanel` nicht aktivierend; im Zustand „unsichtbar“ `ignoresMouseEvents = true`,

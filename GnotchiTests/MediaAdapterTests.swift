@@ -69,4 +69,44 @@ final class MediaAdapterTests: XCTestCase {
         XCTAssertEqual(MediaAdapter.arguments(paths, .seek(.infinity)).suffix(2), ["seek", "0"])
         XCTAssertEqual(MediaAdapter.arguments(paths, .seek(.nan)).suffix(2), ["seek", "0"])
     }
+
+    // MARK: latestEvent – je Paket nur die letzte brauchbare Zeile (Security-Review B3)
+
+    private func line(_ s: String) -> Data { Data(s.utf8) }
+    private let infoA = #"{"type":"data","payload":{"title":"Beispieltitel Eins","bundleIdentifier":"com.spotify.client","playing":true}}"#
+    private let infoB = #"{"type":"data","payload":{"title":"Beispieltitel Zwei","bundleIdentifier":"com.apple.Music","playing":true}}"#
+    private let empty = #"{"type":"data","diff":false,"payload":{}}"#
+
+    func testLastLineWins() {
+        let r = MediaAdapter.latestEvent(in: [line(infoA), line(infoB)])
+        guard case .info(let i)? = r.event else { return XCTFail("keine Meldung") }
+        XCTAssertEqual(i.title, "Beispieltitel Zwei")
+        XCTAssertEqual(r.badLines, 0)
+    }
+
+    /// Leeres payload als letzte Zeile heißt weiterhin „nichts läuft“.
+    func testEmptyPayloadLastClears() {
+        XCTAssertEqual(MediaAdapter.latestEvent(in: [line(infoA), line(empty)]).event, .clear)
+    }
+
+    /// Unlesbare letzte Zeile leert nicht – die letzte brauchbare davor zählt, die kaputte wird gezählt.
+    func testBadLastLineFallsBackAndCounts() {
+        let r = MediaAdapter.latestEvent(in: [line(infoA), line("{kaputt"), line("Müll")])
+        guard case .info(let i)? = r.event else { return XCTFail("keine Meldung") }
+        XCTAssertEqual(i.title, "Beispieltitel Eins")
+        XCTAssertEqual(r.badLines, 2)
+    }
+
+    func testOnlyBadLines() {
+        let r = MediaAdapter.latestEvent(in: [line("{kaputt"), line("x")])
+        XCTAssertNil(r.event)
+        XCTAssertEqual(r.badLines, 2)
+        XCTAssertNil(MediaAdapter.latestEvent(in: []).event)
+    }
+
+    /// Dekodiert nur bis zur ersten brauchbaren Zeile von hinten – frühere bleiben ungelesen.
+    func testEarlierLinesNotDecoded() {
+        let r = MediaAdapter.latestEvent(in: [line("{kaputt"), line(infoB)])
+        XCTAssertEqual(r.badLines, 0)
+    }
 }

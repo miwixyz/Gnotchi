@@ -10,6 +10,8 @@ final class MediaAdapter {
     enum Command: Int { case play = 0, pause = 1, toggle = 2, next = 4, previous = 5 }
     enum Call { case stream, test, send(Command), seek(TimeInterval) }
     enum State: Equatable { case starting, running, unavailable(String) }
+    /// Was ein Paket des Stroms bewirkt: neuer Titel oder „nichts läuft“.
+    enum StreamEvent: Equatable, Sendable { case info(NowPlayingInfo), clear }
 
     struct Paths: Equatable {
         let script: URL
@@ -40,11 +42,12 @@ final class MediaAdapter {
     private var generation = 0
     private var failures = 0
     private var stopped = true
-    private var splitter = LineSplitter(maxLineBytes: 4 << 20)
     private var badLines = 0
+    /// Höchstens ein Befehls-Prozess gleichzeitig; weitere Klicks werden verworfen (wie AppleScript).
+    private var commands = OneAtATime()
     private var launchedAt = Date.distantPast
     /// Byte-Suche statt String-Umwandlung: die Zeile kann ungültiges UTF-8 enthalten.
-    private static let emptyPayload = Data(#""payload":{}"#.utf8)
+    nonisolated static let emptyPayload = Data(#""payload":{}"#.utf8)
 
     // MARK: Reine Teile (getestet)
 
@@ -89,6 +92,19 @@ final class MediaAdapter {
             let secs = s.isFinite ? min(max(0, s), 7 * 86_400) : 0
             return base + ["seek", String(Int64((secs * 1_000_000).rounded()))]
         }
+    }
+
+    /// Je Paket zählt nur die LETZTE brauchbare Zeile (frühere sind schon überholt): von hinten dekodieren,
+    /// bis eine Meldung oder ein leeres `payload` („nichts läuft“) kommt. Unlesbare Zeilen danach werden
+    /// gezählt und leeren die Anzeige nicht. Läuft auf dem Lese-Thread, nicht auf dem MainActor.
+    nonisolated static func latestEvent(in lines: [Data]) -> (event: StreamEvent?, badLines: Int) {
+        var bad = 0
+        for line in lines.reversed() {
+            if line.contains(UInt8(ascii: "{")), let info = NowPlayingInfo.parse(line: line) { return (.info(info), bad) }
+            if line.range(of: emptyPayload) != nil { return (.clear, bad) }
+            bad += 1
+        }
+        return (nil, bad)
     }
 
     /// Einzige Stelle, die einen Perl-Prozess baut (G3): fester Interpreter, feste Umgebung,
@@ -146,8 +162,10 @@ final class MediaAdapter {
         guard case .running = state, let p = paths else { return }
         if case .stream = call { return }
         if case .test = call { return }
+        guard commands.tryStart() else { return }
         let args = Self.arguments(p, call)
         Task {
+            defer { self.commands.finish() }
             guard await self.verified() else { return }
             await Task.detached {
                 let proc = Self.perlProcess(args)
@@ -172,16 +190,19 @@ final class MediaAdapter {
         guard !stopped, let p = paths else { return }
         generation += 1
         let gen = generation
-        splitter = LineSplitter(maxLineBytes: 4 << 20)
+        let reader = StreamReader()   // je Lauf neu: kein halber Zeilenrest aus dem vorigen
         let proc = Self.perlProcess(Self.arguments(p, .stream))
         launchedAt = Date()
         let out = Pipe()
         proc.standardOutput = out
+        // Zeilen schneiden und JSON dekodieren auf dem Lese-Thread (Security-Review B3: ein Strom mit
+        // 2-MB-Covern blockierte sonst den Hauptthread); zum MainActor geht nur das Ergebnis.
         out.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             // EOF: leere Daten. Handler abmelden, sonst ruft Foundation ihn in Dauerschleife auf.
             if data.isEmpty { handle.readabilityHandler = nil; return }
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.consume(data, generation: gen) } }
+            let result = reader.feed(data)
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.consume(result, generation: gen) } }
         }
         proc.terminationHandler = { [weak self] p in
             let status = p.terminationStatus
@@ -198,24 +219,18 @@ final class MediaAdapter {
         }
     }
 
-    private func consume(_ data: Data, generation gen: Int) {
-        guard gen == generation, !data.isEmpty else { return }
-        let droppedBefore = splitter.dropped
-        for line in splitter.feed(data) { handle(line: line) }
-        if splitter.dropped > droppedBefore { Self.log.error("Medien-Adapter: überlange Zeile verworfen") }
-    }
-
     /// Leeres `payload` heißt „nichts läuft“ → Anzeige leeren. Eine unlesbare Zeile dagegen
     /// leert NICHT (sonst flackert die Anzeige bei einem kaputten Paket), sie wird nur gezählt.
-    private func handle(line: Data) {
-        if line.contains(UInt8(ascii: "{")), let info = NowPlayingInfo.parse(line: line) {
-            badLines = 0
-            onInfo?(info)
-        } else if line.range(of: Self.emptyPayload) != nil {
-            onInfo?(nil)
-        } else {
-            badLines += 1
-            if badLines == 10 { Self.log.error("Medien-Adapter: 10 unlesbare Zeilen in Folge") }
+    private func consume(_ r: StreamReader.Result, generation gen: Int) {
+        guard gen == generation else { return }
+        if r.droppedLines > 0 { Self.log.error("Medien-Adapter: überlange Zeile verworfen") }
+        let before = badLines
+        badLines = r.event == nil ? badLines + r.badLines : r.badLines
+        if before < 10, badLines >= 10 { Self.log.error("Medien-Adapter: 10 unlesbare Zeilen in Folge") }
+        switch r.event {
+        case .info(let info)?: onInfo?(info)
+        case .clear?: onInfo?(nil)
+        case nil: break
         }
     }
 
@@ -285,5 +300,28 @@ final class MediaAdapter {
             .split(separator: "\n").compactMap { pid_t($0) }
             .filter { $0 > 1 && $0 != own }
             .forEach { kill($0, SIGTERM) }
+    }
+}
+
+/// Liest den Strom auf dem Lese-Thread des FileHandle: Zeilen schneiden (G4, 4 MB) und nur die letzte
+/// brauchbare Zeile je Paket dekodieren. Foundation ruft den Handler nacheinander auf; das Schloss
+/// sichert den Zustand trotzdem ab, falls das je anders wäre.
+final class StreamReader: @unchecked Sendable {
+    struct Result: Sendable {
+        let event: MediaAdapter.StreamEvent?
+        let badLines: Int
+        let droppedLines: Int
+    }
+
+    private let lock = NSLock()
+    private var splitter = LineSplitter(maxLineBytes: 4 << 20)
+
+    func feed(_ data: Data) -> Result {
+        lock.lock()
+        defer { lock.unlock() }
+        let before = splitter.dropped
+        let lines = splitter.feed(data)
+        let (event, bad) = MediaAdapter.latestEvent(in: lines)
+        return Result(event: event, badLines: bad, droppedLines: splitter.dropped - before)
     }
 }

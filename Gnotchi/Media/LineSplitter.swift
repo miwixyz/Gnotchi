@@ -12,7 +12,7 @@ struct LineSplitter {
     init(maxLineBytes: Int) { self.maxLineBytes = maxLineBytes }
 
     /// Arbeitet auf Teilstücken statt Byte für Byte: Mit `--no-diff` trägt jede Zeile das
-    /// Base64-Cover (bis ca. 2 MB), und `feed` läuft auf dem MainActor.
+    /// Base64-Cover (bis ca. 2 MB). Läuft auf dem Lese-Thread (StreamReader), nicht auf dem MainActor.
     mutating func feed(_ chunk: Data) -> [Data] {
         var lines: [Data] = []
         var pos = chunk.startIndex
