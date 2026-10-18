@@ -61,7 +61,7 @@ deshalb keine Medien.
 | `Gnotchi/Media/Artwork.swift`, `LineSplitter.swift` | Cover-Grenzen, Zeilen mit Längenlimit |
 | `Vendor/mediaremote-adapter/` | eingespielter Adapter (BSD-3), siehe `VENDOR.md` |
 | `specs/` | Spezifikation und Umsetzungsplan |
-| `spike/` | Mitschnitt des Adapter-Stroms vom 18.10.2026 |
+| `spike/` | Beispiel des Adapter-Stroms: Aufbau, Zahlen und Zeitpunkte wie im Mitschnitt vom 18.10.2026, Titel/Interpreten/IDs erfunden |
 
 ## Lizenz
 

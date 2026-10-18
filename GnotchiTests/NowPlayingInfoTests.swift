@@ -4,11 +4,12 @@ import XCTest
 /// G4/G5 + Mitschnitt 18.10.: Was aus dem Strom wird.
 final class NowPlayingInfoTests: XCTestCase {
 
-    // Echte Adapter-Zeilen am Stück lassen (nicht umbrechen) – Zeilenlänge hier bewusst erlaubt.
+    // Adapter-Zeilen im Aufbau des Mitschnitts vom 18.10. (Titel/Interpreten erfunden, G8/G14), am Stück
+    // lassen (nicht umbrechen) – Zeilenlänge hier bewusst erlaubt.
     // swiftlint:disable line_length
-    private let spotify = #"{"type":"data","diff":false,"payload":{"playbackRate":1,"album":"Beispielalbum","bundleIdentifier":"com.spotify.client","title":"Beispieltitel Eins","artist":"Testband","durationMicros":206937000,"elapsedTimeMicros":30004000,"timestampEpochMicros":1792312654000000,"contentItemIdentifier":"8A34","playing":true}}"#
-    private let safari = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"com.apple.WebKit.GPU","parentApplicationBundleIdentifier":"com.apple.Safari","title":"DEMO-MIX 2026","artist":"DEMO-KANAL official","durationMicros":3600000000,"elapsedTimeMicros":0,"timestampEpochMicros":1792312654000000,"playing":true,"playbackRate":1}}"#
-    private let heliumFirst = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"net.imput.helium","title":"DEMO-MIX 2026","artist":"","playing":true}}"#
+    private let spotify = #"{"type":"data","diff":false,"payload":{"playbackRate":1,"album":"Beispielalbum!","bundleIdentifier":"com.spotify.client","title":"Beispieltitel Eins","artist":"Testband","durationMicros":206937000,"elapsedTimeMicros":30004000,"timestampEpochMicros":1792312654000000,"contentItemIdentifier":"8A34","playing":true}}"#
+    private let safari = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"com.apple.WebKit.GPU","parentApplicationBundleIdentifier":"com.apple.Safari","title":"DEMO PARTY MIX","artist":"TEST PERSON official","durationMicros":3600000000,"elapsedTimeMicros":0,"timestampEpochMicros":1792312654000000,"playing":true,"playbackRate":1}}"#
+    private let heliumFirst = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"net.imput.helium","title":"DEMO PARTY MIX","artist":"","playing":true}}"#
     // swiftlint:enable line_length
     private let empty = #"{"type":"data","diff":false,"payload":{}}"#
 

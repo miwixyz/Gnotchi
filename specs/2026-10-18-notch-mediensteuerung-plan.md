@@ -356,7 +356,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `Seam/Notch/NowPlayingInfo.swift`
 - Test: `SeamTests/NowPlayingInfoTests.swift`
 
-Testzeilen entsprechen dem Mitschnitt `spike/nowplaying-mitschnitt-2026-10-18.jsonl`, umgeschrieben auf das `--micros`-Format, das Seam nutzt.
+Testzeilen entsprechen dem Mitschnitt (im Repo synthetisch als `spike/nowplaying-beispiel.jsonl`), umgeschrieben auf das `--micros`-Format, das Seam nutzt.
 
 - [ ] **Step 1: Failing test**
 
@@ -367,9 +367,9 @@ import XCTest
 /// E17c/E17d + Mitschnitt 18.10.: Was aus dem Strom wird.
 final class NowPlayingInfoTests: XCTestCase {
 
-    private let spotify = #"{"type":"data","diff":false,"payload":{"playbackRate":1,"album":"Beispielalbum","bundleIdentifier":"com.spotify.client","title":"Beispieltitel Eins","artist":"Testband","durationMicros":206937000,"elapsedTimeMicros":30004000,"timestampEpochMicros":1792312654000000,"contentItemIdentifier":"8A34","playing":true}}"#
-    private let safari = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"com.apple.WebKit.GPU","parentApplicationBundleIdentifier":"com.apple.Safari","title":"DEMO-MIX 2026","artist":"DEMO-KANAL official","durationMicros":3600000000,"elapsedTimeMicros":0,"timestampEpochMicros":1792312654000000,"playing":true,"playbackRate":1}}"#
-    private let heliumFirst = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"net.imput.helium","title":"DEMO-MIX 2026","artist":"","playing":true}}"#
+    private let spotify = #"{"type":"data","diff":false,"payload":{"playbackRate":1,"album":"Beispielalbum!","bundleIdentifier":"com.spotify.client","title":"Beispieltitel Eins","artist":"Testband","durationMicros":206937000,"elapsedTimeMicros":30004000,"timestampEpochMicros":1792312654000000,"contentItemIdentifier":"8A34","playing":true}}"#
+    private let safari = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"com.apple.WebKit.GPU","parentApplicationBundleIdentifier":"com.apple.Safari","title":"DEMO PARTY MIX","artist":"TEST PERSON official","durationMicros":3600000000,"elapsedTimeMicros":0,"timestampEpochMicros":1792312654000000,"playing":true,"playbackRate":1}}"#
+    private let heliumFirst = #"{"type":"data","diff":false,"payload":{"bundleIdentifier":"net.imput.helium","title":"DEMO PARTY MIX","artist":"","playing":true}}"#
     private let empty = #"{"type":"data","diff":false,"payload":{}}"#
 
     private func parse(_ s: String) -> NowPlayingInfo? {
@@ -1732,7 +1732,7 @@ final class AppleScriptSourceTests: XCTestCase {
     }
 
     func testMusicDurationInSecondsAndPaused() throws {
-        let raw = ["Beispieltitel Zwei", "Beispielkünstler", "245.3", "12", "paused"].joined(separator: sep)
+        let raw = ["Beispieltitel Zwei", "Testmusiker", "245.3", "12", "paused"].joined(separator: sep)
         let i = try XCTUnwrap(AppleScriptSource.parse(raw, bundleID: "com.apple.Music", now: now))
         XCTAssertEqual(try XCTUnwrap(i.duration), 245.3, accuracy: 0.001)
         XCTAssertFalse(i.isPlaying)

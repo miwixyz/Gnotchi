@@ -30,7 +30,7 @@ und spulen; die Insel wirkt wie ein Teil von macOS.
 ## Messung vorab (MacBook Air M5, macOS 27.0.1, 18.10.)
 
 `media-control` 0.7.7 (Homebrew, gleicher Adapter): `test` → Exit 0.
-Mitschnitt `spike/nowplaying-mitschnitt-2026-10-18.jsonl`.
+Mitschnitt, im Repo als `spike/nowplaying-beispiel.jsonl` (Aufbau, Zahlen und Zeitpunkte echt; Titel, Interpreten und IDs erfunden).
 
 | Quelle | `bundleIdentifier` | Titel/Interpret | Dauer | Pause |
 |---|---|---|---|---|

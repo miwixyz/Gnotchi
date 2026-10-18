@@ -262,6 +262,10 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   Verlauf bleiben im Speicher und sind nach dem Beenden weg.
 - **Verworfen:** „Zuletzt gehört“-Liste. Das wäre ein Protokoll von Michaels Hörgewohnheiten;
   erst mit eigenem Durchgang, falls je gewünscht.
+- **Ergänzt 18.10. (Security-Review) – keine echten Hördaten im Repo:** Testzeilen, Spezifikation und
+  `spike/nowplaying-beispiel.jsonl` haben Aufbau, Zahlen und Zeitpunkte des Mitschnitts vom 18.10.,
+  aber erfundene Titel, Interpreten, Alben, Werbetitel und IDs. Neue Mitschnitte vor dem Einchecken
+  genauso umschreiben; echte Werte nur lokal außerhalb des Repos.
 
 ### G15 – Wiedergabeweg aus Core Audio, nur lesen (neu, 2026-10-18)
 - **Entschieden:** Um „Auf anderem Gerät“ (Spotify Connect) und AirPlay/Bluetooth anzuzeigen, liest

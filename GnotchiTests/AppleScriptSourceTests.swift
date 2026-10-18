@@ -24,7 +24,7 @@ final class AppleScriptSourceTests: XCTestCase {
     }
 
     func testMusicDurationInSecondsAndPaused() throws {
-        let f = Fields(title: "Beispieltitel Zwei", artist: "Beispielkünstler", state: "paused", duration: 245.3, position: 12)
+        let f = Fields(title: "Beispieltitel Zwei", artist: "Testmusiker", state: "paused", duration: 245.3, position: 12)
         let i = try XCTUnwrap(AppleScriptSource.parse(f, bundleID: music, now: now))
         XCTAssertEqual(try XCTUnwrap(i.duration), 245.3, accuracy: 0.001)
         XCTAssertFalse(i.isPlaying)
