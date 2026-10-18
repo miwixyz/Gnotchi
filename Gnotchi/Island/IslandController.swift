@@ -7,6 +7,13 @@ import SwiftUI
 @MainActor
 final class IslandController {
 
+    /// Ein Fenster aus der Fensterliste: nur Ebene, Lage und ob es einer normalen App gehört.
+    struct WindowInfo: Equatable {
+        let layer: Int
+        let bounds: CGRect
+        let isRegularApp: Bool
+    }
+
     private struct Entry {
         let panel: NSPanel
         let state: IslandState
@@ -20,6 +27,7 @@ final class IslandController {
     /// Je Bildschirm: Sonst bräche das Aufgehen auf Bildschirm B das Zuklappen auf A ab.
     private var collapseTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
     private var spaceRecheck: Task<Void, Never>?
+    private var screenDebounce: Task<Void, Never>?
     private var running = false
     /// Zählt Starts: Eine Beobachtung aus einem früheren Lauf meldet sich nach stop()/start() nicht neu an.
     private var generation = 0
@@ -29,6 +37,8 @@ final class IslandController {
     private static let animationTail: Duration = .milliseconds(350)
     /// Space-Wechsel animiert; die Fensterliste ist erst danach sicher endgültig (Vollbild an/aus).
     private static let spaceSettle: Duration = .milliseconds(800)
+    /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
+    private static let screenDebounceDelay: Duration = .milliseconds(300)
 
     init(model: NowPlayingModel) { self.model = model }
 
@@ -40,7 +50,7 @@ final class IslandController {
         appObservers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.rebuild() }
+            MainActor.assumeIsolated { self?.screenParametersChanged() }
         })
         let ws = NSWorkspace.shared.notificationCenter
         workspaceObservers.append(ws.addObserver(
@@ -75,14 +85,46 @@ final class IslandController {
         CGRect(x: r.minX, y: primaryHeight - r.maxY, width: r.width, height: r.height)
     }
 
-    /// Vollbild-App auf diesem Bildschirm: ein normales Fenster (Ebene 0) deckt ihn ganz ab.
+    /// Vollbild-App auf diesem Bildschirm: ein normales Fenster (Ebene 0) einer normalen App deckt ihn ganz ab.
     /// Ein maximiertes Fenster endet unter der Menüleiste und zählt nicht. 1 pt Toleranz für Rundung.
-    nonisolated static func coversScreen(windows: [(layer: Int, bounds: CGRect)], target: CGRect) -> Bool {
+    /// Nur normale Apps: Seams Abdunkel-Fenster liegt ebenfalls auf Ebene 0 und deckt den Bildschirm
+    /// exakt ab (gemessen 18.10.) – ohne diese Bedingung verschwände die Insel bei jedem Abdunkeln.
+    nonisolated static func coversScreen(windows: [WindowInfo], target: CGRect) -> Bool {
         windows.contains { w in
-            w.layer == 0
+            w.layer == 0 && w.isRegularApp
                 && abs(w.bounds.minX - target.minX) <= 1 && abs(w.bounds.minY - target.minY) <= 1
                 && abs(w.bounds.width - target.width) <= 1 && abs(w.bounds.height - target.height) <= 1
         }
+    }
+
+    /// Fensterliste → Ebene, Lage, normale App. Liest aus jedem Eintrag NUR Prozessnummer, Ebene und Lage
+    /// (SECURE-DESIGN G10): die Prozessnummer allein, um normale Apps zu erkennen – nie Namen oder Titel.
+    /// Eigene Fenster zählen nie als normale App. `isRegular` wird je Prozess nur einmal gefragt.
+    nonisolated static func windows(from list: [[String: Any]], ownPID: pid_t,
+                                    isRegular: (pid_t) -> Bool) -> [WindowInfo] {
+        var cache: [pid_t: Bool] = [:]
+        return list.compactMap { w in
+            guard let pid = w[kCGWindowOwnerPID as String] as? pid_t,
+                  let layer = w[kCGWindowLayer as String] as? Int,
+                  let dict = w[kCGWindowBounds as String] as? NSDictionary,
+                  let bounds = CGRect(dictionaryRepresentation: dict as CFDictionary) else { return nil }
+            let regular: Bool
+            if pid == ownPID {
+                regular = false
+            } else if let known = cache[pid] {
+                regular = known
+            } else {
+                regular = isRegular(pid)
+                cache[pid] = regular
+            }
+            return WindowInfo(layer: layer, bounds: bounds, isRegularApp: regular)
+        }
+    }
+
+    /// Neu aufbauen nur, wenn sich Bildschirme oder deren Inselmaße wirklich geändert haben.
+    nonisolated static func layoutsChanged(old: [CGDirectDisplayID: IslandGeometry.Layout],
+                                           new: [CGDirectDisplayID: IslandGeometry.Layout]) -> Bool {
+        old != new
     }
 
     /// Panelgröße je Zustand; nil = Panel ist weg.
@@ -118,16 +160,40 @@ final class IslandController {
         collapseTasks.removeAll()
         spaceRecheck?.cancel()
         spaceRecheck = nil
+        screenDebounce?.cancel()
+        screenDebounce = nil
+    }
+
+    private static func currentLayouts() -> [CGDirectDisplayID: IslandGeometry.Layout] {
+        var result: [CGDirectDisplayID: IslandGeometry.Layout] = [:]
+        for screen in NSScreen.screens {
+            guard let id = screen.displayID else { continue }
+            result[id] = IslandGeometry.layout(for: IslandGeometry.metrics(of: screen))
+        }
+        return result
+    }
+
+    private func screenParametersChanged() {
+        screenDebounce?.cancel()
+        screenDebounce = Task { [weak self] in
+            try? await Task.sleep(for: Self.screenDebounceDelay)
+            guard !Task.isCancelled, let self, self.running else { return }
+            let new = Self.currentLayouts()
+            if Self.layoutsChanged(old: self.panels.mapValues { $0.state.layout }, new: new) {
+                self.rebuild(layouts: new)
+            } else {
+                self.refresh()
+            }
+        }
     }
 
     /// Bildschirme dazu/weg, Auflösung geändert: alle Panels neu, Maße frisch gemessen.
-    private func rebuild() {
+    private func rebuild(layouts: [CGDirectDisplayID: IslandGeometry.Layout] = currentLayouts()) {
         cancelTasks()
         panels.values.forEach { $0.panel.orderOut(nil) }
         panels.removeAll()
-        for screen in NSScreen.screens {
-            guard let id = screen.displayID else { continue }
-            let state = IslandState(layout: IslandGeometry.layout(for: IslandGeometry.metrics(of: screen)))
+        for (id, layout) in layouts {
+            let state = IslandState(layout: layout)
             panels[id] = Entry(panel: makePanel(state: state, displayID: id), state: state)
         }
         refresh()
@@ -144,9 +210,11 @@ final class IslandController {
         p.hasShadow = false
         p.isMovable = false
         p.ignoresMouseEvents = true
+        // NSPanel blendet sich sonst aus, sobald Gnotchi nicht vorn ist – als Menüleisten-App also fast immer.
+        p.hidesOnDeactivate = false
         let view = IslandView(state: state) { [weak self] inside in self?.hover(inside, displayID: displayID) }
             .environment(model)
-        let host = NSHostingView(rootView: view)
+        let host = ClickableHostingView(rootView: view)
         // Die Größe bestimmt der Controller (setFrame), nicht der SwiftUI-Inhalt.
         host.sizingOptions = []
         p.contentView = host
@@ -211,19 +279,22 @@ final class IslandController {
         }
     }
 
-    /// Ebene und Lage aller sichtbaren Fenster. Ohne Bildschirmaufnahme-Freigabe liefert macOS
-    /// keine Fenstertitel – Gnotchi liest bewusst nur Ebene und Lage (keine Titel, keine App-Namen),
-    /// braucht also keine Freigabe und erfährt nichts über Fensterinhalte.
-    private static func onScreenWindows() -> [(layer: Int, bounds: CGRect)] {
+    /// Ebene, Lage und Eigentümer-Art aller sichtbaren Fenster. Ohne Bildschirmaufnahme-Freigabe liefert
+    /// macOS keine Fenstertitel – Gnotchi liest bewusst nur Prozessnummer, Ebene und Lage (keine Titel,
+    /// keine App-Namen), braucht also keine Freigabe und erfährt nichts über Fensterinhalte.
+    private static func onScreenWindows() -> [WindowInfo] {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]] else { return [] }
-        return list.compactMap { w in
-            guard let layer = w[kCGWindowLayer as String] as? Int,
-                  let dict = w[kCGWindowBounds as String] as? NSDictionary,
-                  let bounds = CGRect(dictionaryRepresentation: dict as CFDictionary) else { return nil }
-            return (layer: layer, bounds: bounds)
+        return windows(from: list, ownPID: ProcessInfo.processInfo.processIdentifier) { pid in
+            NSRunningApplication(processIdentifier: pid)?.activationPolicy == .regular
         }
     }
+}
+
+/// `NSHostingView` nimmt in einem Fenster ohne Fokus den ersten Klick sonst nicht an – die Insel
+/// wird nie Schlüsselfenster, ihre Tasten sollen trotzdem beim ersten Klick reagieren (Tippi-Muster).
+private final class ClickableHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
 extension NSScreen {

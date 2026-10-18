@@ -1647,15 +1647,23 @@ final class IslandController {
         }
     }
 
-    /// Vollbild-App auf diesem Bildschirm: ein normales Fenster (Ebene 0) deckt ihn exakt ab.
+    /// Vollbild-App auf diesem Bildschirm: ein Fenster auf Ebene 0, das einer NORMALEN App gehört
+    /// (`activationPolicy == .regular`, nie Gnotchi selbst), deckt ihn exakt ab. Ohne die App-Bedingung
+    /// zählte Seams Abdunkel-Fenster (Ebene 0, exakt bildschirmgroß, gemessen 18.10.) als Vollbild.
+    /// Umgesetzt (Gnotchi 18.10.) als reine, getestete Teile: `windows(from:ownPID:isRegular:)`
+    /// (liest nur PID, Ebene, Lage; Art je PID einmal erfragt) und `coversScreen(windows:target:)`;
+    /// Koordinaten über `cgWindowRect(fromAppKit:primaryHeight:)` statt Seams `Geometry.toAX`.
     private static func hasFullscreenWindow(on screen: NSScreen) -> Bool {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]] else { return false }
         let h = NSScreen.screens.first?.frame.height ?? 0
-        let target = Geometry.toAX(screen.frame, primaryHeight: h)
+        let target = cgWindowRect(fromAppKit: screen.frame, primaryHeight: h)
+        let own = ProcessInfo.processInfo.processIdentifier
         return list.contains { w in
             guard (w[kCGWindowLayer as String] as? Int) == 0,
-                  let b = w[kCGWindowBounds as String] as? [String: CGFloat],
+                  let pid = w[kCGWindowOwnerPID as String] as? pid_t, pid != own,
+                  NSRunningApplication(processIdentifier: pid)?.activationPolicy == .regular,
+                  let b = w[kCGWindowBounds as String] as? NSDictionary,
                   let r = CGRect(dictionaryRepresentation: b as CFDictionary) else { return false }
             return r.equalTo(target)
         }
@@ -1669,7 +1677,7 @@ extension NSScreen {
 }
 ```
 
-Hinweis: `CGWindowListCopyWindowInfo` liest nur Lage und Ebene (kein Fenstertitel) – passt zu E3. Gibt es `NSScreen.displayID` bereits im Projekt (`grep -rn "displayID" Seam`), die Erweiterung weglassen und die vorhandene nutzen.
+Hinweis: `CGWindowListCopyWindowInfo` liest nur Lage, Ebene und Eigentümer-PID (kein Fenstertitel, kein App-Name; Lint-Regel `keine_fenstertitel`) – passt zu E3 bzw. Gnotchi G10. Gibt es `NSScreen.displayID` bereits im Projekt (`grep -rn "displayID" Seam`), die Erweiterung weglassen und die vorhandene nutzen.
 
 - [ ] **Step 2: Bauen + Lint**
 

@@ -72,6 +72,17 @@ custom_rules:
     message: "Kindprozesse nur über MediaAdapter (feste Umgebung, keine Shell, SECURE-DESIGN G3)."
     severity: error
 
+  # Gnotchi, docs/SECURE-DESIGN.md G10 (übernommen von Seam E13): aus der Fensterliste nie
+  # Titel oder App-Namen lesen – nur Prozessnummer, Ebene, Lage.
+  keine_fenstertitel:
+    name: "Keine Fenstertitel aus der Fensterliste"
+    regex: 'kCGWindowName|kCGWindowOwnerName'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Fensterliste nur Prozessnummer/Ebene/Lage lesen (SECURE-DESIGN G10)."
+    severity: error
+
   # Tippi, 2026-09-14: `NSApp.delegate as? AppDelegate` an 21 Stellen. In einer
   # SwiftUI-App mit @NSApplicationDelegateAdaptor ist NSApp.delegate NICHT die
   # eigene AppDelegate-Instanz — der Cast liefert immer nil, `?.` verschluckt es,

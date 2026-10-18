@@ -179,6 +179,10 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 ### G10 – Insel stört nichts (vormals Seam E17i)
 - **Entschieden:** `NSPanel` nicht aktivierend; im Zustand „unsichtbar“ `ignoresMouseEvents = true`,
   damit die Menüleiste darunter klickbar bleibt. (Umsetzung Plan Aufgabe 11.)
+- **Entschieden (Fensterliste, 18.10.):** Für die Vollbild-Erkennung liest Gnotchi aus
+  `CGWindowListCopyWindowInfo` nur Ebene, Lage und Eigentümer-PID – die PID ausschließlich, um
+  normale Apps (`activationPolicy == .regular`) zu erkennen, nie Namen oder Titel (Lint-Regel
+  `keine_fenstertitel`); keine Bildschirmaufnahme-Freigabe nötig.
 
 ### G11 – Updates wie Kalli/Seam (vormals Seam E9)
 - **Entschieden:** Sparkle 2.10.0 `exactVersion`, `Package.resolved` im Repo (Sparkle-Revision
