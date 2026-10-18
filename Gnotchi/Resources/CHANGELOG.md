@@ -22,3 +22,7 @@ Alle nennenswerten Änderungen an Gnotchi.
 - Welche App spielt: Die große Insel zeigt über dem Titel Symbol und Namen der Quell-App
   (z. B. „Spotify“, „Safari“, „Musik“), die kleine ein winziges App-Abzeichen am Cover. Der Name
   kommt aus der installierten App, nie von der Website. Das Symbol oben rechts entfällt.
+- Wo die Musik spielt: Läuft sie auf einem anderen Gerät (z. B. Spotify Connect auf externe
+  Lautsprecher), zeigt die große Insel oben rechts „Auf anderem Gerät“, bei AirPlay oder Bluetooth
+  den Namen des Geräts. Klein ersetzt dann ein Lautsprecher den Pegel (bei anderem Gerät und
+  AirPlay). Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt – es hört nichts mit.

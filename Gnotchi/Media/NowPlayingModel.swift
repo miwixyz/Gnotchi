@@ -15,6 +15,9 @@ final class NowPlayingModel {
     private(set) var isVisible = false
     /// nil = Adapter läuft oder startet; sonst Grund für den Hinweis in den Einstellungen.
     private(set) var unavailableReason: String?
+    /// Wo die Musik herauskommt (anderes Gerät, AirPlay, Bluetooth). Abgefragt nur, solange die Insel
+    /// sichtbar ist und Musik läuft; in der Pause bleibt der letzte Wert stehen.
+    private(set) var route: PlaybackRoute = .local
 
     @ObservationIgnored private let adapter = MediaAdapter()
     /// G7: Spotify/Musik per AppleScript, solange der Adapter `unavailable` meldet; Spotify-Spulen immer.
@@ -32,6 +35,11 @@ final class NowPlayingModel {
     @ObservationIgnored private var shownArtworkKey: String?
     /// Schlüssel, für den schon ein Dekodieren gestartet wurde – auch ein gescheitertes wird nicht je Meldung wiederholt.
     @ObservationIgnored private var decodeStartedKey: String?
+    @ObservationIgnored private var routeTask: Task<Void, Never>?
+    /// Seit wann die spielende App laut Core Audio still ist (Entprellen, AudioRoute.remoteAfter).
+    @ObservationIgnored private var silentSince: Date?
+    /// App, für die `route` gilt; eine andere App beginnt wieder bei „lokal“.
+    @ObservationIgnored private var routeAppID: String?
 
     init() {
         adapter.onInfo = { [weak self] i in self?.receive(i) }
@@ -79,9 +87,10 @@ final class NowPlayingModel {
     #if DEBUG
     /// Nur Tests/Vorschau (IslandViewRenderTests): Zustand direkt setzen, ohne Adapter.
     /// Im Release-Build nicht vorhanden – dort kommt Zustand nur aus `receive(_:)`.
-    func setPreviewState(info: NowPlayingInfo?, artwork: NSImage?) {
+    func setPreviewState(info: NowPlayingInfo?, artwork: NSImage?, route: PlaybackRoute = .local) {
         self.info = info
         self.artwork = artwork
+        self.route = route
         isVisible = info != nil
     }
     #endif
@@ -154,6 +163,7 @@ final class NowPlayingModel {
                                            wasPlaying: wasPlaying, current: pausedSince, now: Date())
         updateArtwork(new)
         updateVisibility()
+        updateRouteMonitor()
     }
 
     /// Seit wann pausiert: Wiedergabe → Pause setzt `now`, Pause → Pause behält den Zeitpunkt
@@ -186,6 +196,46 @@ final class NowPlayingModel {
             guard let self, self.shownArtworkKey == key, let image else { return }
             self.artwork = NSImage(cgImage: image, size: .zero)
         }
+    }
+
+    /// Wiedergabeweg abfragen, solange die Insel sichtbar ist und Musik läuft – sonst keine Arbeit.
+    private func updateRouteMonitor() {
+        let appID = info?.appBundleID
+        if appID != routeAppID {
+            routeAppID = appID
+            silentSince = nil
+            if route != .local { route = .local }
+        }
+        guard isVisible, info?.isPlaying == true else {
+            routeTask?.cancel()
+            routeTask = nil
+            silentSince = nil
+            return
+        }
+        guard routeTask == nil else { return }
+        routeTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let model = self else { return }
+                await model.pollRoute()
+                try? await Task.sleep(for: AudioRoute.pollInterval)
+            }
+        }
+    }
+
+    /// Core Audio wird außerhalb des Hauptthreads gelesen (≈50 Prozess-Objekte, je drei Abfragen).
+    /// Prozessnummer der Quell-App über NSRunningApplication (die Adapter-Meldung enthält keine).
+    private func pollRoute() async {
+        guard let id = info?.appBundleID, info?.isPlaying == true else { return }
+        let pid = NSRunningApplication.runningApplications(withBundleIdentifier: id).first?.processIdentifier
+        let snap = await Task.detached(priority: .utility) { AudioRoute.snapshot() }.value
+        // Inzwischen andere App, Pause oder gestoppt: Ergebnis verwerfen.
+        guard !Task.isCancelled, let current = info, current.appBundleID == id, current.isPlaying else { return }
+        let out = AudioRoute.outputting(pid: pid, bundleID: id, processes: snap.processes)
+        let now = Date()
+        silentSince = AudioRoute.nextSilentSince(isPlaying: true, outputting: out, current: silentSince, now: now)
+        let new = AudioRoute.decide(isPlaying: true, outputting: out, silentFor: silentSince.map { now.timeIntervalSince($0) },
+                                    transport: snap.outputTransport, outputName: snap.outputName)
+        if new != route { route = new }
     }
 
     private func updateVisibility() {

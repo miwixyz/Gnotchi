@@ -61,7 +61,15 @@ struct IslandView: View {
                 // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
                 .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
             Spacer()
-            LevelBars(playing: info.isPlaying)
+            // Pegel heißt „Ton kommt hier raus“ – bei anderem Gerät oder AirPlay ein Lautsprecher.
+            if model.route.replacesLevelBars {
+                Image(systemName: "hifispeaker.fill").font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(height: 14)
+                    .accessibilityHidden(true)
+            } else {
+                LevelBars(playing: info.isPlaying)
+            }
         }
         .padding(.horizontal, 10)
         .frame(height: state.layout.compact.height)
@@ -102,6 +110,8 @@ struct IslandView: View {
                 }
                 .frame(height: 56)
             }
+            // Als Überlagerung: ein Gerätename über der Tastenspalte soll den Titel nicht schmaler machen.
+            .overlay(alignment: .topTrailing) { routeLabel }
             ProgressRow(info: info) { model.seek(to: $0) }
         }
         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 12, leading: 16, bottom: 12, trailing: 16))
@@ -129,8 +139,30 @@ struct IslandView: View {
         }
     }
 
+    /// Wo die Musik herauskommt, oben rechts auf Höhe der App-Kopfzeile. Lokal: nichts.
+    /// Gerätenamen vergibt der Nutzer frei → `Text(verbatim:)`.
+    @ViewBuilder private var routeLabel: some View {
+        if let symbol = model.route.symbol, let text = model.route.label {
+            HStack(spacing: 4) {
+                Image(systemName: symbol).font(.system(size: 10, weight: .semibold))
+                Text(verbatim: text).font(.system(size: 11, weight: .medium))
+                    .lineLimit(1).truncationMode(.tail)
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: Self.routeMaxWidth, alignment: .trailing)
+            .frame(height: 16)
+            // Gleiche Höhe wie die App-Kopfzeile (Textspalte ist 52 pt hoch, mittig in 56 pt).
+            .padding(.top, 2)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
     /// Welche App spielt: Symbol 16 pt + lokalisierter Name aus dem lokalen Bundle (AppIcons.name), Grau.
-    /// Unbekannte App: weder Symbol noch Name, die Zeile entfällt.
+    /// Unbekannte App: weder Symbol noch Name, die Zeile entfällt (außer als Platzhalter neben dem Wiedergabeweg).
+    private static let routeMaxWidth: CGFloat = 130
+    /// So weit ragt der Wiedergabeweg höchstens über die Tastenspalte (3 × 22 + 2 × 16 pt) nach links.
+    private static let routeOverhang: CGFloat = routeMaxWidth - 98 + 6
+
     @ViewBuilder private func appHeader(_ id: String?) -> some View {
         let name = id.flatMap(AppIcons.name(for:))
         if let id, AppIcons.icon(for: id) != nil || name != nil {
@@ -141,6 +173,11 @@ struct IslandView: View {
                 }
             }
             .frame(height: 16)
+            // Langer App-Name kürzt sich, statt unter den Wiedergabeweg oben rechts zu laufen.
+            .padding(.trailing, model.route == .local ? 0 : Self.routeOverhang)
+        } else if model.route != .local {
+            // Leere Kopfzeile: Sonst rutschte der Titel nach oben unter den Wiedergabeweg.
+            Color.clear.frame(height: 16)
         }
     }
 

@@ -24,6 +24,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G12 | E8 | Gnotchi härten, Berechtigungen per Positivliste |
 | G13 | E7 | niemand außer dem Nutzer steuert Gnotchi |
 | G14 | E10 | gespeicherte Daten |
+| G15 | – (neu) | Wiedergabeweg aus Core Audio, nur lesen |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -248,6 +249,21 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   Verlauf bleiben im Speicher und sind nach dem Beenden weg.
 - **Verworfen:** „Zuletzt gehört“-Liste. Das wäre ein Protokoll von Michaels Hörgewohnheiten;
   erst mit eigenem Durchgang, falls je gewünscht.
+
+### G15 – Wiedergabeweg aus Core Audio, nur lesen (neu, 2026-10-18)
+- **Entschieden:** Um „Auf anderem Gerät“ (Spotify Connect) und AirPlay/Bluetooth anzuzeigen, liest
+  Gnotchi über die öffentliche Core-Audio-API (keine Freigabe nötig, gemessen 18.10.) nur
+  Eigenschaften: aus `kAudioHardwarePropertyProcessObjectList` je Prozess **PID, Bundle-ID und
+  `kAudioProcessPropertyIsRunningOutput`** (gibt Ton aus ja/nein), vom Standard-Ausgabegerät nur
+  **Transportart und Namen**. Es wird **kein Ton aufgenommen**, kein Tap, kein Aggregat-Gerät, nichts
+  geändert (`Gnotchi/Media/AudioRoute.swift`, nur `AudioObjectGetPropertyData[Size]`). Abgefragt alle
+  2 s, nur solange die Insel sichtbar ist und Musik läuft; Lesen außerhalb des Hauptthreads.
+  Gerätenamen vergibt der Nutzer frei → bereinigt wie Strom-Texte (G4), höchstens 40 Zeichen, nur
+  `Text(verbatim:)` (G5); nicht ins Protokoll (G8). Die PID der Quell-App kommt von
+  `NSRunningApplication` (lokal), nicht aus dem Strom.
+- **Fehlalarm vermeiden:** „Anderes Gerät“ erst nach > 2 s Stille bei laufender Wiedergabe; Helfer-
+  Prozesse derselben App (`<id>.…`) zählen mit; spielt der geteilte `com.apple.WebKit.GPU`-Prozess,
+  gilt Stille der App als unbekannt (Safari); kein Core-Audio-Objekt → unbekannt → nichts angezeigt.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

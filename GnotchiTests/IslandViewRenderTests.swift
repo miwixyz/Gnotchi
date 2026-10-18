@@ -25,13 +25,25 @@ final class IslandViewRenderTests: XCTestCase {
     func testRenderNotchExpandedWithAppIcon() throws {
         try render(notchScreen, .expanded, name: "notch-expanded-appicon", appBundleID: "com.apple.Music")
     }
+    /// Spotify Connect: „Auf anderem Gerät“ oben rechts, klein ein Lautsprecher statt Pegel.
+    func testRenderNotchExpandedRemote() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-remote", appBundleID: "com.spotify.client", route: .remote)
+    }
+    func testRenderNotchCompactRemote() throws {
+        try render(notchScreen, .compact, name: "notch-compact-remote", route: .remote)
+    }
+    /// Langer AirPlay-Name: wird gekürzt, drückt den Titel nicht weg.
+    func testRenderPillExpandedAirPlay() throws {
+        try render(pillScreen, .expanded, name: "pill-expanded-airplay",
+                   route: .device(name: "Wohnzimmer HomePod mini Stereo-Paar", kind: .airPlay))
+    }
     /// App-Abzeichen unten rechts am kleinen Cover.
     func testRenderNotchCompactWithAppBadge() throws {
         try render(notchScreen, .compact, name: "notch-compact-appbadge", appBundleID: "com.apple.Music")
     }
 
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
-                        appBundleID: String? = nil) throws {
+                        appBundleID: String? = nil, route: PlaybackRoute = .local) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -39,7 +51,7 @@ final class IslandViewRenderTests: XCTestCase {
         // Klein mit Pause: der Pegel steht, das Bild ist bei jedem Lauf gleich. Groß zeigt keinen Pegel;
         // dort hält rate 0 die Zeit fest.
         model.setPreviewState(info: Self.info(appBundleID: appBundleID, playing: mode == .expanded),
-                              artwork: Self.artwork())
+                              artwork: Self.artwork(), route: route)
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = mode == .expanded ? layout.expanded : layout.compact
