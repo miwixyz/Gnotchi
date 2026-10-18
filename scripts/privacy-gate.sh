@@ -41,7 +41,7 @@ content() {
     if [ "$MODE" = staged ]; then
         git show ":$1" 2>/dev/null
     elif [ -f "$1" ]; then
-        cat "$1"
+        cat -- "$1"
     fi
 }
 
