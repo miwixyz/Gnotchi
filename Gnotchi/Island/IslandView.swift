@@ -58,6 +58,8 @@ struct IslandView: View {
     private func compact(_ info: NowPlayingInfo) -> some View {
         HStack {
             cover(18, radius: 4)
+                // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
+                .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
             Spacer()
             LevelBars(playing: info.isPlaying)
         }
@@ -66,14 +68,15 @@ struct IslandView: View {
         .transition(.opacity)
     }
 
-    /// Aufbau wie die Wiedergabe im Kontrollzentrum: Cover · Titel/Interpret · Tasten rechts, darunter
-    /// der Fortschritt. So passt alles in 110 pt (Cover-, Tasten- und Fortschrittszeile übereinander
+    /// Aufbau wie die Wiedergabe im Kontrollzentrum: Cover · App/Titel/Interpret · Tasten rechts, darunter
+    /// der Fortschritt. Die Kopfzeile (Symbol + Name der Quell-App) ersetzt das frühere Symbol oben rechts. So passt alles in 110 pt (Cover-, Tasten- und Fortschrittszeile übereinander
     /// bräuchten ~130 pt). Mit Notch beginnt der Inhalt erst unter ihr (IslandGeometry.expandedSize).
     private func expanded(_ info: NowPlayingInfo) -> some View {
         VStack(spacing: 8) {
             HStack(alignment: .center, spacing: 12) {
                 cover(56, radius: 10)
                 VStack(alignment: .leading, spacing: 2) {
+                    appHeader(info.appBundleID)
                     Text(verbatim: info.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
                         .contentTransition(.opacity)
                     if let a = info.artist {
@@ -86,7 +89,6 @@ struct IslandView: View {
                 // Text nimmt allen freien Platz (ein Spacer teilte ihn sonst hälftig, Titel früh gekürzt).
                 .frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .trailing, spacing: 0) {
-                    appIcon(info.appBundleID)
                     Spacer(minLength: 0)
                     HStack(spacing: 16) {
                         button("backward.fill", label: "Zurück") { model.previous() }
@@ -120,10 +122,25 @@ struct IslandView: View {
         .accessibilityHidden(true)
     }
 
-    @ViewBuilder private func appIcon(_ id: String?) -> some View {
+    @ViewBuilder private func appIcon(_ id: String?, size: CGFloat) -> some View {
         if let id, let icon = AppIcons.icon(for: id) {
-            Image(nsImage: icon).resizable().frame(width: 16, height: 16)
+            Image(nsImage: icon).resizable().frame(width: size, height: size)
                 .accessibilityHidden(true)
+        }
+    }
+
+    /// Welche App spielt: Symbol 16 pt + lokalisierter Name aus dem lokalen Bundle (AppIcons.name), Grau.
+    /// Unbekannte App: weder Symbol noch Name, die Zeile entfällt.
+    @ViewBuilder private func appHeader(_ id: String?) -> some View {
+        let name = id.flatMap(AppIcons.name(for:))
+        if let id, AppIcons.icon(for: id) != nil || name != nil {
+            HStack(spacing: 5) {
+                appIcon(id, size: 16)
+                if let name {
+                    Text(verbatim: name).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                }
+            }
+            .frame(height: 16)
         }
     }
 

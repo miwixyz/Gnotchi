@@ -19,3 +19,6 @@ Alle nennenswerten Änderungen an Gnotchi.
 - Fortschritt in der großen Insel: dünner Balken wie im Kontrollzentrum statt Regler mit festem
   Knopf. Der Knopf erscheint nur beim Überfahren oder Ziehen; Klicken oder Ziehen spult, gesendet
   wird erst beim Loslassen. Ohne Dauer (Livestream) bleibt der Balken leer und gesperrt.
+- Welche App spielt: Die große Insel zeigt über dem Titel Symbol und Namen der Quell-App
+  (z. B. „Spotify“, „Safari“, „Musik“), die kleine ein winziges App-Abzeichen am Cover. Der Name
+  kommt aus der installierten App, nie von der Website. Das Symbol oben rechts entfällt.

@@ -64,8 +64,8 @@ nicht verfügbar, steht darunter: „Browser-Medien nicht verfügbar – macOS b
 ## Aussehen und Bewegung
 
 - **Form:** tiefschwarz, oben bündig am Bildschirmrand, unten weich gerundet (kontinuierliche Ecken), wächst nahtlos aus der Notch. Kein Rand, kein Schatten, kein Glas.
-- **Klein:** links der Notch Cover 18 pt (leicht gerundet), rechts animierter Pegel in Weiß. Pause → Pegel steht; nach ~5 s Pause zurück in die Notch.
-- **Groß** (Maus darüber, 380 pt breit, 110 pt unterhalb der Notch (mit Notch 142 pt hoch)): Cover 56 pt · Titel Weiß, Interpret Grau, je einzeilig mit „…“ · Symbol der Quell-App klein oben rechts · ⏮ ⏯ ⏭ als SF Symbols · schmaler Fortschrittsbalken mit Zeiten, spulbar.
+- **Klein:** links der Notch Cover 18 pt (leicht gerundet, App-Abzeichen ~10 pt unten rechts), rechts animierter Pegel in Weiß. Pause → Pegel steht; nach ~5 s Pause zurück in die Notch.
+- **Groß** (Maus darüber, 380 pt breit, 110 pt unterhalb der Notch (mit Notch 142 pt hoch)): Cover 56 pt · darüber Symbol + Name der Quell-App in Grau (18.10., ersetzt das Symbol oben rechts) · Titel Weiß, Interpret Grau, je einzeilig mit „…“ · ⏮ ⏯ ⏭ als SF Symbols · schmaler Fortschrittsbalken mit Zeiten, spulbar.
 - **Schrift:** SF Pro (System), keine Plus Jakarta Sans, kein Iris.
 - **Bewegung:** Apples Federn (`.smooth` / `.snappy`); Titelwechsel weich überblendet; Maus weg → nach ~0,3 s zu.
 - **Ohne Notch:** dieselbe Form als Pille, geschlossen 180 × 24 pt.

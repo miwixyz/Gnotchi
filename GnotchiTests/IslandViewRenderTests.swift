@@ -25,6 +25,10 @@ final class IslandViewRenderTests: XCTestCase {
     func testRenderNotchExpandedWithAppIcon() throws {
         try render(notchScreen, .expanded, name: "notch-expanded-appicon", appBundleID: "com.apple.Music")
     }
+    /// App-Abzeichen unten rechts am kleinen Cover.
+    func testRenderNotchCompactWithAppBadge() throws {
+        try render(notchScreen, .compact, name: "notch-compact-appbadge", appBundleID: "com.apple.Music")
+    }
 
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil) throws {
