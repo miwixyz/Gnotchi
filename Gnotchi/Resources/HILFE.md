@@ -3,14 +3,21 @@
 Gnotchi lebt in der Menüleiste (Symbol: Kapsel). Ein Klick darauf öffnet das Menü mit
 Einstellungen, Hilfe, Update-Suche und Beenden.
 
-## Was kommt: Musik in der Notch
+## Musik in der Notch
 
-**In Arbeit, in dieser Version noch nicht sichtbar.** Geplant ist eine Insel in der Notch des
-MacBook, auf Bildschirmen ohne Notch eine Pille oben in der Mitte. Läuft Musik oder ein Video,
-zeigt sie klein Cover und Pegel, beim Darüberfahren groß Titel, Interpret, Tasten und Fortschritt.
-Gedacht für alle Quellen: Spotify, Musik und Browser wie Safari, Edge oder Helium.
+Läuft Musik oder ein Video, zeigt eine Insel in der Notch des MacBook (auf Bildschirmen ohne Notch
+eine Pille oben in der Mitte) klein Cover und Pegel. Beim Darüberfahren geht sie groß auf: Titel,
+Interpret, Tasten und Fortschritt. Im Fortschrittsbalken klicken oder ziehen spult. Gedacht für
+alle Quellen: Spotify, Musik und Browser wie Safari, Edge oder Helium.
 
-Die Datenquelle dafür ist schon eingebaut und geprüft, die Insel selbst folgt.
+**Welche App spielt:** Über dem Titel stehen Symbol und Name der App, z. B. „Spotify“ oder
+„Safari“; klein ein winziges Abzeichen am Cover. Der Name kommt aus der installierten App.
+
+**Wo die Musik spielt:** Läuft sie auf einem anderen Gerät (z. B. Spotify Connect auf externe
+Lautsprecher), steht in der großen Insel oben rechts „Auf anderem Gerät“. Bei AirPlay oder
+Bluetooth steht dort der Name des Geräts. Bei anderem Gerät und AirPlay zeigt die kleine Insel
+einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt –
+es hört nichts mit.
 
 ## Nur eine Notch-App gleichzeitig
 
