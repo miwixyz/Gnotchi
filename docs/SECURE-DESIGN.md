@@ -86,8 +86,8 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 ### G2 – Bundle-Signatur und Identität vor jedem Start (vormals Seam E17a, Kern)
 - **Entschieden:** `/usr/bin/perl` prüft keine Signatur und lädt das Framework ohne
   Bibliotheksprüfung (belegt: die Homebrew-Fassung des Adapters ist nur ad hoc signiert und läuft
-  trotzdem, 18.10.). Gnotchi ist für den Kindprozess „verantwortlich“; **vermutet, nicht
-  gemessen:** TCC rechnet dem Perl-Prozess Gnotchis Freigaben zu. Deshalb prüft Gnotchi vor
+  trotzdem, 18.10.). Gnotchi ist für den Kindprozess „verantwortlich“; **gemessen 18.10.
+  (Sichttest unten):** TCC rechnet dem Perl-Prozess Gnotchis Freigaben zu. Deshalb prüft Gnotchi vor
   **jedem** Perl-Start (Strom, Test, Befehl, Neustart) per `SecStaticCodeCheckValidity` das eigene
   Bundle (verschachtelter Code + Ressourcen, strikt, alle Architekturen) **gegen eine feste
   Anforderung**:
@@ -108,11 +108,22 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   durch Perl; per Dateiüberwachung gewinnbar. Hürde ist das Schreibrecht auf Gnotchi.app (bei
   notarisierten Apps in /Applications zusätzlich der App-Verwaltungs-Schutz von macOS – vermutet,
   nicht gemessen).
-- **Messen im Sichttest (offen, für Gnotchi neu):** Erbt der Perl-Prozess Gnotchis Freigaben
-  (Automation)? Gemessen werden muss mit Gnotchi selbst – signiert, aus Finder/`open` gestartet.
-  **Läufe aus dem Terminal zählen nicht:** dort ist Terminal der verantwortliche Prozess, nicht
-  Gnotchi. Ergebnis hier nachtragen. Die Messung in Seam steht ebenfalls aus und gilt nicht für
-  Gnotchi.
+- **Gemessen im Sichttest 18.10. (v0.1.0 Build 45, notarisiert, per `open` aus /Applications
+  gestartet): Ja, der Perl-Prozess erbt Gnotchis Freigaben.** Belege:
+  1. `tools/responsible-pid.swift` (liest `responsibility_get_pid_responsible_for_pid`, nur lesend):
+     Adapter `/usr/bin/perl` pid 49976 (Eltern-PID 49962) → verantwortlich **49962 =
+     /Applications/Gnotchi.app**. Gegenprobe: ein Perl aus der Claude-Shell → verantwortlich
+     Obsidian. Die Abfrage unterscheidet also wirklich.
+  2. tccd entscheidet über den verantwortlichen Prozess: Im TCC-Protokoll stehen Anfragen von
+     Hilfsprozessen als `attribution={responsible={… Music …}, accessing={… AUHostingService …}}`.
+     Eine TCC-Anfrage des Adapters würde also gegen Gnotchis Freigaben (Automation Spotify/Musik)
+     entschieden.
+  3. Der Adapter selbst stellte seit dem Start keine TCC-Anfrage (0 Einträge zu pid 49976) –
+     Now-Playing über MediaRemote ist nicht TCC-geschützt.
+  Nicht ausgeübt: Ein Apple Event aus dem Adapter heraus ginge nur mit verändertem Skript, und genau
+  das verhindert G2. **Folge:** G2 bleibt die tragende Sperre; der Schaden bei Umgehung ist auf
+  Gnotchis eigene Freigaben begrenzt (siehe Angriffstabelle Zeile E), Bedienungshilfen hat Gnotchi
+  nicht (G1). Die Seam-Messung steht weiter aus und folgt nicht aus dieser.
 
 ### G3 – Start ohne Shell, feste Umgebung (vormals Seam E17b)
 - **Entschieden:** `Process` mit `executableURL = /usr/bin/perl` (SIP-geschützt) und festem
@@ -354,7 +365,7 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 | **I** | Gnotchi → Protokoll | Hörgewohnheiten im Log | G8 |
 | **I** | Strom → Netz | Cover-URL lädt Tracking-Pixel | G6: keine URLs |
 | **D** | Adapter → Gnotchi | Flut, Riesenzeilen, Dekompressionsbombe, Hänger, Absturzschleife | G4, G6, G9, `--debounce=100` |
-| **E** | Perl als Kind | fremder Code mit Gnotchis Freigaben | G2, G3. **Neu bewertet:** Ohne Bedienungshilfen (G1) schrumpft der Schaden auf das, was Gnotchi selbst darf – Apple Events an Spotify/Musik, sofern der Nutzer sie erteilt hat, und Now-Playing lesen, was der Adapter ohnehin tut. Ob der Kindprozess überhaupt erbt, ist offen (G2, Sichttest) |
+| **E** | Perl als Kind | fremder Code mit Gnotchis Freigaben | G2, G3. **Neu bewertet:** Ohne Bedienungshilfen (G1) schrumpft der Schaden auf das, was Gnotchi selbst darf – Apple Events an Spotify/Musik, sofern der Nutzer sie erteilt hat, und Now-Playing lesen, was der Adapter ohnehin tut. Er erbt – gemessen 18.10. (G2, Sichttest) |
 | **E** | Gnotchi → Spotify/Musik | AppleScript-Einschleusung | G7 |
 | **E** | andere Programme → Gnotchi | Gnotchi als Werkzeug missbrauchen | G13 |
 
@@ -398,8 +409,9 @@ Adresse aus dem offiziellen README (Slopsquat).
 - [x] G5, G7, G10 umgesetzt (Plan Aufgaben 10, 11, 11a), am Code geprüft 18.10.: Inhalte nur
       `Text(verbatim:)`, kein `AttributedString(markdown:)`; Rückfall `AppleScriptSource.swift`;
       Panel `.nonactivatingPanel` + `ignoresMouseEvents` im unsichtbaren Zustand
-- [ ] Sichttest: Erbt der Perl-Prozess Gnotchis Freigaben? Mit Gnotchi selbst gemessen, nicht aus
-      dem Terminal (G2)
+- [x] Sichttest: Erbt der Perl-Prozess Gnotchis Freigaben? Mit Gnotchi selbst gemessen, nicht aus
+      dem Terminal (G2) – 18.10. an v0.1.0: **ja** (verantwortlicher Prozess = Gnotchi, Gegenprobe
+      Shell-Perl = Obsidian), siehe G2
 - [x] `codesign -d --entitlements - --xml` am signierten Build: App nur Apple Events, eingebetteter
       Code ohne – gemessen 18.10. am heruntergeladenen v0.1.0-ZIP (Build 45): App nur
       `automation.apple-events`; Test-Programm und Sparkle-Autoupdate tragen nur den von Xcode
