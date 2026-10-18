@@ -20,4 +20,57 @@ final class NowPlayingModelTests: XCTestCase {
     func testHiddenWithoutInfo() {
         XCTAssertFalse(NowPlayingModel.isVisible(hasInfo: false, playing: false, pausedSince: nil, now: t0))
     }
+
+    // MARK: nextPausedSince
+
+    func testPausedSinceSetOnPlayToPause() {
+        XCTAssertEqual(NowPlayingModel.nextPausedSince(hasInfo: true, isPlaying: false, wasPlaying: true,
+                                                       current: nil, now: t0), t0)
+    }
+
+    func testPausedSinceKeptOnPauseToPause() {
+        let earlier = t0.addingTimeInterval(-3)
+        XCTAssertEqual(NowPlayingModel.nextPausedSince(hasInfo: true, isPlaying: false, wasPlaying: false,
+                                                       current: earlier, now: t0), earlier)
+    }
+
+    func testPausedSinceSetWhenFirstInfoIsPaused() {
+        XCTAssertEqual(NowPlayingModel.nextPausedSince(hasInfo: true, isPlaying: false, wasPlaying: false,
+                                                       current: nil, now: t0), t0)
+    }
+
+    func testPausedSinceClearedWhenPlayingOrGone() {
+        XCTAssertNil(NowPlayingModel.nextPausedSince(hasInfo: true, isPlaying: true, wasPlaying: false,
+                                                     current: t0, now: t0))
+        XCTAssertNil(NowPlayingModel.nextPausedSince(hasInfo: false, isPlaying: false, wasPlaying: true,
+                                                     current: t0, now: t0))
+    }
+
+    // MARK: artworkKey
+
+    private func info(title: String = "T", artist: String? = "A", bundle: String? = "com.apple.Music",
+                      contentID: String? = nil) -> NowPlayingInfo {
+        NowPlayingInfo(title: title, artist: artist, album: nil, appBundleID: bundle, isPlaying: true,
+                       duration: 100, elapsedAtStamp: 0, stamp: t0, rate: 1,
+                       contentID: contentID, artworkBase64: nil)
+    }
+
+    func testArtworkKeyNilForNoInfo() {
+        XCTAssertNil(NowPlayingModel.artworkKey(for: nil))
+    }
+
+    func testArtworkKeyPrefersContentIDOverTitle() {
+        XCTAssertEqual(NowPlayingModel.artworkKey(for: info(title: "X", contentID: "id1")),
+                       NowPlayingModel.artworkKey(for: info(title: "Y", contentID: "id1")))
+    }
+
+    func testArtworkKeyDiffersByBundle() {
+        XCTAssertNotEqual(NowPlayingModel.artworkKey(for: info(bundle: "a")),
+                          NowPlayingModel.artworkKey(for: info(bundle: "b")))
+    }
+
+    func testArtworkKeyDiffersByArtistWithSameTitle() {
+        XCTAssertNotEqual(NowPlayingModel.artworkKey(for: info(artist: "A")),
+                          NowPlayingModel.artworkKey(for: info(artist: "B")))
+    }
 }
