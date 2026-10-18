@@ -85,15 +85,23 @@ final class IslandController {
         CGRect(x: r.minX, y: primaryHeight - r.maxY, width: r.width, height: r.height)
     }
 
-    /// Vollbild-App auf diesem Bildschirm: ein normales Fenster (Ebene 0) einer normalen App deckt ihn ganz ab.
-    /// Ein maximiertes Fenster endet unter der Menüleiste und zählt nicht. 1 pt Toleranz für Rundung.
+    /// Vollbild-App auf diesem Bildschirm: ein Fenster auf Ebene 0 einer normalen App, volle Breite,
+    /// unten bündig, oben am Rand – oder mit Notch höchstens `topInset + 2` pt darunter. Gemessen 18.10.
+    /// (MacBook Air M5, macOS 27.0.1): Vollbild beginnt auf Notch-Bildschirmen UNTER Notch/Menüleiste
+    /// (0, 33, 1470 × 923), nicht am Rand. Ohne Notch (`topInset` 0) gilt nur der ganze Rahmen.
+    /// Bekannte Grenze: maximiert bei ausgeblendetem Dock hat auf Notch-Bildschirmen dieselbe Lage wie
+    /// Vollbild → die Insel blendet dann aus (hingenommen). Maximiert mit Dock endet unten früher und zählt nicht.
     /// Nur normale Apps: Seams Abdunkel-Fenster liegt ebenfalls auf Ebene 0 und deckt den Bildschirm
     /// exakt ab (gemessen 18.10.) – ohne diese Bedingung verschwände die Insel bei jedem Abdunkeln.
-    nonisolated static func coversScreen(windows: [WindowInfo], target: CGRect) -> Bool {
+    /// Koordinaten: CGWindow (Ursprung oben links), 1 pt Toleranz für Rundung.
+    nonisolated static func coversScreen(windows: [WindowInfo], target: CGRect, topInset: CGFloat) -> Bool {
         windows.contains { w in
-            w.layer == 0 && w.isRegularApp
-                && abs(w.bounds.minX - target.minX) <= 1 && abs(w.bounds.minY - target.minY) <= 1
-                && abs(w.bounds.width - target.width) <= 1 && abs(w.bounds.height - target.height) <= 1
+            let b = w.bounds
+            let top = b.minY - target.minY
+            let topOK = abs(top) <= 1 || (topInset > 0 && top >= 0 && top <= topInset + 2)
+            return w.layer == 0 && w.isRegularApp && topOK
+                && abs(b.minX - target.minX) <= 1 && abs(b.width - target.width) <= 1
+                && abs(b.maxY - target.maxY) <= 1
         }
     }
 
@@ -210,7 +218,8 @@ final class IslandController {
         p.hasShadow = false
         p.isMovable = false
         p.ignoresMouseEvents = true
-        // NSPanel blendet sich sonst aus, sobald Gnotchi nicht vorn ist – als Menüleisten-App also fast immer.
+        // Bei .nonactivatingPanel ab Werk schon false (gemessen 18.10.), bei anderen Panel-Stilen true – ausdrücklich
+        // gesetzt, damit ein geänderter styleMask die Insel nicht beim App-Wechsel verschwinden lässt.
         p.hidesOnDeactivate = false
         let view = IslandView(state: state) { [weak self] inside in self?.hover(inside, displayID: displayID) }
             .environment(model)
@@ -239,7 +248,8 @@ final class IslandController {
             let screen = NSScreen.screens.first { $0.displayID == id }
             let fullscreen = screen.map {
                 Self.coversScreen(windows: windows,
-                                  target: Self.cgWindowRect(fromAppKit: $0.frame, primaryHeight: primaryHeight))
+                                  target: Self.cgWindowRect(fromAppKit: $0.frame, primaryHeight: primaryHeight),
+                                  topInset: entry.state.layout.notch?.height ?? 0)
             } ?? false
             if !model.isVisible || fullscreen {
                 entry.state.mode = .hidden
@@ -291,8 +301,8 @@ final class IslandController {
     }
 }
 
-/// `NSHostingView` nimmt in einem Fenster ohne Fokus den ersten Klick sonst nicht an – die Insel
-/// wird nie Schlüsselfenster, ihre Tasten sollen trotzdem beim ersten Klick reagieren (Tippi-Muster).
+/// `acceptsFirstMouse` ist ab Werk false; vorsorglich gesetzt, damit die Tasten auf den ersten Klick
+/// reagieren, obwohl das Panel nie Key wird (Tippi-Muster).
 private final class ClickableHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }

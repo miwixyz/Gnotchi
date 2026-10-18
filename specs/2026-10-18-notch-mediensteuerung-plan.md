@@ -1653,6 +1653,9 @@ final class IslandController {
     /// Umgesetzt (Gnotchi 18.10.) als reine, getestete Teile: `windows(from:ownPID:isRegular:)`
     /// (liest nur PID, Ebene, Lage; Art je PID einmal erfragt) und `coversScreen(windows:target:)`;
     /// Koordinaten über `cgWindowRect(fromAppKit:primaryHeight:)` statt Seams `Geometry.toAX`.
+    /// Lage (Gnotchi, gemessen 18.10.): Vollbild beginnt auf Notch-Bildschirmen UNTER der Notch (0, 33, 1470 × 923).
+    /// Umgesetzt: volle Breite, unten bündig, oben am Rand oder mit Notch höchstens Notch-Höhe + 2 pt darunter;
+    /// ohne Notch nur der ganze Rahmen. Der `equalTo`-Vergleich unten ist die ursprüngliche Seam-Fassung.
     private static func hasFullscreenWindow(on screen: NSScreen) -> Bool {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
                 as? [[String: Any]] else { return false }

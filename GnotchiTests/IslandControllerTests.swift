@@ -30,47 +30,73 @@ final class IslandControllerTests: XCTestCase {
 
     // MARK: Vollbild-Erkennung
 
-    func testNormalWindowCoveringScreenIsFullscreen() {
-        let target = CGRect(x: 0, y: 0, width: 1470, height: 956)
-        XCTAssertTrue(IslandController.coversScreen(windows: [.init(layer: 0, bounds: target, isRegularApp: true)], target: target))
+    // Gemessen 18.10. am MacBook Air M5 (macOS 27.0.1), CGWindow-Koordinaten (Ursprung oben links).
+    private let notchScreen = CGRect(x: 0, y: 0, width: 1470, height: 956)
+    private let notchInset: CGFloat = 32          // Notch-Höhe = safeTop
+    private let plainScreen = CGRect(x: 0, y: 0, width: 2560, height: 1440)
+
+    private func covers(_ bounds: CGRect, on target: CGRect, topInset: CGFloat,
+                        layer: Int = 0, regular: Bool = true) -> Bool {
+        IslandController.coversScreen(windows: [.init(layer: layer, bounds: bounds, isRegularApp: regular)],
+                                      target: target, topInset: topInset)
     }
 
-    func testMaximizedWindowBelowMenuBarIsNotFullscreen() {
-        let target = CGRect(x: 0, y: 0, width: 1470, height: 956)
-        let zoomed = CGRect(x: 0, y: 32, width: 1470, height: 924)
-        XCTAssertFalse(IslandController.coversScreen(windows: [.init(layer: 0, bounds: zoomed, isRegularApp: true)], target: target))
+    func testMeasuredFullscreenBelowNotchCounts() {
+        // Vollbild-Fenster beginnt unter Notch/Menüleiste, nicht am Bildschirmrand.
+        XCTAssertTrue(covers(CGRect(x: 0, y: 33, width: 1470, height: 923), on: notchScreen, topInset: notchInset))
+    }
+
+    func testMaximizedWithDockIsNotFullscreen() {
+        XCTAssertFalse(covers(CGRect(x: 0, y: 33, width: 1470, height: 875), on: notchScreen, topInset: notchInset))
+    }
+
+    func testFullFrameRegularWindowCounts() {
+        XCTAssertTrue(covers(notchScreen, on: notchScreen, topInset: notchInset))
+        XCTAssertTrue(covers(plainScreen, on: plainScreen, topInset: 0))
+    }
+
+    func testMaximizedWithGapIsNotFullscreen() {
+        // Seams Maximieren lässt rundum einen Rand.
+        XCTAssertFalse(covers(CGRect(x: 5, y: 38, width: 1460, height: 880), on: notchScreen, topInset: notchInset))
+    }
+
+    func testScreenWithoutNotchNeedsFullFrame() {
+        XCTAssertFalse(covers(CGRect(x: 0, y: 25, width: 2560, height: 1415), on: plainScreen, topInset: 0))
+    }
+
+    func testTopBeyondInsetIsNotFullscreen() {
+        XCTAssertFalse(covers(CGRect(x: 0, y: 40, width: 1470, height: 916), on: notchScreen, topInset: notchInset))
+    }
+
+    func testKnownLimitMaximizedWithHiddenDockOnNotchScreen() {
+        // Bekannte Grenze: maximiert bei ausgeblendetem Dock ist an der Lage nicht von Vollbild zu
+        // unterscheiden → Insel blendet aus. Bewusst hingenommen.
+        XCTAssertTrue(covers(CGRect(x: 0, y: 33, width: 1470, height: 923), on: notchScreen, topInset: notchInset))
     }
 
     func testNonNormalLayerIsIgnored() {
         // Menüleiste, Dock, Schreibtisch-Bild u. ä. liegen nicht auf Ebene 0.
-        let target = CGRect(x: 0, y: 0, width: 1470, height: 956)
-        let windows: [IslandController.WindowInfo] = [.init(layer: 24, bounds: target, isRegularApp: true),
-                                                      .init(layer: -2_147_483_624, bounds: target, isRegularApp: true)]
-        XCTAssertFalse(IslandController.coversScreen(windows: windows, target: target))
+        XCTAssertFalse(covers(notchScreen, on: notchScreen, topInset: notchInset, layer: 24))
+        XCTAssertFalse(covers(notchScreen, on: notchScreen, topInset: notchInset, layer: -2_147_483_624))
     }
 
     func testFullscreenOnOtherScreenDoesNotCount() {
-        let main = CGRect(x: 0, y: 0, width: 1470, height: 956)
         let ext = CGRect(x: 1470, y: -484, width: 2560, height: 1440)
-        XCTAssertFalse(IslandController.coversScreen(windows: [.init(layer: 0, bounds: ext, isRegularApp: true)], target: main))
-        XCTAssertTrue(IslandController.coversScreen(windows: [.init(layer: 0, bounds: ext, isRegularApp: true)], target: ext))
+        XCTAssertFalse(covers(ext, on: notchScreen, topInset: notchInset))
+        XCTAssertTrue(covers(ext, on: ext, topInset: 0))
     }
 
     func testHalfPointRoundingStillCounts() {
-        let target = CGRect(x: 0, y: 0, width: 1470, height: 956)
-        let rounded = CGRect(x: 0, y: 0, width: 1470.5, height: 956)
-        XCTAssertTrue(IslandController.coversScreen(windows: [.init(layer: 0, bounds: rounded, isRegularApp: true)], target: target))
+        XCTAssertTrue(covers(CGRect(x: 0, y: 0, width: 1470.5, height: 956), on: notchScreen, topInset: notchInset))
     }
 
     func testNonRegularFullScreenWindowIsIgnored() {
         // Gemessen 18.10.: Seams Abdunkel-Fenster liegt auf Ebene 0 und deckt den Bildschirm exakt ab.
-        let target = CGRect(x: 0, y: 0, width: 1470, height: 956)
-        XCTAssertFalse(IslandController.coversScreen(windows: [.init(layer: 0, bounds: target, isRegularApp: false)],
-                                                     target: target))
+        XCTAssertFalse(covers(notchScreen, on: notchScreen, topInset: notchInset, regular: false))
     }
 
     func testNoWindowsIsNotFullscreen() {
-        XCTAssertFalse(IslandController.coversScreen(windows: [], target: mainFrame))
+        XCTAssertFalse(IslandController.coversScreen(windows: [], target: mainFrame, topInset: 0))
     }
 
     // MARK: Fensterliste lesen
