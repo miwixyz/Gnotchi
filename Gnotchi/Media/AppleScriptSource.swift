@@ -37,6 +37,9 @@ final class AppleScriptSource {
     private var timer: Timer?
     private var active: String?
     private var denied = Set<String>()
+    /// Apps, deren Statusabfrage schon einmal ohne Fehler zurückkam (Automation erlaubt) – ab dann
+    /// läuft die Abfrage mit 5-s-Zeitgrenze (Security-Review B7). Vorher wartet sie auf den Dialog.
+    private var consented = Set<String>()
     private var lastBlocked: [String] = []
     /// Eine Abfrage läuft noch (z. B. hängt am Dialog) – keine weiteren anstauen.
     private var polling = false
@@ -139,15 +142,19 @@ final class AppleScriptSource {
         }
         polling = true
         let gen = generation
+        let timed = consented
         queue.async { [weak self] in
-            let result = Self.query(candidates)
-            Task { @MainActor in self?.finish(gen: gen, best: result.best, deniedNow: result.denied) }
+            let result = Self.query(candidates, timed: timed)
+            Task { @MainActor in
+                self?.finish(gen: gen, best: result.best, deniedNow: result.denied, answered: result.answered)
+            }
         }
     }
 
-    private func finish(gen: Int, best: (id: String, info: NowPlayingInfo)?, deniedNow: [String]) {
+    private func finish(gen: Int, best: (id: String, info: NowPlayingInfo)?, deniedNow: [String], answered: [String]) {
         guard gen == generation else { return }
         polling = false
+        consented.formUnion(answered)
         if !deniedNow.isEmpty {
             denied.formUnion(deniedNow)
             // G8: nur Bundle-IDs, nie Inhalte.
@@ -184,24 +191,41 @@ final class AppleScriptSource {
         !NSRunningApplication.runningApplications(withBundleIdentifier: id).isEmpty
     }
 
+    private struct QueryResult: Sendable {
+        let best: (id: String, info: NowPlayingInfo)?
+        let denied: [String]
+        /// Apps, deren Abfrage ohne Fehler lief (Zustimmung erteilt).
+        let answered: [String]
+    }
+
+    private struct StatusResult {
+        let fields: Fields?
+        let error: Int?
+        /// Die App lief und wurde gefragt.
+        let ran: Bool
+    }
+
     /// Fragt die Kandidaten nacheinander ab; die spielende App gewinnt, sonst die erste mit Titel.
-    private nonisolated static func query(_ ids: [String]) -> (best: (id: String, info: NowPlayingInfo)?, denied: [String]) {
+    /// `timed`: Apps, deren Abfrage mit Zeitgrenze läuft.
+    private nonisolated static func query(_ ids: [String], timed: Set<String>) -> QueryResult {
         var best: (id: String, info: NowPlayingInfo)?
         var deniedNow: [String] = []
+        var answered: [String] = []
         for id in ids {
-            let result = status(id)
+            let result = status(id, timed: timed.contains(id))
             if result.error == deniedError { deniedNow.append(id); continue }
+            if result.ran && result.error == nil { answered.append(id) }
             guard let info = result.fields.flatMap({ parse($0, bundleID: id, now: Date()) }) else { continue }
             if best == nil || (info.isPlaying && !(best?.info.isPlaying ?? false)) { best = (id, info) }
         }
-        return (best, deniedNow)
+        return QueryResult(best: best, denied: deniedNow, answered: answered)
     }
 
     /// Statusabfrage einer App; der Descriptor bleibt auf der Queue, heraus gehen nur Werte.
-    private nonisolated static func status(_ id: String) -> (fields: Fields?, error: Int?) {
-        guard isRunning(id) else { return (nil, nil) }
-        let (out, error) = execute(script(.stream, bundleID: id))
-        return (out.flatMap(fields(from:)), error)
+    private nonisolated static func status(_ id: String, timed: Bool) -> StatusResult {
+        guard isRunning(id) else { return StatusResult(fields: nil, error: nil, ran: false) }
+        let (out, error) = execute(script(.stream, bundleID: id, statusTimeout: timed))
+        return StatusResult(fields: out.flatMap(fields(from:)), error: error, ran: true)
     }
 
     /// NSAppleScript ist nicht Sendable – deshalb hier, auf der Queue, erzeugt und nie geteilt.
@@ -215,18 +239,19 @@ final class AppleScriptSource {
     // MARK: Reine Teile (getestet)
 
     /// Leer für jede andere Bundle-ID als Spotify/Musik. Die ID im Skript ist immer eine der
-    /// beiden Konstanten, nie der übergebene Wert. Befehle mit Zeitgrenze, die Abfrage ohne –
-    /// sie wartet beim ersten Mal auf den Automation-Dialog.
-    nonisolated static func script(_ call: MediaAdapter.Call, bundleID: String) -> String {
+    /// beiden Konstanten, nie der übergebene Wert. Befehle mit 3-s-Zeitgrenze; die Abfrage ohne, solange
+    /// sie auf den Automation-Dialog warten kann, nach der ersten erfolgreichen (`statusTimeout`) mit 5 s.
+    nonisolated static func script(_ call: MediaAdapter.Call, bundleID: String, statusTimeout: Bool = false) -> String {
         guard let id = supported.first(where: { $0 == bundleID }) else { return "" }
         let body: String
         switch call {
         case .stream, .test:
-            body = """
+            let query = """
             if player state is stopped then return {}
             set t to current track
             return {name of t, artist of t, duration of t, player position, player state as string}
             """
+            body = statusTimeout ? "with timeout of 5 seconds\n\(query)\nend timeout" : query
         case .send(.toggle): body = timed("playpause")
         case .send(.play): body = timed("play")
         case .send(.pause): body = timed("pause")
@@ -277,7 +302,7 @@ final class AppleScriptSource {
     /// Lokaler, übersetzter App-Name (aus dem Programmpaket, nichts übers Netz); sonst die Bundle-ID.
     static func appName(_ bundleID: String) -> String {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return bundleID }
-        let name = FileManager.default.displayName(atPath: url.path)
-        return name.hasSuffix(".app") ? String(name.dropLast(4)) : name
+        // Wie die Kopfzeile der Insel: „.app“ weg, bereinigt, gekürzt (Security-Review B10).
+        return AppIcons.cleanName(FileManager.default.displayName(atPath: url.path)) ?? bundleID
     }
 }

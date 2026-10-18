@@ -147,6 +147,8 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 - **Entschieden:** Titel/Interpret nur über `Text(verbatim:)` – SwiftUI würde Markdown in
   `LocalizedStringKey` auswerten. Kein `AttributedString(markdown:)`, keine Links. (Umsetzung mit
   der Insel, Plan Aufgabe 10.)
+- **Ergänzt 18.10. (Security-Review B9):** Auch die Versionsnummer aus dem Appcast („Update … verfügbar“
+  im Menü) nur per `Text(verbatim:)`.
 
 ### G6 – Cover begrenzt dekodieren (vormals Seam E17e)
 - **Entschieden:** Base64 ≤ 2 MB, sonst kein Cover. Dekodieren über ImageIO
@@ -188,6 +190,10 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   Gnotchi über den Adapter (lokal wirksam, über Connect nicht) und protokolliert die Fehlernummer
   je Nummer einmal, nur mit Bundle-ID (G8). Der Rücksprung des Connect-Geräts selbst ist nicht
   testbar – getestet ist die Weichenstellung.
+- **Ergänzt 18.10. (Security-Review B7, B10):** Die Statusabfrage läuft ohne Zeitgrenze nur, bis sie für
+  eine App einmal ohne Fehler zurückkam (Zustimmung erteilt); danach `with timeout of 5 seconds` – eine
+  hängende App blockiert die Queue nicht mehr unbegrenzt. App-Namen im Hinweis „Automation … nicht
+  erlaubt“ laufen durch `AppIcons.cleanName` (bereinigt, gekürzt).
 
 ### G8 – Protokoll ohne Inhalte (vormals Seam E17g/E11)
 - **Entschieden:** `os.Logger`, Subsystem `dev.mwlr.gnotchi`. Ins Protokoll nur Zustandswechsel

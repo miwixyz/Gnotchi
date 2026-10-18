@@ -19,7 +19,8 @@ struct MenuContent: View {
         }
         // Wie Seam: keine Mitteilung bei einem gefundenen Update, stattdessen ein Eintrag hier.
         if let updater = model.updater, let version = updater.pendingVersion {
-            Button("Update \(version) verfügbar …") { updater.checkForUpdates() }
+            // Versionsnummer kommt aus dem Appcast → nie als Übersetzungsschlüssel/Markdown lesen (G5).
+            Button { updater.checkForUpdates() } label: { Text(verbatim: "Update \(version) verfügbar …") }
             Divider()
         }
         Button("Einstellungen …") { open(AppModel.WindowID.settings) }

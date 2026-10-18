@@ -185,4 +185,24 @@ final class AppleScriptSourceTests: XCTestCase {
         // Fremde IDs zählen nicht.
         XCTAssertEqual(AppleScriptSource.blocked(running: ["com.example"], denied: ["com.example"]), [])
     }
+
+    // MARK: Statusabfrage mit Zeitgrenze erst nach der Zustimmung (Security-Review B7)
+
+    /// Vor der ersten erfolgreichen Abfrage keine Zeitgrenze – sie wartet auf den Automation-Dialog.
+    /// Danach 5 s: Eine hängende App blockiert die Abfrage-Queue nicht mehr unbegrenzt.
+    func testStatusTimeoutOnlyAfterConsent() {
+        for id in [spotify, music] {
+            XCTAssertFalse(AppleScriptSource.script(.stream, bundleID: id, statusTimeout: false).contains("timeout"))
+            let timed = AppleScriptSource.script(.stream, bundleID: id, statusTimeout: true)
+            XCTAssertTrue(timed.contains("with timeout of 5 seconds\n"), id)
+            XCTAssertTrue(timed.contains("end timeout"), id)
+            XCTAssertTrue(timed.contains("return {name of t"), id)
+        }
+    }
+
+    /// Befehle behalten ihre 3 s, unabhängig vom Schalter.
+    func testCommandsUnaffectedByStatusTimeout() {
+        XCTAssertEqual(AppleScriptSource.script(.send(.next), bundleID: spotify, statusTimeout: true),
+                       AppleScriptSource.script(.send(.next), bundleID: spotify))
+    }
 }
