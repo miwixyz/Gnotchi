@@ -74,6 +74,28 @@ final class NowPlayingModelTests: XCTestCase {
                           NowPlayingModel.artworkKey(for: info(artist: "B")))
     }
 
+    // MARK: seekRoute – Spotify spult per AppleScript (Spotify Connect, gemessen 18.10.)
+
+    func testSeekRouteSpotifyAlwaysAppleScript() {
+        XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: "com.spotify.client", usingFallback: false), .appleScript)
+        XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: "com.spotify.client", usingFallback: true), .appleScript)
+    }
+
+    func testSeekRouteMusicFollowsFallback() {
+        XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: "com.apple.Music", usingFallback: false), .adapter)
+        XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: "com.apple.Music", usingFallback: true), .appleScript)
+    }
+
+    func testSeekRouteBrowsersUseAdapter() {
+        for id in ["com.apple.Safari", "net.imput.helium", "com.spotify.client "] {
+            XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: id, usingFallback: false), .adapter, id)
+        }
+    }
+
+    func testSeekRouteWithoutSourceUsesAdapter() {
+        XCTAssertEqual(NowPlayingModel.seekRoute(appBundleID: nil, usingFallback: false), .adapter)
+    }
+
     // MARK: Hinweis bei verweigerter Automation (G7)
 
     func testDeniedReasonNamesTheApps() {

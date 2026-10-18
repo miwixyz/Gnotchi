@@ -31,7 +31,7 @@ Menüleisten-App für macOS 27. Eine Insel in der MacBook-Notch (auf Bildschirme
 Pille oben mittig) zeigt den laufenden Titel jeder Quelle und steuert die Wiedergabe. Apple bietet
 dafür keine öffentliche Schnittstelle; Gnotchi nutzt wie Boring Notch/Cyclop `mediaremote-adapter`
 (BSD-3), der über den systemeigenen `/usr/bin/perl` an `MediaRemote.framework` kommt. Rückfall:
-AppleScript für Spotify und Musik.
+AppleScript für Spotify und Musik; Spotify spult außerdem immer per AppleScript (G7).
 
 **Warum eine eigene App:** Entworfen wurde das in Seam. Seam hält die Bedienungshilfen-Freigabe,
 und der Perl-Kindprozess könnte Seams Freigaben erben (vermutet, siehe G2). Eine Freigabe, mit der
@@ -42,7 +42,7 @@ eines Interpreters, der Fremdcode lädt. Gnotchi trennt das.
 
 - **Keine Bedienungshilfen-Freigabe.** Gnotchi fragt sie nie an und prüft sie nie (G1).
 - **Apple Events** (Berechtigung `com.apple.security.automation.apple-events`), tatsächlich
-  benutzt nur für Spotify und Musik. Welche App Gnotchi steuern darf, erteilt der Nutzer je
+  benutzt nur für Spotify und Musik (Rückfall G7) und fürs Spulen in Spotify. Welche App Gnotchi steuern darf, erteilt der Nutzer je
   Ziel-App im macOS-Dialog (Automation).
 - **Ein Kindprozess:** `/usr/bin/perl` mit dem Adapter-Skript und -Framework aus dem eigenen
   Bundle. Er liest systemweit, was gerade spielt, und sendet Steuerbefehle (Play/Pause, Weiter,
@@ -155,7 +155,7 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 ### G7 – AppleScript fest im Code (vormals Seam E17f)
 - **Entschieden:** Rückfall-Skripte sind Konstanten; einzige variable Größe ist die Spulposition
   als formatierte Zahl. Automation nur für Spotify und Musik, angefragt erst, wenn der Rückfall
-  greift. Dafür trägt die App die Berechtigung `com.apple.security.automation.apple-events` und
+  greift oder zum ersten Mal in Spotify gespult wird (siehe unten). Dafür trägt die App die Berechtigung `com.apple.security.automation.apple-events` und
   `NSAppleEventsUsageDescription` (G12). (Umsetzung Plan Aufgabe 11a.)
 - **Umgesetzt (`Gnotchi/Media/AppleScriptSource.swift`):** Skripte nur an `com.spotify.client`/
   `com.apple.Music` – jede andere Bundle-ID ergibt kein Skript (Test); nur an Apps, die schon
@@ -166,6 +166,20 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   (keine Trennzeichen im Text); Antworten laufen durch `NowPlayingInfo.sanitize` und dieselbe
   Dauerprüfung wie der Adapter (G4). Verweigert der Nutzer (Fehler -1743), fragt Gnotchi diese App
   bis zum nächsten Start des Rückfalls nicht mehr.
+- **Ergänzt 18.10. – Spotify spult immer per AppleScript, auch während der Adapter läuft:** Spielt
+  Spotify über Spotify Connect (externer Lautsprecher), übernimmt das Gerät den MediaRemote-
+  Spulbefehl nur kurz und meldet dann die alte Position – die Zeit springt zurück. Gemessen 18.10.:
+  fünf Varianten des Adapter-`seek` (brew `media-control`, Gnotchis Skript und Framework, saubere
+  Umgebung) wirkungslos; `set player position` per AppleScript wirkt, MediaRemote folgt nach
+  ~3 s ohne Rücksprung. Play/Pause/Weiter/Zurück über den Adapter wirken auch über Connect und
+  bleiben dort. Ein Weg für lokal und Connect: Entscheidung `NowPlayingModel.seekRoute` (Test),
+  Versand `AppleScriptSource.sendSeek` – dasselbe konstante Skript, dieselbe Queue, dieselben
+  Prüfungen (nur `com.spotify.client`/`com.apple.Music`, App muss laufen, 3-s-Zeitgrenze, höchstens
+  ein Befehl), unabhängig davon, ob der Rückfall läuft. Der erste Spulvorgang löst einmal den
+  Automation-Dialog für Spotify aus. Scheitert das Skript (verweigert -1743, Zeitgrenze), spult
+  Gnotchi über den Adapter (lokal wirksam, über Connect nicht) und protokolliert die Fehlernummer
+  je Nummer einmal, nur mit Bundle-ID (G8). Der Rücksprung des Connect-Geräts selbst ist nicht
+  testbar – getestet ist die Weichenstellung.
 
 ### G8 – Protokoll ohne Inhalte (vormals Seam E17g/E11)
 - **Entschieden:** `os.Logger`, Subsystem `dev.mwlr.gnotchi`. Ins Protokoll nur Zustandswechsel

@@ -17,7 +17,7 @@ final class NowPlayingModel {
     private(set) var unavailableReason: String?
 
     @ObservationIgnored private let adapter = MediaAdapter()
-    /// G7: Spotify/Musik per AppleScript, nur solange der Adapter `unavailable` meldet.
+    /// G7: Spotify/Musik per AppleScript, solange der Adapter `unavailable` meldet; Spotify-Spulen immer.
     @ObservationIgnored private let fallback = AppleScriptSource()
     @ObservationIgnored private var usingFallback = false
     /// Hinweis, solange der Rückfall läuft und nichts verweigert ist.
@@ -89,7 +89,26 @@ final class NowPlayingModel {
     func playPause() { route(.send(.toggle)) }
     func next() { route(.send(.next)) }
     func previous() { route(.send(.previous)) }
-    func seek(to seconds: TimeInterval) { route(.seek(seconds)) }
+    func seek(to seconds: TimeInterval) {
+        switch Self.seekRoute(appBundleID: info?.appBundleID, usingFallback: usingFallback) {
+        case .adapter: adapter.perform(.seek(seconds))
+        case .appleScript where usingFallback: fallback.perform(.seek(seconds))
+        case .appleScript:
+            // Verweigert (-1743) oder gescheitert: dann doch der Adapter – lokal wirkt er, über Connect nicht.
+            fallback.sendSeek(seconds, bundleID: info?.appBundleID ?? "") { [weak self] _ in
+                self?.adapter.perform(.seek(seconds))
+            }
+        }
+    }
+
+    enum SeekRoute: Equatable { case adapter, appleScript }
+
+    /// Spotify spult immer per AppleScript – lokal wie über Spotify Connect, ein Weg: Den
+    /// MediaRemote-Spulbefehl übernimmt ein Connect-Gerät nur kurz und springt dann zurück
+    /// (gemessen 18.10.). Im Rückfall läuft ohnehin alles über AppleScript, sonst der Adapter.
+    nonisolated static func seekRoute(appBundleID: String?, usingFallback: Bool) -> SeekRoute {
+        usingFallback || appBundleID == AppleScriptSource.spotify ? .appleScript : .adapter
+    }
 
     private func route(_ call: MediaAdapter.Call) {
         if usingFallback { fallback.perform(call) } else { adapter.perform(call) }

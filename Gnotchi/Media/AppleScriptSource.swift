@@ -3,6 +3,7 @@ import CoreServices
 import OSLog
 
 /// Rückfall ohne Adapter (docs/SECURE-DESIGN.md G7): Spotify und Musik per AppleScript.
+/// Außerdem spult Spotify immer hierüber (`sendSeek`), auch während der Adapter läuft.
 /// Alle Skripte sind Konstanten; einzige variable Größe ist die Spulposition als formatierte Zahl.
 /// Jedes Skript prüft selbst, ob die App läuft – `tell application` würde sie sonst starten.
 @MainActor
@@ -46,6 +47,8 @@ final class AppleScriptSource {
     /// stop() macht Antworten laufender Abfragen und Befehle ungültig.
     private var generation = 0
     private var lastInfo: NowPlayingInfo?
+    /// Fehlernummern von `sendSeek`, die schon im Protokoll stehen – je Nummer einmal.
+    private var loggedSeekErrors = Set<Int>()
 
     func start() {
         guard timer == nil else { return }
@@ -96,6 +99,33 @@ final class AppleScriptSource {
         }
         // Sofort nachfragen (läuft seriell nach dem Befehl), sonst hinkt die Anzeige bis zu 1 s.
         if polling { repollAfterFinish = true } else { poll() }
+    }
+
+    /// Spulen per AppleScript, auch während der Adapter läuft (G7): Spotify Connect ignoriert den
+    /// MediaRemote-Spulbefehl und springt zurück (gemessen 18.10.). Unabhängig vom Rückfall-Takt
+    /// (`active`); gleiches Skript, gleiche Queue, gleiche Prüfungen wie `perform`, höchstens ein
+    /// Befehl gleichzeitig. Nur für die festen Bundle-IDs. `onFailure` bekommt die AppleScript-
+    /// Fehlernummer (z. B. -1743 verweigert, Zeitgrenze überschritten) – der Aufrufer weicht aus.
+    func sendSeek(_ seconds: TimeInterval, bundleID: String, onFailure: @escaping @MainActor @Sendable (Int) -> Void) {
+        guard !commandRunning, let id = Self.supported.first(where: { $0 == bundleID }) else { return }
+        let source = Self.script(.seek(seconds), bundleID: id)
+        guard !source.isEmpty else { return }
+        commandRunning = true
+        let gen = generation
+        queue.async { [weak self] in
+            // Zweite Prüfung direkt vor dem Senden; die dritte steht im Skript selbst.
+            let error = Self.isRunning(id) ? Self.execute(source).1 : nil
+            Task { @MainActor in
+                guard let self, gen == self.generation else { return }
+                self.commandRunning = false
+                guard let error else { return }
+                if self.loggedSeekErrors.insert(error).inserted {
+                    // G8: nur Bundle-ID und Fehlernummer, nie Inhalte.
+                    Self.log.error("Spulen per AppleScript fehlgeschlagen (\(error, privacy: .public)) für \(id, privacy: .public) – Adapter übernimmt")
+                }
+                onFailure(error)
+            }
+        }
     }
 
     private func poll() {
