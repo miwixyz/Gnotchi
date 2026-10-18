@@ -39,6 +39,8 @@ final class IslandController {
     private var spaceRecheck: Task<Void, Never>?
     /// Läuft, solange ein gefundener Konkurrent auf die bestätigende zweite Prüfung wartet.
     private var competitorCheck: Task<Void, Never>?
+    /// Kandidat, für den `competitorCheck` gerade die Bestätigung abwartet.
+    private var pendingCompetitor: String?
     private var screenDebounce: Task<Void, Never>?
     private var running = false
     /// Zählt Starts: Eine Beobachtung aus einem früheren Lauf meldet sich nach stop()/start() nicht neu an.
@@ -47,8 +49,6 @@ final class IslandController {
     /// Wie lange die Maus weg sein muss, bevor die Insel zuklappt, und wie lange die Animation läuft.
     private static let collapseDelay: Duration = .milliseconds(300)
     private static let animationTail: Duration = .milliseconds(350)
-    /// Space-Wechsel animiert; die Fensterliste ist erst danach sicher endgültig (Vollbild an/aus).
-    private static let spaceSettle: Duration = .milliseconds(800)
     /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
@@ -206,6 +206,7 @@ final class IslandController {
         spaceRecheck = nil
         competitorCheck?.cancel()
         competitorCheck = nil
+        pendingCompetitor = nil
         screenDebounce?.cancel()
         screenDebounce = nil
     }
@@ -272,9 +273,13 @@ final class IslandController {
         refresh()
         spaceRecheck?.cancel()
         spaceRecheck = Task { [weak self] in
-            try? await Task.sleep(for: Self.spaceSettle)
-            guard !Task.isCancelled, let self, self.running else { return }
-            self.refresh()
+            var elapsed: Duration = .zero
+            for delay in Self.recheckDelays {
+                try? await Task.sleep(for: delay - elapsed)
+                elapsed = delay
+                guard !Task.isCancelled, let self, self.running else { return }
+                self.refresh()
+            }
         }
     }
 
@@ -322,19 +327,25 @@ final class IslandController {
                                       targets: targets, app: Self.otherApp)
     }
 
-    /// Kein Konkurrent → Hinweis sofort weg. Neuer Konkurrent → erst nach bestätigender zweiter Prüfung.
+    /// Kein Konkurrent → Hinweis sofort weg. Neuer Konkurrent → erst nach bestätigender zweiter Prüfung;
+    /// taucht währenddessen eine andere App auf, bekommt sie ihre eigene Bestätigung.
     private func updateCompetitor(_ candidate: String?) {
         guard let candidate else {
             competitorCheck?.cancel()
             competitorCheck = nil
+            pendingCompetitor = nil
             model.setCompetingNotchApp(nil)
             return
         }
-        guard model.competingNotchApp != candidate, competitorCheck == nil else { return }
+        guard Self.needsConfirmation(candidate: candidate, shown: model.competingNotchApp,
+                                     pending: pendingCompetitor) else { return }
+        competitorCheck?.cancel()
+        pendingCompetitor = candidate
         competitorCheck = Task { [weak self] in
             try? await Task.sleep(for: Self.competitorConfirmDelay)
             guard !Task.isCancelled, let self, self.running else { return }
             self.competitorCheck = nil
+            self.pendingCompetitor = nil
             let second = self.model.isVisible ? self.competitor(in: Self.onScreenWindows()) : nil
             self.model.setCompetingNotchApp(Self.confirmedCompetitor(first: candidate, second: second))
         }

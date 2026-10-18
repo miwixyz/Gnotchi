@@ -228,6 +228,23 @@ final class IslandControllerTests: XCTestCase {
         XCTAssertNil(IslandController.confirmedCompetitor(first: nil, second: nil))
     }
 
+    /// Neuer Kandidat bekommt eine eigene Bestätigung – auch wenn für einen anderen gerade eine läuft.
+    func testScheduleConfirmationForNewCandidate() {
+        XCTAssertTrue(IslandController.needsConfirmation(candidate: "A", shown: nil, pending: nil))
+        XCTAssertTrue(IslandController.needsConfirmation(candidate: "B", shown: nil, pending: "A"))
+        XCTAssertTrue(IslandController.needsConfirmation(candidate: "B", shown: "A", pending: nil))
+    }
+
+    func testNoNewConfirmationWhenShownOrPending() {
+        XCTAssertFalse(IslandController.needsConfirmation(candidate: "A", shown: "A", pending: nil))
+        XCTAssertFalse(IslandController.needsConfirmation(candidate: "A", shown: nil, pending: "A"))
+    }
+
+    /// Nach App-Start/-Ende: sofort, nach dem Einschwingen und spät (Notch-Apps öffnen ihr Fenster spät).
+    func testRecheckSchedule() {
+        XCTAssertEqual(IslandController.recheckDelays, [.milliseconds(800), .seconds(3)])
+    }
+
     func testWarningText() {
         XCTAssertEqual(IslandController.competingWarning(name: "NotchNook"),
                        "„NotchNook“ zeichnet ebenfalls über die Notch – bitte nur eine Notch-App verwenden.")

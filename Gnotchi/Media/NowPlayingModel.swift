@@ -231,6 +231,7 @@ final class NowPlayingModel {
         guard isVisible, islandShown, info?.isPlaying == true else {
             routeTask?.cancel()
             routeTask = nil
+            routePID = nil
             silentSince = nil
             return
         }
@@ -248,6 +249,9 @@ final class NowPlayingModel {
     /// Prozessnummer der Quell-App über NSRunningApplication (die Adapter-Meldung enthält keine).
     private func pollRoute() async {
         guard let id = info?.appBundleID, info?.isPlaying == true else { return }
+        routePID = AudioRoute.liveCachedPID(routePID) { pid in
+            NSRunningApplication(processIdentifier: pid).map { !$0.isTerminated } ?? false
+        }
         if routePID == nil {
             routePID = NSRunningApplication.runningApplications(withBundleIdentifier: id).first?.processIdentifier
         }

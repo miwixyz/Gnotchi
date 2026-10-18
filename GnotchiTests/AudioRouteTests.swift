@@ -69,6 +69,17 @@ final class AudioRouteTests: XCTestCase {
         XCTAssertTrue(result.isEmpty)
     }
 
+    // MARK: liveCachedPID – Quell-App neu gestartet (Spotify-Neustart während der Wiedergabe)
+
+    func testCachedPIDKeptWhileAlive() {
+        XCTAssertEqual(AudioRoute.liveCachedPID(79759) { _ in true }, 79759)
+    }
+
+    func testCachedPIDDroppedWhenProcessGone() {
+        XCTAssertNil(AudioRoute.liveCachedPID(79759) { _ in false })
+        XCTAssertNil(AudioRoute.liveCachedPID(nil) { _ in true })
+    }
+
     // MARK: nextSilentSince – Entprellen
 
     func testSilenceStartsClock() {

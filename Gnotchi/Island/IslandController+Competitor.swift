@@ -57,6 +57,15 @@ extension IslandController {
             && overlap >= 0.5 * t.notch.width
     }
 
+    /// Eigene Bestätigung nötig, wenn der Kandidat weder angezeigt noch schon in Prüfung ist.
+    nonisolated static func needsConfirmation(candidate: String, shown: String?, pending: String?) -> Bool {
+        candidate != shown && candidate != pending
+    }
+
+    /// Nachprüfungen nach App-Start/-Ende und Space-Wechsel (ab dem Ereignis): nach dem Einschwingen
+    /// (Space-Animation, Vollbild an/aus) und spät – manche Notch-Apps öffnen ihr Fenster erst nach Sekunden.
+    nonisolated static let recheckDelays: [Duration] = [.milliseconds(800), .seconds(3)]
+
     /// Hinweis nur, wenn die zweite Prüfung dieselbe App findet.
     nonisolated static func confirmedCompetitor(first: String?, second: String?) -> String? {
         guard let first, first == second else { return nil }

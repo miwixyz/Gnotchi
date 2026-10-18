@@ -74,6 +74,13 @@ enum AudioRoute {
 
     // MARK: Reine Entscheidung (getestet)
 
+    /// Gemerkte PID der Quell-App nur, solange der Prozess noch lebt (Spotify-Neustart während der Wiedergabe:
+    /// neue PID, die alte gehört niemandem mehr oder bald einem anderen Prozess).
+    static func liveCachedPID(_ pid: pid_t?, isAlive: (pid_t) -> Bool) -> pid_t? {
+        guard let pid, isAlive(pid) else { return nil }
+        return pid
+    }
+
     /// Bekannte Objekte aus dem Zwischenspeicher, nur neue lesen; verschwundene und unlesbare fallen weg.
     static func identities(for ids: [AudioObjectID], known: [AudioObjectID: Identity],
                            read: (AudioObjectID) -> Identity?) -> [AudioObjectID: Identity] {
