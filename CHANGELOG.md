@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.1.0] — 2026-10-18
 
 Erste Version. Gnotchi ist aus Seam ausgelagert, damit die Mediensteuerung ohne
 Bedienungshilfen-Freigabe auskommt.

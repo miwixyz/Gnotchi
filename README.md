@@ -5,8 +5,8 @@ Video, zeigt Gnotchi in der Notch Cover und Pegel. Fährst du mit der Maus darü
 auf und zeigt Titel, Interpret, App, Tasten und Fortschritt. Auf Bildschirmen ohne Notch erscheint
 dieselbe Insel als Pille oben in der Mitte.
 
-**Stand:** Version 0.1.0 in Arbeit, noch nicht veröffentlicht. **Download folgt mit Version
-0.1.0.** Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
+**Stand:** Version 0.1.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
+Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
 
 Voraussetzungen: macOS 27, Mac mit Apple-Chip. Kostenlos, Open Source (MIT).
 
@@ -56,8 +56,8 @@ Freigabe nicht und fragt nie danach.
 
 ## Installieren
 
-Download folgt mit Version 0.1.0. Ausgeliefert wird dann ein ZIP mit Developer-ID-Signatur, von
-Apple notarisiert, über GitHub-Releases. Auspacken und nach *Programme* ziehen, kein Xcode nötig.
+[Neueste Version laden](https://github.com/miwixyz/Gnotchi/releases/latest): ein ZIP mit
+Developer-ID-Signatur, von Apple notarisiert. Auspacken und nach *Programme* ziehen, kein Xcode nötig.
 
 Wer im Terminal installiert, nimmt `ditto`, nicht `unzip`. `unzip` zerstört die Metadaten des
 signierten Programms, macOS hält es dann für beschädigt:

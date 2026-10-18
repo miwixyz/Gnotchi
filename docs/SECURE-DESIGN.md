@@ -395,10 +395,15 @@ Adresse aus dem offiziellen README (Slopsquat).
 - [x] Lint-Regeln für G1 und G3, Gegenprobe 18.10.: beide schlagen an
 - [x] Tests für G2, G3, G4, G6, G9 (`GnotchiTests/`, aus Seam übernommen) grün
 - [x] Berechtigungs-Gate in `release.sh` (G12), Gegenprobe 18.10. an ad hoc signierter Kopie
-- [ ] G5, G7, G10 umgesetzt (Plan Aufgaben 10, 11, 11a)
+- [x] G5, G7, G10 umgesetzt (Plan Aufgaben 10, 11, 11a), am Code geprüft 18.10.: Inhalte nur
+      `Text(verbatim:)`, kein `AttributedString(markdown:)`; Rückfall `AppleScriptSource.swift`;
+      Panel `.nonactivatingPanel` + `ignoresMouseEvents` im unsichtbaren Zustand
 - [ ] Sichttest: Erbt der Perl-Prozess Gnotchis Freigaben? Mit Gnotchi selbst gemessen, nicht aus
       dem Terminal (G2)
 - [ ] `codesign -d --entitlements - --xml` am signierten Build: App nur Apple Events, eingebetteter
       Code ohne
 - [x] Datenschutz-Gate (G16) in `make lint`, `release.sh` und Pre-Commit-Hook, Gegenprobe 18.10.
-- [ ] `rafter-code-review` gegen G1–G16 und `rafter run` – braucht das Repo auf GitHub (noch lokal)
+- [x] `rafter-code-review` gegen G1–G16 (18.10., kein kritischer/hoher Fund, Härtungen B1–B12
+      umgesetzt) und `rafter run` (18.10., Scan `c4fa8f06`, Standardmodus): 1 Warnung R-33E2F
+      `release.sh` „curl in Interpreter“ – Fehlalarm (Feed wurde nur als Daten geparst), trotzdem
+      umgestellt auf Datei laden, dann parsen

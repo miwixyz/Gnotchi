@@ -391,18 +391,23 @@ fi
 # raw.githubusercontent.com cacht kurz — ein Fehlschlag hier ist kein Abbruch,
 # aber er wird gesagt statt verschwiegen.
 FEED="https://raw.githubusercontent.com/miwixyz/Gnotchi/main/appcast.xml"
-if curl -fsS --netrc-file /dev/null "${FEED}" 2>/dev/null | python3 -c '
+# Erst in eine Datei laden, dann als DATEN parsen – keine Pipe von curl in einen Interpreter
+# (Rafter R-33E2F, 18.10.: dort ein Fehlalarm, der Feed wurde nie ausgeführt; so ist es auch
+# für den Leser eindeutig).
+FEED_TMP="$(mktemp "${TMPDIR:-/tmp}/gnotchi-feed.XXXXXX")"
+if curl -fsS --netrc-file /dev/null -o "${FEED_TMP}" "${FEED}" 2>/dev/null && python3 -c '
 import re, sys
-xml = sys.stdin.read()
+xml = open(sys.argv[2], encoding="utf-8").read()
 shorts = [a or b for a, b in re.findall(
     r"<sparkle:shortVersionString>\s*([^<]*?)\s*</sparkle:shortVersionString>|sparkle:shortVersionString=\"([^\"]*)\"", xml)]
 sys.exit(0 if sys.argv[1] in shorts else 1)
-' "${VERSION}"; then
+' "${VERSION}" "${FEED_TMP}"; then
     echo "  ✓ Feed unter ${FEED} nennt ${VERSION}"
 else
     echo "  ⚠️  Feed nennt ${VERSION} noch nicht — raw.githubusercontent cacht bis zu 5 Min."
     echo "     → ZU TUN: in ein paar Minuten prüfen: curl -s ${FEED} | grep ${VERSION}"
 fi
+rm -f "${FEED_TMP}"
 
 echo ""
 echo "✅ ${APP} ${VERSION} released."
