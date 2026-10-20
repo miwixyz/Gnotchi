@@ -48,7 +48,18 @@ func cleanBrowserTitle(_ t: String) -> (artist: String?, track: String) {
 
 // MARK: LRCLIB
 
+/// Kurze Störungen (5xx, Netz weg) zählen nicht als „nichts gefunden“: 3 neue Versuche nach 5, 15, 45 s
+/// (20.10.: erster Lauf bekam 503, Sekunden später wieder 200).
 func fetch(_ path: String, _ query: [String: String]) -> (Int, Any?) {
+    var result = fetchOnce(path, query)
+    for wait in [5.0, 15, 45] where result.0 == 0 || result.0 >= 500 {
+        Thread.sleep(forTimeInterval: wait)
+        result = fetchOnce(path, query)
+    }
+    return result
+}
+
+func fetchOnce(_ path: String, _ query: [String: String]) -> (Int, Any?) {
     var c = URLComponents(string: "https://lrclib.net\(path)")!
     c.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
     var req = URLRequest(url: c.url!, timeoutInterval: 15)
@@ -134,7 +145,7 @@ try proc.run()
 let deadline = started.addingTimeInterval(hours * 3600)
 DispatchQueue.global().asyncAfter(deadline: .now() + hours * 3600) { proc.terminate() }
 save()
-print("läuft bis \(deadline.formatted(date: .omitted, time: .shortened)), Ergebnis: \(outPath)")
+print("läuft bis \(deadline.formatted(date: .numeric, time: .shortened)), Ergebnis: \(outPath)")
 fflush(stdout)
 
 var buffer = Data()
