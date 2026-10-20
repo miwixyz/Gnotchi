@@ -20,6 +20,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.headphoneNotice) { model.applyNotchSetting() }
                 toggleRow("Mikrofon & Kamera anzeigen", isOn: $prefs.micCamera)
                     .onChange(of: prefs.micCamera) { model.applyNotchSetting() }
+                toggleRow("Tippi-Aufnahme anzeigen", isOn: $prefs.tippiRecording)
+                    .onChange(of: prefs.tippiRecording) { model.applyNotchSetting() }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

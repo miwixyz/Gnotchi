@@ -166,13 +166,6 @@ final class IslandController {
 
     /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt
     /// ist (Fenster an den oberen Rand ziehen, Spezifikation) und die Insel klein ist (nicht weg, nicht schon groß).
-    /// Form einer sichtbaren Insel: Ein Hinweis verdrängt „klein“, nicht „groß“ (dort wird gerade bedient);
-    /// endet er, geht es zurück auf klein.
-    nonisolated static func nextMode(current: IslandState.Mode, notice: Bool) -> IslandState.Mode {
-        if notice { return current == .expanded ? .expanded : .notice }
-        return current == .hidden || current == .notice ? .compact : current
-    }
-
     nonisolated static func shouldExpand(stillInside: Bool, mouseDown: Bool, mode: IslandState.Mode) -> Bool {
         stillInside && !mouseDown && mode == .compact
     }
@@ -181,24 +174,6 @@ final class IslandController {
     nonisolated static func layoutsChanged(old: [CGDirectDisplayID: IslandGeometry.Layout],
                                            new: [CGDirectDisplayID: IslandGeometry.Layout]) -> Bool {
         old != new
-    }
-
-    /// Panelgröße je Zustand; nil = Panel ist weg. Groß hängt am Inhalt (0.2.0): ohne Musik nur die
-    /// Mikrofon/Kamera-Zeilen in Hinweis-Größe, mit Musik und aktivem Mikrofon/Kamera eine Zeile höher.
-    nonisolated static func panelFrame(mode: IslandState.Mode, layout: IslandGeometry.Layout,
-                                       hasMedia: Bool = true, privacy: Bool = false) -> CGRect? {
-        switch mode {
-        case .hidden: return nil
-        case .compact: return layout.compact
-        case .notice: return layout.notice
-        case .expanded:
-            guard hasMedia else { return layout.notice }
-            guard privacy else { return layout.expanded }
-            var r = layout.expanded
-            r.origin.y -= IslandGeometry.privacyLineHeight
-            r.size.height += IslandGeometry.privacyLineHeight
-            return r
-        }
     }
 
     /// Panelgröße für den aktuellen Inhalt.
@@ -216,6 +191,7 @@ final class IslandController {
             _ = activity.showsOverFullscreen
             _ = activity.notice
             _ = activity.privacy
+            _ = activity.recording
             _ = model.info != nil
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -343,7 +319,8 @@ final class IslandController {
                 entry.panel.orderOut(nil)
                 continue
             }
-            entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil)
+            entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
+                                             recording: activity.recording != nil)
             // Der Hinweis ist nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice
             if let f = frame(entry.state.mode, entry.state.layout) {
@@ -400,7 +377,8 @@ final class IslandController {
         expandTasks[displayID]?.cancel()
         expandTasks[displayID] = nil
         if inside {
-            guard entry.state.mode == .compact else { return }
+            // Während der Tippi-Aufnahme klappt nichts auf (Spezifikation 0.2.0).
+            guard entry.state.mode == .compact, activity.recording == nil else { return }
             let delay = expandDelay()
             guard delay > 0 else { return expandIfStillInside(displayID) }
             expandTasks[displayID] = Task { [weak self] in

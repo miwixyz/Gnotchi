@@ -101,6 +101,7 @@ final class AppModel {
         let extras = extraFeatures ?? (source == nil ? [
             NotchFeature(part: HeadphoneWatcher(activity: activity)) { $0.headphoneNotice },
             NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera },
+            NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
         ] : [])
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland

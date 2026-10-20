@@ -71,10 +71,21 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .expanded, name: "pill-expanded-privacy-music", privacy: callPrivacy)
     }
 
+    /// 0.2.0 Tippi-Aufnahme: klein, verdrängt die Musik.
+    func testRenderNotchRecording() throws {
+        try render(notchScreen, .compact, name: "notch-recording", recording: .recording(since: Date().addingTimeInterval(-7)))
+    }
+    func testRenderPillRecording() throws {
+        try render(pillScreen, .compact, name: "pill-recording", recording: .recording(since: Date().addingTimeInterval(-7)))
+    }
+    func testRenderPillTranscribing() throws {
+        try render(pillScreen, .compact, name: "pill-transcribing", recording: .transcribing)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
-                        withMedia: Bool = true) throws {
+                        withMedia: Bool = true, recording: ActivityModel.Recording? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -86,6 +97,10 @@ final class IslandViewRenderTests: XCTestCase {
         let activity = ActivityModel(media: model)
         if let notice { activity.post(notice) }
         activity.setPrivacy(privacy)
+        if let recording {
+            activity.setRecording(recording)
+            activity.setRecordingLevel(0.7)
+        }
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = IslandController.panelFrame(mode: mode, layout: layout, hasMedia: withMedia,

@@ -12,6 +12,8 @@ final class Preferences {
         static let expandDelay = "expandDelay"
         static let headphoneNotice = "headphoneNotice"
         static let micCamera = "micCamera"
+        /// Tippi liest diesen Schlüssel (CFPreferences, Domäne dev.mwlr.gnotchi) – nicht umbenennen.
+        static let tippiRecording = "tippiRecording"
     }
 
     /// Auswahl „Aufklappen nach“ in Sekunden (Sofort, 0,3 s, 0,6 s, 1 s).
@@ -34,6 +36,9 @@ final class Preferences {
     /// Punkt an der Insel, solange eine App Mikrofon oder Kamera nutzt (0.2.0). Ab Werk an.
     var micCamera: Bool { didSet { defaults.set(micCamera, forKey: Key.micCamera) } }
 
+    /// Tippis Diktat in der Insel zeigen; Tippi blendet dann seine eigene Pille aus (0.2.0). Ab Werk an.
+    var tippiRecording: Bool { didSet { defaults.set(tippiRecording, forKey: Key.tippiRecording) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
@@ -42,6 +47,7 @@ final class Preferences {
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
+        tippiRecording = defaults.object(forKey: Key.tippiRecording) as? Bool ?? true
     }
 
     /// Nur Werte aus der Auswahl; alles andere (anderer Typ, per `defaults write` gesetzt) → ab Werk.

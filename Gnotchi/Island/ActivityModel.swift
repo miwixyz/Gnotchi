@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// Was die Insel zeigt: Musik und (ab 0.2.0) weitere Aktivitäten. Nur Zusammenfassung – die Quellen
@@ -38,7 +39,16 @@ final class ActivityModel {
         var micLine: String? { mic ? micApps.joined(separator: ", ") : nil }
     }
 
+    /// Tippi-Diktat (0.2.0): nimmt auf (seit) oder wandelt um.
+    enum Recording: Equatable, Sendable {
+        case recording(since: Date), transcribing
+    }
+
     let media: NowPlayingModel
+    private(set) var recording: Recording?
+    /// Pegel getrennt vom Zustand: Nur die Ansicht liest ihn. Die Insel-Steuerung beobachtet `recording` –
+    /// läge der Pegel darin, liefe ihr `refresh` (mit Fensterliste) 10×/s.
+    private(set) var recordingLevel: Double = 0
     private(set) var notice: Notice?
     private(set) var privacy = Privacy.none
     @ObservationIgnored private var noticeTask: Task<Void, Never>?
@@ -51,10 +61,20 @@ final class ActivityModel {
     }
 
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
-    var isVisible: Bool { media.isVisible || notice != nil || privacy.isActive }
+    var isVisible: Bool { media.isVisible || notice != nil || privacy.isActive || recording != nil }
 
-    /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre. Musik hält sich an die Vollbild-Regel.
-    var showsOverFullscreen: Bool { false }
+    /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre: die Tippi-Aufnahme (Tippi blendet seine
+    /// eigene Pille aus, wenn Gnotchi anzeigt). Musik hält sich an die Vollbild-Regel.
+    var showsOverFullscreen: Bool { recording != nil }
+
+    func setRecording(_ r: Recording?) {
+        if recording != r { recording = r }
+        if r == nil, recordingLevel != 0 { recordingLevel = 0 }
+    }
+
+    func setRecordingLevel(_ level: Double) {
+        recordingLevel = level
+    }
 
     /// Hinweis zeigen; ein neuer ersetzt den alten und startet die Dauer neu.
     func post(_ n: Notice) {

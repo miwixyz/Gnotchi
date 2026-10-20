@@ -67,7 +67,13 @@ struct IslandView: View {
         case .hidden: EmptyView()
         case .notice: if let n = activity.notice { notice(n) }
         case .compact:
-            if let info = model.info { compact(info) } else if activity.privacy.isActive { privacyCompact }
+            if let rec = activity.recording {
+                recordingCompact(rec)
+            } else if let info = model.info {
+                compact(info)
+            } else if activity.privacy.isActive {
+                privacyCompact
+            }
         case .expanded:
             if let info = model.info {
                 VStack(spacing: 0) {
@@ -81,6 +87,41 @@ struct IslandView: View {
                 privacyDetails
             }
         }
+    }
+
+    // MARK: Tippi-Aufnahme (0.2.0)
+
+    /// Mit Notch: links Mikrofon (rot) bzw. Wellenform, rechts Pegel bzw. Ladekreisel. Ohne Notch dazu
+    /// „nimmt auf“ mit Laufzeit bzw. „wandelt um“ – feste Texte, nichts aus Tippis Nachricht.
+    private func recordingCompact(_ rec: ActivityModel.Recording) -> some View {
+        let pill = state.layout.notch == nil
+        return HStack(spacing: 6) {
+            switch rec {
+            case .recording(let since):
+                Image(systemName: "mic.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(.red)
+                if pill {
+                    Text(verbatim: "nimmt auf").font(.system(size: 11, weight: .medium)).foregroundStyle(.white)
+                    TimelineView(.periodic(from: since, by: 1)) { ctx in
+                        Text(verbatim: TippiLink.elapsedLabel(ctx.date.timeIntervalSince(since)))
+                            .font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+                LiveLevelBars(level: activity.recordingLevel)
+            case .transcribing:
+                Image(systemName: "waveform").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                if pill {
+                    Text(verbatim: "wandelt um").font(.system(size: 11, weight: .medium)).foregroundStyle(.white)
+                }
+                Spacer(minLength: 0)
+                WorkingDots()
+            }
+        }
+        .padding(.horizontal, pill ? 12 : 10)
+        .frame(height: state.layout.compact.height)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: rec == .transcribing ? "Tippi wandelt um" : "Tippi nimmt auf"))
+        .transition(.opacity)
     }
 
     // MARK: Mikrofon/Kamera (0.2.0)
@@ -321,6 +362,41 @@ struct IslandView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: label))
+    }
+}
+
+/// Echter Pegel aus Tippis Meldung (0…1), vier Balken unterschiedlich stark – wie Tippis eigene Pille.
+private struct LiveLevelBars: View {
+    let level: Double
+    private static let weights: [Double] = [0.55, 1, 0.8, 0.45]
+    var body: some View {
+        HStack(alignment: .center, spacing: 2) {
+            ForEach(Self.weights.indices, id: \.self) { i in
+                Capsule().fill(.white).frame(width: 2.5, height: 4 + 10 * level * Self.weights[i])
+            }
+        }
+        .frame(height: 14)
+        .animation(.easeOut(duration: 0.12), value: level)
+        .accessibilityHidden(true)
+    }
+}
+
+/// „Wandelt um“: drei Punkte, die nacheinander aufleuchten. Reines SwiftUI statt ProgressView (der
+/// Testrenderer zeichnet AppKit-Bausteine nicht); 15 Bilder/s reichen, die Ansicht gibt es nur beim Umwandeln.
+private struct WorkingDots: View {
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            HStack(spacing: 3) {
+                ForEach(0..<3, id: \.self) { i in
+                    Circle().fill(.white)
+                        .frame(width: 4, height: 4)
+                        .opacity(0.35 + 0.65 * max(0, sin(t * 4 - Double(i) * 0.9)))
+                }
+            }
+            .frame(height: 14)
+        }
+        .accessibilityHidden(true)
     }
 }
 
