@@ -41,6 +41,8 @@ final class MediaAdapter {
     private var process: Process?
     private var generation = 0
     private var failures = 0
+    /// Gescheiterte Selbsttests in Folge seit dem letzten start() (Staffel `retestDelay`).
+    private var testFailures = 0
     private var stopped = true
     private var badLines = 0
     /// Höchstens ein Befehls-Prozess gleichzeitig; weitere Klicks werden verworfen (wie AppleScript).
@@ -57,6 +59,42 @@ final class MediaAdapter {
         case 2: 5
         default: nil
         }
+    }
+
+    /// Pause vor dem nächsten Selbsttest. Ohne Ende: Am 19.10. scheiterte der Test 1,7 Min. nach dem
+    /// Booten und der Hinweis blieb 20 Std. stehen, ein Neustart von Gnotchi behob es (Ursache unbekannt).
+    /// Ein Test kostet ~0,1 s Perl plus die Signaturprüfung – alle 5 Min. ist vernachlässigbar.
+    nonisolated static func retestDelay(afterFailedTests n: Int) -> TimeInterval {
+        switch n {
+        case ...1: 5
+        case 2: 30
+        case 3: 120
+        default: 300
+        }
+    }
+
+    /// Ergebnis des Selbsttests. Fehlerfälle getrennt, damit das Protokoll die Ursache zeigt.
+    enum TestOutcome: Equatable, Sendable {
+        case ok, timedOut, exitCode(Int32), signal(Int32), launchFailed
+
+        /// Nur Statuscodes – keine Titel, keine App-Namen (Protokollregel der App-Familie).
+        var logText: String {
+            switch self {
+            case .ok: "bestanden"
+            case .timedOut: "Zeitlimit 10 s überschritten"
+            case .exitCode(let c): "Exit-Code \(c)"
+            case .signal(let s): "Signal \(s)"
+            case .launchFailed: "Start fehlgeschlagen"
+            }
+        }
+    }
+
+    nonisolated static func testOutcome(launched: Bool, timedOut: Bool,
+                                        reason: Process.TerminationReason, status: Int32) -> TestOutcome {
+        guard launched else { return .launchFailed }
+        if timedOut { return .timedOut }
+        if reason == .uncaughtSignal { return .signal(status) }
+        return status == 0 ? .ok : .exitCode(status)
     }
 
     /// Abbruchzähler nach einem Prozessende. Nur ein Lauf ≥ 30 s gilt als gesund und setzt zurück –
@@ -125,17 +163,36 @@ final class MediaAdapter {
         guard stopped else { return }
         stopped = false
         state = .starting
+        testFailures = 0
         guard let p = Paths.bundled() else { return fail("Adapter fehlt im Programmpaket") }
         paths = p
         // stop() erhöht die Generation: ein schnelles stop()+start() macht diesen Lauf ungültig,
         // sonst liefen am Ende zwei Ströme und einer wäre verwaist.
         let gen = generation
+        Task { await self.testThenLaunch(p, generation: gen) }
+    }
+
+    /// Selbsttest, bei Erfolg Strom starten. Scheitert er, bleibt der Zustand `unavailable` (der
+    /// Rückfall Spotify/Musik läuft weiter) und ein neuer Versuch folgt nach `retestDelay`.
+    /// stop() oder ein Signaturfehler (fail) erhöhen die Generation und beenden die Kette.
+    private func testThenLaunch(_ p: Paths, generation gen: Int) async {
+        guard await verified(), gen == generation else { return }
+        await Task.detached { Self.killOrphans(scriptPath: p.script.path) }.value
+        let outcome = await Self.runTest(p)
+        guard !stopped, gen == generation else { return }
+        guard outcome != .ok else {
+            if testFailures > 0 { Self.log.notice("Medien-Adapter-Selbsttest bestanden nach \(self.testFailures, privacy: .public) Fehlversuchen") }
+            return launchStream()
+        }
+        testFailures += 1
+        let delay = Self.retestDelay(afterFailedTests: testFailures)
+        Self.log.error("Medien-Adapter-Selbsttest gescheitert (\(outcome.logText, privacy: .public), Versuch \(self.testFailures, privacy: .public)) – neuer Versuch in \(Int(delay), privacy: .public) s")
+        if state == .starting { onInfo?(nil) }
+        state = .unavailable("macOS blockiert den Zugriff auf die Wiedergabe")
         Task {
-            guard await self.verified(), gen == self.generation else { return }
-            await Task.detached { Self.killOrphans(scriptPath: p.script.path) }.value
-            let ok = await Self.runTest(p)
-            guard !self.stopped, gen == self.generation else { return }
-            if ok { self.launchStream() } else { self.fail("macOS blockiert den Zugriff auf die Wiedergabe") }
+            try? await Task.sleep(for: .seconds(delay))
+            guard gen == self.generation, !self.stopped else { return }
+            await self.testThenLaunch(p, generation: gen)
         }
     }
 
@@ -261,24 +318,27 @@ final class MediaAdapter {
     }
 
     /// `test` mit 10 s Zeitlimit, außerhalb des Hauptthreads.
-    nonisolated static func runTest(_ p: Paths) async -> Bool {
+    nonisolated static func runTest(_ p: Paths) async -> TestOutcome {
         let args = arguments(p, .test)
         return await Task.detached { runTestBlocking(args) }.value
     }
 
     /// Synchron, weil `DispatchGroup.wait` in async-Kontexten gesperrt ist (Swift 6).
-    private nonisolated static func runTestBlocking(_ args: [String]) -> Bool {
+    private nonisolated static func runTestBlocking(_ args: [String]) -> TestOutcome {
         let proc = perlProcess(args)
         let done = DispatchGroup()
         done.enter()
         proc.terminationHandler = { _ in done.leave() }
-        guard (try? proc.run()) != nil else { return false }
+        guard (try? proc.run()) != nil else {
+            return testOutcome(launched: false, timedOut: false, reason: .exit, status: 0)
+        }
         if done.wait(timeout: .now() + 10) == .timedOut {
             proc.terminate()
             if done.wait(timeout: .now() + 1) == .timedOut { kill(proc.processIdentifier, SIGKILL) }
-            return false
+            return testOutcome(launched: true, timedOut: true, reason: .uncaughtSignal, status: 0)
         }
-        return proc.terminationStatus == 0
+        return testOutcome(launched: true, timedOut: false,
+                           reason: proc.terminationReason, status: proc.terminationStatus)
     }
 
     /// G9: verwaiste Adapter-Prozesse DIESES Bundles beenden (nach Absturz von Gnotchi).

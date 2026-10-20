@@ -16,6 +16,33 @@ final class MediaAdapterTests: XCTestCase {
         XCTAssertNil(MediaAdapter.restartDelay(afterFailures: 3))
     }
 
+    /// 0.1.1: Ein gescheiterter Selbsttest (19.10., 1,7 Min. nach dem Booten) blieb 20 Std. stehen.
+    /// Jetzt neuer Versuch nach 5 s, 30 s, 2 Min., danach alle 5 Min. ohne Ende.
+    func testRetestStaffel() {
+        XCTAssertEqual(MediaAdapter.retestDelay(afterFailedTests: 1), 5)
+        XCTAssertEqual(MediaAdapter.retestDelay(afterFailedTests: 2), 30)
+        XCTAssertEqual(MediaAdapter.retestDelay(afterFailedTests: 3), 120)
+        XCTAssertEqual(MediaAdapter.retestDelay(afterFailedTests: 4), 300)
+        XCTAssertEqual(MediaAdapter.retestDelay(afterFailedTests: 1_000), 300)
+    }
+
+    /// Ursache unterscheiden: Zeitlimit, Exit-Code, Signal, Start gescheitert.
+    func testTestOutcomeClassification() {
+        XCTAssertEqual(MediaAdapter.testOutcome(launched: false, timedOut: false, reason: .exit, status: 0), .launchFailed)
+        XCTAssertEqual(MediaAdapter.testOutcome(launched: true, timedOut: true, reason: .uncaughtSignal, status: 15), .timedOut)
+        XCTAssertEqual(MediaAdapter.testOutcome(launched: true, timedOut: false, reason: .exit, status: 0), .ok)
+        XCTAssertEqual(MediaAdapter.testOutcome(launched: true, timedOut: false, reason: .exit, status: 3), .exitCode(3))
+        XCTAssertEqual(MediaAdapter.testOutcome(launched: true, timedOut: false, reason: .uncaughtSignal, status: 9), .signal(9))
+    }
+
+    /// Protokolltext nur mit Statuscode – keine Titel, keine App-Namen (Regel der App-Familie).
+    func testTestOutcomeLogText() {
+        XCTAssertEqual(MediaAdapter.TestOutcome.timedOut.logText, "Zeitlimit 10 s überschritten")
+        XCTAssertEqual(MediaAdapter.TestOutcome.exitCode(3).logText, "Exit-Code 3")
+        XCTAssertEqual(MediaAdapter.TestOutcome.signal(9).logText, "Signal 9")
+        XCTAssertEqual(MediaAdapter.TestOutcome.launchFailed.logText, "Start fehlgeschlagen")
+    }
+
     func testStreamArguments() {
         XCTAssertEqual(MediaAdapter.arguments(paths, .stream),
                        [paths.script.path, paths.framework.path, "stream", "--no-diff", "--micros", "--debounce=100"])

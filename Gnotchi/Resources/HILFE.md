@@ -108,7 +108,7 @@ bei ausgeblendetem Dock zählt dabei wie Vollbild.
 Hinweise in den Einstellungen und was sie bedeuten:
 
 - **„… – nur Spotify und Musik“:** Gnotchi kann die Wiedergabe nicht für alle Apps lesen und nutzt den Ersatzweg. Dann zeigt und steuert es nur Spotify und Musik. Der Teil vor dem Strich sagt, warum:
-- **„macOS blockiert den Zugriff auf die Wiedergabe“:** macOS lässt den Weg nicht mehr zu, etwa nach einem System-Update. Spotify und Musik funktionieren über den Ersatzweg weiter.
+- **„macOS blockiert den Zugriff auf die Wiedergabe“:** macOS lässt den Weg gerade nicht zu, etwa kurz nach dem Einschalten des Macs oder nach einem System-Update. Gnotchi versucht es selbst erneut (nach 5 und 30 Sekunden, nach 2 Minuten, danach alle 5 Minuten) und schaltet von allein zurück, sobald es klappt. Bis dahin funktionieren Spotify und Musik über den Ersatzweg.
 - **„Signatur des Programmpakets ungültig …“** oder **„Adapter fehlt im Programmpaket“:** Gnotchi ist verändert oder beschädigt. Lade es neu und ersetze es in *Programme*.
 - **„Adapter bricht wiederholt ab“:** Schalte „Musik in der Notch“ aus und wieder ein oder starte Gnotchi neu.
 - **„Automation für … nicht erlaubt“:** Du hast Gnotchi verboten, Spotify oder Musik zu steuern. Erlaube es unter Systemeinstellungen → Datenschutz & Sicherheit → Automation.

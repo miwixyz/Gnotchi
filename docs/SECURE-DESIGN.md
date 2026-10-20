@@ -219,7 +219,8 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 
 ### G8 – Protokoll ohne Inhalte (vormals Seam E17g/E11)
 - **Entschieden:** `os.Logger`, Subsystem `dev.mwlr.gnotchi`. Ins Protokoll nur Zustandswechsel
-  (Adapter an/aus, Neustart, Rückfall, Signatur ungültig mit OSStatus, Zeilen verworfen) und die
+  (Adapter an/aus, Neustart, Rückfall, Signatur ungültig mit OSStatus, Zeilen verworfen,
+  Selbsttest gescheitert mit Ursache/Exit-Code/Signal, Versuchsnummer und Pause) und die
   Bundle-ID der Quelle – **nie Titel, Interpret oder Cover**: was Michael hört und sieht, ist privat.
 
 ### G9 – Kindprozess sauber führen (vormals Seam E17h)
@@ -237,6 +238,15 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 - **Ergänzt 18.10. (Security-Review B4):** Höchstens ein Befehls-Prozess (Play/Pause, Weiter, Zurück,
   Spulen) gleichzeitig; weitere Klicks werden verworfen, nicht angestaut (`OneAtATime`, Test) – wie
   beim AppleScript-Weg.
+- **Ergänzt 20.10. (0.1.1) – gescheiterter Selbsttest wird wiederholt:** Am 19.10. scheiterte der
+  `test` 1,7 Min. nach dem Booten (Gnotchi als Anmeldeobjekt); der Rückfall blieb 20 Std. stehen,
+  ein Neustart von Gnotchi behob es. Ursache unbekannt. Jetzt neuer Versuch nach 5 s, 30 s, 2 Min.,
+  danach alle 5 Min. ohne Ende (`MediaAdapter.retestDelay`, Test) – jeder Versuch wieder mit
+  Signaturprüfung (G2) und Waisensuche. Währenddessen bleibt der Zustand `unavailable`, der
+  Rückfall (G7) läuft weiter; erst ein bestandener Test startet den Strom. `stop()` (Schalter aus)
+  und ein Signaturfehler erhöhen die Generation und beenden die Kette – kein zweiter Strom.
+  Das Protokoll unterscheidet die Ursache: Zeitlimit, Exit-Code, Signal, Start fehlgeschlagen
+  (`MediaAdapter.testOutcome`, Test) – nur Codes, Versuchsnummer und Pause (G8).
 
 ### G10 – Insel stört nichts (vormals Seam E17i)
 - **Entschieden:** `NSPanel` nicht aktivierend; im Zustand „unsichtbar“ `ignoresMouseEvents = true`,
