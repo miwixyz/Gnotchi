@@ -75,6 +75,7 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Core Audio / CoreMediaIO] ─(9) „nimmt auf“, Kamera läuft, Standard-Ausgang ─▶ [Gnotchi]
 [Nutzer: Klick im Ausgabe-Menü] ─(10) Standard-Ausgabegerät setzen ─▶ [Core Audio]
 [Tippi, geprüft] ─(11) Unix-Socket live.sock, Live-Vorschau-Text ─▶ [Gnotchi: LiveTextServer → Insel]
+[Qotti / jeder lokale Prozess] ─(12) distnoted app.qotti.local.kontingent ─▶ [Gnotchi: QottiLink → Insel]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
@@ -82,7 +83,7 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 (5) Gnotchi → andere Apps · (7) Gnotchi ↔ Netz · (8) jeder lokale Prozess → Gnotchi (G17) ·
 (9) System → Gnotchi, App-Namen sind Fremddaten (G18, G19) · (10) Gnotchi → Systemeinstellung (G20) ·
 (6a) Gnotchis Einstellungsdatei → Tippi (G17) · (11) Tippi ↔ Gnotchi über den Socket, Diktattext,
-beidseitig signaturgeprüft (G21).
+beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur Zahlen (G22).
 
 ## Entscheidungen
 
@@ -463,6 +464,22 @@ beidseitig signaturgeprüft (G21).
   den Text wie zuvor in Tippis Pille; ein Prozess des gleichen Nutzers kann den Socket löschen und
   die Funktion stören (Ausfall auf Tippis Pille), aber nicht mitlesen.
 
+### G22 – Qotti-Kontingent: nur Zahlen, Schema, nur Anzeige (neu, 2026-10-20, 0.3.0)
+- **Weg:** Qotti (`app.qotti.local`, SwiftPM, keine Sandbox, Team LTKJ6Z2VYB) sendet
+  `app.qotti.local.kontingent` über distnoted: `v` = 1, je Anbieter `claude…`/`codex…` 5-h-Prozent,
+  Zurücksetzung (Unix-Sekunden), Zustand ok/stale/throttled. Bei Änderung + Herzschlag 60 s, und nur,
+  wenn ein Developer-ID-signiertes Gnotchi ≥ 0.3.0 läuft und `qottiQuota` nicht aus ist. **Nie** Konto,
+  E-Mail, Plan, Fehlertexte (Qotti-Test prüft die Schlüsselmenge).
+- **Gnotchi** (`QottiLink`): Schema wie G17 – Zahlen ohne Bool, endlich, auf 0…100 begrenzt, Zeitpunkt
+  nur plausibel (−1 Tag … +8 Tage), Zustand aus Positivliste, sonst Anbieter verworfen. Höchstens
+  1 Auswertung/s, nach 5 Min. ohne Meldung verworfen. Anzeige nur feste Texte + Zahlen; keine Befehle.
+  Werte nie im Protokoll (nur „empfangen/verworfen“).
+- **Gemessen 20.10.:** Qotti-Testbuild (Developer ID, gleiche Anforderung wie installiert, kein
+  Schlüsselbund-Dialog) → Mithörer sah nur `v`, `*5h`, `*Reset5h`, `*State`; Gnotchi „empfangen“;
+  Michael sah die Zeile mit Qottis Werten und beide Warnungen (`tools/fake-qotti.swift warnung`).
+- **Restrisiko (hingenommen):** Jeder lokale Prozess kann die Prozente mitlesen und ein Kontingent
+  vortäuschen (feste Texte, kurzer Hinweis).
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -486,6 +503,8 @@ beidseitig signaturgeprüft (G21).
 | **I** | Gnotchi → Protokoll (9) | App-Namen der Mikrofon-Nutzer, Gerätenamen | G18, G19: nie protokolliert |
 | **S** | lokaler Prozess → Tippi (6a) | Tippis Pille ausblenden | G17: Signaturprüfung; Schreiben in die Einstellung hingenommen (macOS-Punkt bleibt) |
 | **T** | Gnotchi → Core Audio (10) | Ausgang auf falsches/verschwundenes Gerät | G20 |
+| **S** | lokaler Prozess → Gnotchi (12) | vorgetäuschtes Kontingent | G22: feste Texte, hingenommen |
+| **I** | Qotti → distnoted (12) | Prozente mitlesbar | G22: nur Zahlen, nur bei laufendem Gnotchi, hingenommen |
 | **S** | lokaler Prozess → Tippi (11) | belegt den Socket-Pfad, gibt sich als Gnotchi aus, will Diktattext | G21: Tippi prüft den Server (Developer ID), Text erst nach `ok` |
 | **S** | lokaler Prozess → Gnotchi (11) | schiebt Text in die Notch (Phishing) | G21: Gnotchi prüft den Client, sonst zu |
 | **T** | lokaler Prozess → Gnotchi (11) | kaputte/übergroße Rahmen, Steuer-/Richtungszeichen | G21: Rahmen ≤ 4 KB, Schema, Bereinigung |
@@ -530,7 +549,7 @@ Liste und Stand: `specs/2026-10-20-gnotchi-0.3.0-live-text.md`. Erfüllt 20.10.:
 echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest Mac mini.
 
 - [ ] Sichttest mit Notch (MacBook) und über Vollbild
-- [ ] `rafter-code-review` + `rafter run` für Gnotchi **und** Tippi
+- [ ] `rafter-code-review` + `rafter run` für Gnotchi, Tippi **und** Qotti
 - [ ] Positivliste der Berechtigungen am ausgelieferten 0.3.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien 0.2.0

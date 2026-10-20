@@ -92,10 +92,20 @@ zu Tippi nicht, zeigt Tippi wie gewohnt seine eigene Anzeige mit dem Text.
 Das klappt mit Tippi ab der Version, die Gnotchi unterstützt (steht in Tippis Änderungen). Schaltest du
 „Tippi-Aufnahme anzeigen“ aus, zeigt Tippi wieder seine eigene Anzeige.
 
+## Qotti-Kontingent
+
+Läuft Qotti, warnt die Insel kurz, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 %
+erreicht, und wenn Claude drosselt. Darunter steht, wann das Limit zurückgesetzt wird. Jede Stufe
+warnt einmal und erst wieder, nachdem der Wert darunter gefallen ist. Hast du die große Insel gerade
+offen, bleibt sie offen und die Warnung entfällt. In der großen Insel steht über der Musik
+„Claude 42 % · GPT 17 %“. Hört Qotti 5 Minuten lang auf zu melden, verschwinden die Werte.
+
+Das klappt mit Qotti ab der Version, die Gnotchi unterstützt (steht in Qottis Änderungen).
+
 ## Einstellungen
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
-- **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen:** jeweils ab Werk an. Sind alle vier Schalter aus, gibt es keine Insel.
+- **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
 - **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
 - **Nach Updates suchen …:** sucht sofort nach einer neuen Version.
@@ -133,6 +143,7 @@ nicht wirkt.
 - Welche App Mikrofon oder Kamera nutzt, steht nur in der Insel, nie im Protokoll.
 - Von Tippi erfährt Gnotchi über eine Systemmeldung „nimmt auf“, „wandelt um“ und den Pegel. Diese Meldung kann jedes Programm auf deinem Mac mitlesen; sie verrät nur, dass du gerade diktierst, nie was.
 - Den Text der Live-Vorschau bekommt Gnotchi auf einem eigenen, geschützten Weg: Beide Apps prüfen vorher die Signatur der anderen, andere Programme werden abgewiesen. Der Text steht nur in der Insel, wird nicht gespeichert, nicht protokolliert und ist weg, sobald das Diktat endet.
+- Von Qotti kommen nur die Prozente, der Zeitpunkt der Zurücksetzung und „ok/veraltet/gedrosselt“, nie Konto, E-Mail oder Plan. Auch diese Meldung kann jedes Programm auf deinem Mac mitlesen.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig

@@ -63,12 +63,14 @@ Freigabe nicht und fragt nie danach.
   eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps.
 - **Tippis Live-Vorschau:** Ist sie in Tippi an, klappt die Insel auf und zeigt die letzten zwei Zeilen
   des Diktats. Ohne Verbindung zu Gnotchi zeigt Tippi seine eigene Anzeige.
+- **Qotti-Kontingent:** Kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 %
+  erreicht oder Claude drosselt; in der großen Insel „Claude 42 % · GPT 17 %“ über der Musik.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
   erneut und schaltet von selbst zurück.
 - Menüleisten-Symbol mit Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
-  der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“ (alle ab
-  Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
+  der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“,
+  „Qotti-Kontingent anzeigen“ (alle ab Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
 
 ## Installieren
 
@@ -126,6 +128,8 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → 
   `~/Library/Application Support/Gnotchi`, nur für dich lesbar. Beide Apps prüfen vorher die
   Developer-ID-Signatur der anderen; andere Programme werden abgewiesen. Der Text wird weder
   gespeichert noch protokolliert ([G21](docs/SECURE-DESIGN.md)).
+- **Qotti:** nur Prozente, Zeitpunkt der Zurücksetzung und Zustand über die Systemmeldungen, nie
+  Konto, E-Mail oder Plan; Qotti sendet nur, solange ein signiertes Gnotchi läuft ([G22](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 
