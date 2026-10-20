@@ -183,14 +183,27 @@ final class IslandController {
         old != new
     }
 
-    /// Panelgröße je Zustand; nil = Panel ist weg.
-    nonisolated static func panelFrame(mode: IslandState.Mode, layout: IslandGeometry.Layout) -> CGRect? {
+    /// Panelgröße je Zustand; nil = Panel ist weg. Groß hängt am Inhalt (0.2.0): ohne Musik nur die
+    /// Mikrofon/Kamera-Zeilen in Hinweis-Größe, mit Musik und aktivem Mikrofon/Kamera eine Zeile höher.
+    nonisolated static func panelFrame(mode: IslandState.Mode, layout: IslandGeometry.Layout,
+                                       hasMedia: Bool = true, privacy: Bool = false) -> CGRect? {
         switch mode {
-        case .hidden: nil
-        case .compact: layout.compact
-        case .expanded: layout.expanded
-        case .notice: layout.notice
+        case .hidden: return nil
+        case .compact: return layout.compact
+        case .notice: return layout.notice
+        case .expanded:
+            guard hasMedia else { return layout.notice }
+            guard privacy else { return layout.expanded }
+            var r = layout.expanded
+            r.origin.y -= IslandGeometry.privacyLineHeight
+            r.size.height += IslandGeometry.privacyLineHeight
+            return r
         }
+    }
+
+    /// Panelgröße für den aktuellen Inhalt.
+    private func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
+        Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive)
     }
 
     // MARK: Ablauf
@@ -202,6 +215,8 @@ final class IslandController {
             _ = activity.isVisible
             _ = activity.showsOverFullscreen
             _ = activity.notice
+            _ = activity.privacy
+            _ = model.info != nil
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -331,7 +346,7 @@ final class IslandController {
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil)
             // Der Hinweis ist nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice
-            if let f = Self.panelFrame(mode: entry.state.mode, layout: entry.state.layout) {
+            if let f = frame(entry.state.mode, entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }
             entry.panel.orderFrontRegardless()
@@ -421,7 +436,7 @@ final class IslandController {
               Self.shouldExpand(stillInside: pointerInside[displayID] == true,
                                 mouseDown: NSEvent.pressedMouseButtons != 0, mode: e.state.mode) else { return }
         // Erst das Panel groß, dann der Zustand: sonst schnitte das kleine Panel die Animation ab.
-        e.panel.setFrame(e.state.layout.expanded, display: true)
+        if let f = frame(.expanded, e.state.layout) { e.panel.setFrame(f, display: true) }
         e.state.mode = .expanded
     }
 

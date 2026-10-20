@@ -53,22 +53,43 @@ final class IslandViewRenderTests: XCTestCase {
                                                 subtitle: "Kopfhörer getrennt"))
     }
 
+    /// 0.2.0 Mikrofon/Kamera: Punkte klein (mit/ohne Musik), Zeile groß.
+    private let callPrivacy = ActivityModel.Privacy(micApps: ["Konferenz-App", "Webseite"], camera: true)
+    func testRenderNotchCompactPrivacyOnly() throws {
+        try render(notchScreen, .compact, name: "notch-compact-privacy", privacy: callPrivacy, withMedia: false)
+    }
+    func testRenderPillCompactPrivacyOnly() throws {
+        try render(pillScreen, .compact, name: "pill-compact-privacy", privacy: callPrivacy, withMedia: false)
+    }
+    func testRenderNotchCompactPrivacyWithMusic() throws {
+        try render(notchScreen, .compact, name: "notch-compact-privacy-music", privacy: callPrivacy)
+    }
+    func testRenderNotchExpandedPrivacyOnly() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-privacy", privacy: callPrivacy, withMedia: false)
+    }
+    func testRenderPillExpandedPrivacyWithMusic() throws {
+        try render(pillScreen, .expanded, name: "pill-expanded-privacy-music", privacy: callPrivacy)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
-                        notice: ActivityModel.Notice? = nil) throws {
+                        notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
+                        withMedia: Bool = true) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
         let model = NowPlayingModel()
         // Klein mit Pause: der Pegel steht, das Bild ist bei jedem Lauf gleich. Groß zeigt keinen Pegel;
         // dort hält rate 0 die Zeit fest.
-        model.setPreviewState(info: Self.info(appBundleID: appBundleID, playing: mode == .expanded),
+        model.setPreviewState(info: withMedia ? Self.info(appBundleID: appBundleID, playing: mode == .expanded) : nil,
                               artwork: Self.artwork(), route: route)
         let activity = ActivityModel(media: model)
         if let notice { activity.post(notice) }
+        activity.setPrivacy(privacy)
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
-        let panel = IslandController.panelFrame(mode: mode, layout: layout) ?? layout.compact
+        let panel = IslandController.panelFrame(mode: mode, layout: layout, hasMedia: withMedia,
+                                                privacy: privacy.isActive) ?? layout.compact
         let canvas = CGSize(width: 520, height: 170)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.

@@ -11,6 +11,7 @@ final class Preferences {
         static let notchMedia = "notchMedia"
         static let expandDelay = "expandDelay"
         static let headphoneNotice = "headphoneNotice"
+        static let micCamera = "micCamera"
     }
 
     /// Auswahl „Aufklappen nach“ in Sekunden (Sofort, 0,3 s, 0,6 s, 1 s).
@@ -30,6 +31,9 @@ final class Preferences {
     /// Kopfhörer verbunden/getrennt 3 s in der Insel zeigen (0.2.0). Ab Werk an.
     var headphoneNotice: Bool { didSet { defaults.set(headphoneNotice, forKey: Key.headphoneNotice) } }
 
+    /// Punkt an der Insel, solange eine App Mikrofon oder Kamera nutzt (0.2.0). Ab Werk an.
+    var micCamera: Bool { didSet { defaults.set(micCamera, forKey: Key.micCamera) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
@@ -37,6 +41,7 @@ final class Preferences {
         notchMedia = defaults.object(forKey: Key.notchMedia) as? Bool ?? true
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
+        micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
     }
 
     /// Nur Werte aus der Auswahl; alles andere (anderer Typ, per `defaults write` gesetzt) → ab Werk.

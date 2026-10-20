@@ -29,6 +29,8 @@ enum IslandGeometry {
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt
     /// kein Name; nebeneinander kürzte der Zustand den Namen schon nach 15 Zeichen (Testbild 20.10.).
     static let noticeSize = CGSize(width: 260, height: 44)
+    /// Zusätzliche Zeile „Mikrofon · App / Kamera“ über der großen Musik-Ansicht (0.2.0).
+    static let privacyLineHeight: CGFloat = 20
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY

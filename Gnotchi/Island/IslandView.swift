@@ -28,7 +28,9 @@ struct IslandView: View {
         switch state.mode {
         case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
         case .compact: state.layout.compact.size
-        case .expanded: state.layout.expanded.size
+        case .expanded:
+            IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
+                                        privacy: activity.privacy.isActive)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         }
     }
@@ -64,9 +66,91 @@ struct IslandView: View {
         switch state.mode {
         case .hidden: EmptyView()
         case .notice: if let n = activity.notice { notice(n) }
-        case .compact: if let info = model.info { compact(info) }
-        case .expanded: if let info = model.info { expanded(info) }
+        case .compact:
+            if let info = model.info { compact(info) } else if activity.privacy.isActive { privacyCompact }
+        case .expanded:
+            if let info = model.info {
+                VStack(spacing: 0) {
+                    if activity.privacy.isActive {
+                        privacyLine.padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16,
+                                                       bottom: 0, trailing: 16))
+                    }
+                    expanded(info, topInset: activity.privacy.isActive ? 4 : nil)
+                }
+            } else if activity.privacy.isActive {
+                privacyDetails
+            }
         }
+    }
+
+    // MARK: Mikrofon/Kamera (0.2.0)
+
+    /// Orange = Mikrofon, Grün = Kamera – dieselben Farben wie macOS in der Menüleiste.
+    private var privacyDots: some View {
+        HStack(spacing: 3) {
+            if activity.privacy.mic { Circle().fill(.orange).frame(width: 6, height: 6) }
+            if activity.privacy.camera { Circle().fill(.green).frame(width: 6, height: 6) }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: activity.privacy.compactLabel ?? ""))
+    }
+
+    /// Klein ohne Musik: mit Notch nur die Punkte im linken Flügel, ohne Notch Punkte + „Mikrofon“/„Kamera“.
+    private var privacyCompact: some View {
+        HStack(spacing: 6) {
+            privacyDots
+            if state.layout.notch == nil, let label = activity.privacy.compactLabel {
+                Text(verbatim: label).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, state.layout.notch == nil ? 12 : 14)
+        .frame(height: state.layout.compact.height)
+        .transition(.opacity)
+    }
+
+    /// Eine Zeile: Mikrofon mit App-Namen, Kamera. App-Namen kommen aus dem lokalen Bundle → `Text(verbatim:)`.
+    private var privacyLine: some View {
+        HStack(spacing: 12) {
+            if let apps = activity.privacy.micLine {
+                privacyItem(color: .orange, symbol: "mic.fill", text: apps)
+            }
+            if activity.privacy.camera {
+                privacyItem(color: .green, symbol: "video.fill", text: "Kamera")
+                    .fixedSize()
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(height: 16)
+    }
+
+    private func privacyItem(color: Color, symbol: String, text: String) -> some View {
+        HStack(spacing: 5) {
+            Circle().fill(color).frame(width: 6, height: 6)
+            Image(systemName: symbol).font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+                .frame(width: 14)
+            Text(verbatim: text).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.tail)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Groß ohne Musik: Mikrofon und Kamera untereinander (nebeneinander kürzte die Kamera den App-Namen),
+    /// in Hinweis-Größe (IslandController.panelFrame).
+    private var privacyDetails: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let apps = activity.privacy.micLine {
+                privacyItem(color: .orange, symbol: "mic.fill", text: apps)
+            }
+            if activity.privacy.camera {
+                privacyItem(color: .green, symbol: "video.fill", text: "Kamera")
+            }
+        }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .frame(height: IslandGeometry.noticeSize.height)
+            .padding(.top, state.layout.notch?.height ?? 0)
+            .transition(.opacity)
     }
 
     /// Kopfhörer verbunden/getrennt: Symbol · Gerätename · Zustand, Inhalt unter der Notch.
@@ -96,8 +180,12 @@ struct IslandView: View {
                 // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
                 .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
             Spacer()
+            // Mikrofon/Kamera an: Punkte statt Pegel – links neben dem Cover drückten sie es unter die
+            // Hardware-Notch (Testbild 20.10.), und der Pegel ist nur Animation, kein Signal.
+            if activity.privacy.isActive {
+                privacyDots.frame(height: 14)
+            } else if model.route.replacesLevelBars {
             // Pegel heißt „Ton kommt hier raus“ – bei anderem Gerät oder AirPlay dasselbe Symbol wie groß.
-            if model.route.replacesLevelBars {
                 Image(systemName: model.route.symbol ?? "hifispeaker.fill").font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(height: 14)
@@ -114,7 +202,7 @@ struct IslandView: View {
     /// Aufbau wie die Wiedergabe im Kontrollzentrum: Cover · App/Titel/Interpret · Tasten rechts, darunter
     /// der Fortschritt. Die Kopfzeile (Symbol + Name der Quell-App) ersetzt das frühere Symbol oben rechts. So passt alles in 110 pt (Cover-, Tasten- und Fortschrittszeile übereinander
     /// bräuchten ~130 pt). Mit Notch beginnt der Inhalt erst unter ihr (IslandGeometry.expandedSize).
-    private func expanded(_ info: NowPlayingInfo) -> some View {
+    private func expanded(_ info: NowPlayingInfo, topInset: CGFloat? = nil) -> some View {
         VStack(spacing: 8) {
             HStack(alignment: .center, spacing: 12) {
                 cover(56, radius: 10)
@@ -149,7 +237,7 @@ struct IslandView: View {
             .overlay(alignment: .topTrailing) { outputButton }
             ProgressRow(info: info) { model.seek(to: $0) }
         }
-        .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 12, leading: 16, bottom: 12, trailing: 16))
+        .padding(EdgeInsets(top: topInset ?? (state.layout.notch?.height ?? 0) + 12, leading: 16, bottom: 12, trailing: 16))
         .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
     }
 

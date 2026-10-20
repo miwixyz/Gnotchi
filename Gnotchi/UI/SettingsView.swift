@@ -18,6 +18,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.notchMedia) { model.applyNotchSetting() }
                 toggleRow("Kopfhörer-Hinweis", isOn: $prefs.headphoneNotice)
                     .onChange(of: prefs.headphoneNotice) { model.applyNotchSetting() }
+                toggleRow("Mikrofon & Kamera anzeigen", isOn: $prefs.micCamera)
+                    .onChange(of: prefs.micCamera) { model.applyNotchSetting() }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

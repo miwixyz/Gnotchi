@@ -14,8 +14,33 @@ final class ActivityModel {
         let subtitle: String
     }
 
+    /// Mikrofon/Kamera gerade in Gebrauch (0.2.0). App-Namen aus dem lokalen Bundle, nie ins Protokoll.
+    struct Privacy: Equatable, Sendable {
+        var micApps: [String] = []
+        var camera = false
+
+        static let none = Privacy()
+
+        var mic: Bool { !micApps.isEmpty }
+        var isActive: Bool { mic || camera }
+
+        /// Kurzform für die kleine Pille ohne Notch.
+        var compactLabel: String? {
+            switch (mic, camera) {
+            case (true, true): "Mikrofon · Kamera"
+            case (true, false): "Mikrofon"
+            case (false, true): "Kamera"
+            case (false, false): nil
+            }
+        }
+
+        /// Welche Apps das Mikrofon nutzen, für die große Ansicht.
+        var micLine: String? { mic ? micApps.joined(separator: ", ") : nil }
+    }
+
     let media: NowPlayingModel
     private(set) var notice: Notice?
+    private(set) var privacy = Privacy.none
     @ObservationIgnored private var noticeTask: Task<Void, Never>?
     @ObservationIgnored private let noticeDuration: Duration
 
@@ -26,7 +51,7 @@ final class ActivityModel {
     }
 
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
-    var isVisible: Bool { media.isVisible || notice != nil }
+    var isVisible: Bool { media.isVisible || notice != nil || privacy.isActive }
 
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre. Musik hält sich an die Vollbild-Regel.
     var showsOverFullscreen: Bool { false }
@@ -40,6 +65,10 @@ final class ActivityModel {
             guard !Task.isCancelled else { return }
             self?.notice = nil
         }
+    }
+
+    func setPrivacy(_ p: Privacy) {
+        if privacy != p { privacy = p }
     }
 
     func clearNotice() {
