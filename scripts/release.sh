@@ -330,7 +330,10 @@ SPARKLE_BIN="build/SourcePackages/artifacts/sparkle/Sparkle/bin"
     || fail "generate_appcast fehlt unter ${SPARKLE_BIN} — wurde das Paket aufgelöst? (make build)"
 
 # Nur das aktuelle Archiv liegt in dist/; der Appcast enthält damit einen
-# Eintrag. Sparkle braucht nur den neuesten.
+# Eintrag. Sparkle braucht nur den neuesten. generate_appcast liest eine vorhandene
+# appcast.xml ein und behält deren Einträge (v0.2.0, 20.10.: Prüfung unten fand 0.1.0
+# daneben) – darum frisch erzeugen. Die alten Fassungen stehen in der Git-Geschichte.
+rm -f appcast.xml
 "${SPARKLE_BIN}/generate_appcast" "${DIST}" \
     --download-url-prefix "https://github.com/miwixyz/Gnotchi/releases/download/${TAG}/" \
     --link "https://github.com/miwixyz/Gnotchi" \
