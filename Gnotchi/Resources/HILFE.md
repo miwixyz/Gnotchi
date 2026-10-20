@@ -82,8 +82,9 @@ welche App es ist, deshalb steht dort nur „Kamera“. Nimmt eine Webseite in S
 
 Diktierst du mit Tippi, zeigt die Insel ein rotes Mikrofon und den Pegel deiner Stimme, ohne Notch
 auch „nimmt auf“ und die Laufzeit. Danach steht „wandelt um“, bis der Text eingefügt ist. Tippi
-blendet seine eigene Anzeige dann aus. Die Aufnahme hat Vorrang vor Musik und Hinweisen, klappt nicht
-auf und ist auch über Apps im Vollbild zu sehen.
+blendet seine eigene Anzeige dann aus. Die Aufnahme hat Vorrang vor Musik und Hinweisen und klappt
+nicht auf. Ist in Tippi die Live-Vorschau eingeschaltet, bleibt Tippis eigene Anzeige: Gnotchi zeigt
+keinen Text.
 
 Das klappt mit Tippi ab der Version, die Gnotchi unterstützt (steht in Tippis Änderungen). Schaltest du
 „Tippi-Aufnahme anzeigen“ aus, zeigt Tippi wieder seine eigene Anzeige.

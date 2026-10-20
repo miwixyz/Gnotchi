@@ -488,8 +488,18 @@ Adresse aus dem offiziellen README (Slopsquat).
       eigenes Umschalten), G20 (nur gelistete Geräte) grün
 - [x] TCC am echten Gnotchi gemessen (G18): keine Kamera-Anfrage, Mikrofon nur Vorabprüfung
 - [x] Tippi-Weg mit `tools/fake-tippi.swift` am echten Gnotchi gemessen (G17)
-- [ ] Mikrofon/Kamera bei echtem Anruf, Ausgabe-Menü, Kopfhörer, Aufnahme über Vollbild – Michael
-- [ ] `rafter-code-review` + `rafter run` am 0.2.0-Stand
+- [x] Sichttest Michael 20.10. (Mac mini, Testkopie Build 58): Kamera (FaceTime-Vorschau, nur grün –
+      richtig, kein Ton), Mikrofon (orange beim Tippi-Diktat), kein Berechtigungsdialog, Ausgabe-Menü
+      wechselt den Ton, Kopfhörer-Hinweis, echtes Tippi-Diktat (Testbuild `64b2cd9`, Live-Vorschau aus):
+      Tippis Pille weg, Insel zeigt Aufnahme, Ende per `idle`. Mit Live-Vorschau bleibt Tippis Pille (gewollt)
+- [ ] Aufnahme über eine App im Vollbild – nicht gemessen; Michael 20.10.: ohne veröffentlichen,
+      Aussage aus CHANGELOG/HILFE/README entfernt, bis gemessen
+- [x] `rafter-code-review` 20.10. gegen G13, G17–G20 am Diff `v0.1.0..HEAD`: kein kritischer/hoher Fund.
+      Fremde Namen nur `Text(verbatim:)`, keine neuen Prozesse/URLs/Skripte, Protokoll nur Statuscodes,
+      Ausgang nur aus frischer Geräteliste. Bekannt (G17): jeder lokale Prozess kann eine Aufnahme-Anzeige
+      vortäuschen – feste Texte, 3 s Zeitlimit. `rafter secrets .`: nichts gefunden
+- [ ] `rafter run` am 0.2.0-Stand – 20.10. nicht gelaufen: Kontingent Schnell-Scans erschöpft (16/16),
+      Plus nicht im Tarif (0/0). Michael: ohne Scan veröffentlichen, Scan nachholen (Vault-Task)
 - [ ] Positivliste der Berechtigungen am ausgelieferten 0.2.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien vor dem ersten Release
