@@ -42,8 +42,20 @@ final class IslandViewRenderTests: XCTestCase {
         try render(notchScreen, .compact, name: "notch-compact-appbadge", appBundleID: "com.apple.Music")
     }
 
+    /// 0.2.0 Kopfhörer-Hinweis: Streifen unter der Notch bzw. Pille, Name gekürzt.
+    func testRenderNotchNotice() throws {
+        try render(notchScreen, .notice, name: "notch-notice",
+                   notice: ActivityModel.Notice(symbol: "headphones", title: "Beispiel-Kopfhörer Pro", subtitle: "Verbunden"))
+    }
+    func testRenderPillNoticeLongName() throws {
+        try render(pillScreen, .notice, name: "pill-notice",
+                   notice: ActivityModel.Notice(symbol: "speaker.wave.2", title: "Ein sehr langer Lautsprechername im Wohnzimmer",
+                                                subtitle: "Kopfhörer getrennt"))
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
-                        appBundleID: String? = nil, route: PlaybackRoute = .local) throws {
+                        appBundleID: String? = nil, route: PlaybackRoute = .local,
+                        notice: ActivityModel.Notice? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -52,15 +64,18 @@ final class IslandViewRenderTests: XCTestCase {
         // dort hält rate 0 die Zeit fest.
         model.setPreviewState(info: Self.info(appBundleID: appBundleID, playing: mode == .expanded),
                               artwork: Self.artwork(), route: route)
+        let activity = ActivityModel(media: model)
+        if let notice { activity.post(notice) }
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
-        let panel = mode == .expanded ? layout.expanded : layout.compact
+        let panel = IslandController.panelFrame(mode: mode, layout: layout) ?? layout.compact
         let canvas = CGSize(width: 520, height: 170)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)
             IslandView(state: state, onHover: { _ in })
                 .environment(model)
+                .environment(activity)
                 .frame(width: panel.width, height: panel.height)
             // Hardware-Notch als rote Haarlinie, um die Ausrichtung zu prüfen.
             if let n = layout.notch {

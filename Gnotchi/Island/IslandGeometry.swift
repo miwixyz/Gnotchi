@@ -16,6 +16,8 @@ enum IslandGeometry {
         let notch: CGRect?
         let compact: CGRect
         let expanded: CGRect
+        /// Kurzer Hinweis (0.2.0, Kopfhörer): Streifen unter der Notch bzw. breitere Pille.
+        let notice: CGRect
     }
 
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
@@ -24,6 +26,9 @@ enum IslandGeometry {
     /// Inhaltsfläche der grossen Ansicht. Mit Notch kommt deren Höhe oben dazu: Die Hardware-Notch
     /// verdeckt den oberen Streifen (Sichtprüfung 18.10.: 110 pt inkl. Notch reichten nicht).
     static let expandedSize = CGSize(width: 380, height: 110)
+    /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt
+    /// kein Name; nebeneinander kürzte der Zustand den Namen schon nach 15 Zeichen (Testbild 20.10.).
+    static let noticeSize = CGSize(width: 260, height: 44)
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY
@@ -35,20 +40,25 @@ enum IslandGeometry {
                                width: m.frame.width - l - r, height: m.safeTop)
             let compact = notch.insetBy(dx: -wing, dy: 0)
             return Layout(notch: notch, compact: compact,
-                          expanded: expanded(midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
+                          expanded: band(expandedSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
+                          notice: band(noticeSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
         let pill = CGRect(x: midX - pillSize.width / 2, y: top - pillSize.height,
                           width: pillSize.width, height: pillSize.height)
-        return Layout(notch: nil, compact: pill, expanded: expanded(midX: midX, top: top, extraHeight: 0, in: m.frame))
+        return Layout(notch: nil, compact: pill,
+                      expanded: band(expandedSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
+                      notice: band(noticeSize, midX: midX, top: top, extraHeight: 0, in: m.frame))
     }
 
-    private static func expanded(midX: CGFloat, top: CGFloat, extraHeight: CGFloat, in frame: CGRect) -> CGRect {
+    /// Rechteck oben bündig, mittig über `midX`, mit Notch um deren Höhe länger (Inhalt beginnt darunter).
+    private static func band(_ size: CGSize, midX: CGFloat, top: CGFloat, extraHeight: CGFloat,
+                             in frame: CGRect) -> CGRect {
         // Schmaler Bildschirm: Breite auf die Bildschirmbreite kürzen, sonst ragt die Insel hinaus.
-        let width = min(expandedSize.width, frame.width)
+        let width = min(size.width, frame.width)
         var x = midX - width / 2
         x = min(max(x, frame.minX), frame.maxX - width)
-        let height = expandedSize.height + extraHeight
+        let height = size.height + extraHeight
         return CGRect(x: x, y: top - height, width: width, height: height)
     }
 

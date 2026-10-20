@@ -30,6 +30,10 @@ enum OutputDevices {
     }
 
     private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "ausgang")
+    /// Letzte Auswahl über Gnotchis Menü – der Kopfhörer-Hinweis meldet diesen Wechsel nicht.
+    @MainActor static var lastSelection: (id: AudioObjectID, at: Date)?
+    /// So lange gilt ein Wechsel auf dasselbe Gerät als „von Gnotchi“ (Core Audio meldet nach ~ms).
+    nonisolated static let selectionWindow: TimeInterval = 2
 
     // MARK: Reine Teile (getestet)
 
@@ -60,6 +64,12 @@ enum OutputDevices {
         id != kAudioObjectUnknown && devices.contains { $0.id == id }
     }
 
+    nonisolated static func selectedByUs(_ id: AudioObjectID?, now: Date,
+                                         last: (id: AudioObjectID, at: Date)?) -> Bool {
+        guard let id, let last, last.id == id else { return false }
+        return now.timeIntervalSince(last.at) < selectionWindow
+    }
+
     /// Gerätenamen vergibt der Nutzer frei → bereinigt und gekürzt wie beim Wiedergabeweg.
     nonisolated static func cleanName(_ s: String?) -> String? {
         AudioRoute.cleanName(s)
@@ -78,6 +88,12 @@ enum OutputDevices {
         }
     }
 
+    /// Ein Gerät mit Name und Übertragungsart (auch ein verstecktes); nil ohne Namen.
+    static func device(_ id: AudioObjectID) -> Device? {
+        guard let name = cleanName(AudioRoute.string(id, kAudioObjectPropertyName)) else { return nil }
+        return Device(id: id, name: name, transport: AudioRoute.scalar(id, kAudioDevicePropertyTransportType) ?? 0)
+    }
+
     /// Aktuelles Standard-Ausgabegerät; nil, wenn macOS keins meldet.
     static func current() -> AudioObjectID? {
         let id: AudioObjectID? = AudioRoute.scalar(AudioObjectID(kAudioObjectSystemObject),
@@ -87,13 +103,14 @@ enum OutputDevices {
 
     /// Setzt das Standard-Ausgabegerät. Prüft vorher gegen die frische Liste. Protokoll nur mit
     /// Übertragungsart und Statuscode, nie mit Gerätenamen (Protokollregel der App-Familie).
-    @discardableResult
+    @MainActor @discardableResult
     static func select(_ id: AudioObjectID) -> Bool {
         let devices = list()
         guard canSelect(id, in: devices) else {
             log.error("Ausgabegerät nicht mehr vorhanden, nichts gesetzt")
             return false
         }
+        lastSelection = (id, Date())
         var addr = AudioRoute.address(kAudioHardwarePropertyDefaultOutputDevice)
         var value = id
         let status = AudioObjectSetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil,

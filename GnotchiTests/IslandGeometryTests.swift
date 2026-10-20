@@ -56,6 +56,20 @@ final class IslandGeometryTests: XCTestCase {
         }
     }
 
+    /// 0.2.0 Hinweis (Kopfhörer): Streifen 260 × 32 unter der Notch bzw. Pille ohne Notch, mittig wie groß.
+    func testNoticeBelowNotchAndCentered() throws {
+        let l = IslandGeometry.layout(for: measured)
+        let n = try XCTUnwrap(l.notch)
+        XCTAssertEqual(l.notice.width, IslandGeometry.noticeSize.width)
+        XCTAssertEqual(l.notice.height, IslandGeometry.noticeSize.height + n.height)
+        XCTAssertEqual(l.notice.maxY, measured.frame.maxY)
+        XCTAssertEqual(l.notice.midX, n.midX, accuracy: 0.01)
+        let p = IslandGeometry.layout(for: ext)
+        XCTAssertEqual(p.notice.height, IslandGeometry.noticeSize.height)
+        XCTAssertEqual(p.notice.midX, ext.frame.midX, accuracy: 0.01)
+        XCTAssertTrue(ext.frame.contains(p.notice))
+    }
+
     /// Gross: 110 pt Inhalt UNTER der Notch (Sichtprüfung 18.10.: sonst lief der Inhalt über die Hardware-Notch).
     func testExpandedHeightAddsNotchHeight() throws {
         let l = IslandGeometry.layout(for: measured)

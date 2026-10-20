@@ -5,7 +5,8 @@ import SwiftUI
 @MainActor
 @Observable
 final class IslandState {
-    enum Mode { case hidden, compact, expanded }
+    /// `notice`: kurzer Hinweis (Kopfhörer), eigene Form unter der Notch (0.2.0).
+    enum Mode { case hidden, compact, expanded, notice }
     var mode: Mode = .hidden
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
@@ -17,6 +18,7 @@ final class IslandState {
 /// Titel/Interpret kommen von beliebigen Websites → nur `Text(verbatim:)` (SECURE-DESIGN G5).
 struct IslandView: View {
     @Environment(NowPlayingModel.self) private var model
+    @Environment(ActivityModel.self) private var activity
     let state: IslandState
     let onHover: (Bool) -> Void
     /// Klick auf das Ausgabe-Symbol oben rechts (groß): IslandController zeigt die Geräteliste.
@@ -27,6 +29,7 @@ struct IslandView: View {
         case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
         case .compact: state.layout.compact.size
         case .expanded: state.layout.expanded.size
+        case .notice: state.layout.notice.size
         }
     }
 
@@ -49,12 +52,42 @@ struct IslandView: View {
         .environment(\.colorScheme, .dark)
     }
 
-    private var corner: CGFloat { state.mode == .expanded ? 22 : 10 }
+    private var corner: CGFloat {
+        switch state.mode {
+        case .expanded: 22
+        case .notice: 16
+        case .hidden, .compact: 10
+        }
+    }
 
     @ViewBuilder private var content: some View {
-        if let info = model.info, state.mode != .hidden {
-            if state.mode == .compact { compact(info) } else { expanded(info) }
+        switch state.mode {
+        case .hidden: EmptyView()
+        case .notice: if let n = activity.notice { notice(n) }
+        case .compact: if let info = model.info { compact(info) }
+        case .expanded: if let info = model.info { expanded(info) }
         }
+    }
+
+    /// Kopfhörer verbunden/getrennt: Symbol · Gerätename · Zustand, Inhalt unter der Notch.
+    /// Gerätenamen vergibt der Nutzer frei → `Text(verbatim:)`.
+    private func notice(_ n: ActivityModel.Notice) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: n.symbol).font(.system(size: 18, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: n.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                Text(verbatim: n.subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            .lineLimit(1).truncationMode(.tail)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 14)
+        .frame(height: IslandGeometry.noticeSize.height)
+        .padding(.top, state.layout.notch?.height ?? 0)
+        .accessibilityElement(children: .combine)
+        .transition(.opacity)
     }
 
     private func compact(_ info: NowPlayingInfo) -> some View {

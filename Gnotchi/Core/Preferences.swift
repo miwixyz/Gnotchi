@@ -10,6 +10,7 @@ final class Preferences {
     enum Key {
         static let notchMedia = "notchMedia"
         static let expandDelay = "expandDelay"
+        static let headphoneNotice = "headphoneNotice"
     }
 
     /// Auswahl „Aufklappen nach“ in Sekunden (Sofort, 0,3 s, 0,6 s, 1 s).
@@ -26,12 +27,16 @@ final class Preferences {
     /// „damit das Überfahren nicht zu schnell auslöst und stört“). Wirkt sofort, ohne Neustart.
     var expandDelay: TimeInterval { didSet { defaults.set(expandDelay, forKey: Key.expandDelay) } }
 
+    /// Kopfhörer verbunden/getrennt 3 s in der Insel zeigen (0.2.0). Ab Werk an.
+    var headphoneNotice: Bool { didSet { defaults.set(headphoneNotice, forKey: Key.headphoneNotice) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
         // nicht „aus“.
         notchMedia = defaults.object(forKey: Key.notchMedia) as? Bool ?? true
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
+        headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
     }
 
     /// Nur Werte aus der Auswahl; alles andere (anderer Typ, per `defaults write` gesetzt) → ab Werk.

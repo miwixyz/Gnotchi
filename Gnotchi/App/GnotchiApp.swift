@@ -97,7 +97,11 @@ final class AppModel {
         self.nowPlaying = nowPlaying
         let activity = ActivityModel(media: nowPlaying)
         self.activity = activity
-        features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + (extraFeatures ?? [])
+        // Mit Attrappen-Quelle (Test) ohne echte Zusatzquellen, sonst liefen Core-Audio-Beobachter im Test-Host.
+        let extras = extraFeatures ?? (source == nil ? [
+            NotchFeature(part: HeadphoneWatcher(activity: activity)) { $0.headphoneNotice },
+        ] : [])
+        features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {

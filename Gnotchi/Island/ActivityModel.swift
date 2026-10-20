@@ -6,15 +6,45 @@ import Observation
 @Observable
 final class ActivityModel {
 
-    let media: NowPlayingModel
+    /// Kurzer Hinweis (Kopfhörer verbunden/getrennt). Gerätenamen vergibt der Nutzer frei → nur
+    /// bereinigt übergeben (OutputDevices.cleanName) und als `Text(verbatim:)` zeigen.
+    struct Notice: Equatable, Sendable {
+        let symbol: String
+        let title: String
+        let subtitle: String
+    }
 
-    init(media: NowPlayingModel) {
+    let media: NowPlayingModel
+    private(set) var notice: Notice?
+    @ObservationIgnored private var noticeTask: Task<Void, Never>?
+    @ObservationIgnored private let noticeDuration: Duration
+
+    /// `noticeDuration` nur für Tests anders als 3 s (Michael 20.10.).
+    init(media: NowPlayingModel, noticeDuration: Duration = .seconds(3)) {
         self.media = media
+        self.noticeDuration = noticeDuration
     }
 
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
-    var isVisible: Bool { media.isVisible }
+    var isVisible: Bool { media.isVisible || notice != nil }
 
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre. Musik hält sich an die Vollbild-Regel.
     var showsOverFullscreen: Bool { false }
+
+    /// Hinweis zeigen; ein neuer ersetzt den alten und startet die Dauer neu.
+    func post(_ n: Notice) {
+        notice = n
+        noticeTask?.cancel()
+        noticeTask = Task { [weak self, noticeDuration] in
+            try? await Task.sleep(for: noticeDuration)
+            guard !Task.isCancelled else { return }
+            self?.notice = nil
+        }
+    }
+
+    func clearNotice() {
+        noticeTask?.cancel()
+        noticeTask = nil
+        notice = nil
+    }
 }

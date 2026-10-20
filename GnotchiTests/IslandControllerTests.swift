@@ -288,10 +288,12 @@ final class IslandControllerTests: XCTestCase {
     private let layout = IslandGeometry.Layout(
         notch: CGRect(x: 645.5, y: 924, width: 179, height: 32),
         compact: CGRect(x: 605.5, y: 924, width: 259, height: 32),
-        expanded: CGRect(x: 545, y: 814, width: 380, height: 142))
+        expanded: CGRect(x: 545, y: 814, width: 380, height: 142),
+        notice: CGRect(x: 605, y: 892, width: 260, height: 64))
 
     func testPanelFrameFollowsMode() {
         XCTAssertEqual(IslandController.panelFrame(mode: .compact, layout: layout), layout.compact)
+        XCTAssertEqual(IslandController.panelFrame(mode: .notice, layout: layout), layout.notice)
         XCTAssertEqual(IslandController.panelFrame(mode: .expanded, layout: layout), layout.expanded)
         XCTAssertNil(IslandController.panelFrame(mode: .hidden, layout: layout))
     }

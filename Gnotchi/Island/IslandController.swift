@@ -166,6 +166,13 @@ final class IslandController {
 
     /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt
     /// ist (Fenster an den oberen Rand ziehen, Spezifikation) und die Insel klein ist (nicht weg, nicht schon groß).
+    /// Form einer sichtbaren Insel: Ein Hinweis verdrängt „klein“, nicht „groß“ (dort wird gerade bedient);
+    /// endet er, geht es zurück auf klein.
+    nonisolated static func nextMode(current: IslandState.Mode, notice: Bool) -> IslandState.Mode {
+        if notice { return current == .expanded ? .expanded : .notice }
+        return current == .hidden || current == .notice ? .compact : current
+    }
+
     nonisolated static func shouldExpand(stillInside: Bool, mouseDown: Bool, mode: IslandState.Mode) -> Bool {
         stillInside && !mouseDown && mode == .compact
     }
@@ -182,6 +189,7 @@ final class IslandController {
         case .hidden: nil
         case .compact: layout.compact
         case .expanded: layout.expanded
+        case .notice: layout.notice
         }
     }
 
@@ -193,6 +201,7 @@ final class IslandController {
         withObservationTracking {
             _ = activity.isVisible
             _ = activity.showsOverFullscreen
+            _ = activity.notice
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -319,8 +328,9 @@ final class IslandController {
                 entry.panel.orderOut(nil)
                 continue
             }
-            if entry.state.mode == .hidden { entry.state.mode = .compact }
-            entry.panel.ignoresMouseEvents = false
+            entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil)
+            // Der Hinweis ist nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
+            entry.panel.ignoresMouseEvents = entry.state.mode == .notice
             if let f = Self.panelFrame(mode: entry.state.mode, layout: entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }
