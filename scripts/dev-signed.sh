@@ -34,6 +34,9 @@ SRC="build-dev/Build/Products/Debug/Gnotchi.app"
 DEST_DIR=$(mktemp -d /tmp/gnotchi-test.XXXXXX)
 APP="$DEST_DIR/Gnotchi.app"
 ditto "$SRC" "$APP"
+# Build-Nummer wie release.sh (Commit-Zahl), vor dem Signieren. Mit der Debug-Nummer 1 hielt Sparkle
+# das veröffentlichte Release für neuer und spielte es über die Testkopie (20.10.: 0.2.0 → 0.1.0).
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(git rev-list --count HEAD)" "$APP/Contents/Info.plist"
 
 IDENTITY=$(security find-identity -v -p codesigning \
     | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -1)
