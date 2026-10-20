@@ -9,6 +9,9 @@ dieselbe Insel als schwarze Pille oben in der Mitte. Jeder Bildschirm hat seine 
 Gnotchi zeigt alles, was macOS als laufende Wiedergabe meldet: Spotify, Musik und Browser wie
 Safari, Edge oder Helium, auch Videos.
 
+Außerdem zeigt die Insel, wenn du mit Tippi diktierst, wenn eine App Mikrofon oder Kamera nutzt
+und wenn du Kopfhörer verbindest. In der großen Insel wählst du, wo der Ton herauskommt.
+
 ## Die Insel
 
 **Klein:** Läuft etwas, zeigt die Insel links neben der Notch das Cover und rechts einen kleinen
@@ -47,13 +50,48 @@ Oben rechts in der großen Insel steht, wo der Ton herauskommt:
 - **AirPlay:** der Name des AirPlay-Lautsprechers.
 - **Bluetooth:** der Name der Kopfhörer oder Box.
 
-Spielt der Mac selbst, steht dort nichts. Bei anderem Gerät und AirPlay zeigt die kleine Insel
-einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton ausgibt.
-Es hört nichts mit.
+Spielt der Mac selbst, steht dort nur das Ausgabe-Symbol. Bei anderem Gerät und AirPlay zeigt die
+kleine Insel einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton
+ausgibt. Es hört nichts mit.
+
+## Ausgabe wählen
+
+Klick in der großen Insel oben rechts auf das Ausgabe-Symbol (bzw. auf den Gerätenamen). Es öffnet
+sich eine Liste aller Ausgabegeräte, das aktuelle mit Häkchen. Wählst du eines, spielt der Mac ab
+sofort darüber, genau wie unter Systemeinstellungen → Ton. Gnotchi ändert den Ausgang nur, wenn du
+klickst.
+
+## Kopfhörer
+
+Wechselt der Ton auf Bluetooth-Kopfhörer, etwa weil du AirPods verbindest, zeigt die Insel 3 Sekunden
+lang ihren Namen und „Verbunden“. Wechselt er zurück, steht dort das neue Gerät und „Kopfhörer
+getrennt“. Schaltest du selbst über die Insel um, kommt kein Hinweis. Abschalten: Einstellung
+„Kopfhörer-Hinweis“.
+
+## Mikrofon und Kamera
+
+Nutzt eine App das Mikrofon, sitzt ein **oranger** Punkt an der Insel, bei der Kamera ein **grüner**,
+dieselben Farben wie in der Menüleiste von macOS. Mit Notch stehen die Punkte neben ihr, ohne Notch
+steht in der Pille „Mikrofon“ oder „Kamera“. Läuft gleichzeitig Musik, ersetzen die Punkte den Pegel.
+
+Fährst du darüber, steht da, **welche App** das Mikrofon nutzt. Bei der Kamera sagt macOS nicht,
+welche App es ist, deshalb steht dort nur „Kamera“. Nimmt eine Webseite in Safari auf, steht
+„Webseite“. Gnotchi hört und sieht dabei nichts: Es fragt nur ab, ob aufgenommen wird.
+
+## Tippi-Diktat
+
+Diktierst du mit Tippi, zeigt die Insel ein rotes Mikrofon und den Pegel deiner Stimme, ohne Notch
+auch „nimmt auf“ und die Laufzeit. Danach steht „wandelt um“, bis der Text eingefügt ist. Tippi
+blendet seine eigene Anzeige dann aus. Die Aufnahme hat Vorrang vor Musik und Hinweisen, klappt nicht
+auf und ist auch über Apps im Vollbild zu sehen.
+
+Das klappt mit Tippi ab der Version, die Gnotchi unterstützt (steht in Tippis Änderungen). Schaltest du
+„Tippi-Aufnahme anzeigen“ aus, zeigt Tippi wieder seine eigene Anzeige.
 
 ## Einstellungen
 
-- **Musik in der Notch:** schaltet die Insel ein oder aus. Ab Werk an. Aus heißt: keine Insel und kein Abfragen der Wiedergabe.
+- **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
+- **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen:** jeweils ab Werk an. Sind alle vier Schalter aus, gibt es keine Insel.
 - **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
 - **Nach Updates suchen …:** sucht sofort nach einer neuen Version.
@@ -69,7 +107,8 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme und kein Mikrofon.
+Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon, keine Kamera
+und kein Bluetooth. Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
 
 macOS fragt höchstens in diesen Fällen:
 
@@ -87,6 +126,8 @@ nicht wirkt.
 - Gnotchi speichert sie nicht, schreibt sie nicht ins Protokoll und schickt sie nirgendwohin.
 - Gespeichert werden nur deine Einstellungen.
 - Gnotchi liest keine Fenstertitel und keine Inhalte anderer Apps und nimmt keinen Ton auf.
+- Welche App Mikrofon oder Kamera nutzt, steht nur in der Insel, nie im Protokoll.
+- Von Tippi erfährt Gnotchi nur „nimmt auf“, „wandelt um“ und den Pegel, nie den Text. Diese Meldung kann jedes Programm auf deinem Mac mitlesen; sie verrät nur, dass du gerade diktierst.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig

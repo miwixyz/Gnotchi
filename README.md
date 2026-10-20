@@ -3,9 +3,11 @@
 Eine Insel in der MacBook-Notch für macOS 27, gebaut im Stil des Systems. Läuft Musik oder ein
 Video, zeigt Gnotchi in der Notch Cover und Pegel. Fährst du mit der Maus darüber, geht die Insel
 auf und zeigt Titel, Interpret, App, Tasten und Fortschritt. Auf Bildschirmen ohne Notch erscheint
-dieselbe Insel als Pille oben in der Mitte.
+dieselbe Insel als Pille oben in der Mitte. Dazu zeigt sie dein Diktat in
+[Tippi](https://github.com/miwixyz/Tippi), welche App Mikrofon oder Kamera nutzt und wenn du
+Kopfhörer verbindest, und in der großen Insel wählst du den Audio-Ausgang.
 
-**Stand:** Version 0.1.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
+**Stand:** Version 0.2.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
 Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
 
 Voraussetzungen: macOS 27, Mac mit Apple-Chip. Kostenlos, Open Source (MIT).
@@ -51,8 +53,20 @@ Freigabe nicht und fragt nie danach.
 - **Unaufdringlich:** Die Insel verschwindet 5 Sekunden nach dem Pausieren, und sie blendet sich
   auf einem Bildschirm aus, solange dort eine App im Vollbild läuft. Jeder Bildschirm hat seine
   eigene Insel.
+- **Audio-Ausgang wählen:** Oben rechts in der großen Insel sitzt das Ausgabe-Symbol. Ein Klick
+  zeigt alle Ausgabegeräte; die Auswahl setzt den Ausgang von macOS (wie Systemeinstellungen → Ton).
+- **Kopfhörer-Hinweis:** Wechselt der Ton auf Bluetooth-Kopfhörer oder zurück, zeigt die Insel
+  3 Sekunden Gerät und „Verbunden“ bzw. „Kopfhörer getrennt“.
+- **Mikrofon und Kamera:** Solange eine App sie nutzt, sitzt ein oranger bzw. grüner Punkt an der
+  Insel. Groß steht dort, welche App das Mikrofon nutzt (bei der Kamera nennt macOS keine App).
+- **Tippi-Diktat:** Rotes Mikrofon mit dem echten Pegel, danach „wandelt um“. Tippi blendet seine
+  eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps.
+- **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
+  nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
+  erneut und schaltet von selbst zurück.
 - Menüleisten-Symbol mit Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
-  der Notch“, „Aufklappen nach“, „Bei Anmeldung starten“.
+  der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“ (alle ab
+  Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
 
 ## Installieren
 
@@ -81,7 +95,10 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
-Was Gnotchi **nicht** braucht: keine Bedienungshilfen, keine Bildschirmaufnahme, kein Mikrofon.
+Was Gnotchi **nicht** braucht: keine Bedienungshilfen, keine Bildschirmaufnahme, kein Mikrofon,
+keine Kamera, kein Bluetooth. Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
+CoreMediaIO ohne Freigabe (gemessen 20.10.2026: Kamera ohne Anfrage, beim Mikrofon nur eine stille
+Vorabprüfung von macOS, kein Dialog).
 Fürs Vollbild und für die Erkennung einer zweiten Notch-App liest es aus der Fensterliste nur
 Ebene, Lage und Prozessnummer, keine Fenstertitel.
 
@@ -95,8 +112,14 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → 
   Zustandswechsel und die Kennung der Quell-App.
 - Gespeichert werden nur die Einstellungen, auf diesem Mac.
 - Für „Wo die Musik spielt“ liest Gnotchi über Core Audio nur, **ob** eine App gerade Ton ausgibt,
-  und vom Ausgabegerät Art und Namen. Es nimmt nichts auf und hört nichts mit. Der Pegel in der
-  kleinen Insel ist eine Animation, kein Messwert.
+  und vom Ausgabegerät Art und Namen. Es nimmt nichts auf und hört nichts mit. Der Pegel bei
+  Musik ist eine Animation, kein Messwert; beim Tippi-Diktat kommt er von Tippi.
+- **Mikrofon/Kamera:** Gnotchi fragt nur ab, **ob** aufgenommen wird und welcher Prozess es ist.
+  Den App-Namen nimmt es aus dem installierten Programm; er steht nur in der Insel, nie im Protokoll.
+- **Tippi:** Gnotchi empfängt über die Systemmeldungen von macOS nur „nimmt auf“, „wandelt um“ und
+  den Pegel, nie Text. Jedes Programm auf dem Mac kann diese Meldung mitlesen; sie verrät nur, dass
+  gerade diktiert wird. Nachrichten mit anderem Aufbau verwirft Gnotchi
+  ([G17](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 
@@ -126,6 +149,11 @@ Alle Entscheidungen mit Begründung: [docs/SECURE-DESIGN.md](docs/SECURE-DESIGN.
 - **Apple kann den Perl-Weg schließen.** Dann bleibt der Rückfall für Spotify und Musik.
 - **Nur eine Notch-App:** Zwei Apps über der Notch überdecken sich. Gnotchi meldet das, beenden
   musst du eine davon selbst.
+- **Kamera ohne App-Namen:** macOS meldet nur, dass eine Kamera läuft, nicht für wen.
+- **Ausgabegeräte:** Die Liste zeigt, was macOS als Audiogerät führt. AirPlay-Lautsprecher, die erst
+  im Kontrollzentrum auftauchen, sind nicht getestet.
+- **Tippi-Diktat** braucht eine Tippi-Version, die die Meldung sendet. Ältere zeigen weiter ihre
+  eigene Anzeige.
 - Ein maximiertes Fenster bei ausgeblendetem Dock hat auf Notch-Bildschirmen dieselbe Lage wie
   Vollbild. Die Insel blendet sich dann ebenfalls aus.
 

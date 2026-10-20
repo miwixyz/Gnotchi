@@ -26,6 +26,10 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G14 | E10 | gespeicherte Daten |
 | G15 | – (neu) | Wiedergabeweg aus Core Audio, nur lesen |
 | G16 | – (neu) | keine echten Hördaten im Repo |
+| G17 | – (neu, 0.2.0) | Tippi-Meldung: nur Anzeige, Schema, Zeitlimit |
+| G18 | – (neu, 0.2.0) | Mikrofon/Kamera: nur „ob“ und „wer“, nie ins Protokoll |
+| G19 | – (neu, 0.2.0) | Kopfhörer-Hinweis: nur Standard-Ausgang beobachten |
+| G20 | – (neu, 0.2.0) | Ausgang setzen nur auf Klick, gegen frische Liste |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -65,13 +69,18 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
                                         │ (5) AppleScript (fest im Code) ─▶ [Spotify / Musik]
                                         ▼
                                  [Insel: Text(verbatim:), Cover]
-[Gnotchi] ─(6) Einstellungen ─▶ [UserDefaults, nur dieser Mac]
+[Gnotchi] ─(6) Einstellungen ─▶ [UserDefaults, nur dieser Mac] ─(6a) Schalter tippiRecording ─▶ [Tippi liest]
 [Gnotchi] ─(7) Update-Prüfung ─▶ [GitHub: appcast.xml, Release-ZIP]
+[Tippi / jeder lokale Prozess] ─(8) distnoted com.tippi.app.aufnahme ─▶ [Gnotchi: TippiLink → Insel]
+[Core Audio / CoreMediaIO] ─(9) „nimmt auf“, Kamera läuft, Standard-Ausgang ─▶ [Gnotchi]
+[Nutzer: Klick im Ausgabe-Menü] ─(10) Standard-Ausgabegerät setzen ─▶ [Core Audio]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
 vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gnotchi ↔ Kindprozess ·
-(5) Gnotchi → andere Apps · (7) Gnotchi ↔ Netz.
+(5) Gnotchi → andere Apps · (7) Gnotchi ↔ Netz · (8) jeder lokale Prozess → Gnotchi (G17) ·
+(9) System → Gnotchi, App-Namen sind Fremddaten (G18, G19) · (10) Gnotchi → Systemeinstellung (G20) ·
+(6a) Gnotchis Einstellungsdatei → Tippi (G17).
 
 ## Entscheidungen
 
@@ -220,7 +229,9 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 ### G8 – Protokoll ohne Inhalte (vormals Seam E17g/E11)
 - **Entschieden:** `os.Logger`, Subsystem `dev.mwlr.gnotchi`. Ins Protokoll nur Zustandswechsel
   (Adapter an/aus, Neustart, Rückfall, Signatur ungültig mit OSStatus, Zeilen verworfen,
-  Selbsttest gescheitert mit Ursache/Exit-Code/Signal, Versuchsnummer und Pause) und die
+  Selbsttest gescheitert mit Ursache/Exit-Code/Signal, Versuchsnummer und Pause; ab 0.2.0
+  Tippi-Aufnahme angezeigt/beendet, Ausgabegerät gesetzt mit Übertragungsart oder OSStatus,
+  Beobachter nicht angemeldet mit OSStatus) und die
   Bundle-ID der Quelle – **nie Titel, Interpret oder Cover**: was Michael hört und sieht, ist privat.
 
 ### G9 – Kindprozess sauber führen (vormals Seam E17h)
@@ -313,12 +324,15 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 
 ### G13 – Niemand außer dem Nutzer steuert Gnotchi (vormals Seam E7)
 - **Entschieden:** Kein URL-Schema, kein `NSAppleScriptEnabled`, keine `NSServices`, keine
-  XPC-/Distributed-Notification-Schnittstelle.
+  XPC-Schnittstelle. Distributed Notifications nur **empfangend und nur zur Anzeige** (ab 0.2.0,
+  G17: Tippi-Aufnahme) – eine Meldung löst nie einen Befehl, nie Apple Events, nie einen Prozess-
+  start aus, nur Text und Pegel in der Insel.
 - **Warum:** Sonst könnten andere Programme Gnotchi als Werkzeug benutzen und über dessen
   Automation-Freigabe Spotify/Musik steuern, ohne selbst gefragt zu werden.
 
 ### G14 – Gespeicherte Daten (vormals Seam E10)
-- **Entschieden:** Nur Schalter in UserDefaults (`notchMedia`). Titel, Interpret, Cover und
+- **Entschieden:** Nur Schalter in UserDefaults (`notchMedia`, `expandDelay`; ab 0.2.0
+  `headphoneNotice`, `micCamera`, `tippiRecording` – letzteren liest Tippi, G17). Titel, Interpret, Cover und
   Verlauf bleiben im Speicher und sind nach dem Beenden weg.
 - **Verworfen:** „Zuletzt gehört“-Liste. Das wäre ein Protokoll von Michaels Hörgewohnheiten;
   erst mit eigenem Durchgang, falls je gewünscht.
@@ -368,6 +382,49 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   niemand sie vergisst, und fängt die naheliegenden Dateinamen ab. Spezifikationen (`specs/`)
   prüft es nicht – dort gilt die Regel weiter als Vorsatz.
 
+### G17 – Tippi-Meldung: nur Anzeige, Schema, Zeitlimit (neu, 2026-10-20, 0.2.0)
+- **Weg:** Tippi (nicht sandboxed, Team LTKJ6Z2VYB wie Gnotchi) sendet `com.tippi.app.aufnahme` über
+  `DistributedNotificationCenter`, `userInfo = ["v": 1, "state": …, "level": …]`, beim Aufnehmen
+  10 Hz, beim Umwandeln 1 Hz, `idle` am Ende. `TippiLink` empfängt.
+- **Jeder lokale Prozess kann senden und mitlesen.** Antwort: Schema statt Vertrauen – `v` = 1,
+  `state` ∈ {recording, transcribing, idle}, `level` endliche Zahl, kein Bool, auf 0…1 begrenzt;
+  alles andere verworfen, unbekannte Schlüssel ignoriert (`TippiLink.parse`, Test). Die Insel zeigt
+  nur feste Texte („nimmt auf“, „wandelt um“) und Gnotchis eigene Laufzeit; nichts aus der Nachricht
+  wird als Text angezeigt. Pegel höchstens 30×/s an die Ansicht, Zustand und Pegel getrennt (die
+  Insel-Steuerung liest keine 10-Hz-Werte). Ohne Meldung 3 s → beendet (Tippi-Absturz lässt die
+  Insel nicht hängen). Gemessen 20.10. mit `tools/fake-tippi.swift`: Ablauf angezeigt/beendet
+  sekundengenau, verstummt → nach 3 s weg, sechs kaputte Nachrichten → keine Insel, kein Protokoll.
+- **Restrisiko (hingenommen):** Ein fremder Prozess kann eine Aufnahme vortäuschen (Anzeige fester
+  Texte) und mitlesen, **dass** diktiert wird (nie was).
+- **Tippi blendet seine Pille aus, wenn Gnotchi anzeigt:** Tippi prüft beim Start jedes Diktats, ob
+  ein Prozess `dev.mwlr.gnotchi` läuft, mit Team LTKJ6Z2VYB signiert ist, Version ≥ 0.2.0 hat und
+  der Schalter `tippiRecording` nicht aus ist (CFPreferences, fehlend = an). Restrisiko: Wer als
+  derselbe Nutzer Gnotchis Einstellung schreiben kann, kann Tippis Pille ausblenden – macOS' oranger
+  Mikrofon-Punkt bleibt immer (hingenommen; ein solcher Angreifer kann ohnehin mehr).
+- **Vollbild:** Die Aufnahme zeigt Gnotchi auch über Apps im Vollbild – sonst wäre sie nirgends zu
+  sehen, weil Tippi seine Pille ausblendet.
+
+### G18 – Mikrofon/Kamera: nur „ob“ und „wer“, nie ins Protokoll (neu, 2026-10-20, 0.2.0)
+- **Entschieden:** Core Audio `kAudioProcessPropertyIsRunningInput` je Prozess (PID, Bundle-ID) und
+  CoreMediaIO `kCMIODevicePropertyDeviceIsRunningSomewhere` je Kamera, nur lesend, Beobachter plus
+  2-s-Abfrage nur solange das Mikrofon an ist. Kein Ton, kein Bild. App-Name aus dem lokalen Bundle
+  (äußerste `.app` im Pfad aus `proc_pidpath`, bereinigt wie Strom-Texte), WebKit → „Webseite“,
+  sonst „Unbekannte App“; angezeigt nur per `Text(verbatim:)`, **nie protokolliert**.
+- **Gemessen 20.10. am echten Gnotchi (Testkopie, PID 45250):** Kamera keine TCC-Anfrage; Mikrofon
+  nur `kTCCServiceMicrophone` mit `preflight=yes` (stille Vorabprüfung, kein Dialog). Keine neue
+  Berechtigung, Positivliste G12 unverändert.
+
+### G19 – Kopfhörer-Hinweis: nur Standard-Ausgang beobachten (neu, 2026-10-20, 0.2.0)
+- **Entschieden:** Beobachter auf `kAudioHardwarePropertyDefaultOutputDevice`; Hinweis nur beim
+  Wechsel auf bzw. von Bluetooth, nicht beim Start, nicht nach eigener Auswahl (2-s-Fenster).
+  Kein IOBluetooth (bräuchte die Bluetooth-Freigabe). Gerätenamen bereinigt, nicht protokolliert.
+
+### G20 – Ausgang setzen nur auf Klick, gegen frische Liste (neu, 2026-10-20, 0.2.0)
+- **Entschieden:** `kAudioHardwarePropertyDefaultOutputDevice` setzt Gnotchi nur aus dem Menü des
+  Ausgabe-Knopfs. Vor dem Setzen wird die Geräteliste neu gelesen; ein inzwischen verschwundenes
+  Gerät wird nicht gesetzt (`OutputDevices.canSelect`, Test). Protokoll nur Übertragungsart bzw.
+  OSStatus. Keine Automatik, kein Merken „Lieblingsgerät“.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -383,7 +440,14 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 | **D** | Adapter → Gnotchi | Flut, Riesenzeilen, Dekompressionsbombe, Hänger, Absturzschleife | G4, G6, G9, `--debounce=100` |
 | **E** | Perl als Kind | fremder Code mit Gnotchis Freigaben | G2, G3. **Neu bewertet:** Ohne Bedienungshilfen (G1) schrumpft der Schaden auf das, was Gnotchi selbst darf – Apple Events an Spotify/Musik, sofern der Nutzer sie erteilt hat, und Now-Playing lesen, was der Adapter ohnehin tut. Er erbt – gemessen 18.10. (G2, Sichttest) |
 | **E** | Gnotchi → Spotify/Musik | AppleScript-Einschleusung | G7 |
-| **E** | andere Programme → Gnotchi | Gnotchi als Werkzeug missbrauchen | G13 |
+| **E** | andere Programme → Gnotchi | Gnotchi als Werkzeug missbrauchen | G13 (Meldungen nur zur Anzeige) |
+| **S** | lokaler Prozess → Gnotchi (8) | vorgetäuschte Tippi-Aufnahme | G17: feste Texte, hingenommen |
+| **T** | lokaler Prozess → Gnotchi (8) | kaputte/übergroße `userInfo` | G17: Schema, Begrenzung |
+| **D** | lokaler Prozess → Gnotchi (8) | Nachrichtenflut, hängende Anzeige | G17: 30 Hz, 3-s-Zeitlimit |
+| **I** | Gnotchi/Tippi → distnoted (8) | „diktiert gerade“ mitlesbar | G17: nur Zustand + Pegel, hingenommen |
+| **I** | Gnotchi → Protokoll (9) | App-Namen der Mikrofon-Nutzer, Gerätenamen | G18, G19: nie protokolliert |
+| **S** | lokaler Prozess → Tippi (6a) | Tippis Pille ausblenden | G17: Signaturprüfung; Schreiben in die Einstellung hingenommen (macOS-Punkt bleibt) |
+| **T** | Gnotchi → Core Audio (10) | Ausgang auf falsches/verschwundenes Gerät | G20 |
 
 ## Negativraum: was wir stillschweigend annehmen
 
@@ -416,6 +480,17 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 
 Kein Paket wird nach einem von einem Sprachmodell vorgeschlagenen Namen installiert, nur nach der
 Adresse aus dem offiziellen README (Slopsquat).
+
+## Ausstiegskriterien 0.2.0
+
+- [x] Sicherheitsentwurf (rafter-secure-design) vor dem Code: `specs/2026-10-20-gnotchi-0.2.0.md`
+- [x] Tests G17 (Schema, Begrenzung, Zeitlimit-Logik), G18 (Namen, Pfad), G19 (Hinweis-Regeln,
+      eigenes Umschalten), G20 (nur gelistete Geräte) grün
+- [x] TCC am echten Gnotchi gemessen (G18): keine Kamera-Anfrage, Mikrofon nur Vorabprüfung
+- [x] Tippi-Weg mit `tools/fake-tippi.swift` am echten Gnotchi gemessen (G17)
+- [ ] Mikrofon/Kamera bei echtem Anruf, Ausgabe-Menü, Kopfhörer, Aufnahme über Vollbild – Michael
+- [ ] `rafter-code-review` + `rafter run` am 0.2.0-Stand
+- [ ] Positivliste der Berechtigungen am ausgelieferten 0.2.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien vor dem ersten Release
 

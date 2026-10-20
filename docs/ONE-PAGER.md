@@ -30,6 +30,16 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf
   Sekunden nach dem Pausieren ist sie weg, und bei Vollbild-Apps bleibt sie aus.
 
+## Was sonst noch in der Notch landet
+
+- Diktierst du mit [Tippi](https://github.com/miwixyz/Tippi), steht in der Notch ein rotes
+  Mikrofon mit dem Pegel deiner Stimme. Tippis eigene Anzeige bleibt dann weg.
+- Ein oranger Punkt heißt: Eine App nutzt das Mikrofon. Grün ist die Kamera. Welche App am
+  Mikrofon hängt, siehst du, wenn du mit der Maus darüberfährst.
+- Kopfhörer verbunden? Die Notch zeigt drei Sekunden lang ihren Namen.
+- Oben rechts in der großen Insel sitzt das Ausgabe-Symbol. Ein Klick, und der Ton kommt aus einem
+  anderen Gerät.
+
 ## Wie von Apple
 
 Tiefschwarz, bündig an der Notch, unten weich gerundet. Systemschrift, Aufbau wie die Wiedergabe
@@ -46,6 +56,10 @@ nach Updates zu suchen. Im Systemprotokoll steht nicht, was du hörst.
 Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt. Es hört
 nichts mit und nimmt nichts auf.
 
+Ob eine App Mikrofon oder Kamera nutzt, erfährt Gnotchi ohne eigene Freigabe. Den App-Namen zeigt es
+nur in der Insel, im Protokoll steht er nicht. Von Tippi kommt nur „nimmt auf“ und der Pegel. Deinen
+Text sieht Gnotchi nie.
+
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 
 ## Voraussetzungen
@@ -56,7 +70,7 @@ kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sper
 
 ## So bekommst du Gnotchi
 
-Version 0.1.0 gibt es als signierte, von Apple notarisierte App unter
+Version 0.2.0 gibt es als signierte, von Apple notarisierte App unter
 [GitHub-Releases](https://github.com/miwixyz/Gnotchi/releases/latest). Danach aktualisiert sich
 Gnotchi selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 
