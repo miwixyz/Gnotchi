@@ -131,6 +131,28 @@ func save() {
     }
 }
 
+/// Eine Adapter-Zeile auswerten (Strom oder einmalige Abfrage beim Start).
+func handle(_ line: Data) {
+    guard let obj = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
+      let p = obj["payload"] as? [String: Any],
+      let title = p["title"] as? String, !title.isEmpty,
+      p["playing"] as? Bool == true else { return }
+    let artist = (p["artist"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+    let key = "\(artist ?? "")\u{1F}\(title)"
+    guard !seen.contains(key) else { return }
+    seen.insert(key)
+    let bundle = (p["parentApplicationBundleIdentifier"] as? String) ?? (p["bundleIdentifier"] as? String)
+    let src = source(bundle)
+    let duration = (p["durationMicros"] as? Double).map { Int(($0 / 1_000_000).rounded()) }
+    let (result, path) = lookup(track: title, artist: artist, album: p["album"] as? String,
+                                duration: duration, browser: src == "Browser")
+    counts[src, default: [:]][result.rawValue, default: 0] += 1
+    paths["\(src): \(path)", default: 0] += 1
+    save()
+    print("\(Date().formatted(date: .omitted, time: .standard)) \(src): \(result.rawValue) (\(path)) – gesamt \(seen.count)")
+    fflush(stdout)
+}
+
 // MARK: Adapter-Strom
 
 let proc = Process()
@@ -145,6 +167,19 @@ try proc.run()
 let deadline = started.addingTimeInterval(hours * 3600)
 DispatchQueue.global().asyncAfter(deadline: .now() + hours * 3600) { proc.terminate() }
 save()
+// Der Strom meldet nur Änderungen – den Titel, der beim Start schon läuft, einmal abfragen.
+let get = Process()
+get.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+get.arguments = [script, framework, "get", "--micros"]
+get.environment = ["PATH": "/usr/bin:/bin"]
+let getPipe = Pipe()
+get.standardOutput = getPipe
+get.standardError = FileHandle.nullDevice
+if (try? get.run()) != nil {
+    let data = getPipe.fileHandleForReading.readDataToEndOfFile()
+    get.waitUntilExit()
+    handle(Data(#"{"payload":"#.utf8) + data + Data("}".utf8))
+}
 print("läuft bis \(deadline.formatted(date: .numeric, time: .shortened)), Ergebnis: \(outPath)")
 fflush(stdout)
 
@@ -157,24 +192,7 @@ while true {
     while let nl = buffer.firstIndex(of: 0x0A) {
         let line = buffer[buffer.startIndex..<nl]
         buffer.removeSubrange(buffer.startIndex...nl)
-        guard let obj = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
-              let p = obj["payload"] as? [String: Any],
-              let title = p["title"] as? String, !title.isEmpty,
-              p["playing"] as? Bool == true else { continue }
-        let artist = (p["artist"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        let key = "\(artist ?? "")\u{1F}\(title)"
-        guard !seen.contains(key) else { continue }
-        seen.insert(key)
-        let bundle = (p["parentApplicationBundleIdentifier"] as? String) ?? (p["bundleIdentifier"] as? String)
-        let src = source(bundle)
-        let duration = (p["durationMicros"] as? Double).map { Int(($0 / 1_000_000).rounded()) }
-        let (result, path) = lookup(track: title, artist: artist, album: p["album"] as? String,
-                                    duration: duration, browser: src == "Browser")
-        counts[src, default: [:]][result.rawValue, default: 0] += 1
-        paths["\(src): \(path)", default: 0] += 1
-        save()
-        print("\(Date().formatted(date: .omitted, time: .standard)) \(src): \(result.rawValue) (\(path)) – gesamt \(seen.count)")
-        fflush(stdout)
+        handle(line)
     }
 }
 save()
