@@ -6,7 +6,8 @@ import SwiftUI
 @Observable
 final class IslandState {
     /// `notice`: kurzer Hinweis (Kopfhörer), eigene Form unter der Notch (0.2.0).
-    enum Mode { case hidden, compact, expanded, notice }
+    /// `live`: Tippis Live-Text, zwei Zeilen unter der Aufnahme-Zeile (0.3.0).
+    enum Mode { case hidden, compact, expanded, notice, live }
     var mode: Mode = .hidden
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
@@ -32,6 +33,7 @@ struct IslandView: View {
             IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
                                         privacy: activity.privacy.isActive)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
+        case .live: state.layout.live.size
         }
     }
 
@@ -57,7 +59,7 @@ struct IslandView: View {
     private var corner: CGFloat {
         switch state.mode {
         case .expanded: 22
-        case .notice: 16
+        case .notice, .live: 16
         case .hidden, .compact: 10
         }
     }
@@ -66,6 +68,7 @@ struct IslandView: View {
         switch state.mode {
         case .hidden: EmptyView()
         case .notice: if let n = activity.notice { notice(n) }
+        case .live: if let rec = activity.recording { liveText(rec) }
         case .compact:
             if let rec = activity.recording {
                 recordingCompact(rec)
@@ -122,6 +125,12 @@ struct IslandView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: rec == .transcribing ? "Tippi wandelt um" : "Tippi nimmt auf"))
         .transition(.opacity)
+    }
+
+    /// Live-Text (0.3.0): eigene Ansicht in IslandView+LiveText.swift.
+    private func liveText(_ rec: ActivityModel.Recording) -> some View {
+        LiveTextIsland(recording: rec, text: activity.liveText ?? "", level: activity.recordingLevel,
+                       topInset: state.layout.notch?.height ?? 0)
     }
 
     // MARK: Mikrofon/Kamera (0.2.0)
@@ -366,7 +375,7 @@ struct IslandView: View {
 }
 
 /// Echter Pegel aus Tippis Meldung (0…1), vier Balken unterschiedlich stark – wie Tippis eigene Pille.
-private struct LiveLevelBars: View {
+struct LiveLevelBars: View {
     let level: Double
     private static let weights: [Double] = [0.55, 1, 0.8, 0.45]
     var body: some View {
@@ -383,7 +392,7 @@ private struct LiveLevelBars: View {
 
 /// „Wandelt um“: drei Punkte, die nacheinander aufleuchten. Reines SwiftUI statt ProgressView (der
 /// Testrenderer zeichnet AppKit-Bausteine nicht); 15 Bilder/s reichen, die Ansicht gibt es nur beim Umwandeln.
-private struct WorkingDots: View {
+struct WorkingDots: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in
             let t = ctx.date.timeIntervalSinceReferenceDate

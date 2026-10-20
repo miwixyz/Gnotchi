@@ -49,6 +49,8 @@ final class ActivityModel {
     /// Pegel getrennt vom Zustand: Nur die Ansicht liest ihn. Die Insel-Steuerung beobachtet `recording` –
     /// läge der Pegel darin, liefe ihr `refresh` (mit Fensterliste) 10×/s.
     private(set) var recordingLevel: Double = 0
+    /// Tippis Live-Text (0.3.0, G21). Nur sichtbar, solange `recording` läuft; nie protokollieren.
+    private(set) var liveText: String?
     private(set) var notice: Notice?
     private(set) var privacy = Privacy.none
     @ObservationIgnored private var noticeTask: Task<Void, Never>?
@@ -70,7 +72,23 @@ final class ActivityModel {
     func setRecording(_ r: Recording?) {
         if recording != r { recording = r }
         if r == nil, recordingLevel != 0 { recordingLevel = 0 }
+        if r == nil, liveText != nil { setLiveText(nil) }
     }
+
+    /// Text ohne laufende Aufnahme wird verworfen: Tippi meldet über distnoted, ob diktiert wird; der
+    /// Text allein hält die Insel nicht offen (Tippis Vorschau-Takt hat keine Obergrenze).
+    func setLiveText(_ text: String?) {
+        let value = (recording == nil || text?.isEmpty == true) ? nil : text
+        if liveText != value { liveText = value }
+        if hasLiveText != (value != nil) { hasLiveText = value != nil }
+    }
+
+    /// Nur „ob“ – die Insel-Steuerung beobachtet das statt des Texts, sonst liefe ihr `refresh`
+    /// (mit Fensterliste) bei jedem neuen Wort.
+    private(set) var hasLiveText = false
+
+    /// Insel zeigt den Live-Text aufgeklappt (zwei Zeilen, Michael 20.10.).
+    var showsLiveText: Bool { recording != nil && hasLiveText }
 
     func setRecordingLevel(_ level: Double) {
         recordingLevel = level

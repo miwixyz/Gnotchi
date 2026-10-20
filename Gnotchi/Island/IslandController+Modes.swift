@@ -5,9 +5,12 @@ extension IslandController {
 
     /// Form einer sichtbaren Insel: Ein Hinweis verdrängt „klein“, nicht „groß“ (dort wird gerade bedient);
     /// endet er, geht es zurück auf klein.
-    /// Die Tippi-Aufnahme bleibt klein und verdrängt Hinweis und groß (Spezifikation 0.2.0).
-    nonisolated static func nextMode(current: IslandState.Mode, notice: Bool, recording: Bool = false) -> IslandState.Mode {
-        if recording { return .compact }
+    /// Die Tippi-Aufnahme bleibt klein und verdrängt Hinweis und groß (Spezifikation 0.2.0); mit Live-Text
+    /// klappt sie zu `live` auf (0.3.0).
+    nonisolated static func nextMode(current: IslandState.Mode, notice: Bool, recording: Bool = false,
+                                     liveText: Bool = false) -> IslandState.Mode {
+        if recording { return liveText ? .live : .compact }
+        if current == .live { return notice ? .notice : .compact }
         if notice { return current == .expanded ? .expanded : .notice }
         return current == .hidden || current == .notice ? .compact : current
     }
@@ -20,6 +23,7 @@ extension IslandController {
         case .hidden: return nil
         case .compact: return layout.compact
         case .notice: return layout.notice
+        case .live: return layout.live
         case .expanded:
             guard hasMedia else { return layout.notice }
             guard privacy else { return layout.expanded }

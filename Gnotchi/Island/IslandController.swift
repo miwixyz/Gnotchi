@@ -192,6 +192,7 @@ final class IslandController {
             _ = activity.notice
             _ = activity.privacy
             _ = activity.recording
+            _ = activity.hasLiveText
             _ = model.info != nil
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -320,9 +321,9 @@ final class IslandController {
                 continue
             }
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
-                                             recording: activity.recording != nil)
-            // Der Hinweis ist nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
-            entry.panel.ignoresMouseEvents = entry.state.mode == .notice
+                                             recording: activity.recording != nil, liveText: activity.showsLiveText)
+            // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
+            entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }

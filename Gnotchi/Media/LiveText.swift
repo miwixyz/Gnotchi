@@ -81,10 +81,12 @@ enum LiveText {
     }
 
     /// Nur das Ende behalten (die Insel zeigt die neuesten Wörter), an einer Wortgrenze, mit „…“ davor.
-    nonisolated static func tail(_ s: String) -> String {
-        guard s.count > maxChars else { return s }
-        var cut = String(s.suffix(maxChars))
-        if let space = cut.prefix(40).firstIndex(of: " ") {
+    /// `limit` kleiner für die Anzeige: zwei Zeilen fassen etwa 85 Zeichen (Testbild 20.10.: `.truncationMode(.head)`
+    /// kürzt bei zwei Zeilen nur die letzte – oben stand sonst der Anfang des Diktats).
+    nonisolated static func tail(_ s: String, limit: Int = maxChars) -> String {
+        guard s.count > limit else { return s }
+        var cut = String(s.suffix(limit))
+        if let space = cut.prefix(max(limit / 10, 8)).firstIndex(of: " ") {
             cut = String(cut[cut.index(after: space)...])
         }
         return "…" + cut

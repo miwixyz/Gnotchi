@@ -289,7 +289,8 @@ final class IslandControllerTests: XCTestCase {
         notch: CGRect(x: 645.5, y: 924, width: 179, height: 32),
         compact: CGRect(x: 605.5, y: 924, width: 259, height: 32),
         expanded: CGRect(x: 545, y: 814, width: 380, height: 142),
-        notice: CGRect(x: 605, y: 892, width: 260, height: 64))
+        notice: CGRect(x: 605, y: 892, width: 260, height: 64),
+        live: CGRect(x: 565, y: 856, width: 340, height: 100))
 
     func testPanelFrameFollowsMode() {
         XCTAssertEqual(IslandController.panelFrame(mode: .compact, layout: layout), layout.compact)

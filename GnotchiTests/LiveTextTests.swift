@@ -99,3 +99,48 @@ final class LiveTextTests: XCTestCase {
         XCTAssertTrue(r.contains(#"leaf[subject.OU] = "LTKJ6Z2VYB""#))
     }
 }
+
+/// 0.3.0: Insel-Form und Modell für den Live-Text.
+@MainActor
+final class LiveTextModeTests: XCTestCase {
+
+    func testModeWithLiveText() {
+        XCTAssertEqual(IslandController.nextMode(current: .compact, notice: false, recording: true, liveText: true), .live)
+        XCTAssertEqual(IslandController.nextMode(current: .expanded, notice: true, recording: true, liveText: true), .live,
+                       "verdrängt groß und Hinweis wie die Aufnahme")
+        XCTAssertEqual(IslandController.nextMode(current: .live, notice: false, recording: true, liveText: false), .compact,
+                       "Text weg, Aufnahme läuft: klein")
+        XCTAssertEqual(IslandController.nextMode(current: .live, notice: false, recording: false), .compact,
+                       "Aufnahme vorbei, Musik läuft: klein, nicht live")
+        XCTAssertEqual(IslandController.nextMode(current: .live, notice: true, recording: false), .notice)
+    }
+
+    func testPanelFrameLive() throws {
+        let m = IslandGeometry.ScreenMetrics(frame: CGRect(x: 0, y: 0, width: 1512, height: 982), safeTop: 32,
+                                             auxLeftWidth: 662, auxRightWidth: 662)
+        let layout = IslandGeometry.layout(for: m)
+        let f = try XCTUnwrap(IslandController.panelFrame(mode: .live, layout: layout))
+        XCTAssertEqual(f.width, IslandGeometry.liveSize.width)
+        XCTAssertEqual(f.height, IslandGeometry.liveSize.height + 32, "mit Notch um deren Höhe länger")
+        XCTAssertEqual(f.maxY, 982, "oben bündig")
+    }
+
+    func testModelDropsTextWithoutRecordingAndClearsOnEnd() {
+        let a = ActivityModel(media: NowPlayingModel())
+        a.setLiveText("vor der Aufnahme")
+        XCTAssertNil(a.liveText, "ohne laufende Aufnahme verworfen")
+        XCTAssertFalse(a.showsLiveText)
+        a.setRecording(.recording(since: Date()))
+        a.setLiveText("jetzt")
+        XCTAssertEqual(a.liveText, "jetzt")
+        XCTAssertTrue(a.showsLiveText)
+        a.setLiveText("")
+        XCTAssertNil(a.liveText, "leer = nichts")
+        a.setLiveText("weiter")
+        a.setRecording(.transcribing)
+        XCTAssertEqual(a.liveText, "weiter", "beim Umwandeln bleibt der letzte Stand")
+        a.setRecording(nil)
+        XCTAssertNil(a.liveText, "Aufnahme vorbei: Text weg")
+        XCTAssertFalse(a.hasLiveText)
+    }
+}

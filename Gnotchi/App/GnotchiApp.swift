@@ -102,6 +102,7 @@ final class AppModel {
             NotchFeature(part: HeadphoneWatcher(activity: activity)) { $0.headphoneNotice },
             NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera },
             NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
+            NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
         ] : [])
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland

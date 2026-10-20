@@ -82,10 +82,28 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .compact, name: "pill-transcribing", recording: .transcribing)
     }
 
+    // 0.3.0 Live-Text – SYNTHETISCH, erfundene Sätze (G16)
+    private static let shortLive = "Hallo zusammen, das ist ein kurzer Test"
+    private static let longLive = "Das hier ist ein erfundener, ziemlich langer Diktat-Satz, der über mehr als zwei "
+        + "Zeilen geht, damit man sieht, dass vorne abgeschnitten wird und das Ende sichtbar bleibt"
+    func testRenderNotchLive() throws {
+        try render(notchScreen, .live, name: "notch-live", recording: .recording(since: Date()), liveText: Self.longLive)
+    }
+    func testRenderPillLive() throws {
+        try render(pillScreen, .live, name: "pill-live", recording: .recording(since: Date()), liveText: Self.longLive)
+    }
+    func testRenderPillLiveShort() throws {
+        try render(pillScreen, .live, name: "pill-live-short", recording: .recording(since: Date()), liveText: Self.shortLive)
+    }
+    func testRenderPillLiveTranscribing() throws {
+        try render(pillScreen, .live, name: "pill-live-transcribing", recording: .transcribing, liveText: Self.shortLive)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
-                        withMedia: Bool = true, recording: ActivityModel.Recording? = nil) throws {
+                        withMedia: Bool = true, recording: ActivityModel.Recording? = nil,
+                        liveText: String? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -100,6 +118,7 @@ final class IslandViewRenderTests: XCTestCase {
         if let recording {
             activity.setRecording(recording)
             activity.setRecordingLevel(0.7)
+            activity.setLiveText(liveText)
         }
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
