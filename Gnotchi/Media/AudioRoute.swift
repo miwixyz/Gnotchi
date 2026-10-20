@@ -131,7 +131,7 @@ enum AudioRoute {
     }
 
     /// Gerätenamen vergibt der Nutzer frei (AirPlay-Lautsprecher) – bereinigt wie Strom-Texte, gekürzt.
-    private static func cleanName(_ s: String?) -> String? {
+    static func cleanName(_ s: String?) -> String? {
         NowPlayingInfo.sanitize(s).map { String($0.prefix(maxNameLength)) }
     }
 
@@ -157,13 +157,13 @@ enum AudioRoute {
                         outputName: output.flatMap { string($0, kAudioObjectPropertyName) })
     }
 
-    private static func address(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {
+    static func address(_ selector: AudioObjectPropertySelector) -> AudioObjectPropertyAddress {
         AudioObjectPropertyAddress(mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal,
                                    mElement: kAudioObjectPropertyElementMain)
     }
 
-    private static func scalar<T: BitwiseCopyable>(_ object: AudioObjectID,
-                                                   _ selector: AudioObjectPropertySelector) -> T? {
+    static func scalar<T: BitwiseCopyable>(_ object: AudioObjectID,
+                                           _ selector: AudioObjectPropertySelector) -> T? {
         var addr = address(selector)
         var size = UInt32(MemoryLayout<T>.size)
         let pointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<T>.size,
@@ -175,7 +175,7 @@ enum AudioRoute {
     }
 
     /// CFString-Eigenschaften gibt Core Audio mit +1 zurück (Aufrufer gibt frei) → takeRetainedValue.
-    private static func string(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector) -> String? {
+    static func string(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector) -> String? {
         var addr = address(selector)
         var value: Unmanaged<CFString>?
         var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
@@ -184,7 +184,7 @@ enum AudioRoute {
         return value.takeRetainedValue() as String
     }
 
-    private static func objectList(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector) -> [AudioObjectID] {
+    static func objectList(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector) -> [AudioObjectID] {
         var addr = address(selector)
         var size: UInt32 = 0
         guard AudioObjectGetPropertyDataSize(object, &addr, 0, nil, &size) == noErr, size > 0 else { return [] }

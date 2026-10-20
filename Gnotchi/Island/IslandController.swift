@@ -269,7 +269,9 @@ final class IslandController {
         // Bei .nonactivatingPanel ab Werk schon false (gemessen 18.10.), bei anderen Panel-Stilen true – ausdrücklich
         // gesetzt, damit ein geänderter styleMask die Insel nicht beim App-Wechsel verschwinden lässt.
         p.hidesOnDeactivate = false
-        let view = IslandView(state: state) { [weak self] inside in self?.hover(inside, displayID: displayID) }
+        let view = IslandView(state: state,
+                              onHover: { [weak self] inside in self?.hover(inside, displayID: displayID) },
+                              onOutputMenu: { [weak self] in self?.showOutputMenu(displayID: displayID) })
             .environment(model)
             .environment(activity)
         let host = ClickableHostingView(rootView: view)
@@ -364,27 +366,6 @@ final class IslandController {
         }
     }
 
-    /// Kontextmenü (Einstellungen, Hilfe). Klappt die Insel nicht auf: Eine laufende Aufklapp-Verzögerung
-    /// wird abgebrochen, die Insel bleibt, wie sie ist. `popUpContextMenu` kehrt erst nach dem Schließen
-    /// zurück; Überfahren-Meldungen währenddessen werden ignoriert und danach an der Mauslage nachgeholt.
-    private func showContextMenu(_ event: NSEvent, in view: NSView, displayID: CGDirectDisplayID) {
-        guard let entry = panels[displayID], entry.state.mode != .hidden else { return }
-        expandTasks[displayID]?.cancel()
-        expandTasks[displayID] = nil
-        collapseTasks[displayID]?.cancel()
-        collapseTasks[displayID] = nil
-        let menu = NSMenu()
-        for item in Self.contextMenuItems {
-            menu.addItem(ClosureMenuItem(title: item.title) { [weak self] in self?.openWindow(item.windowID) })
-        }
-        menuOpen.insert(displayID)
-        NSMenu.popUpContextMenu(menu, with: event, for: view)
-        menuOpen.remove(displayID)
-        let inside = entry.panel.frame.contains(NSEvent.mouseLocation)
-        pointerInside[displayID] = inside
-        if !inside { hover(false, displayID: displayID) }
-    }
-
     private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
         guard !menuOpen.contains(displayID), let entry = panels[displayID], entry.state.mode != .hidden else { return }
         pointerInside[displayID] = inside
@@ -452,6 +433,37 @@ final class IslandController {
         return windows(from: list, ownPID: ProcessInfo.processInfo.processIdentifier) { pid in
             NSRunningApplication(processIdentifier: pid)?.activationPolicy == .regular
         }
+    }
+}
+
+// Menüs über der Insel – Erweiterung in derselben Datei (Zugriff auf private Zustände der Insel).
+extension IslandController {
+
+    /// Kontextmenü (Einstellungen, Hilfe). Klappt die Insel nicht auf: Eine laufende Aufklapp-Verzögerung
+    /// wird abgebrochen, die Insel bleibt, wie sie ist. `popUpContextMenu` kehrt erst nach dem Schließen
+    /// zurück; Überfahren-Meldungen währenddessen werden ignoriert und danach an der Mauslage nachgeholt.
+    private func showContextMenu(_ event: NSEvent, in view: NSView, displayID: CGDirectDisplayID) {
+        let menu = NSMenu()
+        for item in Self.contextMenuItems {
+            menu.addItem(ClosureMenuItem(title: item.title) { [weak self] in self?.openWindow(item.windowID) })
+        }
+        runMenu(displayID: displayID) { NSMenu.popUpContextMenu(menu, with: event, for: view) }
+    }
+
+    /// Menü über der Insel: Klappt sie nicht auf oder zu, solange es offen ist. Beide Menüarten kehren erst nach dem
+    /// Schließen zurück; Überfahren-Meldungen währenddessen werden ignoriert und danach an der Mauslage nachgeholt.
+    func runMenu(displayID: CGDirectDisplayID, show: () -> Void) {
+        guard let entry = panels[displayID], entry.state.mode != .hidden else { return }
+        expandTasks[displayID]?.cancel()
+        expandTasks[displayID] = nil
+        collapseTasks[displayID]?.cancel()
+        collapseTasks[displayID] = nil
+        menuOpen.insert(displayID)
+        show()
+        menuOpen.remove(displayID)
+        let inside = entry.panel.frame.contains(NSEvent.mouseLocation)
+        pointerInside[displayID] = inside
+        if !inside { hover(false, displayID: displayID) }
     }
 }
 

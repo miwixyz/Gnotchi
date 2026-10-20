@@ -19,6 +19,8 @@ struct IslandView: View {
     @Environment(NowPlayingModel.self) private var model
     let state: IslandState
     let onHover: (Bool) -> Void
+    /// Klick auf das Ausgabe-Symbol oben rechts (groß): IslandController zeigt die Geräteliste.
+    var onOutputMenu: () -> Void = {}
 
     private var size: CGSize {
         switch state.mode {
@@ -111,7 +113,7 @@ struct IslandView: View {
                 .frame(height: 56)
             }
             // Als Überlagerung: ein Gerätename über der Tastenspalte soll den Titel nicht schmaler machen.
-            .overlay(alignment: .topTrailing) { routeLabel }
+            .overlay(alignment: .topTrailing) { outputButton }
             ProgressRow(info: info) { model.seek(to: $0) }
         }
         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 12, leading: 16, bottom: 12, trailing: 16))
@@ -139,22 +141,29 @@ struct IslandView: View {
         }
     }
 
-    /// Wo die Musik herauskommt, oben rechts auf Höhe der App-Kopfzeile. Lokal: nichts.
+    /// Ausgabe-Knopf oben rechts auf Höhe der App-Kopfzeile (0.2.0): immer das Ausgabe-Symbol, bei
+    /// AirPlay/Bluetooth/anderem Gerät dazu wie bisher der Name. Klick → Liste der Ausgabegeräte.
     /// Gerätenamen vergibt der Nutzer frei → `Text(verbatim:)`.
-    @ViewBuilder private var routeLabel: some View {
-        if let symbol = model.route.symbol, let text = model.route.label {
+    private var outputButton: some View {
+        Button(action: onOutputMenu) {
             HStack(spacing: 4) {
-                Image(systemName: symbol).font(.system(size: 10, weight: .semibold))
-                Text(verbatim: text).font(.system(size: 11, weight: .medium))
-                    .lineLimit(1).truncationMode(.tail)
+                Image(systemName: model.route.symbol ?? "airplayaudio").font(.system(size: 10, weight: .semibold))
+                if let text = model.route.label {
+                    Text(verbatim: text).font(.system(size: 11, weight: .medium))
+                        .lineLimit(1).truncationMode(.tail)
+                }
             }
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: Self.routeMaxWidth, alignment: .trailing)
             .frame(height: 16)
-            // Gleiche Höhe wie die App-Kopfzeile (Textspalte ist 52 pt hoch, mittig in 56 pt).
-            .padding(.top, 2)
-            .accessibilityElement(children: .combine)
+            // Klickfläche nur über Symbol und Name, nicht über die volle Breite.
+            .contentShape(Rectangle())
+            .frame(maxWidth: Self.routeMaxWidth, alignment: .trailing)
         }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        // Gleiche Höhe wie die App-Kopfzeile (Textspalte ist 52 pt hoch, mittig in 56 pt).
+        .padding(.top, 2)
+        .accessibilityLabel(Text(verbatim: "Ausgabe wählen"))
+        .accessibilityValue(Text(verbatim: model.route.label ?? ""))
     }
 
     /// Welche App spielt: Symbol 16 pt + lokalisierter Name aus dem lokalen Bundle (AppIcons.name), Grau.
