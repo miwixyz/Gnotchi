@@ -99,11 +99,25 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .live, name: "pill-live-transcribing", recording: .transcribing, liveText: Self.shortLive)
     }
 
+    // 0.3.0 Qotti-Kontingent
+    private static let quota = QottiLink.Snapshot(claude: .init(percent: 42, resetAt: nil, state: .ok),
+                                                  codex: .init(percent: 17, resetAt: nil, state: .ok))
+    func testRenderNotchExpandedQuota() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-quota", quota: Self.quota)
+    }
+    func testRenderPillExpandedQuotaAndPrivacy() throws {
+        try render(pillScreen, .expanded, name: "pill-expanded-quota-privacy", privacy: callPrivacy, quota: Self.quota)
+    }
+    func testRenderNotchNoticeQuota() throws {
+        let p = QottiLink.Provider(percent: 82, resetAt: Date().addingTimeInterval(65 * 60 + 30), state: .ok)
+        try render(notchScreen, .notice, name: "notch-notice-quota", notice: QottiLink.notice(name: "Claude", p, .percent80))
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
                         withMedia: Bool = true, recording: ActivityModel.Recording? = nil,
-                        liveText: String? = nil) throws {
+                        liveText: String? = nil, quota: QottiLink.Snapshot? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -115,6 +129,7 @@ final class IslandViewRenderTests: XCTestCase {
         let activity = ActivityModel(media: model)
         if let notice { activity.post(notice) }
         activity.setPrivacy(privacy)
+        activity.setQuota(quota)
         if let recording {
             activity.setRecording(recording)
             activity.setRecordingLevel(0.7)
@@ -123,8 +138,8 @@ final class IslandViewRenderTests: XCTestCase {
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = IslandController.panelFrame(mode: mode, layout: layout, hasMedia: withMedia,
-                                                privacy: privacy.isActive) ?? layout.compact
-        let canvas = CGSize(width: 520, height: 170)
+                                                privacy: privacy.isActive, quota: quota != nil) ?? layout.compact
+        let canvas = CGSize(width: 520, height: 210)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)

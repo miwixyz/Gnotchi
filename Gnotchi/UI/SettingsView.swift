@@ -22,6 +22,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.micCamera) { model.applyNotchSetting() }
                 toggleRow("Tippi-Aufnahme anzeigen", isOn: $prefs.tippiRecording)
                     .onChange(of: prefs.tippiRecording) { model.applyNotchSetting() }
+                toggleRow("Qotti-Kontingent anzeigen", isOn: $prefs.qottiQuota)
+                    .onChange(of: prefs.qottiQuota) { model.applyNotchSetting() }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

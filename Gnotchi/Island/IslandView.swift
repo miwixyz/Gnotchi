@@ -31,7 +31,8 @@ struct IslandView: View {
         case .compact: state.layout.compact.size
         case .expanded:
             IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
-                                        privacy: activity.privacy.isActive)?.size ?? state.layout.expanded.size
+                                        privacy: activity.privacy.isActive,
+                                        quota: activity.quotaLine != nil)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         }
@@ -80,11 +81,15 @@ struct IslandView: View {
         case .expanded:
             if let info = model.info {
                 VStack(spacing: 0) {
+                    let top = (state.layout.notch?.height ?? 0) + 8
                     if activity.privacy.isActive {
-                        privacyLine.padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16,
-                                                       bottom: 0, trailing: 16))
+                        privacyLine.padding(EdgeInsets(top: top, leading: 16, bottom: 0, trailing: 16))
                     }
-                    expanded(info, topInset: activity.privacy.isActive ? 4 : nil)
+                    if let q = activity.quotaLine {
+                        QuotaLine(text: q)
+                            .padding(EdgeInsets(top: activity.privacy.isActive ? 4 : top, leading: 16, bottom: 0, trailing: 16))
+                    }
+                    expanded(info, topInset: activity.privacy.isActive || activity.quotaLine != nil ? 4 : nil)
                 }
             } else if activity.privacy.isActive {
                 privacyDetails

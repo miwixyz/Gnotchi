@@ -178,7 +178,8 @@ final class IslandController {
 
     /// Panelgröße für den aktuellen Inhalt.
     private func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
-        Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive)
+        Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
+                        quota: activity.quotaLine != nil)
     }
 
     // MARK: Ablauf
@@ -193,6 +194,7 @@ final class IslandController {
             _ = activity.privacy
             _ = activity.recording
             _ = activity.hasLiveText
+            _ = activity.quota != nil
             _ = model.info != nil
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.

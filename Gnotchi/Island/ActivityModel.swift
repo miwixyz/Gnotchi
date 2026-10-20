@@ -51,6 +51,8 @@ final class ActivityModel {
     private(set) var recordingLevel: Double = 0
     /// Tippis Live-Text (0.3.0, G21). Nur sichtbar, solange `recording` läuft; nie protokollieren.
     private(set) var liveText: String?
+    /// Qotti-Kontingent (0.3.0, G22): nur Zahlen. Hält die Insel nicht offen, nur Zeile in der großen Insel.
+    private(set) var quota: QottiLink.Snapshot?
     private(set) var notice: Notice?
     private(set) var privacy = Privacy.none
     @ObservationIgnored private var noticeTask: Task<Void, Never>?
@@ -104,6 +106,12 @@ final class ActivityModel {
             self?.notice = nil
         }
     }
+
+    func setQuota(_ q: QottiLink.Snapshot?) {
+        if quota != q { quota = q }
+    }
+
+    var quotaLine: String? { QottiLink.line(quota) }
 
     func setPrivacy(_ p: Privacy) {
         if privacy != p { privacy = p }

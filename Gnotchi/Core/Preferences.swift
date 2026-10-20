@@ -14,6 +14,8 @@ final class Preferences {
         static let micCamera = "micCamera"
         /// Tippi liest diesen Schlüssel (CFPreferences, Domäne dev.mwlr.gnotchi) – nicht umbenennen.
         static let tippiRecording = "tippiRecording"
+        /// Qotti liest diesen Schlüssel (CFPreferences, Domäne dev.mwlr.gnotchi) – nicht umbenennen.
+        static let qottiQuota = "qottiQuota"
     }
 
     /// Auswahl „Aufklappen nach“ in Sekunden (Sofort, 0,3 s, 0,6 s, 1 s).
@@ -39,6 +41,9 @@ final class Preferences {
     /// Tippis Diktat in der Insel zeigen; Tippi blendet dann seine eigene Pille aus (0.2.0). Ab Werk an.
     var tippiRecording: Bool { didSet { defaults.set(tippiRecording, forKey: Key.tippiRecording) } }
 
+    /// Qotti-Kontingent: Warnung bei 80/95 %/Drosselung, Zeile in der großen Insel (0.3.0). Ab Werk an.
+    var qottiQuota: Bool { didSet { defaults.set(qottiQuota, forKey: Key.qottiQuota) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
@@ -48,6 +53,7 @@ final class Preferences {
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
         tippiRecording = defaults.object(forKey: Key.tippiRecording) as? Bool ?? true
+        qottiQuota = defaults.object(forKey: Key.qottiQuota) as? Bool ?? true
     }
 
     /// Nur Werte aus der Auswahl; alles andere (anderer Typ, per `defaults write` gesetzt) → ab Werk.

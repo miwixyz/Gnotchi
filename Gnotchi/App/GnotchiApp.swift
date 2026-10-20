@@ -103,6 +103,7 @@ final class AppModel {
             NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera },
             NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
+            NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
         ] : [])
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland

@@ -18,7 +18,7 @@ extension IslandController {
     /// Panelgröße je Zustand; nil = Panel ist weg. Groß hängt am Inhalt (0.2.0): ohne Musik nur die
     /// Mikrofon/Kamera-Zeilen in Hinweis-Größe, mit Musik und aktivem Mikrofon/Kamera eine Zeile höher.
     nonisolated static func panelFrame(mode: IslandState.Mode, layout: IslandGeometry.Layout,
-                                       hasMedia: Bool = true, privacy: Bool = false) -> CGRect? {
+                                       hasMedia: Bool = true, privacy: Bool = false, quota: Bool = false) -> CGRect? {
         switch mode {
         case .hidden: return nil
         case .compact: return layout.compact
@@ -26,10 +26,11 @@ extension IslandController {
         case .live: return layout.live
         case .expanded:
             guard hasMedia else { return layout.notice }
-            guard privacy else { return layout.expanded }
+            let lines = CGFloat((privacy ? 1 : 0) + (quota ? 1 : 0))
+            guard lines > 0 else { return layout.expanded }
             var r = layout.expanded
-            r.origin.y -= IslandGeometry.privacyLineHeight
-            r.size.height += IslandGeometry.privacyLineHeight
+            r.origin.y -= IslandGeometry.privacyLineHeight * lines
+            r.size.height += IslandGeometry.privacyLineHeight * lines
             return r
         }
     }
