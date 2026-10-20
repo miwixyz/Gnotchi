@@ -163,6 +163,7 @@ Alle Entscheidungen mit Begründung: [docs/SECURE-DESIGN.md](docs/SECURE-DESIGN.
 make gen       # Projekt erzeugen (xcodegen), CHANGELOG ins Bundle spiegeln, Package.resolved einspielen
 make build     # bauen, unsigniert
 make test      # Tests (signiert, der Test-Host ist die App)
+make render    # nur die Insel-Bilder nach build/render/ (Sichtprüfung ohne App-Start)
 make lint      # Datenschutz-Gate + SwiftLint strikt (inkl. „keine Bedienungshilfen“, „Kindprozess nur im Adapter“)
 make hooks     # einmal je Klon: Datenschutz-Gate vor jedem Commit
 make dev       # Testversion mit Developer ID signiert unter /tmp starten (scripts/dev-signed.sh)
@@ -174,8 +175,8 @@ Voraussetzungen: macOS 27, Xcode, `xcodegen`, `swiftlint`. Der Adapter startet n
 Michaels Team signierten Programmpaket (`make dev`, `make install`). Ein unsignierter `make build`
 zeigt deshalb höchstens Spotify und Musik über den Rückfall.
 
-Bilder der Insel ohne App-Start: `TEST_RUNNER_GNOTCHI_RENDER_DIR=/tmp/gnotchi-render make test`
-(absoluter Pfad).
+Bilder der Insel ohne App-Start: `make render` (nach `build/render/`, alte Bilder werden ersetzt).
+Erfundene Titel, Platzhalter-Cover, rote Linie = Hardware-Notch.
 
 ## Aufbau
 

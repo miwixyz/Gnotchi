@@ -1,4 +1,4 @@
-.PHONY: docs gen lock build test lint hooks dev install release release-dry-run clean
+.PHONY: docs gen lock build test render lint hooks dev install release release-dry-run clean
 
 APP = Gnotchi
 CONFIG ?= Debug
@@ -37,6 +37,21 @@ test: gen
 		-destination 'platform=macOS' \
 		-derivedDataPath $(DERIVED) \
 		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates test
+
+# Nur die Insel-Bilder (IslandViewRenderTests) nach build/render/ – ohne App-Start, für die Sichtprüfung
+# nach jeder Änderung an der Insel. Vorher von Hand mit TEST_RUNNER_GNOTCHI_RENDER_DIR (20.10.: viermal
+# an einem Tag). Alte Bilder fliegen vorher raus; ohne neues Bild bricht das Ziel ab (kein stilles „fertig“).
+RENDER_DIR = $(CURDIR)/build/render
+render: gen
+	@mkdir -p "$(RENDER_DIR)"
+	@find "$(RENDER_DIR)" -name 'gnotchi-island-*.png' -delete
+	@TEST_RUNNER_GNOTCHI_RENDER_DIR="$(RENDER_DIR)" xcodebuild -project $(APP).xcodeproj -scheme $(APP) \
+		-destination 'platform=macOS' -derivedDataPath $(DERIVED) \
+		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates \
+		test -only-testing:GnotchiTests/IslandViewRenderTests 2>&1 | grep -E '^xcodebuild: error:|\.swift:[0-9]+:[0-9]+: error:|\*\* TEST' || true
+	@n=$$(find "$(RENDER_DIR)" -name 'gnotchi-island-*.png' | wc -l | tr -d ' '); \
+	if [ "$$n" -eq 0 ]; then echo "✗ keine Bilder in $(RENDER_DIR) – Testausgabe oben prüfen"; exit 1; fi; \
+	echo "✓ $$n Bilder in $(RENDER_DIR):"; ls "$(RENDER_DIR)" | sed 's/^/  /'
 
 # Datenschutz-Gate zuerst (docs/SECURE-DESIGN.md G16): keine echten Hördaten im Repo.
 lint:
