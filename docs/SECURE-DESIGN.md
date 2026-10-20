@@ -549,7 +549,8 @@ Liste und Stand: `specs/2026-10-20-gnotchi-0.3.0-live-text.md`. Erfüllt 20.10.:
 echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest Mac mini.
 
 - [ ] Sichttest mit Notch (MacBook) und über Vollbild
-- [ ] `rafter-code-review` + `rafter run` für Gnotchi, Tippi **und** Qotti
+- [ ] `rafter-code-review` für Gnotchi, Tippi und Qotti; `rafter run` nur Gnotchi + Tippi (Qotti ist privat,
+      geht nicht an Rafter – Michael 10.10.)
 - [ ] Positivliste der Berechtigungen am ausgelieferten 0.3.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien 0.2.0
