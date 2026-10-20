@@ -60,8 +60,9 @@ Freigabe nicht und fragt nie danach.
 - **Mikrofon und Kamera:** Solange eine App sie nutzt, sitzt ein oranger bzw. grüner Punkt an der
   Insel. Groß steht dort, welche App das Mikrofon nutzt (bei der Kamera nennt macOS keine App).
 - **Tippi-Diktat:** Rotes Mikrofon mit dem echten Pegel, danach „wandelt um“. Tippi blendet seine
-  eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps. Mit Tippis Live-Vorschau bleibt
-  Tippis Anzeige, weil Gnotchi keinen Text zeigt.
+  eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps.
+- **Tippis Live-Vorschau:** Ist sie in Tippi an, klappt die Insel auf und zeigt die letzten zwei Zeilen
+  des Diktats. Ohne Verbindung zu Gnotchi zeigt Tippi seine eigene Anzeige.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
   erneut und schaltet von selbst zurück.
@@ -121,6 +122,10 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → 
   den Pegel, nie Text. Jedes Programm auf dem Mac kann diese Meldung mitlesen; sie verrät nur, dass
   gerade diktiert wird. Nachrichten mit anderem Aufbau verwirft Gnotchi
   ([G17](docs/SECURE-DESIGN.md)).
+- **Live-Vorschau-Text:** kommt nie über diese Systemmeldung, sondern über einen lokalen Socket in
+  `~/Library/Application Support/Gnotchi`, nur für dich lesbar. Beide Apps prüfen vorher die
+  Developer-ID-Signatur der anderen; andere Programme werden abgewiesen. Der Text wird weder
+  gespeichert noch protokolliert ([G21](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 

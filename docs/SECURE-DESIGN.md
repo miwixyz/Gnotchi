@@ -74,13 +74,15 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Tippi / jeder lokale Prozess] ─(8) distnoted com.tippi.app.aufnahme ─▶ [Gnotchi: TippiLink → Insel]
 [Core Audio / CoreMediaIO] ─(9) „nimmt auf“, Kamera läuft, Standard-Ausgang ─▶ [Gnotchi]
 [Nutzer: Klick im Ausgabe-Menü] ─(10) Standard-Ausgabegerät setzen ─▶ [Core Audio]
+[Tippi, geprüft] ─(11) Unix-Socket live.sock, Live-Vorschau-Text ─▶ [Gnotchi: LiveTextServer → Insel]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
 vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gnotchi ↔ Kindprozess ·
 (5) Gnotchi → andere Apps · (7) Gnotchi ↔ Netz · (8) jeder lokale Prozess → Gnotchi (G17) ·
 (9) System → Gnotchi, App-Namen sind Fremddaten (G18, G19) · (10) Gnotchi → Systemeinstellung (G20) ·
-(6a) Gnotchis Einstellungsdatei → Tippi (G17).
+(6a) Gnotchis Einstellungsdatei → Tippi (G17) · (11) Tippi ↔ Gnotchi über den Socket, Diktattext,
+beidseitig signaturgeprüft (G21).
 
 ## Entscheidungen
 
@@ -326,7 +328,8 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 - **Entschieden:** Kein URL-Schema, kein `NSAppleScriptEnabled`, keine `NSServices`, keine
   XPC-Schnittstelle. Distributed Notifications nur **empfangend und nur zur Anzeige** (ab 0.2.0,
   G17: Tippi-Aufnahme) – eine Meldung löst nie einen Befehl, nie Apple Events, nie einen Prozess-
-  start aus, nur Text und Pegel in der Insel.
+  start aus, nur Text und Pegel in der Insel. Ab 0.3.0 dazu der Live-Text-Socket (G21): ebenfalls nur
+  Anzeige, nur von einem Developer-ID-signierten Tippi angenommen, keine Befehle.
 - **Warum:** Sonst könnten andere Programme Gnotchi als Werkzeug benutzen und über dessen
   Automation-Freigabe Spotify/Musik steuern, ohne selbst gefragt zu werden.
 
@@ -425,6 +428,41 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
   Gerät wird nicht gesetzt (`OutputDevices.canSelect`, Test). Protokoll nur Übertragungsart bzw.
   OSStatus. Keine Automatik, kein Merken „Lieblingsgerät“.
 
+### G21 – Tippis Live-Text: eigener Socket, beidseitig geprüft, nie protokolliert (neu, 2026-10-20, 0.3.0)
+- **Warum ein eigener Weg:** Diktattext ist so privat wie das Mikrofon selbst. distnoted (G17) kann
+  jeder lokale Prozess mitlesen, deshalb dort nie Text. Leitsatz: Ein Prozess ohne Mikrofon-Freigabe
+  kommt über diesen Weg nicht an Gesprochenes.
+- **Weg:** Unix-Stream-Socket `~/Library/Application Support/Gnotchi/live.sock` (`LiveTextServer`,
+  `LiveTextLink`), läuft mit dem Schalter „Tippi-Aufnahme anzeigen“. Ordner 0700 (angelegt bzw.
+  nachgeschärft, muss echter Ordner des Nutzers sein, kein Link), Socket 0600. Eine fremde Datei oder
+  ein Link am Pfad wird **nicht** gelöscht – dann bleibt die Funktion aus. Lokal, kein Netz, keine
+  Berechtigung (Positivliste G12 unverändert).
+- **Gnotchi prüft Tippi** vor dem ersten gelesenen Byte: `LOCAL_PEERTOKEN` → Audit-Token →
+  `SecCodeCopyGuestWithAttributes(kSecGuestAttributeAudit)` → `SecCodeCheckValidity` gegen
+  `LiveText.tippiRequirement`: **Developer ID** (Zwischenzertifikat `1.2.840.113635.100.6.2.6`),
+  Kennung `com.tippi.app`, Team LTKJ6Z2VYB. Nicht nur `anchor apple generic`: Apple-Development-Builds
+  tragen `get-task-allow` und ließen sich vom gleichen Nutzer anhängen. Audit-Token statt PID: kein
+  Wettlauf mit wiederverwendeten Prozessnummern. Bestanden → Antwort `{"v":1,"ok":true}`, sonst zu.
+- **Tippi prüft Gnotchi** genauso (Server-Seite des Sockets, Kennung `dev.mwlr.gnotchi`) und schickt erst
+  nach Gnotchis `ok` Text; sonst zeigt Tippi seine eigene Pille. Ein Prozess, der den Pfad vor Gnotchi
+  belegt, bekommt also nichts.
+- **Schema statt Vertrauen, auch nach der Prüfung:** 4 Byte Länge + JSON ≤ 4 KB, `v` = 1 (Zahl, kein
+  Bool), `text` String; sonst Verbindung zu. Steuer-, Format- und Richtungszeichen raus (außer
+  Emoji-Verbinder), Leerraum zusammengefasst, höchstens 400 Zeichen behalten, angezeigt das Ende
+  (≈ 85 Zeichen, zwei Zeilen), nur `Text(verbatim:)`. Höchstens 4 Stände/s an die Ansicht.
+- **Lebensdauer:** Text nur, solange Tippi über distnoted „nimmt auf/wandelt um“ meldet (G17, eigenes
+  3-s-Zeitlimit) und die Verbindung offen ist; danach sofort verworfen. Kein eigenes Zeitlimit, weil
+  Tippis Vorschau-Takt keine Obergrenze hat (`nextInterval = max(1, Dauer × 2)`). Nie gespeichert,
+  nie protokolliert – Protokoll nur „bereit/verbunden/abgelehnt (OSStatus)/getrennt“.
+- **Gemessen 20.10.:** Spike beidseitiges `LOCAL_PEERTOKEN` (PIDs korrekt); Anforderung nimmt
+  `/Applications/Tippi.app` und `Gnotchi.app` an, lehnt vertauschte Kennung und TextEdit ab (-67050);
+  Gegenprobe je Repo: ohne Prüfung wird der Ablehnungs-Test rot; echtes System: ad-hoc-signierter
+  Client → „abgelehnt (-67050)“, kein ok; Michaels Diktat mit Live-Vorschau → Text in der Insel,
+  Protokoll beider Apps ohne Diktattext.
+- **Restrisiko (hingenommen):** Root; Apps mit Bildschirmaufnahme-/Bedienungshilfen-Freigabe sehen
+  den Text wie zuvor in Tippis Pille; ein Prozess des gleichen Nutzers kann den Socket löschen und
+  die Funktion stören (Ausfall auf Tippis Pille), aber nicht mitlesen.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -448,6 +486,11 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 | **I** | Gnotchi → Protokoll (9) | App-Namen der Mikrofon-Nutzer, Gerätenamen | G18, G19: nie protokolliert |
 | **S** | lokaler Prozess → Tippi (6a) | Tippis Pille ausblenden | G17: Signaturprüfung; Schreiben in die Einstellung hingenommen (macOS-Punkt bleibt) |
 | **T** | Gnotchi → Core Audio (10) | Ausgang auf falsches/verschwundenes Gerät | G20 |
+| **S** | lokaler Prozess → Tippi (11) | belegt den Socket-Pfad, gibt sich als Gnotchi aus, will Diktattext | G21: Tippi prüft den Server (Developer ID), Text erst nach `ok` |
+| **S** | lokaler Prozess → Gnotchi (11) | schiebt Text in die Notch (Phishing) | G21: Gnotchi prüft den Client, sonst zu |
+| **T** | lokaler Prozess → Gnotchi (11) | kaputte/übergroße Rahmen, Steuer-/Richtungszeichen | G21: Rahmen ≤ 4 KB, Schema, Bereinigung |
+| **I** | Gnotchi/Tippi → Protokoll (11) | Diktattext im Log | G21: nie protokolliert |
+| **D** | lokaler Prozess → Gnotchi (11) | fremde Datei am Pfad, Socket gelöscht, Flut | G21: Funktion aus bzw. Rückfall auf Tippis Pille, 4/s |
 
 ## Negativraum: was wir stillschweigend annehmen
 
@@ -480,6 +523,15 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 
 Kein Paket wird nach einem von einem Sprachmodell vorgeschlagenen Namen installiert, nur nach der
 Adresse aus dem offiziellen README (Slopsquat).
+
+## Ausstiegskriterien 0.3.0 (Live-Text)
+
+Liste und Stand: `specs/2026-10-20-gnotchi-0.3.0-live-text.md`. Erfüllt 20.10.: Tests + Gegenproben,
+echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest Mac mini.
+
+- [ ] Sichttest mit Notch (MacBook) und über Vollbild
+- [ ] `rafter-code-review` + `rafter run` für Gnotchi **und** Tippi
+- [ ] Positivliste der Berechtigungen am ausgelieferten 0.3.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien 0.2.0
 

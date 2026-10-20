@@ -33,7 +33,8 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 ## Was sonst noch in der Notch landet
 
 - Diktierst du mit [Tippi](https://github.com/miwixyz/Tippi), steht in der Notch ein rotes
-  Mikrofon mit dem Pegel deiner Stimme. Tippis eigene Anzeige bleibt dann weg.
+  Mikrofon mit dem Pegel deiner Stimme. Tippis eigene Anzeige bleibt dann weg. Mit Tippis
+  Live-Vorschau klappt die Insel auf und zeigt die letzten zwei Zeilen, während du sprichst.
 - Ein oranger Punkt heißt: Eine App nutzt das Mikrofon. Grün ist die Kamera. Welche App am
   Mikrofon hängt, siehst du, wenn du mit der Maus darüberfährst.
 - Kopfhörer verbunden? Die Notch zeigt drei Sekunden lang ihren Namen.
@@ -57,8 +58,9 @@ Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gera
 nichts mit und nimmt nichts auf.
 
 Ob eine App Mikrofon oder Kamera nutzt, erfährt Gnotchi ohne eigene Freigabe. Den App-Namen zeigt es
-nur in der Insel, im Protokoll steht er nicht. Von Tippi kommt nur „nimmt auf“ und der Pegel. Deinen
-Text sieht Gnotchi nie.
+nur in der Insel, im Protokoll steht er nicht. Von Tippi kommt „nimmt auf“ und der Pegel. Den Text der
+Live-Vorschau bekommt Gnotchi nur auf einem geschützten Weg, den andere Programme nicht nutzen können.
+Er steht nur in der Insel, gespeichert oder protokolliert wird er nicht.
 
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 

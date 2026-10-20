@@ -83,8 +83,11 @@ welche App es ist, deshalb steht dort nur „Kamera“. Nimmt eine Webseite in S
 Diktierst du mit Tippi, zeigt die Insel ein rotes Mikrofon und den Pegel deiner Stimme, ohne Notch
 auch „nimmt auf“ und die Laufzeit. Danach steht „wandelt um“, bis der Text eingefügt ist. Tippi
 blendet seine eigene Anzeige dann aus. Die Aufnahme hat Vorrang vor Musik und Hinweisen, klappt
-nicht auf und ist auch über Apps im Vollbild zu sehen. Ist in Tippi die Live-Vorschau eingeschaltet, bleibt Tippis eigene Anzeige: Gnotchi zeigt
-keinen Text.
+nicht auf und ist auch über Apps im Vollbild zu sehen.
+
+Ist in Tippi die Live-Vorschau eingeschaltet, klappt die Insel beim Diktat auf und zeigt die letzten
+zwei Zeilen deines Texts, während du sprichst. Ältere Wörter laufen vorne raus. Klappt die Verbindung
+zu Tippi nicht, zeigt Tippi wie gewohnt seine eigene Anzeige mit dem Text.
 
 Das klappt mit Tippi ab der Version, die Gnotchi unterstützt (steht in Tippis Änderungen). Schaltest du
 „Tippi-Aufnahme anzeigen“ aus, zeigt Tippi wieder seine eigene Anzeige.
@@ -128,7 +131,8 @@ nicht wirkt.
 - Gespeichert werden nur deine Einstellungen.
 - Gnotchi liest keine Fenstertitel und keine Inhalte anderer Apps und nimmt keinen Ton auf.
 - Welche App Mikrofon oder Kamera nutzt, steht nur in der Insel, nie im Protokoll.
-- Von Tippi erfährt Gnotchi nur „nimmt auf“, „wandelt um“ und den Pegel, nie den Text. Diese Meldung kann jedes Programm auf deinem Mac mitlesen; sie verrät nur, dass du gerade diktierst.
+- Von Tippi erfährt Gnotchi über eine Systemmeldung „nimmt auf“, „wandelt um“ und den Pegel. Diese Meldung kann jedes Programm auf deinem Mac mitlesen; sie verrät nur, dass du gerade diktierst, nie was.
+- Den Text der Live-Vorschau bekommt Gnotchi auf einem eigenen, geschützten Weg: Beide Apps prüfen vorher die Signatur der anderen, andere Programme werden abgewiesen. Der Text steht nur in der Insel, wird nicht gespeichert, nicht protokolliert und ist weg, sobald das Diktat endet.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig
