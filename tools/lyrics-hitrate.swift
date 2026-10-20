@@ -94,21 +94,24 @@ func best(_ list: Any?) -> Result {
 /// Erst exakt (/api/get mit Dauer), dann Suche. Liefert Ergebnis und Weg.
 func lookup(track: String, artist: String?, album: String?, duration: Int?, browser: Bool) -> (Result, String) {
     var t = track, a = artist
+    var prefix = ""
     if browser { let c = cleanBrowserTitle(track); t = c.track; a = c.artist ?? artist }
     if let a, let duration, !browser {
         var q = ["track_name": t, "artist_name": a, "duration": String(duration)]
         if let album, !album.isEmpty { q["album_name"] = album }
-        let (st, body) = fetch("/api/get", q)
+        // Ohne Wiederholung: /api/get antwortete am 20.10. bei Titeln ohne Treffer dauerhaft 503, beim
+        // Doku-Beispiel sofort 200 – Vermutung: 503 = Nachsuche bei Fremdquellen gescheitert. Dann zur Suche.
+        let (st, body) = fetchOnce("/api/get", q)
         if st == 200, let obj = body as? [String: Any] { return (classify(obj), "get") }
-        if st != 404 && st != 200 { return (.error, "get \(st)") }
+        prefix = st == 404 ? "get 404 → " : "get \(st) → "
     }
     if let a {
         let (st, body) = fetch("/api/search", ["track_name": t, "artist_name": a])
-        if st == 200 { let r = best(body); if r != .none { return (r, "search") } }
+        if st == 200 { let r = best(body); if r != .none { return (r, prefix + "search") } }
     }
     let (st, body) = fetch("/api/search", ["q": a.map { "\($0) \(t)" } ?? t])
-    if st == 200 { return (best(body), "search-q") }
-    return (.error, "search \(st)")
+    if st == 200 { return (best(body), prefix + "search-q") }
+    return (.error, prefix + "search \(st)")
 }
 
 // MARK: Zähler (nur Zahlen auf Platte)
