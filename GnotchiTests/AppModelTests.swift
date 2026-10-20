@@ -62,6 +62,37 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(islandsMade, 1, "eine Insel für alle Läufe")
     }
 
+    /// 0.2.0: Mehrere Quellen mit eigenem Schalter. Die Insel läuft, solange irgendeine an ist;
+    /// Musik aus stoppt nur den Adapter, nicht die Insel.
+    func testIslandRunsWhileAnyFeatureIsOn() {
+        var extraOn = false
+        let log = calls!
+        let model = AppModel(prefs: prefs, allowStart: true,
+                             source: FakePart(name: "source", log: log),
+                             extraFeatures: [NotchFeature(part: FakePart(name: "extra", log: log)) { _ in extraOn }],
+                             makeIsland: { FakePart(name: "island", log: log) })
+        prefs.notchMedia = true
+        model.applyNotchSetting()
+        XCTAssertEqual(calls.entries, ["source.start", "island.start"])
+
+        extraOn = true
+        model.applyNotchSetting()
+        XCTAssertEqual(calls.entries.suffix(1), ["extra.start"], "Insel läuft schon")
+
+        prefs.notchMedia = false
+        model.applyNotchSetting()
+        XCTAssertEqual(calls.entries.suffix(1), ["source.stop"], "nur der Adapter")
+        XCTAssertTrue(model.notchRunning)
+
+        extraOn = false
+        model.applyNotchSetting()
+        XCTAssertEqual(calls.entries.suffix(2), ["island.stop", "extra.stop"], "Insel vor der Quelle")
+        XCTAssertFalse(model.notchRunning)
+
+        model.applyNotchSetting()
+        XCTAssertEqual(calls.entries.count, 6, "kein doppelter Stopp")
+    }
+
     /// Schalter aus von Anfang an: keine Insel anlegen, nichts stoppen.
     func testOffFromStartCreatesNothing() {
         let model = makeModel(allowStart: true)

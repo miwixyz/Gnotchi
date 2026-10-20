@@ -23,7 +23,9 @@ final class IslandController {
         let state: IslandState
     }
 
-    private let model: NowPlayingModel
+    private let activity: ActivityModel
+    /// Musik: Hinweis auf eine zweite Notch-App und „Insel gezeigt“ gehören zum Wiedergabe-Modell.
+    private var model: NowPlayingModel { activity.media }
     private var panels: [CGDirectDisplayID: Entry] = [:]
     /// Getrennt nach Zentrum: Ein Token lässt sich nur dort abmelden, wo es angemeldet wurde.
     private var appObservers: [NSObjectProtocol] = []
@@ -56,9 +58,9 @@ final class IslandController {
     /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
-    init(model: NowPlayingModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
+    init(activity: ActivityModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
          openWindow: @escaping @MainActor (String) -> Void = { _ in }) {
-        self.model = model
+        self.activity = activity
         self.expandDelay = expandDelay
         self.openWindow = openWindow
     }
@@ -189,7 +191,8 @@ final class IslandController {
     /// danach wird neu angemeldet – aber nur, solange derselbe Lauf aktiv ist.
     private func observeModel(generation gen: Int) {
         withObservationTracking {
-            _ = model.isVisible
+            _ = activity.isVisible
+            _ = activity.showsOverFullscreen
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -268,6 +271,7 @@ final class IslandController {
         p.hidesOnDeactivate = false
         let view = IslandView(state: state) { [weak self] inside in self?.hover(inside, displayID: displayID) }
             .environment(model)
+            .environment(activity)
         let host = ClickableHostingView(rootView: view)
         host.onContextClick = { [weak self] event, view in self?.showContextMenu(event, in: view, displayID: displayID) }
         // Die Größe bestimmt der Controller (setFrame), nicht der SwiftUI-Inhalt.
@@ -290,13 +294,15 @@ final class IslandController {
         }
     }
 
-    /// Sichtbarkeit je Bildschirm: Musik läuft, und auf diesem Bildschirm ist keine App im Vollbild.
+    /// Sichtbarkeit je Bildschirm: Es gibt etwas zu zeigen, und auf diesem Bildschirm ist keine App im Vollbild
+    /// (Ausnahme `ActivityModel.showsOverFullscreen`).
     /// Im selben Durchgang: zeichnet eine zweite Notch-App über unserer Fläche? (Nur bei sichtbarer Insel –
     /// sonst läuft keine Fensterliste, und ohne Insel gibt es auch keinen Konflikt.)
     private func refresh() {
-        let windows = model.isVisible ? Self.onScreenWindows() : []
+        let visible = activity.isVisible
+        let windows = visible ? Self.onScreenWindows() : []
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
-        updateCompetitor(model.isVisible ? competitor(in: windows) : nil)
+        updateCompetitor(visible ? competitor(in: windows) : nil)
         defer { model.setIslandShown(panels.values.contains { $0.state.mode != .hidden }) }
         for (id, entry) in panels {
             let screen = NSScreen.screens.first { $0.displayID == id }
@@ -305,7 +311,7 @@ final class IslandController {
                                   target: Self.cgWindowRect(fromAppKit: $0.frame, primaryHeight: primaryHeight),
                                   topInset: entry.state.layout.notch?.height ?? 0)
             } ?? false
-            if !model.isVisible || fullscreen {
+            if !visible || (fullscreen && !activity.showsOverFullscreen) {
                 entry.state.mode = .hidden
                 entry.panel.ignoresMouseEvents = true
                 entry.panel.orderOut(nil)
@@ -353,7 +359,7 @@ final class IslandController {
             guard !Task.isCancelled, let self, self.running else { return }
             self.competitorCheck = nil
             self.pendingCompetitor = nil
-            let second = self.model.isVisible ? self.competitor(in: Self.onScreenWindows()) : nil
+            let second = self.activity.isVisible ? self.competitor(in: Self.onScreenWindows()) : nil
             self.model.setCompetingNotchApp(Self.confirmedCompetitor(first: candidate, second: second))
         }
     }

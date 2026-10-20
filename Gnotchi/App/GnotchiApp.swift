@@ -54,21 +54,25 @@ final class AppModel {
     let prefs: Preferences
     /// Updates (Sparkle). Im Testlauf nicht gestartet: kein Netz aus dem Test-Host.
     private(set) var updater: Updater?
-    /// Was die Insel zeigt (Adapter + AppleScript-Rückfall). Läuft ohne Bedienungshilfen-Freigabe.
+    /// Musik (Adapter + AppleScript-Rückfall). Läuft ohne Bedienungshilfen-Freigabe.
     let nowPlaying: NowPlayingModel
-    /// Quelle der Insel; im Betrieb `nowPlaying`, im Test eine Attrappe.
-    @ObservationIgnored private let source: NotchPart
+    /// Was die Insel zeigt: Musik und die weiteren Aktivitäten.
+    let activity: ActivityModel
+    /// Quellen der Insel, je mit eigenem Schalter; die erste ist die Musik (im Test Attrappen).
+    @ObservationIgnored private let features: [NotchFeature]
+    /// Indizes der laufenden Quellen.
+    @ObservationIgnored private var runningFeatures: Set<Int> = []
     @ObservationIgnored private let makeIsland: (() -> NotchPart)?
     /// Erst beim ersten Einschalten angelegt: Bei „aus“ entsteht kein Panel, kein Beobachter.
     @ObservationIgnored private lazy var island: NotchPart = makeIsland?() ?? IslandController(
-        model: nowPlaying, expandDelay: { [prefs] in prefs.expandDelay },
+        activity: activity, expandDelay: { [prefs] in prefs.expandDelay },
         openWindow: { [weak self] id in self?.showWindow(id) })
     /// `openWindow` aus einer SwiftUI-Szene (Menüleisten-Symbol, Menü). Das Insel-Panel liegt außerhalb
     /// jeder Szene und hat keins – es öffnet Fenster über `showWindow`.
     @ObservationIgnored private var windowOpener: ((String) -> Void)?
     /// false im Testlauf: Dann startet `applyNotchSetting` nichts (kein perl, keine Apple Events).
     @ObservationIgnored private let allowStart: Bool
-    /// Ob Quelle und Insel laufen. Verhindert doppelte Starts und Stopps.
+    /// Ob die Insel läuft (mindestens eine Quelle an). Verhindert doppelte Starts und Stopps.
     private(set) var notchRunning = false
     /// Beobachter-Token der Beenden-Meldung. Lebt so lange wie die App; aufgehoben statt `_ =`,
     /// damit klar ist, dass die Anmeldung gewollt bestehen bleibt.
@@ -85,12 +89,15 @@ final class AppModel {
     init(prefs: Preferences = Preferences(),
          allowStart: Bool = !AppModel.isRunningTests,
          source: NotchPart? = nil,
+         extraFeatures: [NotchFeature]? = nil,
          makeIsland: (() -> NotchPart)? = nil) {
         self.prefs = prefs
         self.allowStart = allowStart
         let nowPlaying = NowPlayingModel()
         self.nowPlaying = nowPlaying
-        self.source = source ?? nowPlaying
+        let activity = ActivityModel(media: nowPlaying)
+        self.activity = activity
+        features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + (extraFeatures ?? [])
         self.makeIsland = makeIsland
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts() {
@@ -109,18 +116,24 @@ final class AppModel {
         }
     }
 
-    /// Schalter „Musik in der Notch“: an → Adapter und Insel starten, aus → beide stoppen.
-    /// Beim Start und bei jeder Änderung des Schalters aufgerufen; im Testlauf wirkungslos.
+    /// Schalter der Insel-Quellen („Musik in der Notch“ …): jede Quelle läuft, solange ihr Schalter an ist;
+    /// die Insel, solange irgendeine an ist. Erst die Quellen, dann die Insel starten.
+    /// Beim Start und bei jeder Änderung eines Schalters aufgerufen; im Testlauf wirkungslos.
     func applyNotchSetting() {
         guard allowStart else { return }
-        if prefs.notchMedia {
-            guard !notchRunning else { return }
-            source.start()
-            island.start()
-            notchRunning = true
-        } else {
-            stopNotch()
+        let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })
+        guard !wanted.isEmpty else { return stopNotch() }
+        for i in runningFeatures.subtracting(wanted).sorted() {
+            features[i].part.stop()
+            runningFeatures.remove(i)
         }
+        for i in wanted.subtracting(runningFeatures).sorted() {
+            features[i].part.start()
+            runningFeatures.insert(i)
+        }
+        guard !notchRunning else { return }
+        island.start()
+        notchRunning = true
     }
 
     func registerWindowOpener(_ open: @escaping (String) -> Void) {
@@ -149,12 +162,14 @@ final class AppModel {
         island.recheck()
     }
 
-    /// Insel zuerst abbauen, dann die Quelle: So reagiert keine Insel mehr auf das Leeren des Titels.
+    /// Insel zuerst abbauen, dann die Quellen: So reagiert keine Insel mehr auf das Leeren des Titels.
     private func stopNotch() {
-        guard notchRunning else { return }
-        island.stop()
-        source.stop()
-        notchRunning = false
+        if notchRunning {
+            island.stop()
+            notchRunning = false
+        }
+        for i in runningFeatures.sorted() { features[i].part.stop() }
+        runningFeatures.removeAll()
     }
 }
 
@@ -168,6 +183,17 @@ protocol NotchPart: AnyObject {
 
 extension NotchPart {
     func recheck() {}
+}
+
+/// Quelle der Insel mit ihrem Schalter in den Einstellungen.
+struct NotchFeature {
+    let part: NotchPart
+    let isOn: @MainActor (Preferences) -> Bool
+
+    init(part: NotchPart, isOn: @escaping @MainActor (Preferences) -> Bool) {
+        self.part = part
+        self.isOn = isOn
+    }
 }
 
 extension NowPlayingModel: NotchPart {}
