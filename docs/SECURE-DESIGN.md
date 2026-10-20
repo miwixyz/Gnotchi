@@ -492,8 +492,10 @@ Adresse aus dem offiziellen README (Slopsquat).
       richtig, kein Ton), Mikrofon (orange beim Tippi-Diktat), kein Berechtigungsdialog, Ausgabe-Menü
       wechselt den Ton, Kopfhörer-Hinweis, echtes Tippi-Diktat (Testbuild `64b2cd9`, Live-Vorschau aus):
       Tippis Pille weg, Insel zeigt Aufnahme, Ende per `idle`. Mit Live-Vorschau bleibt Tippis Pille (gewollt)
-- [ ] Aufnahme über eine App im Vollbild – nicht gemessen; Michael 20.10.: ohne veröffentlichen,
-      Aussage aus CHANGELOG/HILFE/README entfernt, bis gemessen
+- [x] Aufnahme über eine App im Vollbild – 20.10., 16:35, am veröffentlichten 0.2.0: Obsidian im
+      Vollbild (Ebene 0, 3440×1440, keine Menüleiste), Gnotchi-Pille Ebene 27 eingeblendet, Michael sah
+      sie. Erst nach dem Release gemessen → Aussage stand nicht im 0.2.0-CHANGELOG, README/HILFE ergänzt.
+      Messfalle: Seam hält ein bildschirmgroßes Fenster auf Ebene 0 – nicht als Vollbild zählen
 - [x] `rafter-code-review` 20.10. gegen G13, G17–G20 am Diff `v0.1.0..HEAD`: kein kritischer/hoher Fund.
       Fremde Namen nur `Text(verbatim:)`, keine neuen Prozesse/URLs/Skripte, Protokoll nur Statuscodes,
       Ausgang nur aus frischer Geräteliste. Bekannt (G17): jeder lokale Prozess kann eine Aufnahme-Anzeige

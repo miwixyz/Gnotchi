@@ -60,7 +60,7 @@ Freigabe nicht und fragt nie danach.
 - **Mikrofon und Kamera:** Solange eine App sie nutzt, sitzt ein oranger bzw. grüner Punkt an der
   Insel. Groß steht dort, welche App das Mikrofon nutzt (bei der Kamera nennt macOS keine App).
 - **Tippi-Diktat:** Rotes Mikrofon mit dem echten Pegel, danach „wandelt um“. Tippi blendet seine
-  eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik. Mit Tippis Live-Vorschau bleibt
+  eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps. Mit Tippis Live-Vorschau bleibt
   Tippis Anzeige, weil Gnotchi keinen Text zeigt.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
