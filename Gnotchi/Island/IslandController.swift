@@ -191,6 +191,8 @@ final class IslandController {
             _ = activity.headphones != nil
             _ = activity.allUpdates.count
             _ = activity.upcomingEvent != nil
+            _ = activity.bigContent
+            _ = activity.showsChipRow
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -510,10 +512,7 @@ extension NSScreen {
 extension IslandController {
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
-        let updates = activity.activityLines
-        return Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
-                               quota: activity.quotaLine != nil, updates: updates,
-                               rows: Self.detailRows(headphones: activity.headphones != nil, updates: updates,
-                                                     mic: activity.privacy.mic, camera: activity.privacy.camera))
+        guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
+        return Self.bigFrame(layout: layout, bigIsMedia: activity.bigContent == .media, chipRow: activity.showsChipRow)
     }
 }

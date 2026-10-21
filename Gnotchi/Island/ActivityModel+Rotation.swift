@@ -55,6 +55,43 @@ extension ActivityModel {
         allUpdates.count + (upcomingEvent == nil ? 0 : 1)
     }
 
+    // MARK: Große Insel – „Eine Sache groß“ (0.5.0, Michael 21.10.)
+
+    /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
+    /// die (pausierte) Musik.
+    enum BigContent: Equatable {
+        case media, event, headphones, update(FamilyApp), privacy, none
+    }
+
+    nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool) -> BigContent {
+        switch current {
+        case .event?: .event
+        case .media?: .media
+        case .headphones?: .headphones
+        case .update(let app)?: .update(app)
+        case nil: privacy ? .privacy : (hasMediaInfo ? .media : .none)
+        }
+    }
+
+    /// Symbolleiste über der großen Sache: sobald es mehr als eine Sache gibt – mehrere Aktivitäten, oder
+    /// Mikrofon/Kamera bzw. Qotti-Kontingent neben der großen Sache.
+    nonisolated static func showsChipRow(items: Int, big: BigContent, privacy: Bool, quota: Bool) -> Bool {
+        items > 1 || (privacy && big != .privacy) || quota
+    }
+
+    var bigContent: BigContent {
+        Self.bigContent(current: currentActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil)
+    }
+
+    var showsChipRow: Bool {
+        Self.showsChipRow(items: rotationItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil)
+    }
+
+    /// Klick auf ein Symbol der Leiste: diese Aktivität groß zeigen (der Takt steht, solange die Maus darauf ist).
+    func select(_ item: LiveActivity) {
+        if rotationItems.contains(item) { rotationCursor = item }
+    }
+
     /// Aktivität der kleinen Insel.
     var currentActivity: LiveActivity? {
         Self.resolve(cursor: rotationCursor, items: rotationItems, enabled: rotationEnabled)

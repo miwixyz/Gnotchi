@@ -36,10 +36,8 @@ struct IslandView: View {
         case .compact: state.layout.compact.size
         case .wide: state.layout.wide.size
         case .expanded:
-            IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
-                                        privacy: activity.privacy.isActive,
-                                        quota: activity.quotaLine != nil, updates: activity.activityLines,
-                                        rows: detailRows)?.size ?? state.layout.expanded.size
+            IslandController.bigFrame(layout: state.layout, bigIsMedia: activity.bigContent == .media,
+                                      chipRow: activity.showsChipRow)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         }
@@ -72,11 +70,6 @@ struct IslandView: View {
         }
     }
 
-    private var detailRows: Int {
-        IslandController.detailRows(headphones: activity.headphones != nil, updates: activity.activityLines,
-                                    mic: activity.privacy.mic, camera: activity.privacy.camera)
-    }
-
     private var pill: Bool { state.layout.notch == nil }
 
     @ViewBuilder private var content: some View {
@@ -99,33 +92,47 @@ struct IslandView: View {
                 }
             }
         case .expanded:
-            if let info = model.info {
-                let hasLines = activity.privacy.isActive || activity.quotaLine != nil || activity.activityLines > 0
-                VStack(spacing: 0) {
-                    if hasLines {
-                        // Zeilen über der Musik: Mikrofon/Kamera, Qotti, je Update eine (klickbar).
-                        VStack(spacing: 4) {
-                            if activity.privacy.isActive { privacyLine }
-                            if let q = activity.quotaLine { QuotaLine(text: q) }
-                            if let ev = activity.upcomingEvent { EventLine(event: ev, onOpen: onOpenEvent) }
-                            ForEach(activity.allUpdates, id: \.app) { e in
-                                UpdateLine(entry: e) { onOpenUpdate(e.app) }
-                            }
-                        }
+            // „Eine Sache groß“ (0.5.0): oben die Symbolleiste, darunter nur die gewählte Aktivität.
+            let chips = activity.showsChipRow
+            VStack(spacing: 0) {
+                if chips {
+                    ChipRow(items: activity.rotationItems, current: activity.currentActivity, event: activity.upcomingEvent,
+                            headphones: activity.headphones, mediaApp: model.info?.appBundleID, privacy: activity.privacy,
+                            quota: activity.quotaLine, onSelect: { activity.select($0) })
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
-                    }
-                    expanded(info, topInset: hasLines ? 4 : nil)
                 }
-            } else if activity.headphones != nil || activity.activityLines > 0 {
-                ActivityDetails(event: activity.upcomingEvent, headphones: activity.headphones, updates: activity.allUpdates,
-                                privacy: activity.privacy,
-                                topInset: state.layout.notch?.height ?? 0,
-                                height: IslandGeometry.noticeSize.height
-                                    + CGFloat(max(0, detailRows - 2)) * IslandGeometry.privacyLineHeight,
-                                onOpen: onOpenUpdate, onOpenEvent: onOpenEvent)
-            } else if activity.privacy.isActive {
-                privacyDetails
+                big(topInset: chips ? 0 : nil)
             }
+        }
+    }
+
+    /// Die große Sache. `topInset` nil = direkt unter der Notch (ohne Symbolleiste).
+    @ViewBuilder private func big(topInset: CGFloat?) -> some View {
+        let top = topInset ?? (state.layout.notch?.height ?? 0)
+        switch activity.bigContent {
+        case .media:
+            if let info = model.info { expanded(info, topInset: topInset.map { $0 + 4 }) }
+        case .event:
+            if let ev = activity.upcomingEvent {
+                EventCard(event: ev, onOpen: onOpenEvent).padding(.top, top).transition(.opacity)
+            }
+        case .headphones:
+            if let h = activity.headphones {
+                ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
+                    Image(systemName: h.symbol).font(.system(size: 18, weight: .semibold)).foregroundStyle(.white)
+                }
+                .padding(.top, top).transition(.opacity)
+            }
+        case .update(let app):
+            if let e = activity.update(for: app) {
+                ActivityCard(title: e.label, subtitle: "Zum Installieren öffnen", action: "Öffnen", onTap: { onOpenUpdate(app) },
+                             leading: { AppSymbol(bundleID: app.bundleID, size: 24) })
+                .padding(.top, top).transition(.opacity)
+            }
+        case .privacy:
+            privacyDetails(topInset: topInset)
+        case .none:
+            EmptyView()
         }
     }
 
@@ -219,28 +226,13 @@ struct IslandView: View {
         .transition(.opacity)
     }
 
-    /// Eine Zeile: Mikrofon mit App-Namen, Kamera. App-Namen kommen aus dem lokalen Bundle → `Text(verbatim:)`.
-    private var privacyLine: some View {
-        HStack(spacing: 12) {
-            if let apps = activity.privacy.micLine {
-                privacyItem(color: .orange, symbol: "mic.fill", text: apps)
-            }
-            if activity.privacy.camera {
-                privacyItem(color: .green, symbol: "video.fill", text: "Kamera")
-                    .fixedSize()
-            }
-            Spacer(minLength: 0)
-        }
-        .frame(height: 16)
-    }
-
     private func privacyItem(color: Color, symbol: String, text: String) -> some View {
         ActivityRow(dot: color, symbol: symbol, text: text)
     }
 
     /// Groß ohne Musik: Mikrofon und Kamera untereinander (nebeneinander kürzte die Kamera den App-Namen),
     /// in Hinweis-Größe (IslandController.panelFrame).
-    private var privacyDetails: some View {
+    private func privacyDetails(topInset: CGFloat?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             if let apps = activity.privacy.micLine {
                 privacyItem(color: .orange, symbol: "mic.fill", text: apps)
@@ -252,7 +244,7 @@ struct IslandView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16)
             .frame(height: IslandGeometry.noticeSize.height)
-            .padding(.top, state.layout.notch?.height ?? 0)
+            .padding(.top, topInset ?? (state.layout.notch?.height ?? 0))
             .transition(.opacity)
     }
 

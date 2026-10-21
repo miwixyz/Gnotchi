@@ -44,20 +44,3 @@ struct LiveTextIsland: View {
         .transition(.opacity)
     }
 }
-
-/// Qotti-Kontingent als Zeile über der großen Musik-Ansicht (0.3.0, G22). Nur feste Texte und Zahlen.
-struct QuotaLine: View {
-    let text: String
-
-    var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "gauge.with.dots.needle.50percent").font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary).frame(width: 14)
-            Text(verbatim: text).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
-                .lineLimit(1).truncationMode(.tail)
-            Spacer(minLength: 0)
-        }
-        .frame(height: 16)
-        .accessibilityElement(children: .combine)
-    }
-}

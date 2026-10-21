@@ -141,7 +141,6 @@ final class LiveActivityTests: XCTestCase {
         XCTAssertEqual(IslandController.panelFrame(mode: .expanded, layout: l, hasMedia: false, rows: 2), l.notice)
         let four = try XCTUnwrap(IslandController.panelFrame(mode: .expanded, layout: l, hasMedia: false, rows: 4))
         XCTAssertEqual(four.height, l.notice.height + 2 * IslandGeometry.privacyLineHeight)
-        XCTAssertEqual(IslandController.detailRows(headphones: true, updates: 2, mic: true, camera: false), 4)
     }
 
     // MARK: Kopfhörer

@@ -17,11 +17,6 @@ extension IslandController {
         return trackFlash ? .wide : .compact
     }
 
-    /// Zeilen der großen Insel ohne Musik (0.4.0): Kopfhörer, je Update eine, Mikrofon, Kamera.
-    nonisolated static func detailRows(headphones: Bool, updates: Int, mic: Bool, camera: Bool) -> Int {
-        (headphones ? 1 : 0) + updates + (mic ? 1 : 0) + (camera ? 1 : 0)
-    }
-
     /// Panelgröße je Zustand; nil = Panel ist weg. Groß hängt am Inhalt (0.2.0): ohne Musik nur die
     /// Mikrofon/Kamera-Zeilen in Hinweis-Größe, mit Musik und aktivem Mikrofon/Kamera eine Zeile höher.
     /// 0.4.0: je Update eine Zeile über der Musik (`updates`); ohne Musik `rows` Zeilen (detailRows), ab der
@@ -50,6 +45,12 @@ extension IslandController {
             r.size.height += IslandGeometry.privacyLineHeight * lines
             return r
         }
+    }
+
+    /// Große Insel „Eine Sache groß“ (0.5.0): Musik in Player-Größe, alles andere in Hinweis-Größe, die
+    /// Symbolleiste eine Zeile höher.
+    nonisolated static func bigFrame(layout: IslandGeometry.Layout, bigIsMedia: Bool, chipRow: Bool) -> CGRect? {
+        panelFrame(mode: .expanded, layout: layout, hasMedia: bigIsMedia, updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2)
     }
 
     /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt

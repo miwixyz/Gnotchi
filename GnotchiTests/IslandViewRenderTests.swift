@@ -143,13 +143,38 @@ final class IslandViewRenderTests: XCTestCase {
                    headphones: Self.buds, updates: [Self.kalli])
     }
 
+    // 0.5.0 Termine + „Eine Sache groß“ – erfundener Termin (G16)
+    private static let dentist = KalliEvents.Event(title: "Zahnarzt Dr. Beispiel", start: Date().addingTimeInterval(10 * 60),
+                                                   color: KalliEvents.RGB(r: 0.2, g: 0.5, b: 1))
+    func testRenderNotchCompactEvent() throws {
+        try render(notchScreen, .compact, name: "notch-compact-event", cursor: .event, event: Self.dentist)
+    }
+    func testRenderPillCompactEvent() throws {
+        try render(pillScreen, .compact, name: "pill-compact-event", cursor: .event, event: Self.dentist)
+    }
+    func testRenderNotchBigEventWithMusicAndMic() throws {
+        try render(notchScreen, .expanded, name: "notch-big-event-music-mic", privacy: callPrivacy, cursor: .event,
+                   event: Self.dentist)
+    }
+    func testRenderPillBigMusicWithEventAndMic() throws {
+        try render(pillScreen, .expanded, name: "pill-big-music-event-mic", privacy: callPrivacy, cursor: .media,
+                   event: Self.dentist)
+    }
+    func testRenderNotchBigUpdate() throws {
+        try render(notchScreen, .expanded, name: "notch-big-update", updates: [Self.kalli], cursor: .update(.kalli),
+                   event: Self.dentist)
+    }
+    func testRenderPillBigHeadphonesNoMusic() throws {
+        try render(pillScreen, .expanded, name: "pill-big-headphones", withMedia: false, headphones: Self.buds)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
                         withMedia: Bool = true, recording: ActivityModel.Recording? = nil,
                         liveText: String? = nil, quota: QottiLink.Snapshot? = nil,
                         headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
-                        cursor: LiveActivity? = nil) throws {
+                        cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -171,12 +196,12 @@ final class IslandViewRenderTests: XCTestCase {
             activity.setLiveText(liveText)
         }
 
+        activity.setUpcomingEvent(event)
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
-        let rows = IslandController.detailRows(headphones: headphones != nil, updates: updates.count,
-                                               mic: privacy.mic, camera: privacy.camera)
-        let panel = IslandController.panelFrame(mode: mode, layout: layout, hasMedia: withMedia,
-                                                privacy: privacy.isActive, quota: quota != nil,
-                                                updates: updates.count, rows: rows) ?? layout.compact
+        let panel = (mode == .expanded
+            ? IslandController.bigFrame(layout: layout, bigIsMedia: activity.bigContent == .media,
+                                        chipRow: activity.showsChipRow)
+            : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
         let canvas = CGSize(width: 520, height: 210)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.

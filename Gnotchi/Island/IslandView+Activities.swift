@@ -23,48 +23,6 @@ struct ActivityRow: View {
     }
 }
 
-/// Update einer Familien-App als Zeile, klickbar: öffnet die echte App (G24) bzw. Sparkle bei Gnotchi selbst.
-struct UpdateLine: View {
-    let entry: FamilyUpdates.Entry
-    let onOpen: () -> Void
-
-    var body: some View {
-        Button(action: onOpen) {
-            HStack(spacing: 5) {
-                ActivityRow(symbol: "arrow.down.circle.fill", text: entry.label)
-                Spacer(minLength: 0)
-                Text(verbatim: "Öffnen").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: "\(entry.label), öffnen"))
-    }
-}
-
-/// Nächster Termin aus Kalli (0.5.0, G26) als Zeile, klickbar: öffnet Apple Kalender. Titel nur verbatim.
-struct EventLine: View {
-    let event: KalliEvents.Event
-    let onOpen: () -> Void
-
-    var body: some View {
-        Button(action: onOpen) {
-            TimelineView(.everyMinute) { context in
-                HStack(spacing: 5) {
-                    ActivityRow(dot: event.color.map(Color.init(rgb:)), symbol: "calendar",
-                                text: "\(KalliEvents.timeText(event)) · \(event.title)")
-                    Spacer(minLength: 0)
-                    Text(verbatim: "in \(KalliEvents.minutesLeft(event, now: context.date)) Min")
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: "Termin \(KalliEvents.timeText(event)), \(event.title), im Kalender öffnen"))
-    }
-}
-
 /// Kleine Insel, Termin: Kalender-Symbol in der Kalenderfarbe, rechts „12 Min“; ohne Notch dazu „10:30 Titel“.
 struct EventCompact: View {
     let event: KalliEvents.Event
@@ -109,41 +67,119 @@ extension Color {
     }
 }
 
-/// Große Insel ohne Musik: Termin, Kopfhörer, Updates, Mikrofon und Kamera untereinander, in Hinweis-Größe
-/// (ab der dritten Zeile höher, IslandController.panelFrame).
-struct ActivityDetails: View {
-    var event: KalliEvents.Event?
+// MARK: Große Insel – „Eine Sache groß“ (0.5.0, Michael 21.10.: „Notch zu klein für die vielen Infos“)
+
+/// Symbolleiste über der großen Sache: je Aktivität ein Symbol (die gezeigte hervorgehoben, Klick wechselt),
+/// rechts Mikrofon/Kamera-Punkte und das Qotti-Kontingent. Nur Symbole und feste Texte.
+struct ChipRow: View {
+    let items: [LiveActivity]
+    let current: LiveActivity?
+    let event: KalliEvents.Event?
     let headphones: Headphones?
-    let updates: [FamilyUpdates.Entry]
+    let mediaApp: String?
     let privacy: ActivityModel.Privacy
-    let topInset: CGFloat
-    let height: CGFloat
-    let onOpen: (FamilyApp) -> Void
-    var onOpenEvent: () -> Void = {}
+    let quota: String?
+    let onSelect: (LiveActivity) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if let event {
-                EventLine(event: event, onOpen: onOpenEvent)
+        HStack(spacing: 6) {
+            ForEach(items, id: \.self) { item in
+                Button { onSelect(item) } label: {
+                    chip(item)
+                        .frame(width: 26, height: 18)
+                        .background(Capsule().fill(.white.opacity(item == current ? 0.22 : 0)))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: label(item)))
+                .accessibilityAddTraits(item == current ? .isSelected : [])
             }
-            if let headphones {
-                ActivityRow(symbol: headphones.symbol, text: headphones.name)
+            Spacer(minLength: 0)
+            if let quota {
+                Text(verbatim: quota).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.tail)
             }
-            ForEach(updates, id: \.app) { e in
-                UpdateLine(entry: e) { onOpen(e.app) }
+            if privacy.isActive { PrivacyDots(privacy: privacy) }
+        }
+        .frame(height: 20)
+    }
+
+    @ViewBuilder private func chip(_ item: LiveActivity) -> some View {
+        let tint: Color = item == current ? .white : .secondary
+        switch item {
+        case .media:
+            if let mediaApp { AppSymbol(bundleID: mediaApp, size: 14) } else { symbol("music.note", tint) }
+        case .event:
+            symbol("calendar", event?.color.map(Color.init(rgb:)) ?? tint)
+        case .headphones:
+            symbol(headphones?.symbol ?? "headphones", tint)
+        case .update(let app):
+            AppSymbol(bundleID: app.bundleID, size: 14)
+        }
+    }
+
+    private func symbol(_ name: String, _ color: Color) -> some View {
+        Image(systemName: name).font(.system(size: 11, weight: .semibold)).foregroundStyle(color)
+    }
+
+    private func label(_ item: LiveActivity) -> String {
+        switch item {
+        case .media: "Musik"
+        case .event: "Termin"
+        case .headphones: "Kopfhörer"
+        case .update(let app): "Update \(app.name)"
+        }
+    }
+}
+
+/// Große Sache außer Musik: Symbol links, Titel und eine Zeile darunter, optional rechts ein Knopf.
+/// In Hinweis-Größe (44 pt). Titel und Namen nur `Text(verbatim:)`.
+struct ActivityCard<Leading: View>: View {
+    let title: String
+    let subtitle: String
+    var action: String?
+    var onTap: (() -> Void)?
+    @ViewBuilder let leading: () -> Leading
+
+    var body: some View {
+        let content = HStack(spacing: 10) {
+            leading().frame(width: 24)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                Text(verbatim: subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
             }
-            if let apps = privacy.micLine {
-                ActivityRow(dot: .orange, symbol: "mic.fill", text: apps)
-            }
-            if privacy.camera {
-                ActivityRow(dot: .green, symbol: "video.fill", text: "Kamera")
+            .lineLimit(1).truncationMode(.tail)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let action {
+                Text(verbatim: action).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .frame(height: height)
-        .padding(.top, topInset)
-        .transition(.opacity)
+        .padding(.horizontal, 14)
+        .frame(height: IslandGeometry.noticeSize.height)
+        .contentShape(Rectangle())
+        if let onTap {
+            Button(action: onTap) { content }.buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: "\(title), \(subtitle), \(action ?? "")"))
+        } else {
+            content.accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// Termin groß: Kalender-Symbol in der Kalenderfarbe, Titel, „18:56 · in 10 Min“, Klick öffnet Apple Kalender.
+struct EventCard: View {
+    let event: KalliEvents.Event
+    let onOpen: () -> Void
+
+    var body: some View {
+        TimelineView(.everyMinute) { context in
+            ActivityCard(title: event.title,
+                         subtitle: "\(KalliEvents.timeText(event)) · in \(KalliEvents.minutesLeft(event, now: context.date)) Min",
+                         action: "Kalender", onTap: onOpen, leading: {
+                Image(systemName: "calendar").font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(event.color.map(Color.init(rgb:)) ?? .white)
+            })
+        }
     }
 }
 

@@ -99,4 +99,44 @@ final class KalliEventsTests: XCTestCase {
         model.setUpcomingEvent(nil)
         XCTAssertFalse(model.isVisible)
     }
+
+    // MARK: Große Insel – „Eine Sache groß“
+
+    func testBigContentFollowsCurrentActivity() {
+        XCTAssertEqual(ActivityModel.bigContent(current: .event, privacy: true, hasMediaInfo: true), .event)
+        XCTAssertEqual(ActivityModel.bigContent(current: .update(.kalli), privacy: false, hasMediaInfo: true), .update(.kalli))
+        XCTAssertEqual(ActivityModel.bigContent(current: nil, privacy: true, hasMediaInfo: true), .privacy)
+        XCTAssertEqual(ActivityModel.bigContent(current: nil, privacy: false, hasMediaInfo: true), .media, "pausierte Musik")
+        XCTAssertEqual(ActivityModel.bigContent(current: nil, privacy: false, hasMediaInfo: false), .none)
+    }
+
+    func testChipRowOnlyWithMoreThanOneThing() {
+        XCTAssertFalse(ActivityModel.showsChipRow(items: 1, big: .media, privacy: false, quota: false), "nur Musik")
+        XCTAssertTrue(ActivityModel.showsChipRow(items: 2, big: .media, privacy: false, quota: false))
+        XCTAssertTrue(ActivityModel.showsChipRow(items: 1, big: .media, privacy: true, quota: false), "Musik + Mikrofon")
+        XCTAssertFalse(ActivityModel.showsChipRow(items: 0, big: .privacy, privacy: true, quota: false), "nur Mikrofon")
+        XCTAssertTrue(ActivityModel.showsChipRow(items: 1, big: .media, privacy: false, quota: true))
+    }
+
+    func testSelectSwitchesBigContent() {
+        let model = ActivityModel(media: NowPlayingModel())
+        model.setUpcomingEvent(event(10))
+        model.setHeadphones(Headphones(name: "Beispiel", symbol: "headphones"))
+        XCTAssertEqual(model.bigContent, .event)
+        model.select(.headphones)
+        XCTAssertEqual(model.bigContent, .headphones)
+        model.select(.update(.seam))
+        XCTAssertEqual(model.bigContent, .headphones, "nicht vorhandene Aktivität wird ignoriert")
+    }
+
+    func testBigFrameSizes() throws {
+        let l = IslandGeometry.layout(for: IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 2560, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil))
+        XCTAssertEqual(IslandController.bigFrame(layout: l, bigIsMedia: true, chipRow: false), l.expanded)
+        XCTAssertEqual(IslandController.bigFrame(layout: l, bigIsMedia: false, chipRow: false), l.notice)
+        let media = try XCTUnwrap(IslandController.bigFrame(layout: l, bigIsMedia: true, chipRow: true))
+        XCTAssertEqual(media.height, l.expanded.height + IslandGeometry.privacyLineHeight)
+        let card = try XCTUnwrap(IslandController.bigFrame(layout: l, bigIsMedia: false, chipRow: true))
+        XCTAssertEqual(card.height, l.notice.height + IslandGeometry.privacyLineHeight)
+    }
 }
