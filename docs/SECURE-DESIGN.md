@@ -647,7 +647,9 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
       Verbindung, Tippi fällt dann auf die eigene Pille zurück); Qottis Gnotchi-Prüfung läuft über die PID
       (nur Sendesperre für ohnehin öffentliche Zahlen). `rafter secrets .`: Gnotchi/Qotti nichts, Tippi nur
       Testdateien fremder Pakete in ungetrackten `build*/`-Ordnern.
-- [ ] `rafter run` nur Gnotchi + Tippi, ab 25.10. (Qotti ist privat, geht nicht an Rafter – Michael 10.10.)
+- [x] `rafter run` nur Gnotchi + Tippi (Qotti ist privat, geht nicht an Rafter – Michael 10.10.): Gnotchi 21.10.
+      Scan `ad9c49ba`, keine Befunde; Tippi 21.10. am gepushten Stand `ecf8613` (Code von 2.30.0), Scan `1c6a5bd3`,
+      kein Fund im App-Code (6 Hinweise nur in `scripts/autocomplete-messung/`, nicht ausgeliefert).
 - [x] **Ressourcenfund 21.10. behoben (kein Sicherheitsfund):** Testkopie nach 15 Std. 120 % CPU, 800 MB,
       ohne Menüleisten-Symbol. Ursache (`/diagnose`, Messschleife `tools/listener-probe.swift`): `PrivacyMonitor.
       devicesChanged` meldete die System-Beobachter („Geräteliste geändert“, Audio + Kamera) im eigenen Rückruf ab und
@@ -684,8 +686,9 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
       Fremde Namen nur `Text(verbatim:)`, keine neuen Prozesse/URLs/Skripte, Protokoll nur Statuscodes,
       Ausgang nur aus frischer Geräteliste. Bekannt (G17): jeder lokale Prozess kann eine Aufnahme-Anzeige
       vortäuschen – feste Texte, 3 s Zeitlimit. `rafter secrets .`: nichts gefunden
-- [ ] `rafter run` am 0.2.0-Stand – 20.10. nicht gelaufen: Kontingent Schnell-Scans erschöpft (16/16),
-      Plus nicht im Tarif (0/0). Michael: ohne Scan veröffentlichen, Scan nachholen (Vault-Task)
+- [x] `rafter run` am 0.2.0-Stand – 20.10. nicht gelaufen: Kontingent Schnell-Scans erschöpft (16/16),
+      Plus nicht im Tarif (0/0). Michael: ohne Scan veröffentlichen, Scan nachholen (Vault-Task). Nachgeholt
+      21.10. am `main` (enthält den 0.2.0-Code): Scan `ad9c49ba`, keine Befunde.
 - [ ] Positivliste der Berechtigungen am ausgelieferten 0.2.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien vor dem ersten Release
