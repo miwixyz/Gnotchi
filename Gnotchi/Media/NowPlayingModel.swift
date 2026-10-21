@@ -221,7 +221,7 @@ final class NowPlayingModel {
     /// Bekannte Wiedergabe-Apps für den Medienfilter; gezeigt werden davon nur installierte (Einstellungen).
     nonisolated static let knownPlayers = [
         "com.spotify.client", "com.apple.Music", "com.apple.podcasts", "com.apple.TV", "com.apple.Safari",
-        "com.google.Chrome", "org.mozilla.firefox", "company.thebrowser.Browser", "com.brave.Browser",
+        "com.google.Chrome", "org.mozilla.firefox", "net.imput.helium", "company.thebrowser.Browser", "com.brave.Browser",
         "com.microsoft.edgemac", "org.videolan.vlc", "com.apple.QuickTimePlayerX",
     ]
 

@@ -611,7 +611,13 @@ Spezifikation: `specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md`.
       Drossel je App, Rotationsfolge + Pause beim Überfahren, Trackwechsel nur bei anderem Titel, Medienfilter
       (G25), G24 (Zuordnung fest, ad-hoc-signierte Attrappe abgelehnt, Gegenprobe ohne Prüfung rot, echtes Kalli
       besteht). 365 Tests grün.
-- [ ] Sichttest: Rotation Medien + Kopfhörer + vorgetäuschtes Update (`tools/fake-update.swift`), Klick öffnet Kalli
+- [x] Sichttest 21.10. Mac mini (zwei Bildschirme ohne Notch, Testkopie Developer ID): Meldung → Pille auf beiden
+      Bildschirmen, Protokoll „Update gemeldet: kalli“; 6 kaputte Meldungen (`fake-update kaputt`) → nichts;
+      `ready:false` → weg; „Kalli 0.10.0“ bei installierter 0.10.0 → nicht angezeigt. Klick (echtes CGEvent, Helium
+      vorn) auf „Öffnen“ in der großen Insel → „kalli geöffnet“, Kalli aktiv, 1,5 s später `…update.show`
+      `{"v":1,"app":"kalli"}` beim Lauscher; Klick auf die kleine Insel nach 0,3 s Verweilen ebenso. Medienfilter per
+      Bedienungshilfen umgeschaltet → `mediaExcluded = ("com.apple.Safari")`, zurück → leer.
+- [ ] Sichttest offen (nur mit Auge): Rotation Musik ↔ Kopfhörer ↔ Update, Trackwechsel breit, mit Notch (MacBook)
 - [x] `rafter-code-review` 21.10. (CWE-Top-25, lokale IPC + App-Start) für `3bd4a5b..ebf2cb6`: **kein kritischer/
       hoher Fund.** App-Start nur aus Klick (`IslandView` → `IslandController` → `AppModel.openUpdate`), nie aus einer
       Meldung (G13); aus der Meldung fließen nur Positivlisten-Kürzel und geprüfte Version weiter
@@ -619,7 +625,7 @@ Spezifikation: `specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md`.
       `rafter secrets .` nichts. **Niedrig, behoben:** LaunchServices' bevorzugter Fundort konnte eine Attrappe sein →
       Klick blockiert („App nicht gefunden“) statt das echte Kalli zu öffnen; jetzt alle Fundorte, der erste
       signaturgültige (Test). Hingenommen: kein Widerrufs-Check (wie G21), Rennen Prüfung/Start (G24).
-- [ ] `rafter run` (prüft den gepushten Stand)
+- [x] `rafter run` 21.10. auf `4bd3555`: Scan `603c9415`, keine Befunde.
 - [ ] Positivliste der Berechtigungen unverändert (`entitlement-gate.sh` beim Release; im Diff unverändert)
 
 ## Ausstiegskriterien 0.3.0 (Live-Text)

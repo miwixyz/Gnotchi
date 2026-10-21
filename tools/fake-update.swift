@@ -8,6 +8,7 @@
 //   zeigen   – lauscht auf app.mwlr.familie.update.show und druckt, was Gnotchi nach dem Klick sendet
 import Foundation
 
+setbuf(stdout, nil)   // ungepuffert: im Hintergrund in eine Datei umgeleitet ginge die Ausgabe sonst beim Beenden verloren
 let center = DistributedNotificationCenter.default()
 let name = Notification.Name("app.mwlr.familie.update")
 func send(_ info: [String: Any]) {

@@ -56,6 +56,7 @@ enum FamilyLauncher {
                 log.error("Update öffnen: \(app.rawValue, privacy: .public) startet nicht")
                 return completion(false)
             }
+            log.notice("Update öffnen: \(app.rawValue, privacy: .public) geöffnet")
             completion(true)
             try? await Task.sleep(for: showDelay)
             postShow(app)
