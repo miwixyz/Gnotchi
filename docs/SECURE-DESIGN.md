@@ -549,8 +549,23 @@ Liste und Stand: `specs/2026-10-20-gnotchi-0.3.0-live-text.md`. Erfüllt 20.10.:
 echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest Mac mini.
 
 - [ ] Sichttest mit Notch (MacBook) und über Vollbild
-- [ ] `rafter-code-review` für Gnotchi, Tippi und Qotti; `rafter run` nur Gnotchi + Tippi (Qotti ist privat,
-      geht nicht an Rafter – Michael 10.10.)
+- [x] `rafter-code-review` 21.10. (CWE-Top-25-Liste, lokaler IPC) für Gnotchi `v0.2.0..HEAD`, Tippi
+      `64b2cd9^..ecf8613`, Qotti `7c39ede..fd1f316`: **kein kritischer/hoher Fund.** G21: Peer-Prüfung per
+      Audit-Token vor dem ersten Byte auf beiden Seiten (`LiveTextServer.checkPeer`, Tippi
+      `GnotchiLiveLink.serverPasses`), Developer-ID + Team + Kennung; abgelehnter Client verdrängt die
+      bestehende Verbindung nicht (Prüfung vor `closeClient`); Ordner 0700/Socket 0600, `lstat` statt
+      Link-Folgen; Rahmen ≤ 4 KB, Länge 0/zu groß → Trennung; Text nur `Text(verbatim:)`. G22: Schema mit
+      Positivliste, Zahlen begrenzt (0…100, Reset-Fenster), Qotti sendet nur endliche Werte
+      (`Usage.swift` `init?`). Bekannt und hingenommen (niedrig, nur lokal mit Nutzerrechten): Fremdprozess
+      kann Qotti-Hinweise vortäuschen (wie G17) und den Socket mit Verbindungen fluten (Prüfung kostet je
+      Verbindung, Tippi fällt dann auf die eigene Pille zurück); Qottis Gnotchi-Prüfung läuft über die PID
+      (nur Sendesperre für ohnehin öffentliche Zahlen). `rafter secrets .`: Gnotchi/Qotti nichts, Tippi nur
+      Testdateien fremder Pakete in ungetrackten `build*/`-Ordnern.
+- [ ] `rafter run` nur Gnotchi + Tippi, ab 25.10. (Qotti ist privat, geht nicht an Rafter – Michael 10.10.)
+- [ ] **Ressourcenfund 21.10. (kein Sicherheitsfund, blockiert trotzdem):** Testkopie nach 15 Std. 120 % CPU,
+      800 MB, ohne Menüleisten-Symbol; Stichprobe fast nur in `HALPropertyListener::operator==` /
+      `CMIO::DAL::PropertyListener::operator==` → Beobachterliste wächst vermutlich (`PrivacyMonitor`,
+      seit 0.2.0). Widerlegt: Abmelden scheitert (Messung 200/200 ok). Messpunkt `/tmp/gnotchi-speicher.log`.
 - [ ] Positivliste der Berechtigungen am ausgelieferten 0.3.0 unverändert (`release.sh`)
 
 ## Ausstiegskriterien 0.2.0
