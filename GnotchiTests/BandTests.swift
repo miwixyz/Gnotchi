@@ -33,5 +33,11 @@ final class BandTests: XCTestCase {
         XCTAssertEqual(pill.band.width, IslandGeometry.bandPillWidth)
         XCTAssertEqual(pill.band.height, IslandGeometry.pillSize.height)
         XCTAssertEqual(IslandController.panelFrame(mode: .band, layout: pill), pill.band)
+        let tall = IslandGeometry.layout(for: IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 3440, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil,
+            menuBarHeight: 30))
+        XCTAssertEqual(tall.band.height, 30, "so hoch wie die Menüleiste")
+        XCTAssertEqual(tall.band.maxY, 1440, "oben bündig")
+        XCTAssertEqual(tall.compact.height, IslandGeometry.pillSize.height, "kleine Insel unverändert")
     }
 }

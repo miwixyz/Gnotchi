@@ -9,6 +9,9 @@ enum IslandGeometry {
         let safeTop: CGFloat
         let auxLeftWidth: CGFloat?
         let auxRightWidth: CGFloat?
+        /// Höhe der Menüleiste (0 = keine sichtbar). Nur fürs Band ohne Notch (0.5.0, gemessen 21.10.: 30 pt
+        /// auf Michaels 3440er-Bildschirm, die Pille hat 24 pt – das Band wirkte schmaler als die Leiste).
+        var menuBarHeight: CGFloat = 0
     }
 
     struct Layout: Equatable {
@@ -77,8 +80,8 @@ enum IslandGeometry {
                       live: band(liveSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
                       wide: band(CGSize(width: widePillWidth, height: pillSize.height), midX: midX, top: top,
                                  extraHeight: 0, in: m.frame),
-                      band: band(CGSize(width: bandPillWidth, height: pillSize.height), midX: midX, top: top,
-                                 extraHeight: 0, in: m.frame))
+                      band: band(CGSize(width: bandPillWidth, height: max(pillSize.height, m.menuBarHeight)), midX: midX,
+                                 top: top, extraHeight: 0, in: m.frame))
     }
 
     /// Rechteck oben bündig, mittig über `midX`, mit Notch um deren Höhe länger (Inhalt beginnt darunter).
@@ -96,6 +99,7 @@ enum IslandGeometry {
     static func metrics(of s: NSScreen) -> ScreenMetrics {
         let l = s.auxiliaryTopLeftArea?.width
         let r = s.auxiliaryTopRightArea?.width
-        return ScreenMetrics(frame: s.frame, safeTop: s.safeAreaInsets.top, auxLeftWidth: l, auxRightWidth: r)
+        return ScreenMetrics(frame: s.frame, safeTop: s.safeAreaInsets.top, auxLeftWidth: l, auxRightWidth: r,
+                             menuBarHeight: max(0, s.frame.maxY - s.visibleFrame.maxY))
     }
 }
