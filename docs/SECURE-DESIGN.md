@@ -617,7 +617,8 @@ Spezifikation: `specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md`.
       vorn) auf „Öffnen“ in der großen Insel → „kalli geöffnet“, Kalli aktiv, 1,5 s später `…update.show`
       `{"v":1,"app":"kalli"}` beim Lauscher; Klick auf die kleine Insel nach 0,3 s Verweilen ebenso. Medienfilter per
       Bedienungshilfen umgeschaltet → `mediaExcluded = ("com.apple.Safari")`, zurück → leer.
-- [ ] Sichttest offen (nur mit Auge): Rotation Musik ↔ Kopfhörer ↔ Update, Trackwechsel breit, mit Notch (MacBook)
+- [x] Sichttest Michael 21.10. 14:05 (Mac mini, Pille): Rotation Musik ↔ Kopfhörer ↔ Update, Pause beim Überfahren, große Insel mit Update-Zeile, Trackwechsel breit, Pause ohne Aufblitzen – „Alles getestet und funktioniert“
+- [ ] Sichttest mit Notch (MacBook)
 - [x] `rafter-code-review` 21.10. (CWE-Top-25, lokale IPC + App-Start) für `3bd4a5b..ebf2cb6`: **kein kritischer/
       hoher Fund.** App-Start nur aus Klick (`IslandView` → `IslandController` → `AppModel.openUpdate`), nie aus einer
       Meldung (G13); aus der Meldung fließen nur Positivlisten-Kürzel und geprüfte Version weiter
