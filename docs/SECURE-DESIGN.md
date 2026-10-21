@@ -573,6 +573,12 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
       Beobachterlisten. **Betrifft auch die veröffentlichte 0.2.0.** Kamera-Seite nur über denselben Code abgedeckt
       (keine CMIO-Geräte im Test erzeugbar).
 
+## Ausstiegskriterien 0.2.1 (Hotfix, veröffentlicht 21.10. vom Zweig `release/0.2.1`)
+
+- [x] Nur der `PrivacyMonitor`-Fix aus `d184f3c` (Ressourcenfund, siehe 0.3.0), Regressionstest, Messwerkzeug.
+- [x] `rafter run` am `main` mit demselben Fix: Scan `ad9c49ba`, keine Befunde.
+- [x] Veröffentlicht mit `HOTFIX=1 make release` (neu in `release.sh`), Appcast danach von Hand auf `main`.
+
 ## Ausstiegskriterien 0.2.0
 
 - [x] Sicherheitsentwurf (rafter-secure-design) vor dem Code: `specs/2026-10-20-gnotchi-0.2.0.md`

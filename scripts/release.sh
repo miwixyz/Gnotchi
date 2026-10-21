@@ -69,11 +69,23 @@ command -v xcodegen >/dev/null || fail "xcodegen fehlt — brew install xcodegen
 
 # Der Feed (SUFeedURL) liest main. Ein Release von einem anderen Zweig oder einem
 # ungepushten Stand fände die App nie (Rafter-Fund F1, 2026-10-08).
-[ "$(git branch --show-current)" = "main" ] || fail "Nicht auf main — der Update-Feed liest main"
+#
+# HOTFIX=1 (0.2.1, 21.10.): Release von einem gepushten Zweig `release/*`, wenn main schon
+# unveröffentlichte Funktionen trägt. Der Appcast wird dann NICHT committet, sondern bleibt als
+# Datei liegen → von Hand auf main übernehmen (Ablauf: Release-Profil gnotchi.md, Abschnitt Hotfix).
+BRANCH="$(git branch --show-current)"
 git remote get-url origin >/dev/null 2>&1 || fail "Kein Remote 'origin'"
-git fetch -q origin main || fail "git fetch origin main fehlgeschlagen"
-[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] \
-    || fail "HEAD ist nicht gleich origin/main. Erst pushen, dann releasen."
+if [ "${HOTFIX:-0}" = "1" ]; then
+    case "${BRANCH}" in release/*) ;; *) fail "HOTFIX=1 nur auf einem Zweig release/* (jetzt: ${BRANCH})";; esac
+    git fetch -q origin "${BRANCH}" || fail "git fetch origin ${BRANCH} fehlgeschlagen — Zweig gepusht?"
+    [ "$(git rev-parse HEAD)" = "$(git rev-parse "origin/${BRANCH}")" ] \
+        || fail "HEAD ist nicht gleich origin/${BRANCH}. Erst pushen, dann releasen."
+else
+    [ "${BRANCH}" = "main" ] || fail "Nicht auf main — der Update-Feed liest main"
+    git fetch -q origin main || fail "git fetch origin main fehlgeschlagen"
+    [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] \
+        || fail "HEAD ist nicht gleich origin/main. Erst pushen, dann releasen."
+fi
 
 VERSION="$(awk -F'"' '/MARKETING_VERSION:/ { print $2; exit }' project.yml)"
 [ -n "${VERSION}" ] || fail "MARKETING_VERSION nicht in project.yml gefunden"
@@ -381,6 +393,14 @@ echo "  ✓ Feed-Signatur des Appcasts verifiziert"
 # Der Appcast liegt IM REPO, nicht in einem Gist: Jede Änderung daran ist damit
 # ein öffentlicher, datierter Commit. Billigste Manipulationserkennung, die zu
 # haben ist.
+if [ "${HOTFIX:-0}" = "1" ]; then
+    cp appcast.xml "${TMPDIR:-/tmp}/gnotchi-appcast-${TAG}.xml"
+    git checkout -- appcast.xml
+    echo "  ⏸️  HOTFIX: Appcast NICHT committet. Signiert und geprüft liegt er unter"
+    echo "     ${TMPDIR:-/tmp}/gnotchi-appcast-${TAG}.xml"
+    echo "     → ZU TUN: git switch main && cp <Datei> appcast.xml && git commit -m 'Appcast für ${TAG}' && git push"
+    exit 0
+fi
 git add appcast.xml
 if git diff --cached --quiet -- appcast.xml; then
     echo "  ℹ️  Appcast unverändert — kein Commit nötig"
