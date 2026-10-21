@@ -179,4 +179,64 @@ final class KalliEventsTests: XCTestCase {
         XCTAssertEqual(m.height, IslandGeometry.mirrorHeight + IslandGeometry.privacyLineHeight)
         XCTAssertEqual(m.maxY, l.expanded.maxY, "wächst nach unten, oben bündig")
     }
+
+    // MARK: Anheften + „Wiedergabe immer groß“
+
+    private func musicModel() -> ActivityModel {
+        let media = NowPlayingModel()
+        media.setPreviewState(info: NowPlayingInfo(title: "Lied", artist: nil, album: nil, appBundleID: nil, isPlaying: true,
+                                                   duration: 200, elapsedAtStamp: 10, stamp: Date(), rate: 1,
+                                                   contentID: nil, artworkBase64: nil),
+                              artwork: nil, route: .local)
+        return ActivityModel(media: media)
+    }
+
+    func testPinToggles() {
+        let model = musicModel()
+        XCTAssertFalse(model.pinned)
+        model.togglePin()
+        XCTAssertTrue(model.pinned)
+        model.togglePin()
+        XCTAssertFalse(model.pinned)
+    }
+
+    func testPlayerFirstKeepsPlayerAndLaysActivityOver() {
+        let model = musicModel()
+        model.playerFirst = true
+        model.setUpcomingEvent(event(10))
+        XCTAssertEqual(model.bigContent, .media, "Player bleibt groß, obwohl der Termin vorn rotiert")
+        XCTAssertNil(model.playerOverlay)
+        XCTAssertEqual(model.highlightedChip, .media)
+        model.select(.event)
+        XCTAssertEqual(model.bigContent, .media)
+        XCTAssertEqual(model.playerOverlay, .event, "Termin als Glas über dem Player")
+        XCTAssertEqual(model.highlightedChip, .event)
+        model.select(.event)
+        XCTAssertNil(model.playerOverlay, "erneuter Klick nimmt die Schicht weg")
+        model.select(.event)
+        model.select(.media)
+        XCTAssertNil(model.playerOverlay, "Klick auf Musik nimmt die Schicht weg")
+        model.select(.event)
+        model.endMirror()
+        XCTAssertNil(model.playerOverlay, "Zuklappen nimmt die Schicht weg")
+    }
+
+    func testPlayerFirstYieldsToAlarmAndPicker() {
+        let model = musicModel()
+        model.playerFirst = true
+        model.showTimerPicker()
+        XCTAssertEqual(model.bigContent, .timerPicker)
+        model.timerAlarm = true
+        XCTAssertEqual(model.bigContent, .alarm)
+    }
+
+    func testWithoutPlayerFirstSelectionStillSwitches() {
+        let model = musicModel()
+        model.setUpcomingEvent(event(10))
+        model.select(.media)
+        XCTAssertEqual(model.bigContent, .media)
+        model.select(.event)
+        XCTAssertEqual(model.bigContent, .event)
+        XCTAssertNil(model.playerOverlay)
+    }
 }

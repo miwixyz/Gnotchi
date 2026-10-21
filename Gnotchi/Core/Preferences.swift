@@ -29,6 +29,8 @@ final class Preferences {
         static let timerSound = "timerSound"
         /// 0.5.0 Timer-Ablauf: Insel pulsiert bis Klick (aus = kurzer Hinweis).
         static let timerAlarm = "timerAlarm"
+        /// 0.5.0 Wiedergabe immer groß (Player als Grundlage, andere Aktivitäten als Glas darüber).
+        static let playerFirst = "playerFirst"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -81,6 +83,9 @@ final class Preferences {
     /// Timer-Ablauf bis Klick anzeigen (0.5.0): Insel pulsiert, Ton wiederholt sich höchstens 1 Minute. Ab Werk an.
     var timerAlarm: Bool { didSet { defaults.set(timerAlarm, forKey: Key.timerAlarm) } }
 
+    /// Wiedergabe immer groß (0.5.0): Player bleibt die große Ansicht, andere Aktivitäten als Glas-Schicht. Ab Werk aus.
+    var playerFirst: Bool { didSet { defaults.set(playerFirst, forKey: Key.playerFirst) } }
+
     /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
     var timerSound: String {
         didSet {
@@ -110,6 +115,7 @@ final class Preferences {
         mirror = defaults.object(forKey: Key.mirror) as? Bool ?? true
         timerSound = CountdownTimer.validSound(defaults.object(forKey: Key.timerSound))
         timerAlarm = defaults.object(forKey: Key.timerAlarm) as? Bool ?? true
+        playerFirst = defaults.object(forKey: Key.playerFirst) as? Bool ?? false
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

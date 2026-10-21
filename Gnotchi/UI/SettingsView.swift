@@ -26,6 +26,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.qottiQuota) { model.applyNotchSetting() }
                 toggleRow("Termine aus Kalli anzeigen", isOn: $prefs.kalliEvents)
                     .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
+                toggleRow("Wiedergabe immer groß", isOn: $prefs.playerFirst)
+                    .onChange(of: prefs.playerFirst) { model.applyNotchSetting() }
                 toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
                     .onChange(of: prefs.mirror) { model.applyNotchSetting() }
                 toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)

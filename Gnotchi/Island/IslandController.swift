@@ -197,6 +197,8 @@ final class IslandController {
             _ = activity.timer != nil
             _ = activity.timerPickerActive
             _ = activity.timerAlarm
+            _ = activity.pinned
+            _ = activity.playerOverlay
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -341,6 +343,10 @@ final class IslandController {
                 entry.panel.setFrame(f, display: true)
             }
             entry.panel.orderFrontRegardless()
+            // Stecknadel gelöst, Maus schon weg: jetzt zuklappen wie beim Verlassen.
+            if entry.state.mode == .expanded, !activity.pinned, pointerInside[id] != true, collapseTasks[id] == nil {
+                hover(false, displayID: id)
+            }
         }
     }
 
@@ -390,6 +396,8 @@ final class IslandController {
             }
             return
         }
+        // Angeheftet (Stecknadel): bleibt offen, auch wenn die Maus weggeht.
+        guard !activity.pinned else { return }
         collapseTasks[displayID] = Task { [weak self] in
             try? await Task.sleep(for: Self.collapseDelay)
             // Zieht man den Fortschrittsbalken über den Inselrand hinaus, nicht mitten im Ziehen zuklappen

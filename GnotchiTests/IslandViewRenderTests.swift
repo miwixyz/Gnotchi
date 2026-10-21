@@ -186,6 +186,10 @@ final class IslandViewRenderTests: XCTestCase {
         try render(notchScreen, .expanded, name: "notch-big-alarm", alarm: true)
     }
 
+    func testRenderPillPlayerFirstWithEventOverlay() throws {
+        try render(pillScreen, .expanded, name: "pill-playerfirst-event", event: Self.dentist, playerFirstOverlay: .event)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
@@ -193,7 +197,8 @@ final class IslandViewRenderTests: XCTestCase {
                         liveText: String? = nil, quota: QottiLink.Snapshot? = nil,
                         headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
                         cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
-                        timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false) throws {
+                        timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false,
+                        playerFirstOverlay: LiveActivity? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -219,6 +224,7 @@ final class IslandViewRenderTests: XCTestCase {
         if let timerMinutes { activity.startTimer(minutes: timerMinutes); activity.rotationCursor = cursor }
         if timerPicker { activity.showTimerPicker() }
         if alarm { activity.timerAlarm = true }
+        if let playerFirstOverlay { activity.playerFirst = true; activity.select(playerFirstOverlay) }
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = (mode == .expanded
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,

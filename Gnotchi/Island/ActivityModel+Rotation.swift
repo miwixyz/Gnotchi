@@ -98,8 +98,27 @@ extension ActivityModel {
     }
 
     var bigContent: BigContent {
-        Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
-                        mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm)
+        // „Wiedergabe immer groß“: Player als Grundlage, solange Musik da ist (Alarm, Spiegel, Timer-Auswahl gehen vor).
+        let current: LiveActivity? = playerFirst && media.info != nil ? .media : bigActivity
+        return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
+                               mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm)
+    }
+
+    /// Glas-Schicht über dem Player (nur bei „Wiedergabe immer groß“): die gewählte, noch laufende Aktivität.
+    var playerOverlay: LiveActivity? {
+        guard bigContent == .media, let o = overlayActivity, o != .media, chipItems.contains(o) else { return nil }
+        return o
+    }
+
+    /// Hervorgehobenes Symbol der Leiste.
+    var highlightedChip: LiveActivity? {
+        if mirrorActive || timerPickerActive { return nil }
+        if playerFirst && bigContent == .media { return playerOverlay ?? .media }
+        return bigActivity
+    }
+
+    func togglePin() {
+        pinned.toggle()
     }
 
     var showsChipRow: Bool {
@@ -112,6 +131,8 @@ extension ActivityModel {
         if chipItems.contains(item) { rotationCursor = item }
         mirrorActive = false
         timerPickerActive = false
+        // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
+        if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
 
     // MARK: Spiegel (0.5.0, G27) – Kamera nur, solange der Spiegel groß sichtbar ist
@@ -125,6 +146,7 @@ extension ActivityModel {
     func endMirror() {
         if mirrorActive { mirrorActive = false }
         if timerPickerActive { timerPickerActive = false }
+        if overlayActivity != nil { overlayActivity = nil }
     }
 
     func setMirrorEnabled(_ on: Bool) {

@@ -81,6 +81,12 @@ final class ActivityModel {
     /// Schalter „Timer-Ablauf bis Klick anzeigen“; aus = kurzer Hinweis + ein Ton wie zuvor.
     var timerAlarmEnabled = true
     @ObservationIgnored var alarmSoundTask: Task<Void, Never>?
+    /// Angeheftet (Stecknadel, Michael 21.10.): große Insel bleibt offen, Hintergrund durchscheinendes Glas.
+    var pinned = false
+    /// Einstellung „Wiedergabe immer groß“: Player bleibt die große Ansicht, andere Aktivitäten als Glas-Schicht.
+    var playerFirst = false
+    /// Bei „Wiedergabe immer groß“: in der Leiste gewählte Aktivität, die über dem Player liegt.
+    var overlayActivity: LiveActivity?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
     var rotationCursor: LiveActivity?
     /// Maus über einer Insel: Takt steht.

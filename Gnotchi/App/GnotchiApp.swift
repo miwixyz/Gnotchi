@@ -141,6 +141,8 @@ final class AppModel {
         activity.setRotationEnabled(prefs.liveRotation)
         activity.setMirrorEnabled(prefs.mirror)
         activity.timerAlarmEnabled = prefs.timerAlarm
+        activity.playerFirst = prefs.playerFirst
+        if !prefs.playerFirst { activity.overlayActivity = nil }
         syncOwnUpdate()
         guard allowStart else { return }
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })

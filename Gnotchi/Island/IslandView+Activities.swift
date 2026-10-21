@@ -87,6 +87,8 @@ struct ChipRow: View {
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
     var onTimer: () -> Void = {}
+    var pinned = false
+    var onPin: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 6) {
@@ -116,6 +118,7 @@ struct ChipRow: View {
                 .accessibilityLabel(Text(verbatim: "Spiegel"))
                 .accessibilityAddTraits(mirror ? .isSelected : [])
             }
+            fixedButton(pinned ? "pin.fill" : "pin", label: pinned ? "Lösen" : "Anheften", selected: pinned, action: onPin)
             Spacer(minLength: 0)
             if let quota {
                 Text(verbatim: quota).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
@@ -251,6 +254,39 @@ struct TimerCompact: View {
         }
         .accessibilityElement(children: .combine)
         .transition(.opacity)
+    }
+}
+
+/// Glas-Schicht über dem Player („Wiedergabe immer groß“): Symbol, Titel, eine Zeile; optional anklickbar.
+struct OverlayCard: View {
+    let symbol: String
+    let tint: Color
+    let title: String
+    let subtitle: String
+    var onTap: (() -> Void)?
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        let content = HStack(spacing: 10) {
+            Image(systemName: symbol).font(.system(size: 20, weight: .semibold)).foregroundStyle(tint).frame(width: 28)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: title).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                Text(verbatim: subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            .lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(shape.fill(.black.opacity(0.35)))
+        .familyGlass(in: shape)
+        .contentShape(shape)
+        if let onTap {
+            Button(action: onTap) { content }.buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: "\(title), \(subtitle)"))
+        } else {
+            content.accessibilityElement(children: .combine)
+        }
     }
 }
 
