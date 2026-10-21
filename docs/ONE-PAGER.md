@@ -49,6 +49,13 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT
   bei 80 und bei 95 Prozent steht.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
+- Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
+  braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.11.1.
+- Den Timer startest du im Menü, er läuft in der Notch mit. Ist er um, blinkt sie orange, bis du klickst.
+- Vor einem Anruf kurz in den Spiegel schauen: Das Kamera-Symbol in der großen Insel zeigt dein Bild.
+  Die Kamera ist aus, sobald die Insel zuklappt.
+- Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer
+  mag, heftet sie fest oder lässt sie als schmales Band über die Menüleiste aufgehen.
 
 ## Wie von Apple
 
@@ -68,7 +75,11 @@ nichts mit und nimmt nichts auf.
 
 Ob eine App Mikrofon oder Kamera nutzt, erfährt Gnotchi ohne eigene Freigabe. Den App-Namen zeigt es
 nur in der Insel, im Protokoll steht er nicht. Von Tippi kommt „nimmt auf“ und der Pegel. Den Text der
-Live-Vorschau bekommt Gnotchi nur auf einem geschützten Weg, den andere Programme nicht nutzen können.
+Live-Vorschau bekommt Gnotchi nur auf einem geschützten Weg, den andere Programme nicht nutzen können. Deinen
+nächsten Termin schickt Kalli auf demselben Weg, und Gnotchi vergisst ihn bei Beginn.
+
+Die Kamera braucht Gnotchi nur für den Spiegel. macOS fragt erst, wenn du ihn zum ersten Mal öffnest.
+Das Bild landet nirgends außer auf deinem Bildschirm.
 Er steht nur in der Insel, gespeichert oder protokolliert wird er nicht.
 
 Für ein Update öffnet Gnotchi nur die echte App und prüft vorher ihre Signatur. Die Meldung, die

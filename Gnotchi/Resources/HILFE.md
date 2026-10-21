@@ -128,10 +128,50 @@ offen, bleibt sie offen und die Warnung entfällt. In der großen Insel steht ü
 
 Das klappt mit Qotti ab der Version, die Gnotchi unterstützt (steht in Qottis Änderungen).
 
+## Große Insel
+
+Fährst du mit der Maus auf die kleine Insel, klappt sie auf. Groß zeigt sie **eine Sache**: dieselbe, die
+gerade klein zu sehen ist. Oben steht eine Leiste mit kleinen Symbolen für alles, was gerade läuft (Musik,
+Termin, Timer, Kopfhörer, Updates). Ein Klick auf ein Symbol zeigt diese Sache groß. Rechts in der Leiste
+stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofon und Kamera.
+
+- **Stecknadel:** Die Insel bleibt offen, auch wenn die Maus weggeht, und wird durchscheinend. Ein zweiter Klick löst sie wieder.
+- **Wiedergabe immer groß** (Einstellungen): Die Musik bleibt immer die große Ansicht. Ein Klick auf Termin, Timer oder Update legt diese Sache als Glas-Karte über Cover und Titel, die Knöpfe rechts bleiben frei.
+- **Wiedergabe-Knöpfe in der kleinen Insel** (Einstellungen): Pause/Wiedergabe und Weiter stehen dauerhaft in der kleinen Insel.
+- **Aufklappen als Band** (Einstellungen): Die Insel wird nicht nach unten groß, sondern seitlich zu einem Band in Menüleisten-Höhe. Links die Musik, rechts im Wechsel Wiedergabe, Termin und Timer. Ein Klick links öffnet die große Insel.
+
+## Termine aus Kalli
+
+Läuft [Kalli](https://github.com/miwixyz/Kalli) ab Version 0.11.1, zeigt die Insel deinen nächsten Termin
+ab 15 Minuten vor Beginn: Uhrzeit, Titel und wie lange es noch dauert. Bei Beginn verschwindet er. Ein
+Klick öffnet den Apple Kalender. Ganztägige Termine und Erinnerungen erscheinen nicht. Schalter: „Termine
+aus Kalli anzeigen“.
+
+## Timer
+
+Menüleisten-Symbol → **Timer** → 5, 10, 15 oder 25 Minuten oder **Eigene Zeit …** (1 bis 180 Minuten).
+Oder in der großen Insel auf das Timer-Symbol klicken: Dort stehen dieselben Zeiten und **− 30 +** für eine
+eigene Zeit. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
+neuer ersetzt den alten.
+
+Ist die Zeit um, **pulsiert die Insel orange, bis du sie anklickst**, und der Ton wiederholt sich höchstens
+eine Minute lang. Das geht auch über Apps im Vollbild. Schalter „Timer-Ablauf bis Klick anzeigen“ aus: nur
+ein kurzer Hinweis und ein Ton. Den Ton wählst du unter **Timer → Ton** oder in den Einstellungen.
+
+## Spiegel
+
+Das Kamera-Symbol in der Leiste der großen Insel zeigt dein Kamerabild, gespiegelt, zum Beispiel vor einem
+Anruf. Die Kamera läuft nur, solange der Spiegel zu sehen ist: Klappt die Insel zu oder wählst du ein anderes
+Symbol, ist sie sofort aus. Beim ersten Mal fragt macOS nach der Kamera-Freigabe. Schalter: „Spiegel in
+der Notch“.
+
 ## Einstellungen
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
-- **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
+- **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen**, **Termine aus Kalli anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
+- **Aufklappen als:** Insel (ab Werk) oder Band.
+- **Wiedergabe-Knöpfe in der kleinen Insel**, **Wiedergabe immer groß:** ab Werk aus (siehe „Große Insel“).
+- **Spiegel in der Notch**, **Timer-Ablauf bis Klick anzeigen:** ab Werk an. **Timer-Ton:** ab Werk „Glass“, oder „Kein Ton“.
 - **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
 - **Live-Aktivitäten:** „Rotation“, „Kopfhörer-Aktivität“ und „Updates der App-Familie“, jeweils ab Werk an. Darunter der Medienfilter mit einem Schalter je Wiedergabe-App.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
@@ -139,7 +179,7 @@ Das klappt mit Qotti ab der Version, die Gnotchi unterstützt (steht in Qottis �
 
 ## Menü und Rechtsklick
 
-Gnotchi hat ein Symbol in der Menüleiste. Ein Klick darauf öffnet das Menü mit „Einstellungen …“,
+Gnotchi hat ein Symbol in der Menüleiste. Ein Klick darauf öffnet das Menü mit „Timer“, „Einstellungen …“,
 „Hilfe …“, „Nach Updates suchen …“ und „Beenden“. Läuft keine Musik, gibt es keine Insel, dann
 erreichst du Gnotchi über dieses Symbol.
 
@@ -148,11 +188,12 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon, keine Kamera
-und kein Bluetooth. Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
+Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth.
+Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
 
 macOS fragt höchstens in diesen Fällen:
 
+- **Kamera:** erst beim ersten Klick auf den Spiegel. Lehnst du ab, zeigt der Spiegel „Kamera nicht erlaubt“ mit einem Knopf zu den Einstellungen. Ändern: Systemeinstellungen → Datenschutz & Sicherheit → Kamera → Gnotchi.
 - **Spotify steuern:** beim ersten Spulen in Spotify. Gnotchi spult Spotify direkt, sonst springt die Zeit über Spotify Connect zurück.
 - **Musik steuern:** nur, wenn Gnotchi auf den Ersatzweg umschalten muss (siehe „Wenn etwas nicht geht“).
 - **Anmeldeobjekt:** wenn du „Bei Anmeldung starten“ einschaltest. Steht in den Einstellungen „macOS wartet auf deine Freigabe“, klick auf „Freigeben …“ und schalte Gnotchi unter Systemeinstellungen → Allgemein → Anmeldeobjekte ein.
@@ -173,6 +214,9 @@ nicht wirkt.
 - Von Qotti kommen nur die Prozente, der Zeitpunkt der Zurücksetzung und „ok/veraltet/gedrosselt“, nie Konto, E-Mail oder Plan. Auch diese Meldung kann jedes Programm auf deinem Mac mitlesen.
 - Update-Meldungen der Familien-Apps enthalten nur den App-Namen und die Versionsnummer. Auch sie kann jedes Programm mitlesen. Gnotchi zeigt daraus nur Namen und Version und speichert sie nicht.
 - Der Medienfilter speichert nur die Kennungen der ausgeschalteten Apps, keine Titel und keine Zeitpunkte.
+- Deinen nächsten Termin bekommt Gnotchi von Kalli auf demselben geschützten Weg wie Tippis Live-Text: Beide Apps prüfen vorher die Signatur der anderen. Kalli schickt nur Titel, Beginn und Kalenderfarbe des Termins, den seine Menüleiste ohnehin zeigt. Gnotchi speichert ihn nicht, protokolliert ihn nicht und vergisst ihn bei Beginn.
+- Das Kamerabild des Spiegels geht direkt auf den Bildschirm. Gnotchi speichert es nicht, verarbeitet es nicht und schickt es nirgendwohin.
+- Der Timer lebt nur im Arbeitsspeicher.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig

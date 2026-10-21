@@ -36,6 +36,17 @@ Freigabe nicht und fragt nie danach.
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
+- **Eine Sache groß (0.5):** Groß steht immer nur eine Sache, 460 pt breit. Oben eine Leiste mit
+  Symbolen für alles, was läuft; ein Klick zeigt diese Sache groß. Dazu Timer, Spiegel und eine
+  **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
+  groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
+  und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
+- **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
+  mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.11.1).
+- **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
+  die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute.
+- **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die
+  Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Spulen:** im Balken klicken oder ziehen, gespult wird beim Loslassen. In Spotify auch dann,
   wenn die Musik über Spotify Connect auf einem anderen Gerät läuft. Ohne Dauer (Livestream) ist
   der Balken gesperrt.
@@ -82,7 +93,7 @@ Freigabe nicht und fragt nie danach.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
   erneut und schaltet von selbst zurück.
-- Menüleisten-Symbol mit Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
+- Menüleisten-Symbol mit Timer, Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
   der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“,
   „Qotti-Kontingent anzeigen“ (alle ab Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
   Bereich „Live-Aktivitäten“: „Rotation“, „Kopfhörer-Aktivität“, „Updates der App-Familie“ (alle
@@ -113,16 +124,17 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 |---|---|---|
 | **Automation für Spotify** | beim ersten Spulen in Spotify | Spotify spult per AppleScript. Über Spotify Connect springt die Zeit sonst zurück (gemessen 18.10.2026). |
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
+| **Kamera** | beim ersten Klick auf den Spiegel (0.5) | Nur der Spiegel. Das Bild geht direkt auf den Bildschirm, nie in eine Datei ([G27](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
 Was Gnotchi **nicht** braucht: keine Bedienungshilfen, keine Bildschirmaufnahme, kein Mikrofon,
-keine Kamera, kein Bluetooth. Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
+kein Bluetooth (die Kamera nur für den Spiegel, siehe oben). Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
 CoreMediaIO ohne Freigabe (gemessen 20.10.2026: Kamera ohne Anfrage, beim Mikrofon nur eine stille
 Vorabprüfung von macOS, kein Dialog).
 Fürs Vollbild und für die Erkennung einer zweiten Notch-App liest es aus der Fensterliste nur
 Ebene, Lage und Prozessnummer, keine Fenstertitel.
 
-Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → Gnotchi.
+Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw. Kamera → Gnotchi.
 
 ## Datenschutz
 
@@ -151,6 +163,12 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → 
   Signatur geprüft hat ([G24](docs/SECURE-DESIGN.md)).
 - **Medienfilter:** gespeichert werden nur die Kennungen der ausgeschalteten Apps, keine Titel und
   keine Zeitpunkte ([G25](docs/SECURE-DESIGN.md)).
+- **Termine aus Kalli:** über einen eigenen lokalen Socket (`kalli.sock`), beide Apps prüfen vorher
+  die Developer-ID-Signatur der anderen. Nur Titel, Beginn und Kalenderfarbe des nächsten Termins;
+  nie gespeichert, nie protokolliert, bei Beginn vergessen ([G26](docs/SECURE-DESIGN.md)).
+- **Spiegel:** Das Kamerabild geht nur in die Vorschau auf dem Bildschirm, nie in Gnotchis eigenen
+  Code, eine Datei oder das Netz. Die Kamera läuft nur, solange der Spiegel sichtbar ist
+  ([G27](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 

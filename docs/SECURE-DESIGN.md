@@ -307,7 +307,8 @@ signaturgeprüfte (G24).
 - **Entschieden:** Hardened Runtime **ohne** Ausnahmen (keine `disable-library-validation`, keine
   `allow-dyld-environment-variables`, kein JIT), Developer ID, notarisiert, keine Sandbox (Perl als
   Kindprozess und MediaRemote gehen darin nicht). Berechtigungen: die App **genau**
-  `com.apple.security.automation.apple-events`; eingebetteter Code (Adapter-Framework,
+  `com.apple.security.automation.apple-events` (ab 0.5.0 zusätzlich `com.apple.security.device.camera`
+  für den Spiegel, G27); eingebetteter Code (Adapter-Framework,
   Test-Programm) **keine**. `release.sh` prüft das am exportierten Build als Positivliste
   (geduldet nur die von Xcode beim Export eingesetzten `com.apple.application-identifier`/
   `com.apple.developer.team-identifier`); Gegenprobe 18.10. an einer ad hoc signierten Kopie:
@@ -535,6 +536,38 @@ signaturgeprüfte (G24).
 - **Wirkung:** Wiedergabe einer ausgeschlossenen App wird vor jeder Verarbeitung verworfen (kein Cover-Dekodieren,
   keine Wiedergabeweg-Abfrage).
 
+### G26 – Kallis nächster Termin: eigener Socket, beidseitig geprüft, nie protokolliert (neu, 2026-10-21, 0.5.0)
+- **Warum ein eigener Weg:** Termintitel sind privat, distnoted (G13/G17) kann jeder Prozess mitlesen.
+  Weg wie G21: Unix-Socket `~/Library/Application Support/Gnotchi/kalli.sock`, Gnotchi ist Server
+  (`PeerSocketServer`, seit 0.5.0 allgemein; Tippis Live-Text läuft unverändert darüber), Ordner 0700,
+  Socket 0600, fremde Datei am Pfad → Funktion aus. Läuft mit „Termine aus Kalli anzeigen“.
+- **Beidseitige Prüfung:** Gnotchi prüft Kalli vor dem ersten Byte über das Audit-Token gegen
+  Developer ID + `com.kalli.app` + Team LTKJ6Z2VYB; Kalli prüft Gnotchi genauso und sendet erst nach
+  dem `ok` (0,5 s). Kein Rückkanal nach dem `ok` (Klick öffnet Apple Kalender in Gnotchi selbst).
+- **Schema:** `v` Zahl 1, `event` null oder `{title, start, color?}`; Titel bereinigt (wie G21), ≤ 120
+  Zeichen, nur `Text(verbatim:)`; Beginn außerhalb −1 Tag … +400 Tage → verworfen; Farbe nur `#RRGGBB`;
+  alles andere → Verbindung zu. Kalli kürzt den Titel schon auf 200 Zeichen (Review 21.10.).
+- **Lebensdauer:** nur Arbeitsspeicher; sichtbar 15 Min. vor bis Beginn, verworfen bei Beginn,
+  Trennung, Ausschalten. Protokoll ohne Titel.
+- **Wiederverbindung:** Kalli erkennt Gnotchis Start über `NSWorkspace.runningApplications` (KVO).
+  `didLaunchApplicationNotification` kommt für Apps ohne Dock-Symbol nicht (gemessen 21.10.: 0×, KVO 1×).
+- **Gemessen 21.10.:** beidseitig verbunden; nachgebauter Client → „abgelehnt (OSStatus -67050)“, kein
+  `ok`, echte Verbindung blieb; Testtermin in der Insel sichtbar (Michael); Protokoll beider Apps ohne Titel.
+
+### G27 – Spiegel: Kamera nur sichtbar, Bild nur in der Vorschau-Ebene (neu, 2026-10-21, 0.5.0)
+- **Berechtigung:** `com.apple.security.device.camera` + `NSCameraUsageDescription`; Freigabe-Dialog erst
+  beim Klick auf den Spiegel. G12 ändert sich: App genau Apple Events **und** Kamera.
+- **Bild:** `AVCaptureSession` → nur `AVCaptureVideoPreviewLayer`; kein Video-/Foto-Ausgang, kein Puffer
+  im eigenen Code, keine Datei, kein Netz. Protokoll nur „an/aus/nicht erlaubt/keine Kamera“.
+- **Laufzeit:** Kamera nur, solange der Spiegel groß sichtbar ist (`onDisappear`, Einklappen, anderes
+  Symbol, Schalter aus). Review 21.10.: Wurde die Insel während des Freigabe-Dialogs geschlossen, startete
+  die Kamera danach trotzdem – behoben (`wanted` auf der Kamera-Warteschlange, `run` prüft es).
+- **Kindprozess:** `/usr/bin/perl` (Medien-Adapter) wird Gnotchi zugerechnet und könnte dessen
+  Kamera-Freigabe nutzen. Antwort: G2 (Skript und Framework vor jedem Start auf Unversehrtheit geprüft),
+  der Adapter hat keinen Kamera-Code. Restrisiko hingenommen.
+- **Gemessen 21.10.:** Testkopie mit genau zwei Berechtigungen; Michael: Bild gespiegelt, LED aus nach
+  Einklappen (Protokoll an 19:26:49, aus 19:27:06).
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -602,6 +635,17 @@ signaturgeprüfte (G24).
 
 Kein Paket wird nach einem von einem Sprachmodell vorgeschlagenen Namen installiert, nur nach der
 Adresse aus dem offiziellen README (Slopsquat).
+
+## Ausstiegskriterien 0.5.0 (Termine, Timer, Spiegel, große Insel)
+
+- [x] Tests: 420 (Schema G26, Anzeigefenster, Rotation, Spiegel-Zustand, Timer/Alarm/Töne, Band, Größen),
+      Gegenprobe Server lehnt fremde Kennung ab
+- [x] Echtes System: G26 und G27 wie oben gemessen; Timer-Alarm, Stecknadel, Band (Michael)
+- [x] `rafter-code-review` 21.10. (CWE Top 25, beide Diffs Gnotchi/Kalli): keine Shell, nur feste URLs/Pfade,
+      Schema-Prüfung, keine Titel im Protokoll; zwei Funde behoben (Kamera nach Freigabe-Dialog, lange Titel)
+- [x] `rafter run` 21.10. am gepushten Stand `9d185cb`: Scan `0eaad162`, keine Befunde (Kalli `87c8493`: Scan
+      `fee0de22`, keine Befunde)
+- [ ] Positivliste `release.sh` mit `device.camera` am exportierten Build
 
 ## Ausstiegskriterien 0.4.0 (Live-Aktivitäten)
 

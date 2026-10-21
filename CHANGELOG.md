@@ -2,6 +2,26 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.5.0] — 2026-10-21
+
+Termine, Timer, Spiegel – und eine aufgeräumte große Insel.
+
+### Neu
+- **Eine Sache groß:** Die große Insel zeigt nur noch eine Sache, groß und 460 pt breit. Oben steht eine Leiste mit Symbolen für alles, was läuft; ein Klick zeigt diese Sache groß. Vorher stapelten sich Mikrofon, Kontingent, Updates und Musik übereinander.
+- **Nächster Termin aus Kalli:** Ab Kalli 0.11.1 erscheint dein nächster Termin 15 Minuten vor Beginn in der Insel, mit Uhrzeit und Restzeit. Ein Klick öffnet den Apple Kalender. Der Titel kommt auf einem geschützten Weg, bei dem beide Apps die Signatur der anderen prüfen.
+- **Timer:** 5, 10, 15, 25 Minuten oder eine eigene Zeit (1–180), über das Menü oder die Insel, mit Pause und Stopp. Ist die Zeit um, pulsiert die Insel orange, bis du klickst, und der Ton wiederholt sich höchstens eine Minute. Ton wählbar.
+- **Spiegel:** Das Kamera-Symbol in der großen Insel zeigt dein Kamerabild gespiegelt, etwa vor einem Anruf. Die Kamera läuft nur, solange der Spiegel zu sehen ist.
+- **Stecknadel:** hält die große Insel offen, dann durchscheinend.
+- **Aufklappen als Band:** auf Wunsch seitlich breit in Menüleisten-Höhe statt nach unten.
+- **Wiedergabe immer groß** und **Wiedergabe-Knöpfe in der kleinen Insel** als Einstellungen.
+
+### Behoben
+- Startet eine Familien-App nach einem Update neu, verschwindet ihr Update-Eintrag jetzt sofort. macOS meldet den Start von Apps ohne Dock-Symbol (Kalli, Tippi) nicht als App-Start; der Eintrag blieb so bis zur stündlichen Prüfung stehen.
+- Neben der Notch passt die Restzeit jetzt in den schmalen Flügel („25′“ statt „25:00“, das unter die Notch lief).
+
+### Intern
+- Neue Berechtigung **Kamera** (`com.apple.security.device.camera`) nur für den Spiegel; Positivliste im Release-Skript angepasst (SECURE-DESIGN G27). Kalli-Termine über `kalli.sock` (G26), der Socket-Server von Tippis Live-Text ist dafür allgemein geworden. 420 Tests.
+
 ## [0.4.0] — 2026-10-21
 
 Enthält auch alles, was für 0.3.0 geplant war. 0.3.0 ist nicht einzeln erschienen.
