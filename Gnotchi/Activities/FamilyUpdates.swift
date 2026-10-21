@@ -157,7 +157,7 @@ final class FamilyUpdateLink: NotchPart {
     private var entries: [FamilyApp: FamilyUpdates.Entry] = [:]
     private var lastAccepted: [FamilyApp: Date] = [:]
     private var observer: NSObjectProtocol?
-    private var launchObserver: NSObjectProtocol?
+    private var launchObservation: NSKeyValueObservation?
     private var pruneTask: Task<Void, Never>?
 
     init(activity: ActivityModel,
@@ -175,15 +175,13 @@ final class FamilyUpdateLink: NotchPart {
             let message = FamilyUpdates.parse(note.userInfo)
             MainActor.assumeIsolated { self?.receive(message) }
         }
-        // Nach einem Update startet die App neu: dann prüfen, ob der Eintrag erledigt ist.
-        launchObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
-        ) { [weak self] note in
-            let id = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
-            MainActor.assumeIsolated {
-                guard let self, FamilyApp.remote.contains(where: { $0.bundleID == id }) else { return }
-                self.prune()
-            }
+        // Nach einem Update startet die App neu: dann prüfen, ob der Eintrag erledigt ist. Über
+        // `runningApplications`, nicht `didLaunchApplicationNotification` – die kommt für Apps ohne Dock-Symbol
+        // (Kalli, Tippi) nicht (gemessen 21.10. an Gnotchi: 0×, KVO 1×).
+        launchObservation = NSWorkspace.shared.observe(\.runningApplications, options: [.new]) { [weak self] _, change in
+            let ids = Set((change.newValue ?? []).compactMap(\.bundleIdentifier))
+            guard FamilyApp.remote.contains(where: { ids.contains($0.bundleID) }) else { return }
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.prune() } }
         }
         pruneTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -196,9 +194,8 @@ final class FamilyUpdateLink: NotchPart {
 
     func stop() {
         if let observer { DistributedNotificationCenter.default().removeObserver(observer) }
-        if let launchObserver { NSWorkspace.shared.notificationCenter.removeObserver(launchObserver) }
         observer = nil
-        launchObserver = nil
+        launchObservation = nil
         pruneTask?.cancel()
         pruneTask = nil
         entries = [:]
