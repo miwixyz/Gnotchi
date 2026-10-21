@@ -513,6 +513,6 @@ extension IslandController {
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
-        return Self.bigFrame(layout: layout, bigIsMedia: activity.bigContent == .media, chipRow: activity.showsChipRow)
+        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow)
     }
 }

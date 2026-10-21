@@ -79,17 +79,29 @@ extension ActivityModel {
         items > 1 || (privacy && big != .privacy) || quota
     }
 
+    /// Symbole der Leiste: wie die Rotation, aber Musik auch pausiert (dort will man sie weiterspielen; die
+    /// kleine Insel blendet pausierte Musik nach 5 s aus – gemessen 21.10.: Musik-Symbol fehlte).
+    var chipItems: [LiveActivity] {
+        Self.rotationItems(event: upcomingEvent != nil, media: media.info != nil, headphones: headphones != nil,
+                           updates: allUpdates.map(\.app))
+    }
+
+    /// Was die große Insel zeigt: die gewählte bzw. gerade rotierende Sache aus der Leiste.
+    var bigActivity: LiveActivity? {
+        Self.resolve(cursor: rotationCursor, items: chipItems, enabled: true)
+    }
+
     var bigContent: BigContent {
-        Self.bigContent(current: currentActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil)
+        Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil)
     }
 
     var showsChipRow: Bool {
-        Self.showsChipRow(items: rotationItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil)
+        Self.showsChipRow(items: chipItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil)
     }
 
     /// Klick auf ein Symbol der Leiste: diese Aktivität groß zeigen (der Takt steht, solange die Maus darauf ist).
     func select(_ item: LiveActivity) {
-        if rotationItems.contains(item) { rotationCursor = item }
+        if chipItems.contains(item) { rotationCursor = item }
     }
 
     /// Aktivität der kleinen Insel.

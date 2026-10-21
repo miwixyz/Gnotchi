@@ -199,7 +199,7 @@ final class IslandViewRenderTests: XCTestCase {
         activity.setUpcomingEvent(event)
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = (mode == .expanded
-            ? IslandController.bigFrame(layout: layout, bigIsMedia: activity.bigContent == .media,
+            ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,
                                         chipRow: activity.showsChipRow)
             : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
         let canvas = CGSize(width: 520, height: 210)

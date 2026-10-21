@@ -132,30 +132,34 @@ struct ChipRow: View {
     }
 }
 
-/// Große Sache außer Musik: Symbol links, Titel und eine Zeile darunter, optional rechts ein Knopf.
-/// In Hinweis-Größe (44 pt). Titel und Namen nur `Text(verbatim:)`.
+/// Große Sache außer Musik, in Player-Größe (Michael 21.10.: Hinweis-Größe war zu klein): Symbol links,
+/// Titel (bis zwei Zeilen) und eine Zeile darunter, rechts optional ein Knopf. Titel und Namen nur `Text(verbatim:)`.
 struct ActivityCard<Leading: View>: View {
     let title: String
     let subtitle: String
     var action: String?
     var onTap: (() -> Void)?
+    var height: CGFloat = IslandGeometry.expandedSize.height - 12
     @ViewBuilder let leading: () -> Leading
 
     var body: some View {
-        let content = HStack(spacing: 10) {
-            leading().frame(width: 24)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(verbatim: title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
-                Text(verbatim: subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+        let content = HStack(spacing: 14) {
+            leading().frame(width: 44, height: 44)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: title).font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+                    .lineLimit(2).truncationMode(.tail)
+                Text(verbatim: subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.tail)
             }
-            .lineLimit(1).truncationMode(.tail)
             .frame(maxWidth: .infinity, alignment: .leading)
             if let action {
-                Text(verbatim: action).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
+                Text(verbatim: action).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).fixedSize()
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Capsule().fill(.white.opacity(0.18)))
             }
         }
-        .padding(.horizontal, 14)
-        .frame(height: IslandGeometry.noticeSize.height)
+        .padding(.horizontal, 16)
+        .frame(height: height)
         .contentShape(Rectangle())
         if let onTap {
             Button(action: onTap) { content }.buttonStyle(.plain)
@@ -176,7 +180,7 @@ struct EventCard: View {
             ActivityCard(title: event.title,
                          subtitle: "\(KalliEvents.timeText(event)) · in \(KalliEvents.minutesLeft(event, now: context.date)) Min",
                          action: "Kalender", onTap: onOpen, leading: {
-                Image(systemName: "calendar").font(.system(size: 18, weight: .semibold))
+                Image(systemName: "calendar").font(.system(size: 30, weight: .semibold))
                     .foregroundStyle(event.color.map(Color.init(rgb:)) ?? .white)
             })
         }

@@ -118,6 +118,19 @@ final class KalliEventsTests: XCTestCase {
         XCTAssertTrue(ActivityModel.showsChipRow(items: 1, big: .media, privacy: false, quota: true))
     }
 
+    func testPausedMusicStaysInChipRow() {
+        let media = NowPlayingModel()
+        media.setPreviewState(info: NowPlayingInfo(title: "Lied", artist: nil, album: nil, appBundleID: nil, isPlaying: false,
+                                                   duration: 200, elapsedAtStamp: 10, stamp: Date(), rate: 0,
+                                                   contentID: nil, artworkBase64: nil),
+                              artwork: nil, route: .local)
+        let model = ActivityModel(media: media)
+        model.setUpcomingEvent(event(10))
+        XCTAssertEqual(model.chipItems, [.event, .media])
+        model.select(.media)
+        XCTAssertEqual(model.bigContent, .media)
+    }
+
     func testSelectSwitchesBigContent() {
         let model = ActivityModel(media: NowPlayingModel())
         model.setUpcomingEvent(event(10))
@@ -132,11 +145,9 @@ final class KalliEventsTests: XCTestCase {
     func testBigFrameSizes() throws {
         let l = IslandGeometry.layout(for: IslandGeometry.ScreenMetrics(
             frame: CGRect(x: 0, y: 0, width: 2560, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil))
-        XCTAssertEqual(IslandController.bigFrame(layout: l, bigIsMedia: true, chipRow: false), l.expanded)
-        XCTAssertEqual(IslandController.bigFrame(layout: l, bigIsMedia: false, chipRow: false), l.notice)
-        let media = try XCTUnwrap(IslandController.bigFrame(layout: l, bigIsMedia: true, chipRow: true))
-        XCTAssertEqual(media.height, l.expanded.height + IslandGeometry.privacyLineHeight)
-        let card = try XCTUnwrap(IslandController.bigFrame(layout: l, bigIsMedia: false, chipRow: true))
-        XCTAssertEqual(card.height, l.notice.height + IslandGeometry.privacyLineHeight)
+        XCTAssertEqual(IslandController.bigFrame(layout: l, small: false, chipRow: false), l.expanded)
+        XCTAssertEqual(IslandController.bigFrame(layout: l, small: true, chipRow: false), l.notice, "nur Mikrofon")
+        let big = try XCTUnwrap(IslandController.bigFrame(layout: l, small: false, chipRow: true))
+        XCTAssertEqual(big.height, l.expanded.height + IslandGeometry.privacyLineHeight)
     }
 }

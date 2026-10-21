@@ -36,7 +36,7 @@ struct IslandView: View {
         case .compact: state.layout.compact.size
         case .wide: state.layout.wide.size
         case .expanded:
-            IslandController.bigFrame(layout: state.layout, bigIsMedia: activity.bigContent == .media,
+            IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
                                       chipRow: activity.showsChipRow)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
@@ -96,7 +96,7 @@ struct IslandView: View {
             let chips = activity.showsChipRow
             VStack(spacing: 0) {
                 if chips {
-                    ChipRow(items: activity.rotationItems, current: activity.currentActivity, event: activity.upcomingEvent,
+                    ChipRow(items: activity.chipItems, current: activity.bigActivity, event: activity.upcomingEvent,
                             headphones: activity.headphones, mediaApp: model.info?.appBundleID, privacy: activity.privacy,
                             quota: activity.quotaLine, onSelect: { activity.select($0) })
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
@@ -119,14 +119,14 @@ struct IslandView: View {
         case .headphones:
             if let h = activity.headphones {
                 ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
-                    Image(systemName: h.symbol).font(.system(size: 18, weight: .semibold)).foregroundStyle(.white)
+                    Image(systemName: h.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(.white)
                 }
                 .padding(.top, top).transition(.opacity)
             }
         case .update(let app):
             if let e = activity.update(for: app) {
                 ActivityCard(title: e.label, subtitle: "Zum Installieren öffnen", action: "Öffnen", onTap: { onOpenUpdate(app) },
-                             leading: { AppSymbol(bundleID: app.bundleID, size: 24) })
+                             leading: { AppSymbol(bundleID: app.bundleID, size: 44) })
                 .padding(.top, top).transition(.opacity)
             }
         case .privacy:
