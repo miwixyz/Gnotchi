@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.2.1] — 2026-10-21
+
+### Behoben
+- **Gnotchi wurde mit der Zeit immer langsamer und hungriger.** Seit 0.2.0 meldete Gnotchi bei jeder Änderung an den Audio- oder Kamerageräten (Kopfhörer, iPhone als Kamera, Bildschirm mit Lautsprechern) alle Beobachter ab und neu an. macOS rief die alten trotzdem weiter auf, und jede Änderung vervierfachte die Arbeit. Nach einem Tag konnte Gnotchi so über 100 % CPU und viel Speicher brauchen, das Symbol in der Menüleiste verschwand. Jetzt bleibt die Arbeit pro Geräteänderung gleich (gemessen: 10 Änderungen ohne messbaren Mehraufwand, vorher nach 5 Änderungen tausendfach).
+
 ## [0.2.0] — 2026-10-20
 
 ### Neu

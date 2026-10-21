@@ -481,6 +481,14 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 Kein Paket wird nach einem von einem Sprachmodell vorgeschlagenen Namen installiert, nur nach der
 Adresse aus dem offiziellen README (Slopsquat).
 
+## Ausstiegskriterien 0.2.1 (Hotfix)
+
+- [x] Nur `PrivacyMonitor` geändert (System-Beobachter einmal anmelden, Geräte-Beobachter verschoben tauschen),
+      dazu Regressionstest und Messwerkzeug. Keine neue Sicherheitsfläche. Ursache und Messwerte:
+      `main`, Abschnitt „Ausstiegskriterien 0.3.0“ → Ressourcenfund 21.10.
+- [x] `rafter run` 21.10. am `main` mit demselben Fix: Scan `ad9c49ba`, keine Befunde.
+- [ ] Positivliste der Berechtigungen am ausgelieferten 0.2.1 unverändert (`release.sh`)
+
 ## Ausstiegskriterien 0.2.0
 
 - [x] Sicherheitsentwurf (rafter-secure-design) vor dem Code: `specs/2026-10-20-gnotchi-0.2.0.md`
