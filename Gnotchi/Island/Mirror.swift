@@ -19,11 +19,13 @@ final class MirrorCamera: @unchecked Sendable {
     let session = AVCaptureSession()
     private let queue = DispatchQueue(label: "dev.mwlr.gnotchi.mirror")
     private var configured = false
-    /// Zählt Starts: Ein spätes `startRunning` nach einem schnellen `stop` darf die Kamera nicht anlassen.
-    private var generation = 0
+    /// Soll die Kamera laufen? Nur auf `queue`. Review 21.10.: Fragt macOS nach der Freigabe und klappt die Insel
+    /// vor dem „Erlauben“ zu, kam `run` erst nach `stop` – die Kamera lief dann ohne sichtbaren Spiegel.
+    private var wanted = false
 
     /// Fragt beim ersten Mal nach der Freigabe (ausgelöst durch den Klick), startet dann die Kamera.
     func start(_ status: @escaping @MainActor @Sendable (Status) -> Void) {
+        queue.async { [self] in wanted = true }
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             run(status)
@@ -39,7 +41,7 @@ final class MirrorCamera: @unchecked Sendable {
 
     func stop() {
         queue.async { [self] in
-            generation += 1
+            wanted = false
             guard session.isRunning else { return }
             session.stopRunning()
             Self.log.notice("Spiegel aus")
@@ -48,14 +50,14 @@ final class MirrorCamera: @unchecked Sendable {
 
     private func run(_ status: @escaping @MainActor @Sendable (Status) -> Void) {
         queue.async { [self] in
-            generation += 1
-            let mine = generation
+            // Spiegel inzwischen geschlossen (z. B. während des Freigabe-Dialogs): Kamera nicht starten.
+            guard wanted else { return }
             guard configure() else {
                 Self.log.notice("Spiegel: keine Kamera")
                 Task { @MainActor in status(.noCamera) }
                 return
             }
-            guard mine == generation, !session.isRunning else { return }
+            guard !session.isRunning else { return }
             session.startRunning()
             Self.log.notice("Spiegel an")
             Task { @MainActor in status(.running) }
