@@ -5,9 +5,10 @@ Video, zeigt Gnotchi in der Notch Cover und Pegel. Fährst du mit der Maus darü
 auf und zeigt Titel, Interpret, App, Tasten und Fortschritt. Auf Bildschirmen ohne Notch erscheint
 dieselbe Insel als Pille oben in der Mitte. Dazu zeigt sie dein Diktat in
 [Tippi](https://github.com/miwixyz/Tippi), welche App Mikrofon oder Kamera nutzt und wenn du
-Kopfhörer verbindest, und in der großen Insel wählst du den Audio-Ausgang.
+Kopfhörer verbindest, und in der großen Insel wählst du den Audio-Ausgang. Läuft mehreres
+gleichzeitig, etwa Musik, Kopfhörer und ein bereites Update, wechselt die kleine Insel zwischen ihnen.
 
-**Stand:** Version 0.2.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
+**Stand:** Version 0.4.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
 Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
 
 Voraussetzungen: macOS 27, Mac mit Apple-Chip. Kostenlos, Open Source (MIT).
@@ -65,12 +66,27 @@ Freigabe nicht und fragt nie danach.
   des Diktats. Ohne Verbindung zu Gnotchi zeigt Tippi seine eigene Anzeige.
 - **Qotti-Kontingent:** Kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 %
   erreicht oder Claude drosselt; in der großen Insel „Claude 42 % · GPT 17 %“ über der Musik.
+- **Live-Aktivitäten:** Läuft mehr als eine Sache gleichzeitig, wechselt die kleine Insel alle
+  4 Sekunden zwischen Musik, Kopfhörern und Updates. Mit der Maus darauf bleibt sie stehen.
+  Tippi-Aufnahme und kurze Hinweise haben Vorrang.
+- **Kopfhörer-Aktivität:** Solange der Ton über Bluetooth läuft, zeigt die Insel ein
+  Kopfhörer-Symbol, ohne Notch auch den Namen.
+- **Updates der App-Familie:** Meldet Tippi, Kalli, Qotti oder Seam ein bereites Update, steht es
+  in der Insel, bis es installiert ist. Ein Klick öffnet die App bei ihrem Update-Fenster.
+  Gnotchis eigenes Update erscheint dort auch. Die Apps brauchen dafür eine Version, die das
+  unterstützt, Kalli kommt zuerst.
+- **Neuer Titel:** Beginnt ein neuer Titel, wird die Insel 3 Sekunden breiter und zeigt Titel und
+  Interpret.
+- **Medienfilter:** Jede Wiedergabe-App hat einen eigenen Schalter, zum Beispiel Spotify an und
+  Safari aus.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
   erneut und schaltet von selbst zurück.
 - Menüleisten-Symbol mit Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
   der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“,
   „Qotti-Kontingent anzeigen“ (alle ab Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
+  Bereich „Live-Aktivitäten“: „Rotation“, „Kopfhörer-Aktivität“, „Updates der App-Familie“ (alle
+  ab Werk an) und der Medienfilter.
 
 ## Installieren
 
@@ -130,6 +146,11 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation → 
   gespeichert noch protokolliert ([G21](docs/SECURE-DESIGN.md)).
 - **Qotti:** nur Prozente, Zeitpunkt der Zurücksetzung und Zustand über die Systemmeldungen, nie
   Konto, E-Mail oder Plan; Qotti sendet nur, solange ein signiertes Gnotchi läuft ([G22](docs/SECURE-DESIGN.md)).
+- **Updates der App-Familie:** Die Meldung enthält nur das Kürzel der App und die Versionsnummer
+  ([G23](docs/SECURE-DESIGN.md)). Auf deinen Klick öffnet Gnotchi nur die echte App, nachdem es ihre
+  Signatur geprüft hat ([G24](docs/SECURE-DESIGN.md)).
+- **Medienfilter:** gespeichert werden nur die Kennungen der ausgeschalteten Apps, keine Titel und
+  keine Zeitpunkte ([G25](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 

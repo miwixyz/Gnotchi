@@ -2,7 +2,9 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [0.4.0] — noch nicht veröffentlicht
+## [0.4.0] — 2026-10-21
+
+Enthält auch alles, was für 0.3.0 geplant war. 0.3.0 ist nicht einzeln erschienen.
 
 ### Neu
 - **Live-Aktivitäten:** Läuft mehr als eine Sache gleichzeitig, wechselt die kleine Insel alle 4 Sekunden zwischen ihnen: Musik, Kopfhörer und Updates. Bleibst du mit der Maus darauf, bleibt sie stehen. Die Tippi-Aufnahme und kurze Hinweise haben weiter Vorrang. Auf Bildschirmen ohne Notch passiert dasselbe in der Pille.
@@ -11,12 +13,8 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 - **Neuer Titel:** Beginnt ein neuer Titel, wird die Insel 3 Sekunden breiter und zeigt Titel und Interpret.
 - **Medienfilter:** In den Einstellungen bekommt jede Wiedergabe-App einen eigenen Schalter, zum Beispiel Spotify an und Safari aus.
 - Neuer Bereich „Live-Aktivitäten“ in den Einstellungen mit „Rotation“, „Kopfhörer-Aktivität“, „Updates der App-Familie“ (alle ab Werk an) und dem Medienfilter.
-
-## [0.3.0] — noch nicht veröffentlicht
-
-### Neu
 - **Tippis Live-Vorschau in der Insel:** Ist in Tippi die Live-Vorschau an, klappt die Insel beim Diktat auf und zeigt die letzten zwei Zeilen deines Texts, ältere Wörter laufen vorne raus. Tippis eigene Anzeige bleibt dann weg. Der Text kommt über eine eigene Verbindung, die Gnotchi nur vom echten, signierten Tippi annimmt. Er landet weder in einer Datei noch im Protokoll und ist weg, sobald das Diktat endet. Braucht eine Tippi-Version, die das unterstützt.
-- **Qotti-Kontingent:** Läuft [Qotti](https://github.com/miwixyz/Qotti), warnt die Insel kurz, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 % erreicht oder Claude drosselt, mit der Zeit bis zur Zurücksetzung. In der großen Insel steht über der Musik „Claude 42 % · GPT 17 %“. Neuer Schalter „Qotti-Kontingent anzeigen“, ab Werk an. Braucht eine Qotti-Version, die das unterstützt.
+- **Qotti-Kontingent:** Läuft Qotti, warnt die Insel kurz, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 % erreicht oder Claude drosselt, mit der Zeit bis zur Zurücksetzung. In der großen Insel steht über der Musik „Claude 42 % · GPT 17 %“. Neuer Schalter „Qotti-Kontingent anzeigen“, ab Werk an. Braucht eine Qotti-Version, die das unterstützt.
 
 ## [0.2.1] — 2026-10-21
 

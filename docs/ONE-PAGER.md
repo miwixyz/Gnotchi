@@ -40,6 +40,15 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Kopfhörer verbunden? Die Notch zeigt drei Sekunden lang ihren Namen.
 - Oben rechts in der großen Insel sitzt das Ausgabe-Symbol. Ein Klick, und der Ton kommt aus einem
   anderen Gerät.
+- Läuft mehreres gleichzeitig, etwa Musik und Kopfhörer, wechselt die kleine Insel alle vier
+  Sekunden. Bleibt die Maus darauf, hält sie an.
+- Neuer Titel? Dann wird die Insel drei Sekunden lang breiter und zeigt, was jetzt läuft.
+- Hat eine meiner anderen Apps ein Update bereit (Tippi, Kalli, Qotti, Seam), steht es in der
+  Notch, bis es installiert ist. Ein Klick, und das Update-Fenster ist offen. Dafür braucht jede
+  App eine neue Version. Kalli kommt zuerst.
+- Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT
+  bei 80 und bei 95 Prozent steht.
+- Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
 
 ## Wie von Apple
 
@@ -62,6 +71,9 @@ nur in der Insel, im Protokoll steht er nicht. Von Tippi kommt „nimmt auf“ u
 Live-Vorschau bekommt Gnotchi nur auf einem geschützten Weg, den andere Programme nicht nutzen können.
 Er steht nur in der Insel, gespeichert oder protokolliert wird er nicht.
 
+Für ein Update öffnet Gnotchi nur die echte App und prüft vorher ihre Signatur. Die Meldung, die
+dafür ankommt, enthält nur ein Kürzel der App und die Versionsnummer.
+
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 
 ## Voraussetzungen
@@ -72,7 +84,7 @@ kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sper
 
 ## So bekommst du Gnotchi
 
-Version 0.2.0 gibt es als signierte, von Apple notarisierte App unter
+Version 0.4.0 gibt es als signierte, von Apple notarisierte App unter
 [GitHub-Releases](https://github.com/miwixyz/Gnotchi/releases/latest). Danach aktualisiert sich
 Gnotchi selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 
