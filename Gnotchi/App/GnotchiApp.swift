@@ -142,6 +142,7 @@ final class AppModel {
         activity.setMirrorEnabled(prefs.mirror)
         activity.timerAlarmEnabled = prefs.timerAlarm
         activity.playerFirst = prefs.playerFirst
+        activity.compactControls = prefs.compactControls
         if !prefs.playerFirst { activity.overlayActivity = nil }
         syncOwnUpdate()
         guard allowStart else { return }

@@ -264,11 +264,20 @@ struct IslandView: View {
     }
 
     private func compact(_ info: NowPlayingInfo) -> some View {
-        HStack {
+        // Mit Knöpfen enger: zwei Knöpfe müssen in den 40-pt-Flügel neben der Notch (Testbild 21.10.).
+        HStack(spacing: activity.compactControls ? 3 : nil) {
             cover(18, radius: 4)
                 // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
                 .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
             Spacer()
+            if activity.compactControls {
+                // Wiedergabe-Knöpfe dauerhaft (Michael 21.10., Schalter): Pause/Wiedergabe und Weiter statt Pegel.
+                // Mikrofon/Kamera dann als Punkt am Cover (siehe unten).
+                compactButton(info.isPlaying ? "pause.fill" : "play.fill", label: info.isPlaying ? "Pause" : "Wiedergabe") {
+                    model.playPause()
+                }
+                compactButton("forward.fill", label: "Weiter") { model.next() }
+            } else
             // Mikrofon/Kamera an: Punkte statt Pegel – links neben dem Cover drückten sie es unter die
             // Hardware-Notch (Testbild 20.10.), und der Pegel ist nur Animation, kein Signal.
             if activity.privacy.isActive {
@@ -283,9 +292,23 @@ struct IslandView: View {
                 LevelBars(playing: info.isPlaying)
             }
         }
-        .padding(.horizontal, 10)
+        .overlay(alignment: .topLeading) {
+            if activity.compactControls && activity.privacy.isActive {
+                Circle().fill(activity.privacy.mic ? Color.orange : .green).frame(width: 6, height: 6).offset(x: -2, y: 1)
+            }
+        }
+        .padding(.horizontal, activity.compactControls ? 8 : 10)
         .frame(height: state.layout.compact.height)
         .transition(.opacity)
+    }
+
+    private func compactButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol).font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                .frame(width: 15, height: 18).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: label))
     }
 
     /// Aufbau wie die Wiedergabe im Kontrollzentrum: Cover · App/Titel/Interpret · Tasten rechts, darunter

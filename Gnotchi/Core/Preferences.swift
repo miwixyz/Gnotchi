@@ -31,6 +31,8 @@ final class Preferences {
         static let timerAlarm = "timerAlarm"
         /// 0.5.0 Wiedergabe immer groß (Player als Grundlage, andere Aktivitäten als Glas darüber).
         static let playerFirst = "playerFirst"
+        /// 0.5.0 Wiedergabe-Knöpfe in der kleinen Insel.
+        static let compactControls = "compactControls"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -86,6 +88,9 @@ final class Preferences {
     /// Wiedergabe immer groß (0.5.0): Player bleibt die große Ansicht, andere Aktivitäten als Glas-Schicht. Ab Werk aus.
     var playerFirst: Bool { didSet { defaults.set(playerFirst, forKey: Key.playerFirst) } }
 
+    /// Wiedergabe-Knöpfe (Pause/Wiedergabe, Weiter) dauerhaft in der kleinen Insel (0.5.0). Ab Werk aus.
+    var compactControls: Bool { didSet { defaults.set(compactControls, forKey: Key.compactControls) } }
+
     /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
     var timerSound: String {
         didSet {
@@ -116,6 +121,7 @@ final class Preferences {
         timerSound = CountdownTimer.validSound(defaults.object(forKey: Key.timerSound))
         timerAlarm = defaults.object(forKey: Key.timerAlarm) as? Bool ?? true
         playerFirst = defaults.object(forKey: Key.playerFirst) as? Bool ?? false
+        compactControls = defaults.object(forKey: Key.compactControls) as? Bool ?? false
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

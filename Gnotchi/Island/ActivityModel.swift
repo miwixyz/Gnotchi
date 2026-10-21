@@ -85,6 +85,8 @@ final class ActivityModel {
     var pinned = false
     /// Einstellung „Wiedergabe immer groß“: Player bleibt die große Ansicht, andere Aktivitäten als Glas-Schicht.
     var playerFirst = false
+    /// Einstellung „Wiedergabe-Knöpfe in der kleinen Insel“: Pause/Wiedergabe und Weiter dauerhaft (statt Pegel).
+    var compactControls = false
     /// Bei „Wiedergabe immer groß“: in der Leiste gewählte Aktivität, die über dem Player liegt.
     var overlayActivity: LiveActivity?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
