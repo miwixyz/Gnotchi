@@ -141,11 +141,15 @@ final class FamilyUpdatesTests: XCTestCase {
     func testVerifiedURLNeedsValidSignature() {
         let url = URL(fileURLWithPath: "/Applications/Kalli.app")
         var asked: [String] = []
-        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { asked.append($0); return url },
+        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { asked.append($0); return [url] },
                                                 verify: { _, _ in errSecCSReqFailed }))
         XCTAssertEqual(asked, ["com.kalli.app"], "Ort nur über die feste Bundle-ID")
-        XCTAssertEqual(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in url }, verify: { _, _ in errSecSuccess }), url)
-        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in nil }), "nicht installiert")
+        XCTAssertEqual(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in [url] }, verify: { _, _ in errSecSuccess }), url)
+        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in [] }), "nicht installiert")
+        let fake = URL(fileURLWithPath: "/Users/x/Applications/Kalli.app")
+        XCTAssertEqual(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in [fake, url] },
+                                                  verify: { u, _ in u == url ? errSecSuccess : errSecCSReqFailed }), url,
+                       "Attrappe vorne blockiert den Klick nicht, die echte App wird geöffnet")
     }
 
     /// Attrappe mit Kallis Kennung, ad hoc signiert: Die echte Anforderung lehnt sie ab. Gegenprobe: Nur mit der
@@ -154,7 +158,7 @@ final class FamilyUpdatesTests: XCTestCase {
         let app = try makeAdHocApp(identifier: "com.kalli.app")
         XCTAssertNotEqual(FamilyLauncher.checkSignature(at: app, requirement: FamilyLauncher.requirement(for: .kalli)),
                           errSecSuccess)
-        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in app }))
+        XCTAssertNil(FamilyLauncher.verifiedURL(for: .kalli, locate: { _ in [app] }))
         XCTAssertEqual(FamilyLauncher.checkSignature(at: app, requirement: #"identifier "com.kalli.app""#), errSecSuccess,
                        "Gegenprobe: Attrappe ist gültig signiert, nur nicht von Michaels Team")
     }

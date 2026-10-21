@@ -27,22 +27,24 @@ enum FamilyLauncher {
         return SecStaticCodeCheckValidity(code, SecCSFlags(rawValue: kSecCSCheckAllArchitectures), req)
     }
 
-    /// Welche Programm-URL geöffnet werden darf: Ort aus `locate`, Freigabe nur bei gültiger Signatur.
-    nonisolated static func verifiedURL(for app: FamilyApp, locate: (String) -> URL?,
+    /// Welche Programm-URL geöffnet werden darf: die erste aller Fundorte zur festen Bundle-ID mit gültiger Signatur.
+    /// Alle, nicht nur LaunchServices' Favorit: Eine Attrappe gleicher Kennung soll den Klick nicht blockieren
+    /// (rafter-code-review 21.10., Verfügbarkeit) – gestartet würde sie ohnehin nie.
+    nonisolated static func verifiedURL(for app: FamilyApp, locate: (String) -> [URL],
                                         verify: (URL, String) -> OSStatus = checkSignature) -> URL? {
-        guard let url = locate(app.bundleID) else { return nil }
-        return verify(url, requirement(for: app)) == errSecSuccess ? url : nil
+        let req = requirement(for: app)
+        return locate(app.bundleID).first { verify($0, req) == errSecSuccess }
     }
 
     /// Öffnet die App und bittet sie danach, ihr Update-Fenster zu zeigen. `completion(false)`: nicht
     /// gefunden oder Signatur ungültig – dann wird nichts gestartet.
     @MainActor
     static func open(_ app: FamilyApp, completion: @escaping @MainActor (Bool) -> Void) {
-        let location = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.bundleID)
+        let locations = NSWorkspace.shared.urlsForApplications(withBundleIdentifier: app.bundleID)
         Task {
             // Signaturprüfung liest das ganze Bundle – nicht auf dem Hauptthread.
             let url = await Task.detached(priority: .userInitiated) {
-                verifiedURL(for: app, locate: { _ in location })
+                verifiedURL(for: app, locate: { _ in locations })
             }.value
             guard let url else {
                 log.error("Update öffnen: \(app.rawValue, privacy: .public) nicht gefunden oder Signatur ungültig")

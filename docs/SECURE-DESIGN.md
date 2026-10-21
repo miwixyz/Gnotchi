@@ -515,8 +515,8 @@ signaturgeprüfte (G24).
 
 ### G24 – Klick öffnet nur die echte App (neu, 2026-10-21, 0.4.0)
 - **Entschieden:** Kürzel → Bundle-ID **fest im Code** (`FamilyApp.bundleID`, gemessen 21.10. an den installierten
-  Apps: `com.tippi.app`, `com.kalli.app`, `app.qotti.local`, `dev.mwlr.seam`, alle Team LTKJ6Z2VYB). Programm über
-  `NSWorkspace.urlForApplication(withBundleIdentifier:)`, dann **statische Signaturprüfung** (`SecStaticCode`,
+  Apps: `com.tippi.app`, `com.kalli.app`, `app.qotti.local`, `dev.mwlr.seam`, alle Team LTKJ6Z2VYB). Alle Fundorte über
+  `NSWorkspace.urlsForApplications(withBundleIdentifier:)`, geöffnet wird der erste mit gültiger **statischer Signaturprüfung** (`SecStaticCode`,
   alle Architekturen, mit Ressourcen) gegen dieselbe Anforderung wie G21: Developer ID + Team + Kennung. Scheitert
   sie → nichts starten, Hinweis „App nicht gefunden“. Prüfung außerhalb des Hauptthreads.
 - **Danach** `app.mwlr.familie.update.show` mit `{"v":1,"app":"kalli"}` (1,5 s nach dem Öffnen, damit eine frisch
@@ -612,8 +612,15 @@ Spezifikation: `specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md`.
       (G25), G24 (Zuordnung fest, ad-hoc-signierte Attrappe abgelehnt, Gegenprobe ohne Prüfung rot, echtes Kalli
       besteht). 365 Tests grün.
 - [ ] Sichttest: Rotation Medien + Kopfhörer + vorgetäuschtes Update (`tools/fake-update.swift`), Klick öffnet Kalli
-- [ ] `rafter-code-review` + `rafter run`
-- [ ] Positivliste der Berechtigungen unverändert (`entitlement-gate.sh` beim Release)
+- [x] `rafter-code-review` 21.10. (CWE-Top-25, lokale IPC + App-Start) für `3bd4a5b..ebf2cb6`: **kein kritischer/
+      hoher Fund.** App-Start nur aus Klick (`IslandView` → `IslandController` → `AppModel.openUpdate`), nie aus einer
+      Meldung (G13); aus der Meldung fließen nur Positivlisten-Kürzel und geprüfte Version weiter
+      (`FamilyUpdates.parse`); Protokoll nur feste Kürzel; Berechtigungen, Info.plist, Abhängigkeiten unverändert;
+      `rafter secrets .` nichts. **Niedrig, behoben:** LaunchServices' bevorzugter Fundort konnte eine Attrappe sein →
+      Klick blockiert („App nicht gefunden“) statt das echte Kalli zu öffnen; jetzt alle Fundorte, der erste
+      signaturgültige (Test). Hingenommen: kein Widerrufs-Check (wie G21), Rennen Prüfung/Start (G24).
+- [ ] `rafter run` (prüft den gepushten Stand)
+- [ ] Positivliste der Berechtigungen unverändert (`entitlement-gate.sh` beim Release; im Diff unverändert)
 
 ## Ausstiegskriterien 0.3.0 (Live-Text)
 
