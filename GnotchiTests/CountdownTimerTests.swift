@@ -31,6 +31,21 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertEqual(CountdownTimer.clock(3723), "1:02:03")
     }
 
+    func testCustomTimeStepsAndBounds() {
+        XCTAssertEqual(CountdownTimer.stepCustom(30, up: true), 35)
+        XCTAssertEqual(CountdownTimer.stepCustom(10, up: true), 15)
+        XCTAssertEqual(CountdownTimer.stepCustom(9, up: true), 10)
+        XCTAssertEqual(CountdownTimer.stepCustom(10, up: false), 9)
+        XCTAssertEqual(CountdownTimer.stepCustom(15, up: false), 10)
+        XCTAssertEqual(CountdownTimer.stepCustom(1, up: false), 1, "nie unter 1")
+        XCTAssertEqual(CountdownTimer.stepCustom(180, up: true), 180, "nie über 180")
+        XCTAssertEqual(CountdownTimer.parseCustom(" 45 "), 45)
+        XCTAssertNil(CountdownTimer.parseCustom("0"))
+        XCTAssertNil(CountdownTimer.parseCustom("181"))
+        XCTAssertNil(CountdownTimer.parseCustom("zehn"))
+        XCTAssertNil(CountdownTimer.parseCustom("1.5"))
+    }
+
     func testShortClockFitsNotchWing() {
         XCTAssertEqual(CountdownTimer.shortClock(1500), "25′")
         XCTAssertEqual(CountdownTimer.shortClock(61), "2′")

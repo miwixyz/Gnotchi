@@ -8,6 +8,25 @@ struct CountdownTimer: Equatable, Sendable {
 
     /// Auswahl im Menü und in der großen Insel (Minuten).
     nonisolated static let choices = [5, 10, 15, 25]
+    /// Eigene Zeit (Michael 21.10.): 1 bis 180 Minuten, zuletzt gewählte bleibt (UserDefaults).
+    nonisolated static let customRange = 1...180
+    nonisolated static let customKey = "timerCustomMinutes"
+
+    nonisolated static func clampCustom(_ m: Int) -> Int {
+        min(max(m, customRange.lowerBound), customRange.upperBound)
+    }
+
+    /// − / +: unter 10 Minuten in 1er-, darüber in 5er-Schritten.
+    nonisolated static func stepCustom(_ m: Int, up: Bool) -> Int {
+        let step = (up ? m >= 10 : m > 10) ? 5 : 1
+        return clampCustom(up ? m + step : m - step)
+    }
+
+    /// Eingabe aus dem Menü-Fenster: nur ganze Minuten im Bereich, sonst nil.
+    nonisolated static func parseCustom(_ text: String) -> Int? {
+        guard let m = Int(text.trimmingCharacters(in: .whitespaces)), customRange.contains(m) else { return nil }
+        return m
+    }
 
     let duration: TimeInterval
     /// Läuft: Ende. Pausiert: nil.
