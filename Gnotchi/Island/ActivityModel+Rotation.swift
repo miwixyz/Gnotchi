@@ -3,7 +3,7 @@ import Foundation
 /// Eine Aktivität der kleinen Insel (0.4.0, specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md). Aufnahme und
 /// Hinweise gehören nicht dazu: Sie rotieren nicht mit, sie verdrängen.
 enum LiveActivity: Hashable, Sendable {
-    case media, headphones
+    case event, media, headphones
     case update(FamilyApp)
 }
 
@@ -17,9 +17,11 @@ extension ActivityModel {
 
     // MARK: Reine Teile (getestet)
 
-    /// Feste Reihenfolge: Medien, Kopfhörer, Updates der Familie.
-    nonisolated static func rotationItems(media: Bool, headphones: Bool, updates: [FamilyApp]) -> [LiveActivity] {
-        (media ? [.media] : []) + (headphones ? [.headphones] : []) + updates.map(LiveActivity.update)
+    /// Feste Reihenfolge: Termin (0.5.0, das Dringendste), Medien, Kopfhörer, Updates der Familie.
+    nonisolated static func rotationItems(event: Bool = false, media: Bool, headphones: Bool,
+                                          updates: [FamilyApp]) -> [LiveActivity] {
+        (event ? [.event] : []) + (media ? [.media] : []) + (headphones ? [.headphones] : [])
+            + updates.map(LiveActivity.update)
     }
 
     /// Was gerade zu sehen ist: der Zeiger, solange seine Aktivität noch läuft und die Rotation an ist, sonst die erste.
@@ -44,7 +46,13 @@ extension ActivityModel {
     }
 
     var rotationItems: [LiveActivity] {
-        Self.rotationItems(media: media.isVisible, headphones: headphones != nil, updates: allUpdates.map(\.app))
+        Self.rotationItems(event: upcomingEvent != nil, media: media.isVisible, headphones: headphones != nil,
+                           updates: allUpdates.map(\.app))
+    }
+
+    /// Zeilen über der Musik bzw. in der großen Insel: je Update eine, dazu der Termin.
+    var activityLines: Int {
+        allUpdates.count + (upcomingEvent == nil ? 0 : 1)
     }
 
     /// Aktivität der kleinen Insel.

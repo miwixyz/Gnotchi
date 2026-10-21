@@ -67,7 +67,8 @@ final class AppModel {
     @ObservationIgnored private lazy var island: NotchPart = makeIsland?() ?? IslandController(
         activity: activity, expandDelay: { [prefs] in prefs.expandDelay },
         openWindow: { [weak self] id in self?.showWindow(id) },
-        openUpdate: { [weak self] app in self?.openUpdate(app) })
+        openUpdate: { [weak self] app in self?.openUpdate(app) },
+        openEvent: { KalliEventLink.openCalendar() })
     /// `openWindow` aus einer SwiftUI-Szene (Menüleisten-Symbol, Menü). Das Insel-Panel liegt außerhalb
     /// jeder Szene und hat keins – es öffnet Fenster über `showWindow`.
     @ObservationIgnored private var windowOpener: ((String) -> Void)?
@@ -98,6 +99,7 @@ final class AppModel {
         self.nowPlaying = nowPlaying
         let activity = ActivityModel(media: nowPlaying)
         self.activity = activity
+        let kalli = extraFeatures == nil && source == nil ? KalliEventLink(activity: activity) : nil
         // Mit Attrappen-Quelle (Test) ohne echte Zusatzquellen, sonst liefen Core-Audio-Beobachter im Test-Host.
         let extras = extraFeatures ?? (source == nil ? [
             // Ein Beobachter für Hinweis und Aktivität (G19: einmal angemeldet).
@@ -110,7 +112,7 @@ final class AppModel {
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
             NotchFeature(part: FamilyUpdateLink(activity: activity)) { $0.familyUpdates },
-        ] : [])
+        ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland

@@ -66,6 +66,8 @@ final class ActivityModel {
     private(set) var familyUpdates: [FamilyUpdates.Entry] = []
     /// Gnotchis eigenes Update (Sparkle), nur bei eingeschaltetem „Updates der App-Familie“.
     private(set) var ownUpdate: FamilyUpdates.Entry?
+    /// Nächster Termin aus Kalli (0.5.0, G26), nur ab 15 Minuten vor Beginn bis Beginn gesetzt.
+    private(set) var upcomingEvent: KalliEvents.Event?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
     var rotationCursor: LiveActivity?
     /// Maus über einer Insel: Takt steht.
@@ -92,6 +94,7 @@ final class ActivityModel {
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
+            || upcomingEvent != nil
     }
 
     func setHeadphones(_ h: Headphones?) {
@@ -100,6 +103,10 @@ final class ActivityModel {
 
     func setFamilyUpdates(_ list: [FamilyUpdates.Entry]) {
         if familyUpdates != list { familyUpdates = list }
+    }
+
+    func setUpcomingEvent(_ e: KalliEvents.Event?) {
+        if upcomingEvent != e { upcomingEvent = e }
     }
 
     func setOwnUpdate(_ e: FamilyUpdates.Entry?) {

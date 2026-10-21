@@ -24,6 +24,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.tippiRecording) { model.applyNotchSetting() }
                 toggleRow("Qotti-Kontingent anzeigen", isOn: $prefs.qottiQuota)
                     .onChange(of: prefs.qottiQuota) { model.applyNotchSetting() }
+                toggleRow("Termine aus Kalli anzeigen", isOn: $prefs.kalliEvents)
+                    .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

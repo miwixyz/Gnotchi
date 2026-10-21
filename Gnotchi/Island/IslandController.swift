@@ -42,6 +42,8 @@ final class IslandController {
     private let openWindow: @MainActor (String) -> Void
     /// Klick auf ein Update (0.4.0): AppModel öffnet die echte App bzw. Sparkle (G24).
     private let openUpdate: @MainActor (FamilyApp) -> Void
+    /// Klick auf den Termin (0.5.0): Apple Kalender öffnen.
+    private let openEvent: @MainActor () -> Void
     /// Bildschirme, auf denen gerade das Kontextmenü offen ist: Überfahren-Ereignisse dort ignorieren.
     private var menuOpen: Set<CGDirectDisplayID> = []
     private var spaceRecheck: Task<Void, Never>?
@@ -62,11 +64,13 @@ final class IslandController {
 
     init(activity: ActivityModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
          openWindow: @escaping @MainActor (String) -> Void = { _ in },
-         openUpdate: @escaping @MainActor (FamilyApp) -> Void = { _ in }) {
+         openUpdate: @escaping @MainActor (FamilyApp) -> Void = { _ in },
+         openEvent: @escaping @MainActor () -> Void = {}) {
         self.activity = activity
         self.expandDelay = expandDelay
         self.openWindow = openWindow
         self.openUpdate = openUpdate
+        self.openEvent = openEvent
     }
 
     func start() {
@@ -170,15 +174,6 @@ final class IslandController {
         }
     }
 
-    /// Panelgröße für den aktuellen Inhalt.
-    private func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
-        let updates = activity.allUpdates.count
-        return Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
-                               quota: activity.quotaLine != nil, updates: updates,
-                               rows: Self.detailRows(headphones: activity.headphones != nil, updates: updates,
-                                                     mic: activity.privacy.mic, camera: activity.privacy.camera))
-    }
-
     // MARK: Ablauf
 
     /// Beobachtet `isVisible`. `withObservationTracking` meldet nur die erste Änderung,
@@ -195,6 +190,7 @@ final class IslandController {
             _ = model.info != nil
             _ = activity.headphones != nil
             _ = activity.allUpdates.count
+            _ = activity.upcomingEvent != nil
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -276,7 +272,8 @@ final class IslandController {
         let view = IslandView(state: state,
                               onHover: { [weak self] inside in self?.hover(inside, displayID: displayID) },
                               onOutputMenu: { [weak self] in self?.showOutputMenu(displayID: displayID) },
-                              onOpenUpdate: { [weak self] app in self?.openUpdate(app) })
+                              onOpenUpdate: { [weak self] app in self?.openUpdate(app) },
+                              onOpenEvent: { [weak self] in self?.openEvent() })
             .environment(model)
             .environment(activity)
         let host = ClickableHostingView(rootView: view)
@@ -507,5 +504,16 @@ private final class ClickableHostingView<Content: View>: NSHostingView<Content> 
 extension NSScreen {
     var displayID: CGDirectDisplayID? {
         deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
+    }
+}
+
+extension IslandController {
+    /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
+    fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
+        let updates = activity.activityLines
+        return Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
+                               quota: activity.quotaLine != nil, updates: updates,
+                               rows: Self.detailRows(headphones: activity.headphones != nil, updates: updates,
+                                                     mic: activity.privacy.mic, camera: activity.privacy.camera))
     }
 }

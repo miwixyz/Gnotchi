@@ -21,6 +21,8 @@ final class Preferences {
         static let headphoneActivity = "headphoneActivity"
         /// Familien-Apps lesen diesen Schlüssel (CFPreferences, Domäne dev.mwlr.gnotchi) – nicht umbenennen.
         static let familyUpdates = "familyUpdates"
+        /// 0.5.0 Termine aus Kalli (G26).
+        static let kalliEvents = "kalliEvents"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -64,6 +66,9 @@ final class Preferences {
     /// Updates der App-Familie in der Insel (0.4.0, G23). Ab Werk an.
     var familyUpdates: Bool { didSet { defaults.set(familyUpdates, forKey: Key.familyUpdates) } }
 
+    /// Nächster Termin aus Kalli, 15 Minuten vor Beginn (0.5.0, G26). Aus = Socket weg. Ab Werk an.
+    var kalliEvents: Bool { didSet { defaults.set(kalliEvents, forKey: Key.kalliEvents) } }
+
     /// Medienfilter (0.4.0, G25): Wiedergabe dieser Apps erscheint nie in der Insel. Nur über `setMediaExcluded`.
     private(set) var mediaExcluded: [String] { didSet { defaults.set(mediaExcluded, forKey: Key.mediaExcluded) } }
 
@@ -80,6 +85,7 @@ final class Preferences {
         liveRotation = defaults.object(forKey: Key.liveRotation) as? Bool ?? true
         headphoneActivity = defaults.object(forKey: Key.headphoneActivity) as? Bool ?? true
         familyUpdates = defaults.object(forKey: Key.familyUpdates) as? Bool ?? true
+        kalliEvents = defaults.object(forKey: Key.kalliEvents) as? Bool ?? true
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

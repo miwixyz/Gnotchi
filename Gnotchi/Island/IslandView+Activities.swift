@@ -42,18 +42,90 @@ struct UpdateLine: View {
     }
 }
 
-/// Große Insel ohne Musik: Kopfhörer, Updates, Mikrofon und Kamera untereinander, in Hinweis-Größe
+/// Nächster Termin aus Kalli (0.5.0, G26) als Zeile, klickbar: öffnet Apple Kalender. Titel nur verbatim.
+struct EventLine: View {
+    let event: KalliEvents.Event
+    let onOpen: () -> Void
+
+    var body: some View {
+        Button(action: onOpen) {
+            TimelineView(.everyMinute) { context in
+                HStack(spacing: 5) {
+                    ActivityRow(dot: event.color.map(Color.init(rgb:)), symbol: "calendar",
+                                text: "\(KalliEvents.timeText(event)) · \(event.title)")
+                    Spacer(minLength: 0)
+                    Text(verbatim: "in \(KalliEvents.minutesLeft(event, now: context.date)) Min")
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: "Termin \(KalliEvents.timeText(event)), \(event.title), im Kalender öffnen"))
+    }
+}
+
+/// Kleine Insel, Termin: Kalender-Symbol in der Kalenderfarbe, rechts „12 Min“; ohne Notch dazu „10:30 Titel“.
+struct EventCompact: View {
+    let event: KalliEvents.Event
+    let privacy: ActivityModel.Privacy
+    let pill: Bool
+    let height: CGFloat
+    let onOpen: () -> Void
+
+    var body: some View {
+        Button(action: onOpen) {
+            TimelineView(.everyMinute) { context in
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar").font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(event.color.map(Color.init(rgb:)) ?? .white).frame(width: 18)
+                    if pill {
+                        Text(verbatim: "\(KalliEvents.timeText(event)) \(event.title)")
+                            .font(.system(size: 11, weight: .medium)).foregroundStyle(.white)
+                            .lineLimit(1).truncationMode(.tail)
+                    }
+                    Spacer(minLength: 0)
+                    if privacy.isActive {
+                        PrivacyDots(privacy: privacy)
+                    } else {
+                        Text(verbatim: "\(KalliEvents.minutesLeft(event, now: context.date)) Min")
+                            .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
+                    }
+                }
+            }
+            .padding(.horizontal, pill ? 12 : 10)
+            .frame(height: height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: "Termin \(KalliEvents.timeText(event)), \(event.title), im Kalender öffnen"))
+        .transition(.opacity)
+    }
+}
+
+extension Color {
+    init(rgb: KalliEvents.RGB) {
+        self.init(red: rgb.r, green: rgb.g, blue: rgb.b)
+    }
+}
+
+/// Große Insel ohne Musik: Termin, Kopfhörer, Updates, Mikrofon und Kamera untereinander, in Hinweis-Größe
 /// (ab der dritten Zeile höher, IslandController.panelFrame).
 struct ActivityDetails: View {
+    var event: KalliEvents.Event?
     let headphones: Headphones?
     let updates: [FamilyUpdates.Entry]
     let privacy: ActivityModel.Privacy
     let topInset: CGFloat
     let height: CGFloat
     let onOpen: (FamilyApp) -> Void
+    var onOpenEvent: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            if let event {
+                EventLine(event: event, onOpen: onOpenEvent)
+            }
             if let headphones {
                 ActivityRow(symbol: headphones.symbol, text: headphones.name)
             }

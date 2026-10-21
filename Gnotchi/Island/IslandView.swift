@@ -27,6 +27,8 @@ struct IslandView: View {
     var onOutputMenu: () -> Void = {}
     /// Klick auf ein Update (0.4.0): IslandController → AppModel.openUpdate (G24).
     var onOpenUpdate: (FamilyApp) -> Void = { _ in }
+    /// Klick auf den Termin (0.5.0): IslandController → Apple Kalender.
+    var onOpenEvent: () -> Void = {}
 
     private var size: CGSize {
         switch state.mode {
@@ -36,7 +38,7 @@ struct IslandView: View {
         case .expanded:
             IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
                                         privacy: activity.privacy.isActive,
-                                        quota: activity.quotaLine != nil, updates: activity.allUpdates.count,
+                                        quota: activity.quotaLine != nil, updates: activity.activityLines,
                                         rows: detailRows)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
@@ -71,7 +73,7 @@ struct IslandView: View {
     }
 
     private var detailRows: Int {
-        IslandController.detailRows(headphones: activity.headphones != nil, updates: activity.allUpdates.count,
+        IslandController.detailRows(headphones: activity.headphones != nil, updates: activity.activityLines,
                                     mic: activity.privacy.mic, camera: activity.privacy.camera)
     }
 
@@ -98,13 +100,14 @@ struct IslandView: View {
             }
         case .expanded:
             if let info = model.info {
-                let hasLines = activity.privacy.isActive || activity.quotaLine != nil || !activity.allUpdates.isEmpty
+                let hasLines = activity.privacy.isActive || activity.quotaLine != nil || activity.activityLines > 0
                 VStack(spacing: 0) {
                     if hasLines {
                         // Zeilen über der Musik: Mikrofon/Kamera, Qotti, je Update eine (klickbar).
                         VStack(spacing: 4) {
                             if activity.privacy.isActive { privacyLine }
                             if let q = activity.quotaLine { QuotaLine(text: q) }
+                            if let ev = activity.upcomingEvent { EventLine(event: ev, onOpen: onOpenEvent) }
                             ForEach(activity.allUpdates, id: \.app) { e in
                                 UpdateLine(entry: e) { onOpenUpdate(e.app) }
                             }
@@ -113,12 +116,13 @@ struct IslandView: View {
                     }
                     expanded(info, topInset: hasLines ? 4 : nil)
                 }
-            } else if activity.headphones != nil || !activity.allUpdates.isEmpty {
-                ActivityDetails(headphones: activity.headphones, updates: activity.allUpdates, privacy: activity.privacy,
+            } else if activity.headphones != nil || activity.activityLines > 0 {
+                ActivityDetails(event: activity.upcomingEvent, headphones: activity.headphones, updates: activity.allUpdates,
+                                privacy: activity.privacy,
                                 topInset: state.layout.notch?.height ?? 0,
                                 height: IslandGeometry.noticeSize.height
                                     + CGFloat(max(0, detailRows - 2)) * IslandGeometry.privacyLineHeight,
-                                onOpen: onOpenUpdate)
+                                onOpen: onOpenUpdate, onOpenEvent: onOpenEvent)
             } else if activity.privacy.isActive {
                 privacyDetails
             }
@@ -130,6 +134,10 @@ struct IslandView: View {
     @ViewBuilder private var rotationCompact: some View {
         let height = state.layout.compact.height
         switch activity.currentActivity {
+        case .event?:
+            if let ev = activity.upcomingEvent {
+                EventCompact(event: ev, privacy: activity.privacy, pill: pill, height: height, onOpen: onOpenEvent)
+            }
         case .media?:
             if let info = model.info { compact(info) }
         case .headphones?:

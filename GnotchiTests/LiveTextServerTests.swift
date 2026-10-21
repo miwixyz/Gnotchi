@@ -117,6 +117,40 @@ final class LiveTextServerTests: XCTestCase {
         XCTAssertLessThan(got.values.compactMap { $0 }.count, 5, "gedrosselt, nicht 20 Mal")
     }
 
+    // MARK: 0.5.0 Kallis Termine (G26) über denselben Server
+
+    func testKalliSocketDeliversEvent() throws {
+        let got = Box()
+        let server = PeerSocketServer<KalliEvents.Message>(
+            directory: dir, fileName: "kalli.sock", label: "Termine", peer: "Kalli", requirement: try selfRequirement(),
+            parse: { KalliEvents.parse($0) }, onValue: { got.append($0.map { "\($0)" }) })
+        try server.start()
+        defer { server.stop() }
+        XCTAssertTrue(server.socketPath.hasSuffix("/kalli.sock"))
+        let fd = try connect(server.socketPath)
+        defer { close(fd) }
+        XCTAssertEqual(try readAck(fd), true)
+        let start = Date().addingTimeInterval(600).timeIntervalSince1970.rounded()
+        try send(fd, ["v": 1, "event": ["title": "Zahnarzt", "start": start, "color": "#FF8000"]])
+        XCTAssertTrue(waitFor { got.values.contains { $0?.contains("Zahnarzt") == true } }, "Termin angekommen")
+    }
+
+    func testKalliRequirementRejectsOtherProcess() throws {
+        let got = Box()
+        var req: SecRequirement?
+        SecRequirementCreateWithString(KalliEvents.requirement as CFString, [], &req)
+        let server = PeerSocketServer<KalliEvents.Message>(
+            directory: dir, fileName: "kalli.sock", label: "Termine", peer: "Kalli", requirement: try XCTUnwrap(req),
+            parse: { KalliEvents.parse($0) }, onValue: { got.append($0.map { "\($0)" }) })
+        try server.start()
+        defer { server.stop() }
+        let fd = try connect(server.socketPath)
+        defer { close(fd) }
+        _ = try? send(fd, ["v": 1, "event": ["title": "Untergeschoben", "start": Date().timeIntervalSince1970 + 60]])
+        XCTAssertNil(try readAck(fd), "kein ok, Verbindung zu")
+        XCTAssertFalse(got.values.contains { $0 != nil }, "nichts angezeigt")
+    }
+
     // MARK: Hilfen
 
     /// Anforderung, die genau dieser Testlauf erfüllt (seine eigene Designated Requirement).

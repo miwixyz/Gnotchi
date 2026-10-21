@@ -3,24 +3,40 @@ import Foundation
 import OSLog
 import Security
 
-/// Lokaler Socket für Tippis Live-Text (0.3.0, SECURE-DESIGN G21). Alles auf einer eigenen seriellen
-/// Warteschlange; nach außen nur `onText` (bereinigt, gedrosselt). Jede Verbindung wird **vor dem ersten
-/// gelesenen Byte** über das Audit-Token der Gegenseite gegen `requirement` geprüft. Nie Text ins Protokoll.
-final class LiveTextServer: @unchecked Sendable {
+/// Tippis Live-Text (0.3.0, G21): der Server mit bereinigtem Text als Wert.
+typealias LiveTextServer = PeerSocketServer<String>
+
+extension PeerSocketServer where Value == String {
+    /// `requirement` nur im Test anders als Tippis Developer-ID-Anforderung.
+    convenience init(directory: URL, requirement: SecRequirement, onText: @escaping @Sendable (String?) -> Void) {
+        self.init(directory: directory, fileName: "live.sock", label: "Live-Text", peer: "Tippi",
+                  requirement: requirement, parse: LiveText.parse, onValue: onText)
+    }
+}
+
+/// Lokaler Socket für eine geprüfte Familien-App (0.3.0 Tippis Live-Text G21, 0.5.0 Kallis Termine G26).
+/// Alles auf einer eigenen seriellen Warteschlange; nach außen nur `onValue` (geprüft, gedrosselt, `nil` =
+/// getrennt). Jede Verbindung wird **vor dem ersten gelesenen Byte** über das Audit-Token der Gegenseite gegen
+/// `requirement` geprüft. Nie Inhalte ins Protokoll.
+final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
 
     enum StartError: Error, Equatable {
         case directory, staleFile, pathTooLong, socket(Int32)
     }
 
     /// Höchstens so oft neuen Text an die Ansicht (letzter gewinnt).
-    static let minDeliveryInterval: TimeInterval = 0.25
+    static var minDeliveryInterval: TimeInterval { 0.25 }
 
-    private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "livetext")
+    private static var log: Logger { Logger(subsystem: "dev.mwlr.gnotchi", category: "livetext") }
 
     let socketPath: String
     private let requirement: SecRequirement
-    private let onText: @Sendable (String?) -> Void
-    private let queue = DispatchQueue(label: "dev.mwlr.gnotchi.livetext")
+    private let label: String
+    private let peer: String
+    /// Nachricht → Wert; `nil` = ungültig, Verbindung zu.
+    private let parse: @Sendable (Data) -> Value?
+    private let onValue: @Sendable (Value?) -> Void
+    private let queue: DispatchQueue
 
     // Nur auf `queue`:
     private var listenFD: Int32 = -1
@@ -29,14 +45,18 @@ final class LiveTextServer: @unchecked Sendable {
     private var clientSource: DispatchSourceRead?
     private var buffer = Data()
     private var lastDelivery = Date.distantPast
-    private var pending: String?
+    private var pending: Value?
     private var flushScheduled = false
 
-    /// `requirement` nur im Test anders als Tippis Developer-ID-Anforderung.
-    init(directory: URL, requirement: SecRequirement, onText: @escaping @Sendable (String?) -> Void) {
-        socketPath = directory.appendingPathComponent("live.sock").path
+    init(directory: URL, fileName: String, label: String, peer: String, requirement: SecRequirement,
+         parse: @escaping @Sendable (Data) -> Value?, onValue: @escaping @Sendable (Value?) -> Void) {
+        socketPath = directory.appendingPathComponent(fileName).path
         self.requirement = requirement
-        self.onText = onText
+        self.label = label
+        self.peer = peer
+        self.parse = parse
+        self.onValue = onValue
+        queue = DispatchQueue(label: "dev.mwlr.gnotchi.socket.\(fileName)")
     }
 
     // MARK: Dateisystem (rein bis auf lstat/mkdir, getestet)
@@ -91,7 +111,7 @@ final class LiveTextServer: @unchecked Sendable {
             src.resume()
             listenSource = src
         }
-        Self.log.notice("Live-Text bereit")
+        Self.log.notice("\(self.label, privacy: .public) bereit")
     }
 
     func stop() {
@@ -115,7 +135,7 @@ final class LiveTextServer: @unchecked Sendable {
             let status = Self.checkPeer(fd, requirement)
             guard status == errSecSuccess else {
                 close(fd)
-                Self.log.error("Live-Text: Verbindung abgelehnt (OSStatus \(status, privacy: .public))")
+                Self.log.error("\(self.label, privacy: .public): Verbindung abgelehnt (OSStatus \(status, privacy: .public))")
                 continue
             }
             // Eine geprüfte neue Verbindung ersetzt die alte.
@@ -128,7 +148,7 @@ final class LiveTextServer: @unchecked Sendable {
             src.setEventHandler { [weak self] in self?.readClient() }
             src.resume()
             clientSource = src
-            Self.log.notice("Live-Text: Tippi verbunden")
+            Self.log.notice("\(self.label, privacy: .public): \(self.peer, privacy: .public) verbunden")
         }
     }
 
@@ -158,8 +178,8 @@ final class LiveTextServer: @unchecked Sendable {
             case .invalid:
                 return closeClient(reason: "ungültiger Rahmen")
             case .message(let payload):
-                guard let text = LiveText.parse(payload) else { return closeClient(reason: "ungültige Nachricht") }
-                deliver(text)
+                guard let value = parse(payload) else { return closeClient(reason: "ungültige Nachricht") }
+                deliver(value)
             }
         }
     }
@@ -170,18 +190,18 @@ final class LiveTextServer: @unchecked Sendable {
         if clientFD >= 0 { close(clientFD); clientFD = -1 }
         buffer = Data()
         pending = nil
-        if let reason { Self.log.notice("Live-Text: \(reason, privacy: .public)") }
-        onText(nil)
+        if let reason { Self.log.notice("\(self.label, privacy: .public): \(reason, privacy: .public)") }
+        onValue(nil)
     }
 
     /// Drosseln: höchstens alle 0,25 s, der letzte Stand gewinnt.
-    private func deliver(_ text: String) {
+    private func deliver(_ value: Value) {
         let wait = Self.minDeliveryInterval - Date().timeIntervalSince(lastDelivery)
         guard wait > 0 else {
             lastDelivery = Date()
-            return onText(text)
+            return onValue(value)
         }
-        pending = text
+        pending = value
         guard !flushScheduled else { return }
         flushScheduled = true
         queue.asyncAfter(deadline: .now() + wait) { [weak self] in
@@ -190,7 +210,7 @@ final class LiveTextServer: @unchecked Sendable {
             guard let p = pending, clientFD >= 0 else { return }
             pending = nil
             lastDelivery = Date()
-            onText(p)
+            onValue(p)
         }
     }
 }
