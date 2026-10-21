@@ -99,7 +99,7 @@ struct ChipRow: View {
             }
             if let mirror {
                 Button(action: onMirror) {
-                    Image(systemName: "person.crop.square").font(.system(size: 11, weight: .semibold))
+                    Image(systemName: "person.fill.viewfinder").font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(mirror ? .white : .secondary)
                         .frame(width: 26, height: 18)
                         .background(Capsule().fill(.white.opacity(mirror ? 0.22 : 0)))
