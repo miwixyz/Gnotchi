@@ -193,6 +193,7 @@ final class IslandController {
             _ = activity.upcomingEvent != nil
             _ = activity.bigContent
             _ = activity.showsChipRow
+            _ = activity.mirrorActive
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -410,6 +411,7 @@ final class IslandController {
             // Ist die Insel inzwischen weg, bleibt sie weg.
             guard !Task.isCancelled, let self, let e = self.panels[displayID] else { return }
             if e.state.mode == .expanded {
+                activity.endMirror()   // Spiegel nur, solange groß sichtbar (G27)
                 e.state.mode = .compact
                 try? await Task.sleep(for: Self.animationTail)   // Animation auslaufen lassen, dann Panel verkleinern
             }
@@ -513,6 +515,6 @@ extension IslandController {
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
-        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow)
+        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
     }
 }

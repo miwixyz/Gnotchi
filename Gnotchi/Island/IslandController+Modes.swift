@@ -49,8 +49,15 @@ extension IslandController {
 
     /// Große Insel „Eine Sache groß“ (0.5.0): alles in Player-Größe (Michael 21.10.: Hinweis-Größe war zu klein),
     /// nur „nur Mikrofon/Kamera“ in Hinweis-Größe; die Symbolleiste eine Zeile höher.
-    nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool) -> CGRect? {
-        panelFrame(mode: .expanded, layout: layout, hasMedia: !small, updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2)
+    nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool,
+                                     mirror: Bool = false) -> CGRect? {
+        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror, updates: chipRow ? 1 : 0,
+                                 rows: chipRow ? 3 : 2) else { return nil }
+        guard mirror else { return r }
+        let extra = IslandGeometry.mirrorHeight - IslandGeometry.expandedSize.height
+        r.origin.y -= extra
+        r.size.height += extra
+        return r
     }
 
     /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt

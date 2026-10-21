@@ -205,7 +205,8 @@ echo "${SIGN_INFO}" | grep -q "flags=.*runtime" \
 echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
     || fail "Falsches Team in der Signatur (erwartet LTKJ6Z2VYB)"
 # G12 maschinell (Seam-Muster E8, Code-Audit 09.10., S3): Positivliste statt „leer“.
-# - App: GENAU com.apple.security.automation.apple-events (AppleScript-Rückfall, G7).
+# - App: GENAU com.apple.security.automation.apple-events (AppleScript-Rückfall, G7) und
+#   com.apple.security.device.camera (Spiegel, ab 0.5.0, G27).
 # - JEDER eingebettete Code-Teil, rekursiv (Sparkles XPC-Dienste, Updater.app, Autoupdate,
 #   Adapter-Framework, Test-Programm …): nur, was scripts/entitlement-gate.sh für ihn erlaubt –
 #   für alle derzeit nichts (Security-Review 18.10., B2: vorher nur die oberste Ebene geprüft).
@@ -215,9 +216,11 @@ echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
 #   bricht das Release ab.
 # Geparst mit Python/plistlib statt grep (ugrep-Lehre, siehe Appcast-Prüfung unten).
 . scripts/entitlement-gate.sh
-gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events"
+gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events com.apple.security.device.camera"
 gate_entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.automation.apple-events" \
     || fail "Apple-Events-Berechtigung fehlt in der App — der Spotify/Musik-Rückfall (G7) ginge nicht"
+gate_entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.device.camera" \
+    || fail "Kamera-Berechtigung fehlt in der App — der Spiegel (G27) zeigte unter der Hardened Runtime kein Bild"
 gate_check_nested "${APP_PATH}"
 NESTED="${GATE_COUNT}"
 [ -d "${APP_PATH}/Contents/Frameworks/MediaRemoteAdapter.framework" ] \

@@ -200,7 +200,7 @@ final class IslandViewRenderTests: XCTestCase {
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = (mode == .expanded
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,
-                                        chipRow: activity.showsChipRow)
+                                        chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
             : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
         let canvas = CGSize(width: 520, height: 210)
         let view = ZStack(alignment: .top) {

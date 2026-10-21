@@ -60,11 +60,13 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, headphones, update(FamilyApp), privacy, none
+        case media, event, headphones, update(FamilyApp), privacy, mirror, none
     }
 
-    nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool) -> BigContent {
-        switch current {
+    nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
+                                       mirror: Bool = false) -> BigContent {
+        if mirror { return .mirror }
+        return switch current {
         case .event?: .event
         case .media?: .media
         case .headphones?: .headphones
@@ -75,8 +77,9 @@ extension ActivityModel {
 
     /// Symbolleiste über der großen Sache: sobald es mehr als eine Sache gibt – mehrere Aktivitäten, oder
     /// Mikrofon/Kamera bzw. Qotti-Kontingent neben der großen Sache.
-    nonisolated static func showsChipRow(items: Int, big: BigContent, privacy: Bool, quota: Bool) -> Bool {
-        items > 1 || (privacy && big != .privacy) || quota
+    nonisolated static func showsChipRow(items: Int, big: BigContent, privacy: Bool, quota: Bool,
+                                         mirrorEnabled: Bool = false) -> Bool {
+        mirrorEnabled || items > 1 || (privacy && big != .privacy) || quota
     }
 
     /// Symbole der Leiste: wie die Rotation, aber Musik auch pausiert (dort will man sie weiterspielen; die
@@ -92,16 +95,35 @@ extension ActivityModel {
     }
 
     var bigContent: BigContent {
-        Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil)
+        Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
+                        mirror: mirrorActive)
     }
 
     var showsChipRow: Bool {
-        Self.showsChipRow(items: chipItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil)
+        Self.showsChipRow(items: chipItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil,
+                          mirrorEnabled: mirrorEnabled)
     }
 
     /// Klick auf ein Symbol der Leiste: diese Aktivität groß zeigen (der Takt steht, solange die Maus darauf ist).
     func select(_ item: LiveActivity) {
         if chipItems.contains(item) { rotationCursor = item }
+        mirrorActive = false
+    }
+
+    // MARK: Spiegel (0.5.0, G27) – Kamera nur, solange der Spiegel groß sichtbar ist
+
+    func selectMirror() {
+        if mirrorEnabled { mirrorActive = true }
+    }
+
+    /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
+    func endMirror() {
+        if mirrorActive { mirrorActive = false }
+    }
+
+    func setMirrorEnabled(_ on: Bool) {
+        if mirrorEnabled != on { mirrorEnabled = on }
+        if !on { endMirror() }
     }
 
     /// Aktivität der kleinen Insel.

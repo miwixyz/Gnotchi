@@ -150,4 +150,33 @@ final class KalliEventsTests: XCTestCase {
         let big = try XCTUnwrap(IslandController.bigFrame(layout: l, small: false, chipRow: true))
         XCTAssertEqual(big.height, l.expanded.height + IslandGeometry.privacyLineHeight)
     }
+
+    // MARK: Spiegel (G27)
+
+    func testMirrorOnlyWhenEnabledAndEndsOnSelectOrCollapse() {
+        let model = ActivityModel(media: NowPlayingModel())
+        model.setUpcomingEvent(event(10))
+        model.selectMirror()
+        XCTAssertFalse(model.mirrorActive, "Schalter aus → nie an")
+        model.setMirrorEnabled(true)
+        XCTAssertTrue(model.showsChipRow, "Spiegel-Symbol braucht die Leiste")
+        model.selectMirror()
+        XCTAssertEqual(model.bigContent, .mirror)
+        model.select(.event)
+        XCTAssertFalse(model.mirrorActive, "anderes Symbol → Kamera aus")
+        model.selectMirror()
+        model.endMirror()
+        XCTAssertFalse(model.mirrorActive, "Einklappen → Kamera aus")
+        model.selectMirror()
+        model.setMirrorEnabled(false)
+        XCTAssertFalse(model.mirrorActive, "Schalter aus → Kamera aus")
+    }
+
+    func testMirrorFrameIsTaller() throws {
+        let l = IslandGeometry.layout(for: IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 2560, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil))
+        let m = try XCTUnwrap(IslandController.bigFrame(layout: l, small: false, chipRow: true, mirror: true))
+        XCTAssertEqual(m.height, IslandGeometry.mirrorHeight + IslandGeometry.privacyLineHeight)
+        XCTAssertEqual(m.maxY, l.expanded.maxY, "wächst nach unten, oben bündig")
+    }
 }

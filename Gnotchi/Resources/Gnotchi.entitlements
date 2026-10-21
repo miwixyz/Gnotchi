@@ -2,12 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Genau EINE Berechtigung (docs/SECURE-DESIGN.md G12):
-	     Apple Events senden. Unter der Hardened Runtime darf eine App ohne sie keine
+	<!-- Genau ZWEI Berechtigungen (docs/SECURE-DESIGN.md G12, ab 0.5.0 G27):
+	     1. Apple Events senden. Unter der Hardened Runtime darf eine App ohne sie keine
 	     AppleScript-Befehle an andere Apps schicken; Gnotchi braucht das nur für den
 	     Rückfall auf Spotify und Musik (G7), wenn macOS den Medien-Adapter sperrt.
 	     Welche App Gnotchi steuern darf, entscheidet der Nutzer im macOS-Dialog
 	     (Automation), nicht diese Datei.
+	     2. Kamera (0.5.0, G27): nur für den Spiegel in der Insel, nur solange er sichtbar ist.
+	     Das Bild geht direkt in eine Vorschau-Ebene, nie in eigenen Code, nie auf die Platte.
+	     Ob Gnotchi die Kamera nutzen darf, entscheidet der Nutzer im macOS-Dialog.
 
 	     Bewusst NICHT:
 	     - keine App Sandbox: /usr/bin/perl als Kindprozess (G2) und der Zugriff auf
@@ -18,6 +21,8 @@
 	     - keine Bedienungshilfen: dafür gibt es keine Berechtigung, Gnotchi fragt sie auch
 	       zur Laufzeit nie an (G1). -->
 	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.device.camera</key>
 	<true/>
 </dict>
 </plist>

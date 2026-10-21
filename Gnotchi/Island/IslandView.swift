@@ -37,7 +37,7 @@ struct IslandView: View {
         case .wide: state.layout.wide.size
         case .expanded:
             IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
-                                      chipRow: activity.showsChipRow)?.size ?? state.layout.expanded.size
+                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         }
@@ -96,9 +96,11 @@ struct IslandView: View {
             let chips = activity.showsChipRow
             VStack(spacing: 0) {
                 if chips {
-                    ChipRow(items: activity.chipItems, current: activity.bigActivity, event: activity.upcomingEvent,
-                            headphones: activity.headphones, mediaApp: model.info?.appBundleID, privacy: activity.privacy,
-                            quota: activity.quotaLine, onSelect: { activity.select($0) })
+                    ChipRow(items: activity.chipItems, current: activity.mirrorActive ? nil : activity.bigActivity,
+                            event: activity.upcomingEvent, headphones: activity.headphones,
+                            mediaApp: model.info?.appBundleID, privacy: activity.privacy, quota: activity.quotaLine,
+                            mirror: activity.mirrorEnabled ? activity.mirrorActive : nil,
+                            onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() })
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
                 big(topInset: chips ? 0 : nil)
@@ -131,6 +133,11 @@ struct IslandView: View {
             }
         case .privacy:
             privacyDetails(topInset: topInset)
+        case .mirror:
+            MirrorView(onSettings: MirrorView.openCameraSettings)
+                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 16, bottom: 12,
+                                    trailing: 16))
+                .transition(.opacity)
         case .none:
             EmptyView()
         }

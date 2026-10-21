@@ -26,6 +26,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.qottiQuota) { model.applyNotchSetting() }
                 toggleRow("Termine aus Kalli anzeigen", isOn: $prefs.kalliEvents)
                     .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
+                toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
+                    .onChange(of: prefs.mirror) { model.applyNotchSetting() }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

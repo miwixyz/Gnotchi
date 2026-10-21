@@ -139,6 +139,7 @@ final class AppModel {
     /// Beim Start und bei jeder Änderung eines Schalters aufgerufen; im Testlauf wirkungslos.
     func applyNotchSetting() {
         activity.setRotationEnabled(prefs.liveRotation)
+        activity.setMirrorEnabled(prefs.mirror)
         syncOwnUpdate()
         guard allowStart else { return }
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })

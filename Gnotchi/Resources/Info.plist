@@ -29,6 +29,9 @@
 	     macOS zeigt diesen Text, wenn Gnotchi zum ersten Mal eine der beiden Apps steuert. -->
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Gnotchi steuert Spotify und Musik in der Notch, wenn macOS den systemweiten Zugriff sperrt.</string>
+	<!-- Spiegel (docs/SECURE-DESIGN.md G27): macOS zeigt diesen Text beim ersten Klick auf „Spiegel“. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Gnotchi zeigt dein Kamerabild als Spiegel in der Notch, nur solange du ihn geöffnet hast. Es wird nichts gespeichert oder gesendet.</string>
 	<!-- Sparkle (docs/SECURE-DESIGN.md G11, Muster Kalli/Seam). Appcast IM REPO: jede Änderung
 	     ist ein öffentlicher, datierter Commit. SUPublicEDKey ist der ÖFFENTLICHE Teil des
 	     Signierschlüssels (derselbe wie Kalli/Tippi/Seam); der private liegt nur im

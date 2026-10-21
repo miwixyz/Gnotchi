@@ -68,6 +68,9 @@ final class ActivityModel {
     private(set) var ownUpdate: FamilyUpdates.Entry?
     /// Nächster Termin aus Kalli (0.5.0, G26), nur ab 15 Minuten vor Beginn bis Beginn gesetzt.
     private(set) var upcomingEvent: KalliEvents.Event?
+    /// Spiegel (0.5.0, G27): Schalter in den Einstellungen bzw. gerade groß gezeigt.
+    var mirrorEnabled = false
+    var mirrorActive = false
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
     var rotationCursor: LiveActivity?
     /// Maus über einer Insel: Takt steht.

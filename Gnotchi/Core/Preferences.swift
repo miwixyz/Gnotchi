@@ -23,6 +23,8 @@ final class Preferences {
         static let familyUpdates = "familyUpdates"
         /// 0.5.0 Termine aus Kalli (G26).
         static let kalliEvents = "kalliEvents"
+        /// 0.5.0 Spiegel (G27).
+        static let mirror = "mirror"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -69,6 +71,9 @@ final class Preferences {
     /// Nächster Termin aus Kalli, 15 Minuten vor Beginn (0.5.0, G26). Aus = Socket weg. Ab Werk an.
     var kalliEvents: Bool { didSet { defaults.set(kalliEvents, forKey: Key.kalliEvents) } }
 
+    /// Spiegel in der großen Insel (0.5.0, G27). Kamera nur nach Klick und nur, solange er sichtbar ist. Ab Werk an.
+    var mirror: Bool { didSet { defaults.set(mirror, forKey: Key.mirror) } }
+
     /// Medienfilter (0.4.0, G25): Wiedergabe dieser Apps erscheint nie in der Insel. Nur über `setMediaExcluded`.
     private(set) var mediaExcluded: [String] { didSet { defaults.set(mediaExcluded, forKey: Key.mediaExcluded) } }
 
@@ -86,6 +91,7 @@ final class Preferences {
         headphoneActivity = defaults.object(forKey: Key.headphoneActivity) as? Bool ?? true
         familyUpdates = defaults.object(forKey: Key.familyUpdates) as? Bool ?? true
         kalliEvents = defaults.object(forKey: Key.kalliEvents) as? Bool ?? true
+        mirror = defaults.object(forKey: Key.mirror) as? Bool ?? true
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

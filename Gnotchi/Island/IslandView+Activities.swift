@@ -79,7 +79,10 @@ struct ChipRow: View {
     let mediaApp: String?
     let privacy: ActivityModel.Privacy
     let quota: String?
+    /// nil = Spiegel ausgeschaltet; sonst ob er gerade gezeigt wird.
+    var mirror: Bool?
     let onSelect: (LiveActivity) -> Void
+    var onMirror: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 6) {
@@ -93,6 +96,18 @@ struct ChipRow: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text(verbatim: label(item)))
                 .accessibilityAddTraits(item == current ? .isSelected : [])
+            }
+            if let mirror {
+                Button(action: onMirror) {
+                    Image(systemName: "person.crop.square").font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(mirror ? .white : .secondary)
+                        .frame(width: 26, height: 18)
+                        .background(Capsule().fill(.white.opacity(mirror ? 0.22 : 0)))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: "Spiegel"))
+                .accessibilityAddTraits(mirror ? .isSelected : [])
             }
             Spacer(minLength: 0)
             if let quota {
