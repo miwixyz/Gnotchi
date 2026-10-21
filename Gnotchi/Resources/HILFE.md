@@ -142,7 +142,7 @@ stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofo
 
 ## Termine aus Kalli
 
-Läuft [Kalli](https://github.com/miwixyz/Kalli) ab Version 0.11.1, zeigt die Insel deinen nächsten Termin
+Läuft [Kalli](https://github.com/miwixyz/Kalli) ab Version 0.12.0, zeigt die Insel deinen nächsten Termin
 ab 15 Minuten vor Beginn: Uhrzeit, Titel und wie lange es noch dauert. Bei Beginn verschwindet er. Ein
 Klick öffnet den Apple Kalender. Ganztägige Termine und Erinnerungen erscheinen nicht. Schalter: „Termine
 aus Kalli anzeigen“.

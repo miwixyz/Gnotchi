@@ -42,7 +42,7 @@ Freigabe nicht und fragt nie danach.
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
-  mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.11.1).
+  mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
   die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute.
 - **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die

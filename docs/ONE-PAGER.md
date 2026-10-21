@@ -50,7 +50,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   bei 80 und bei 95 Prozent steht.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
 - Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
-  braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.11.1.
+  braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.12.0.
 - Den Timer startest du im Menü, er läuft in der Notch mit. Ist er um, blinkt sie orange, bis du klickst.
 - Vor einem Anruf kurz in den Spiegel schauen: Das Kamera-Symbol in der großen Insel zeigt dein Bild.
   Die Kamera ist aus, sobald die Insel zuklappt.

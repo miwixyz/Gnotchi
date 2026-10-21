@@ -8,7 +8,7 @@ Termine, Timer, Spiegel – und eine aufgeräumte große Insel.
 
 ### Neu
 - **Eine Sache groß:** Die große Insel zeigt nur noch eine Sache, groß und 460 pt breit. Oben steht eine Leiste mit Symbolen für alles, was läuft; ein Klick zeigt diese Sache groß. Vorher stapelten sich Mikrofon, Kontingent, Updates und Musik übereinander.
-- **Nächster Termin aus Kalli:** Ab Kalli 0.11.1 erscheint dein nächster Termin 15 Minuten vor Beginn in der Insel, mit Uhrzeit und Restzeit. Ein Klick öffnet den Apple Kalender. Der Titel kommt auf einem geschützten Weg, bei dem beide Apps die Signatur der anderen prüfen.
+- **Nächster Termin aus Kalli:** Ab Kalli 0.12.0 erscheint dein nächster Termin 15 Minuten vor Beginn in der Insel, mit Uhrzeit und Restzeit. Ein Klick öffnet den Apple Kalender. Der Titel kommt auf einem geschützten Weg, bei dem beide Apps die Signatur der anderen prüfen.
 - **Timer:** 5, 10, 15, 25 Minuten oder eine eigene Zeit (1–180), über das Menü oder die Insel, mit Pause und Stopp. Ist die Zeit um, pulsiert die Insel orange, bis du klickst, und der Ton wiederholt sich höchstens eine Minute. Ton wählbar.
 - **Spiegel:** Das Kamera-Symbol in der großen Insel zeigt dein Kamerabild gespiegelt, etwa vor einem Anruf. Die Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Stecknadel:** hält die große Insel offen, dann durchscheinend.
