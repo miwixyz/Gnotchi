@@ -30,7 +30,7 @@ enum IslandGeometry {
     static let pillSize = CGSize(width: 180, height: 24)
     /// Inhaltsfläche der grossen Ansicht. Mit Notch kommt deren Höhe oben dazu: Die Hardware-Notch
     /// verdeckt den oberen Streifen (Sichtprüfung 18.10.: 110 pt inkl. Notch reichten nicht).
-    static let expandedSize = CGSize(width: 380, height: 110)
+    static let expandedSize = CGSize(width: 460, height: 110)   // 0.5.0: 380 → 460 (Michael 21.10.: „breiter“)
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt
     /// kein Name; nebeneinander kürzte der Zustand den Namen schon nach 15 Zeichen (Testbild 20.10.).
     static let noticeSize = CGSize(width: 260, height: 44)
