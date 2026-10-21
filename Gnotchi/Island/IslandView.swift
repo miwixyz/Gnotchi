@@ -7,7 +7,8 @@ import SwiftUI
 final class IslandState {
     /// `notice`: kurzer Hinweis (Kopfhörer), eigene Form unter der Notch (0.2.0).
     /// `live`: Tippis Live-Text, zwei Zeilen unter der Aufnahme-Zeile (0.3.0).
-    enum Mode { case hidden, compact, expanded, notice, live }
+    /// `wide`: Trackwechsel, 3 s breiter mit Titel · Interpret (0.4.0).
+    enum Mode { case hidden, compact, expanded, notice, live, wide }
     var mode: Mode = .hidden
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
@@ -24,15 +25,19 @@ struct IslandView: View {
     let onHover: (Bool) -> Void
     /// Klick auf das Ausgabe-Symbol oben rechts (groß): IslandController zeigt die Geräteliste.
     var onOutputMenu: () -> Void = {}
+    /// Klick auf ein Update (0.4.0): IslandController → AppModel.openUpdate (G24).
+    var onOpenUpdate: (FamilyApp) -> Void = { _ in }
 
     private var size: CGSize {
         switch state.mode {
         case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
         case .compact: state.layout.compact.size
+        case .wide: state.layout.wide.size
         case .expanded:
             IslandController.panelFrame(mode: .expanded, layout: state.layout, hasMedia: model.info != nil,
                                         privacy: activity.privacy.isActive,
-                                        quota: activity.quotaLine != nil)?.size ?? state.layout.expanded.size
+                                        quota: activity.quotaLine != nil, updates: activity.allUpdates.count,
+                                        rows: detailRows)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         }
@@ -61,9 +66,16 @@ struct IslandView: View {
         switch state.mode {
         case .expanded: 22
         case .notice, .live: 16
-        case .hidden, .compact: 10
+        case .hidden, .compact, .wide: 10
         }
     }
+
+    private var detailRows: Int {
+        IslandController.detailRows(headphones: activity.headphones != nil, updates: activity.allUpdates.count,
+                                    mic: activity.privacy.mic, camera: activity.privacy.camera)
+    }
+
+    private var pill: Bool { state.layout.notch == nil }
 
     @ViewBuilder private var content: some View {
         switch state.mode {
@@ -73,26 +85,66 @@ struct IslandView: View {
         case .compact:
             if let rec = activity.recording {
                 recordingCompact(rec)
-            } else if let info = model.info {
-                compact(info)
-            } else if activity.privacy.isActive {
-                privacyCompact
+            } else {
+                rotationCompact
+            }
+        case .wide:
+            if let info = model.info {
+                TrackFlash(info: info, notchWidth: state.layout.notch?.width, height: state.layout.wide.height) {
+                    cover(18, radius: 4)
+                } bars: {
+                    LevelBars(playing: info.isPlaying)
+                }
             }
         case .expanded:
             if let info = model.info {
+                let hasLines = activity.privacy.isActive || activity.quotaLine != nil || !activity.allUpdates.isEmpty
                 VStack(spacing: 0) {
-                    let top = (state.layout.notch?.height ?? 0) + 8
-                    if activity.privacy.isActive {
-                        privacyLine.padding(EdgeInsets(top: top, leading: 16, bottom: 0, trailing: 16))
+                    if hasLines {
+                        // Zeilen über der Musik: Mikrofon/Kamera, Qotti, je Update eine (klickbar).
+                        VStack(spacing: 4) {
+                            if activity.privacy.isActive { privacyLine }
+                            if let q = activity.quotaLine { QuotaLine(text: q) }
+                            ForEach(activity.allUpdates, id: \.app) { e in
+                                UpdateLine(entry: e) { onOpenUpdate(e.app) }
+                            }
+                        }
+                        .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                     }
-                    if let q = activity.quotaLine {
-                        QuotaLine(text: q)
-                            .padding(EdgeInsets(top: activity.privacy.isActive ? 4 : top, leading: 16, bottom: 0, trailing: 16))
-                    }
-                    expanded(info, topInset: activity.privacy.isActive || activity.quotaLine != nil ? 4 : nil)
+                    expanded(info, topInset: hasLines ? 4 : nil)
                 }
+            } else if activity.headphones != nil || !activity.allUpdates.isEmpty {
+                ActivityDetails(headphones: activity.headphones, updates: activity.allUpdates, privacy: activity.privacy,
+                                topInset: state.layout.notch?.height ?? 0,
+                                height: IslandGeometry.noticeSize.height
+                                    + CGFloat(max(0, detailRows - 2)) * IslandGeometry.privacyLineHeight,
+                                onOpen: onOpenUpdate)
             } else if activity.privacy.isActive {
                 privacyDetails
+            }
+        }
+    }
+
+    /// Kleine Insel ohne Aufnahme (0.4.0): die Aktivität, die die Rotation gerade zeigt. Ohne Aktivität wie bisher
+    /// der letzte Titel (pausiert, Insel offen wegen Mikrofon/Kamera) bzw. nur die Punkte.
+    @ViewBuilder private var rotationCompact: some View {
+        let height = state.layout.compact.height
+        switch activity.currentActivity {
+        case .media?:
+            if let info = model.info { compact(info) }
+        case .headphones?:
+            if let h = activity.headphones {
+                HeadphonesCompact(headphones: h, privacy: activity.privacy, pill: pill, height: height)
+            }
+        case .update(let app)?:
+            if let e = activity.update(for: app) {
+                UpdateCompact(entry: e, privacy: activity.privacy, pill: pill, height: height) { onOpenUpdate(app) }
+            }
+        case nil:
+            if let info = model.info {
+                compact(info)
+            } else if activity.privacy.isActive {
+                privacyCompact
             }
         }
     }
@@ -142,12 +194,7 @@ struct IslandView: View {
 
     /// Orange = Mikrofon, Grün = Kamera – dieselben Farben wie macOS in der Menüleiste.
     private var privacyDots: some View {
-        HStack(spacing: 3) {
-            if activity.privacy.mic { Circle().fill(.orange).frame(width: 6, height: 6) }
-            if activity.privacy.camera { Circle().fill(.green).frame(width: 6, height: 6) }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: activity.privacy.compactLabel ?? ""))
+        PrivacyDots(privacy: activity.privacy)
     }
 
     /// Klein ohne Musik: mit Notch nur die Punkte im linken Flügel, ohne Notch Punkte + „Mikrofon“/„Kamera“.
@@ -180,14 +227,7 @@ struct IslandView: View {
     }
 
     private func privacyItem(color: Color, symbol: String, text: String) -> some View {
-        HStack(spacing: 5) {
-            Circle().fill(color).frame(width: 6, height: 6)
-            Image(systemName: symbol).font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
-                .frame(width: 14)
-            Text(verbatim: text).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
-                .lineLimit(1).truncationMode(.tail)
-        }
-        .accessibilityElement(children: .combine)
+        ActivityRow(dot: color, symbol: symbol, text: text)
     }
 
     /// Groß ohne Musik: Mikrofon und Kamera untereinander (nebeneinander kürzte die Kamera den App-Namen),
@@ -415,7 +455,7 @@ struct WorkingDots: View {
 }
 
 /// Animierter Pegel – reine Animation, kein Audiosignal (Spezifikation „Nicht in diesem Schritt“).
-private struct LevelBars: View {
+struct LevelBars: View {
     let playing: Bool
     var body: some View {
         // 30 Bilder/s reichen für einen Pegel; ungebremst liefe er mit der Bildschirmrate (bis 120 Hz).

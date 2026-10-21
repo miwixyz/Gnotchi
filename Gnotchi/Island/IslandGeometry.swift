@@ -20,6 +20,9 @@ enum IslandGeometry {
         let notice: CGRect
         /// Tippis Live-Text (0.3.0): Aufnahme-Zeile und zwei Zeilen Text unter der Notch bzw. Pille.
         let live: CGRect
+        /// Trackwechsel (0.4.0): kurz breiter, Titel · Interpret neben der Notch bzw. in der breiteren Pille.
+        /// Mit Standardwert, damit bestehende Tests ihr Layout ohne ihn bauen können.
+        var wide: CGRect = .zero
     }
 
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
@@ -35,6 +38,9 @@ enum IslandGeometry {
     static let privacyLineHeight: CGFloat = 20
     /// Live-Text (0.3.0, Michael 20.10.: „klappt auf, 2 Zeilen“): Zeile mit Mikrofon/Pegel + zwei Textzeilen.
     static let liveSize = CGSize(width: 340, height: 68)
+    /// Trackwechsel (0.4.0, Michael 21.10.: „kurz breiter“): Flügel neben der Notch bzw. Pillenbreite.
+    static let wideWing: CGFloat = 130
+    static let widePillWidth: CGFloat = 340
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY
@@ -48,7 +54,9 @@ enum IslandGeometry {
             return Layout(notch: notch, compact: compact,
                           expanded: band(expandedSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
                           notice: band(noticeSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
-                          live: band(liveSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
+                          live: band(liveSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
+                          wide: band(CGSize(width: notch.width + 2 * wideWing, height: 0), midX: notch.midX, top: top,
+                                     extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
         let pill = CGRect(x: midX - pillSize.width / 2, y: top - pillSize.height,
@@ -56,7 +64,9 @@ enum IslandGeometry {
         return Layout(notch: nil, compact: pill,
                       expanded: band(expandedSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
                       notice: band(noticeSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
-                      live: band(liveSize, midX: midX, top: top, extraHeight: 0, in: m.frame))
+                      live: band(liveSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
+                      wide: band(CGSize(width: widePillWidth, height: pillSize.height), midX: midX, top: top,
+                                 extraHeight: 0, in: m.frame))
     }
 
     /// Rechteck oben bündig, mittig über `midX`, mit Notch um deren Höhe länger (Inhalt beginnt darunter).

@@ -58,14 +58,53 @@ final class ActivityModel {
     @ObservationIgnored private var noticeTask: Task<Void, Never>?
     @ObservationIgnored private let noticeDuration: Duration
 
-    /// `noticeDuration` nur für Tests anders als 3 s (Michael 20.10.).
-    init(media: NowPlayingModel, noticeDuration: Duration = .seconds(3)) {
+    // MARK: Live-Aktivitäten (0.4.0) – Logik in ActivityModel+Rotation.swift
+
+    /// Ton läuft über Bluetooth (Kopfhörer-Aktivität). Gerätename bereinigt (OutputDevices.cleanName).
+    private(set) var headphones: Headphones?
+    /// Gemeldete Updates der Familien-Apps (G23), in fester Reihenfolge.
+    private(set) var familyUpdates: [FamilyUpdates.Entry] = []
+    /// Gnotchis eigenes Update (Sparkle), nur bei eingeschaltetem „Updates der App-Familie“.
+    private(set) var ownUpdate: FamilyUpdates.Entry?
+    /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
+    var rotationCursor: LiveActivity?
+    /// Maus über einer Insel: Takt steht.
+    var rotationPaused = false
+    /// Einstellung „Rotation“: aus = immer die erste Aktivität.
+    var rotationEnabled = true
+    /// Nach einem Trackwechsel 3 s die breitere Form mit Titel · Interpret.
+    var trackFlash = false
+    @ObservationIgnored var rotationTask: Task<Void, Never>?
+    @ObservationIgnored var flashTask: Task<Void, Never>?
+    @ObservationIgnored let rotationInterval: Duration
+    @ObservationIgnored let flashDuration: Duration
+
+    /// `noticeDuration`, `rotationInterval`, `flashDuration` nur für Tests anders als 3 s / 4 s / 3 s (Michael 20./21.10.).
+    init(media: NowPlayingModel, noticeDuration: Duration = .seconds(3), rotationInterval: Duration = .seconds(4),
+         flashDuration: Duration = .seconds(3)) {
         self.media = media
         self.noticeDuration = noticeDuration
+        self.rotationInterval = rotationInterval
+        self.flashDuration = flashDuration
+        media.onTrackChange = { [weak self] in self?.flashTrack() }
     }
 
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
-    var isVisible: Bool { media.isVisible || notice != nil || privacy.isActive || recording != nil }
+    var isVisible: Bool {
+        media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
+    }
+
+    func setHeadphones(_ h: Headphones?) {
+        if headphones != h { headphones = h }
+    }
+
+    func setFamilyUpdates(_ list: [FamilyUpdates.Entry]) {
+        if familyUpdates != list { familyUpdates = list }
+    }
+
+    func setOwnUpdate(_ e: FamilyUpdates.Entry?) {
+        if ownUpdate?.version != e?.version { ownUpdate = e }
+    }
 
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre: die Tippi-Aufnahme (Tippi blendet seine
     /// eigene Pille aus, wenn Gnotchi anzeigt). Musik hält sich an die Vollbild-Regel.

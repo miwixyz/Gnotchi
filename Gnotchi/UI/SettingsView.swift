@@ -46,6 +46,33 @@ struct SettingsView: View {
                          symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                 }
             }
+            card("Live-Aktivitäten") {
+                toggleRow("Rotation", isOn: $prefs.liveRotation)
+                    .onChange(of: prefs.liveRotation) { model.applyNotchSetting() }
+                toggleRow("Kopfhörer-Aktivität", isOn: $prefs.headphoneActivity)
+                    .onChange(of: prefs.headphoneActivity) { model.applyNotchSetting() }
+                toggleRow("Updates der App-Familie", isOn: $prefs.familyUpdates)
+                    .onChange(of: prefs.familyUpdates) { model.applyNotchSetting() }
+                divider
+                Text("Medienfilter")
+                    .font(FamilyTheme.font(.callout, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textSecondary)
+                    .padding(.top, FamilyTheme.Space.s)
+                // Zweispaltig: Mit allen installierten Wiedergabe-Apps würde das Fenster sonst höher als ein MacBook-Bildschirm.
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: FamilyTheme.Space.l), GridItem(.flexible())],
+                          spacing: 0) {
+                    ForEach(mediaApps, id: \.id) { app in
+                        // App-Namen aus dem lokalen Bundle, unbekannte als Bundle-ID → nie als Schlüssel lesen.
+                        toggleRow(verbatim: app.name, isOn: Binding(
+                            get: { !prefs.isMediaExcluded(app.id) },
+                            set: { on in
+                                prefs.setMediaExcluded(app.id, !on)
+                                model.applyMediaFilter()
+                            }))
+                    }
+                }
+                .disabled(!prefs.notchMedia)
+            }
             card("Allgemein") {
                 toggleRow("Bei Anmeldung starten", isOn: Binding(
                     get: { login == .on || login == .needsApproval },
@@ -93,6 +120,12 @@ struct SettingsView: View {
         }
     }
 
+    /// Medienfilter: bekannte installierte Apps, seit Start gesehene und ausgeschlossene (G25).
+    private var mediaApps: [(id: String, name: String)] {
+        NowPlayingModel.filterApps(known: NowPlayingModel.knownPlayers, seen: model.nowPlaying.seenApps,
+                                   excluded: prefs.mediaExcluded, name: AppIcons.name(for:))
+    }
+
     /// „Sofort“, „0,3 s“, „0,6 s“, „1 s“ – deutsches Komma, ganze Sekunden ohne Nachkommastelle.
     nonisolated static func delayLabel(_ seconds: TimeInterval) -> String {
         guard seconds > 0 else { return "Sofort" }
@@ -132,6 +165,18 @@ struct SettingsView: View {
                 .labelsHidden()
                 .toggleStyle(FamilySwitchStyle())
         }
+    }
+
+    /// Schalter mit fremdem Text (App-Name): `Text(verbatim:)`, nie Übersetzungsschlüssel oder Markdown.
+    private func toggleRow(verbatim title: String, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: FamilyTheme.Space.m) {
+            Text(verbatim: title).foregroundStyle(FamilyTheme.textPrimary).lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: FamilyTheme.Space.m)
+            Toggle(isOn: isOn) { Text(verbatim: title) }
+                .labelsHidden()
+                .toggleStyle(FamilySwitchStyle())
+        }
+        .frame(minHeight: 34)
     }
 
     /// `Text(verbatim:)`: Hinweise können App-Namen enthalten (Automation verweigert) – nie als

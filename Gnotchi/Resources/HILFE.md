@@ -9,8 +9,9 @@ dieselbe Insel als schwarze Pille oben in der Mitte. Jeder Bildschirm hat seine 
 Gnotchi zeigt alles, was macOS als laufende Wiedergabe meldet: Spotify, Musik und Browser wie
 Safari, Edge oder Helium, auch Videos.
 
-Außerdem zeigt die Insel, wenn du mit Tippi diktierst, wenn eine App Mikrofon oder Kamera nutzt
-und wenn du Kopfhörer verbindest. In der großen Insel wählst du, wo der Ton herauskommt.
+Außerdem zeigt die Insel, wenn du mit Tippi diktierst, wenn eine App Mikrofon oder Kamera nutzt,
+wenn Kopfhörer verbunden sind und wenn für eine App der Familie (Tippi, Kalli, Qotti, Seam, Gnotchi)
+ein Update bereitliegt. In der großen Insel wählst du, wo der Ton herauskommt.
 
 ## Die Insel
 
@@ -26,6 +27,27 @@ etwa beim Ziehen eines Fensters an den oberen Rand, geht die Insel nicht auf.
 
 Die Insel verschwindet, wenn nichts mehr läuft, und 5 Sekunden nach dem Pausieren. Läuft auf einem
 Bildschirm eine App im Vollbild, blendet sie sich dort aus.
+
+## Live-Aktivitäten
+
+Läuft mehr als eine Sache gleichzeitig, etwa Musik und Kopfhörer, wechselt die kleine Insel alle
+4 Sekunden zwischen ihnen. Die Reihenfolge ist immer gleich: Musik, Kopfhörer, Updates. Bleibst du mit
+der Maus auf der Insel, wechselt sie nicht weiter. Gibt es nur eine Aktivität, bleibt sie stehen.
+
+- **Musik:** Cover und Pegel wie gewohnt. Beginnt ein neuer Titel, wird die Insel 3 Sekunden breiter und zeigt Titel und Interpret. Pausieren und Weiterspielen lösen das nicht aus.
+- **Kopfhörer:** Solange der Ton über Bluetooth läuft, zeigt die Insel ein Kopfhörer-Symbol, ohne Notch auch den Namen.
+- **Updates:** Meldet eine App der Familie ein bereites Update, zeigt die Insel ihr Symbol, ohne Notch auch „Kalli 0.11.0 bereit“. Das bleibt so, bis das Update installiert ist. Ein Klick öffnet die App bei ihrem Update-Fenster. Gnotchi öffnet dabei nur die echte, von Michael signierte App.
+
+In der großen Insel stehen alle Aktivitäten untereinander, Updates mit „Öffnen“. Mit Notch passt neben
+ihr kein Text, deshalb siehst du Namen und Versionen dort erst in der großen Insel.
+
+Tippi-Aufnahme und kurze Hinweise wechseln nicht mit, sie haben Vorrang. Die Rotation lässt sich
+ausschalten, dann zeigt die Insel immer die erste Aktivität.
+
+**Medienfilter:** In den Einstellungen unter „Live-Aktivitäten“ steht jede Wiedergabe-App mit eigenem
+Schalter, zum Beispiel Spotify an und Safari aus. Ist eine App aus, erscheint ihre Wiedergabe nie in der
+Insel. Die Liste zeigt bekannte Apps, die auf deinem Mac installiert sind, und jede App, die seit dem
+Start von Gnotchi etwas abgespielt hat.
 
 ## Steuern und Spulen
 
@@ -68,6 +90,10 @@ lang ihren Namen und „Verbunden“. Wechselt er zurück, steht dort das neue G
 getrennt“. Schaltest du selbst über die Insel um, kommt kein Hinweis. Abschalten: Einstellung
 „Kopfhörer-Hinweis“.
 
+Solange der Ton über Bluetooth läuft, bleibt außerdem die Kopfhörer-Aktivität in der Insel (siehe
+„Live-Aktivitäten“). Abschalten: Einstellung „Kopfhörer-Aktivität“. Den Akkustand zeigt Gnotchi nicht,
+denn macOS gibt ihn nur mit einer eigenen Freigabe heraus.
+
 ## Mikrofon und Kamera
 
 Nutzt eine App das Mikrofon, sitzt ein **oranger** Punkt an der Insel, bei der Kamera ein **grüner**,
@@ -107,6 +133,7 @@ Das klappt mit Qotti ab der Version, die Gnotchi unterstützt (steht in Qottis �
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
 - **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
 - **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
+- **Live-Aktivitäten:** „Rotation“, „Kopfhörer-Aktivität“ und „Updates der App-Familie“, jeweils ab Werk an. Darunter der Medienfilter mit einem Schalter je Wiedergabe-App.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
 - **Nach Updates suchen …:** sucht sofort nach einer neuen Version.
 
@@ -144,6 +171,8 @@ nicht wirkt.
 - Von Tippi erfährt Gnotchi über eine Systemmeldung „nimmt auf“, „wandelt um“ und den Pegel. Diese Meldung kann jedes Programm auf deinem Mac mitlesen; sie verrät nur, dass du gerade diktierst, nie was.
 - Den Text der Live-Vorschau bekommt Gnotchi auf einem eigenen, geschützten Weg: Beide Apps prüfen vorher die Signatur der anderen, andere Programme werden abgewiesen. Der Text steht nur in der Insel, wird nicht gespeichert, nicht protokolliert und ist weg, sobald das Diktat endet.
 - Von Qotti kommen nur die Prozente, der Zeitpunkt der Zurücksetzung und „ok/veraltet/gedrosselt“, nie Konto, E-Mail oder Plan. Auch diese Meldung kann jedes Programm auf deinem Mac mitlesen.
+- Update-Meldungen der Familien-Apps enthalten nur den App-Namen und die Versionsnummer. Auch sie kann jedes Programm mitlesen. Gnotchi zeigt daraus nur Namen und Version und speichert sie nicht.
+- Der Medienfilter speichert nur die Kennungen der ausgeschalteten Apps, keine Titel und keine Zeitpunkte.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig
@@ -158,8 +187,8 @@ Fenster und den Namen der App, keine Fenstertitel.
 
 ## Wenn etwas nicht geht
 
-**Die Insel erscheint nicht.** Ist „Musik in der Notch“ an? Läuft gerade etwas, oder ist es länger
-als 5 Sekunden pausiert? Läuft auf diesem Bildschirm eine App im Vollbild? Ein maximiertes Fenster
+**Die Insel erscheint nicht.** Ist „Musik in der Notch“ an? Ist die App im Medienfilter
+ausgeschaltet? Läuft gerade etwas, oder ist es länger als 5 Sekunden pausiert? Läuft auf diesem Bildschirm eine App im Vollbild? Ein maximiertes Fenster
 bei ausgeblendetem Dock zählt dabei wie Vollbild.
 
 Hinweise in den Einstellungen und was sie bedeuten:
@@ -183,6 +212,7 @@ führt. Spielen zwei Apps gleichzeitig, entscheidet macOS.
 
 „Nach Updates suchen …“ steht im Menü und in den Einstellungen. Beim ersten Mal fragt Gnotchi, ob
 es selbst nach Updates suchen darf. Findet es eines, steht es oben im Menü, ohne Mitteilung.
-Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind.
+Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Ist „Updates der App-Familie“
+an, erscheint ein gefundenes Update auch in der Insel. Ein Klick darauf öffnet das Update-Fenster.
 
 Was sich geändert hat, steht hier im Fenster unter „Änderungen“.

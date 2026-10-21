@@ -24,7 +24,11 @@ import Sparkle
 final class Updater {
 
     /// Version eines Updates, das eine automatische Prüfung gefunden hat.
-    private(set) var pendingVersion: String?
+    private(set) var pendingVersion: String? {
+        didSet { if pendingVersion != oldValue { onPendingChange?(pendingVersion) } }
+    }
+    /// 0.4.0: Gnotchis eigenes Update als Aktivität der Insel (AppModel.syncOwnUpdate).
+    @ObservationIgnored var onPendingChange: (@MainActor (String?) -> Void)?
     /// Spiegel von Sparkles `canCheckForUpdates` per KVO. Vorher eine berechnete Eigenschaft:
     /// SwiftUI beobachtet Sparkle nicht, das Menü zeigte den Wert vom Aufbauzeitpunkt
     /// (Seam, Michael 09.10.: „Nach Updates suchen“ in 0.1.0 dauerhaft ausgegraut).

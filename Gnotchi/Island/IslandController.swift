@@ -40,6 +40,8 @@ final class IslandController {
     private let expandDelay: @MainActor () -> TimeInterval
     /// Öffnet ein App-Fenster (Einstellungen, Hilfe) über AppModel – das Panel hat kein eigenes `openWindow`.
     private let openWindow: @MainActor (String) -> Void
+    /// Klick auf ein Update (0.4.0): AppModel öffnet die echte App bzw. Sparkle (G24).
+    private let openUpdate: @MainActor (FamilyApp) -> Void
     /// Bildschirme, auf denen gerade das Kontextmenü offen ist: Überfahren-Ereignisse dort ignorieren.
     private var menuOpen: Set<CGDirectDisplayID> = []
     private var spaceRecheck: Task<Void, Never>?
@@ -59,10 +61,12 @@ final class IslandController {
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
     init(activity: ActivityModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
-         openWindow: @escaping @MainActor (String) -> Void = { _ in }) {
+         openWindow: @escaping @MainActor (String) -> Void = { _ in },
+         openUpdate: @escaping @MainActor (FamilyApp) -> Void = { _ in }) {
         self.activity = activity
         self.expandDelay = expandDelay
         self.openWindow = openWindow
+        self.openUpdate = openUpdate
     }
 
     func start() {
@@ -70,6 +74,7 @@ final class IslandController {
         running = true
         generation += 1
         rebuild()
+        activity.startRotation()
         appObservers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -100,6 +105,7 @@ final class IslandController {
         appObservers.removeAll()
         workspaceObservers.removeAll()
         cancelTasks()
+        activity.stopRotation()
         panels.values.forEach { $0.panel.orderOut(nil) }
         panels.removeAll()
         model.setCompetingNotchApp(nil)
@@ -164,22 +170,13 @@ final class IslandController {
         }
     }
 
-    /// Nach der Verzögerung aufklappen? Nur wenn die Maus noch über der Insel ist, keine Taste gedrückt
-    /// ist (Fenster an den oberen Rand ziehen, Spezifikation) und die Insel klein ist (nicht weg, nicht schon groß).
-    nonisolated static func shouldExpand(stillInside: Bool, mouseDown: Bool, mode: IslandState.Mode) -> Bool {
-        stillInside && !mouseDown && mode == .compact
-    }
-
-    /// Neu aufbauen nur, wenn sich Bildschirme oder deren Inselmaße wirklich geändert haben.
-    nonisolated static func layoutsChanged(old: [CGDirectDisplayID: IslandGeometry.Layout],
-                                           new: [CGDirectDisplayID: IslandGeometry.Layout]) -> Bool {
-        old != new
-    }
-
     /// Panelgröße für den aktuellen Inhalt.
     private func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
-        Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
-                        quota: activity.quotaLine != nil)
+        let updates = activity.allUpdates.count
+        return Self.panelFrame(mode: mode, layout: layout, hasMedia: model.info != nil, privacy: activity.privacy.isActive,
+                               quota: activity.quotaLine != nil, updates: updates,
+                               rows: Self.detailRows(headphones: activity.headphones != nil, updates: updates,
+                                                     mic: activity.privacy.mic, camera: activity.privacy.camera))
     }
 
     // MARK: Ablauf
@@ -196,6 +193,9 @@ final class IslandController {
             _ = activity.hasLiveText
             _ = activity.quota != nil
             _ = model.info != nil
+            _ = activity.headphones != nil
+            _ = activity.allUpdates.count
+            _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -214,6 +214,7 @@ final class IslandController {
         expandTasks.values.forEach { $0.cancel() }
         expandTasks.removeAll()
         pointerInside.removeAll()
+        activity.setRotationPaused(false)
         spaceRecheck?.cancel()
         spaceRecheck = nil
         competitorCheck?.cancel()
@@ -274,7 +275,8 @@ final class IslandController {
         p.hidesOnDeactivate = false
         let view = IslandView(state: state,
                               onHover: { [weak self] inside in self?.hover(inside, displayID: displayID) },
-                              onOutputMenu: { [weak self] in self?.showOutputMenu(displayID: displayID) })
+                              onOutputMenu: { [weak self] in self?.showOutputMenu(displayID: displayID) },
+                              onOpenUpdate: { [weak self] app in self?.openUpdate(app) })
             .environment(model)
             .environment(activity)
         let host = ClickableHostingView(rootView: view)
@@ -320,10 +322,16 @@ final class IslandController {
                 entry.state.mode = .hidden
                 entry.panel.ignoresMouseEvents = true
                 entry.panel.orderOut(nil)
+                // Weggeblendet unter der Maus: SwiftUI meldet kein Verlassen mehr – sonst stünde der Takt für immer.
+                if pointerInside[id] == true {
+                    pointerInside[id] = false
+                    activity.setRotationPaused(pointerInside.values.contains(true))
+                }
                 continue
             }
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
-                                             recording: activity.recording != nil, liveText: activity.showsLiveText)
+                                             recording: activity.recording != nil, liveText: activity.showsLiveText,
+                                             trackFlash: activity.showsTrackFlash)
             // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {
@@ -374,6 +382,8 @@ final class IslandController {
     private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
         guard !menuOpen.contains(displayID), let entry = panels[displayID], entry.state.mode != .hidden else { return }
         pointerInside[displayID] = inside
+        // Maus über einer Insel: Takt der Rotation steht (0.4.0).
+        activity.setRotationPaused(pointerInside.values.contains(true))
         collapseTasks[displayID]?.cancel()
         collapseTasks[displayID] = nil
         // Maus vor Ablauf der Verzögerung wieder weg: nicht aufklappen.
@@ -381,7 +391,7 @@ final class IslandController {
         expandTasks[displayID] = nil
         if inside {
             // Während der Tippi-Aufnahme klappt nichts auf (Spezifikation 0.2.0).
-            guard entry.state.mode == .compact, activity.recording == nil else { return }
+            guard entry.state.mode == .compact || entry.state.mode == .wide, activity.recording == nil else { return }
             let delay = expandDelay()
             guard delay > 0 else { return expandIfStillInside(displayID) }
             expandTasks[displayID] = Task { [weak self] in

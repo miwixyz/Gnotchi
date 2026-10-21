@@ -66,7 +66,8 @@ final class AppModel {
     /// Erst beim ersten Einschalten angelegt: Bei „aus“ entsteht kein Panel, kein Beobachter.
     @ObservationIgnored private lazy var island: NotchPart = makeIsland?() ?? IslandController(
         activity: activity, expandDelay: { [prefs] in prefs.expandDelay },
-        openWindow: { [weak self] id in self?.showWindow(id) })
+        openWindow: { [weak self] id in self?.showWindow(id) },
+        openUpdate: { [weak self] app in self?.openUpdate(app) })
     /// `openWindow` aus einer SwiftUI-Szene (Menüleisten-Symbol, Menü). Das Insel-Panel liegt außerhalb
     /// jeder Szene und hat keins – es öffnet Fenster über `showWindow`.
     @ObservationIgnored private var windowOpener: ((String) -> Void)?
@@ -99,12 +100,18 @@ final class AppModel {
         self.activity = activity
         // Mit Attrappen-Quelle (Test) ohne echte Zusatzquellen, sonst liefen Core-Audio-Beobachter im Test-Host.
         let extras = extraFeatures ?? (source == nil ? [
-            NotchFeature(part: HeadphoneWatcher(activity: activity)) { $0.headphoneNotice },
+            // Ein Beobachter für Hinweis und Aktivität (G19: einmal angemeldet).
+            NotchFeature(part: HeadphoneWatcher(activity: activity, noticeOn: { [prefs] in prefs.headphoneNotice },
+                                                activityOn: { [prefs] in prefs.headphoneActivity })) {
+                $0.headphoneNotice || $0.headphoneActivity
+            },
             NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera },
             NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
+            NotchFeature(part: FamilyUpdateLink(activity: activity)) { $0.familyUpdates },
         ] : [])
+        nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland
         FamilyTheme.app = .gnotchi
@@ -114,6 +121,7 @@ final class AppModel {
         }
         guard !Self.isRunningTests else { return }
         updater = Updater()
+        updater?.onPendingChange = { [weak self] _ in self?.syncOwnUpdate() }
         Self.log.notice("Start")
         applyNotchSetting()
         // Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
@@ -128,6 +136,8 @@ final class AppModel {
     /// die Insel, solange irgendeine an ist. Erst die Quellen, dann die Insel starten.
     /// Beim Start und bei jeder Änderung eines Schalters aufgerufen; im Testlauf wirkungslos.
     func applyNotchSetting() {
+        activity.setRotationEnabled(prefs.liveRotation)
+        syncOwnUpdate()
         guard allowStart else { return }
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })
         guard !wanted.isEmpty else { return stopNotch() }
@@ -139,9 +149,37 @@ final class AppModel {
             features[i].part.start()
             runningFeatures.insert(i)
         }
+        // Laufende Quellen lesen geänderte Schalter neu (Kopfhörer: Hinweis und Aktivität teilen sich einen Beobachter).
+        for i in runningFeatures.sorted() { features[i].part.recheck() }
         guard !notchRunning else { return }
         island.start()
         notchRunning = true
+    }
+
+    /// Medienfilter geändert: laufende Wiedergabe sofort neu bewerten.
+    func applyMediaFilter() {
+        nowPlaying.refilter()
+    }
+
+    /// Gnotchis eigenes Update (Sparkle) als Aktivität, nur bei „Updates der App-Familie“.
+    private func syncOwnUpdate() {
+        let version = prefs.familyUpdates ? updater?.pendingVersion : nil
+        activity.setOwnUpdate(FamilyUpdates.ownEntry(version, now: Date()))
+    }
+
+    /// Klick auf ein Update in der Insel. Gnotchi selbst: Sparkles Fenster. Familien-App: nur die echte,
+    /// signaturgeprüfte App öffnen (G24); scheitert das, ein Hinweis statt eines Starts.
+    func openUpdate(_ app: FamilyApp) {
+        guard app != .gnotchi else {
+            NSApp.activate()
+            updater?.checkForUpdates()
+            return
+        }
+        FamilyLauncher.open(app) { [weak self] ok in
+            guard !ok else { return }
+            self?.activity.post(ActivityModel.Notice(symbol: "exclamationmark.triangle.fill", title: app.name,
+                                                     subtitle: "App nicht gefunden"))
+        }
     }
 
     func registerWindowOpener(_ open: @escaping (String) -> Void) {

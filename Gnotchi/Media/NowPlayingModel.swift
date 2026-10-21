@@ -58,6 +58,17 @@ final class NowPlayingModel {
     @ObservationIgnored private var routePID: pid_t?
     @ObservationIgnored private var audioIdentities: [AudioObjectID: AudioRoute.Identity] = [:]
 
+    // MARK: Medienfilter und Trackwechsel (0.4.0)
+
+    /// Wiedergabe-Apps seit dem Start (nur Bundle-IDs, nur im Speicher, G25) – für die Liste in den Einstellungen.
+    private(set) var seenApps: [String] = []
+    /// Ausgeschlossene Apps (Einstellungen → Medienfilter): Ihre Wiedergabe erscheint nie in der Insel.
+    @ObservationIgnored var isExcluded: @MainActor (String) -> Bool = { _ in false }
+    /// Anderer Titel als zuvor (nicht Pause/Weiter): ActivityModel zeigt kurz die breitere Form.
+    @ObservationIgnored var onTrackChange: (@MainActor () -> Void)?
+    /// Letzte ungefilterte Meldung: Ändert sich der Filter, wird sie neu bewertet.
+    @ObservationIgnored private var lastRaw: NowPlayingInfo?
+
     init() {
         adapter.onInfo = { [weak self] i in self?.receive(i) }
         fallback.onInfo = { [weak self] i in self?.receive(i) }
@@ -95,6 +106,7 @@ final class NowPlayingModel {
         pending?.cancel()
         pending = nil
         pendingInfo = nil
+        lastRaw = nil
         adapter.stop()
         fallback.stop()
         usingFallback = false
@@ -150,7 +162,10 @@ final class NowPlayingModel {
     /// Unvollständige Meldungen (Browser, Livestream) warten höchstens 300 ms auf die vollständige.
     /// Die Frist startet nur bei der ersten; spätere ersetzen nur den Inhalt. Sonst würde eine
     /// Quelle, die schneller als alle 300 ms meldet (Livestream ohne Dauer), nie angezeigt.
-    private func receive(_ new: NowPlayingInfo?) {
+    private func receive(_ raw: NowPlayingInfo?) {
+        lastRaw = raw
+        if let id = raw?.appBundleID { seenApps = Self.noting(id, in: seenApps) }
+        let new = Self.filtered(raw, isExcluded: isExcluded)
         guard let new, new.isIncomplete else {
             pending?.cancel()
             pending = nil
@@ -175,12 +190,57 @@ final class NowPlayingModel {
 
     private func apply(_ new: NowPlayingInfo?) {
         let wasPlaying = info?.isPlaying ?? false
+        let changed = Self.isTrackChange(old: info, new: new)
         info = new
         pausedSince = Self.nextPausedSince(hasInfo: new != nil, isPlaying: new?.isPlaying ?? false,
                                            wasPlaying: wasPlaying, current: pausedSince, now: Date())
         updateArtwork(new)
         updateVisibility()
         updateRouteMonitor()
+        if changed { onTrackChange?() }
+    }
+
+    /// Medienfilter geändert: letzte Meldung neu bewerten (ausgeschlossene App sofort weg, wieder erlaubte zurück).
+    func refilter() {
+        receive(lastRaw)
+    }
+
+    /// Ausgeschlossene App → keine Meldung. Ohne Bundle-ID nie gefiltert (der Filter kennt nur Apps).
+    nonisolated static func filtered(_ info: NowPlayingInfo?, isExcluded: (String) -> Bool) -> NowPlayingInfo? {
+        guard let info, let id = info.appBundleID, isExcluded(id) else { return info }
+        return nil
+    }
+
+    /// Trackwechsel nur bei echtem Wechsel: vorher und nachher ein Titel, nachher spielt es, und Titel oder App
+    /// sind andere. Pause/Weiter (gleicher Titel) und der erste Titel nach dem Start zählen nicht.
+    nonisolated static func isTrackChange(old: NowPlayingInfo?, new: NowPlayingInfo?) -> Bool {
+        guard let old, let new, new.isPlaying else { return false }
+        return old.title != new.title || old.appBundleID != new.appBundleID
+    }
+
+    /// Bekannte Wiedergabe-Apps für den Medienfilter; gezeigt werden davon nur installierte (Einstellungen).
+    nonisolated static let knownPlayers = [
+        "com.spotify.client", "com.apple.Music", "com.apple.podcasts", "com.apple.TV", "com.apple.Safari",
+        "com.google.Chrome", "org.mozilla.firefox", "company.thebrowser.Browser", "com.brave.Browser",
+        "com.microsoft.edgemac", "org.videolan.vlc", "com.apple.QuickTimePlayerX",
+    ]
+
+    /// Liste der Schalter: bekannte installierte, seit Start gesehene und ausgeschlossene Apps, je einmal, nach Namen.
+    nonisolated static func filterApps(known: [String], seen: [String], excluded: [String],
+                                       name: (String) -> String?) -> [(id: String, name: String)] {
+        var ids: [String] = []
+        for id in known where name(id) != nil && !ids.contains(id) { ids.append(id) }
+        for id in seen + excluded where !ids.contains(id) { ids.append(id) }
+        return ids.map { (id: $0, name: name($0) ?? $0) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    /// Höchstens so viele gesehene Apps; die älteste fällt raus.
+    nonisolated static let maxSeenApps = 64
+
+    nonisolated static func noting(_ id: String, in list: [String]) -> [String] {
+        guard !list.contains(id), Preferences.isValidBundleID(id) else { return list }
+        return Array((list + [id]).suffix(maxSeenApps))
     }
 
     /// Seit wann pausiert: Wiedergabe → Pause setzt `now`, Pause → Pause behält den Zeitpunkt

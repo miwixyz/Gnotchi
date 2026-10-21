@@ -30,6 +30,11 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G18 | – (neu, 0.2.0) | Mikrofon/Kamera: nur „ob“ und „wer“, nie ins Protokoll |
 | G19 | – (neu, 0.2.0) | Kopfhörer-Hinweis: nur Standard-Ausgang beobachten |
 | G20 | – (neu, 0.2.0) | Ausgang setzen nur auf Klick, gegen frische Liste |
+| G21 | – (neu, 0.3.0) | Tippis Live-Text: eigener Socket, beidseitig geprüft, nie protokolliert |
+| G22 | – (neu, 0.3.0) | Qotti-Kontingent: nur Zahlen, Schema, nur Anzeige |
+| G23 | – (neu, 0.4.0) | Update-Meldung der App-Familie: nur Schema, feste Texte, nur Anzeige |
+| G24 | – (neu, 0.4.0) | Klick öffnet nur die echte, signaturgeprüfte App |
+| G25 | – (neu, 0.4.0) | Medienfilter speichert nur App-Kennungen |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -76,6 +81,8 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Nutzer: Klick im Ausgabe-Menü] ─(10) Standard-Ausgabegerät setzen ─▶ [Core Audio]
 [Tippi, geprüft] ─(11) Unix-Socket live.sock, Live-Vorschau-Text ─▶ [Gnotchi: LiveTextServer → Insel]
 [Qotti / jeder lokale Prozess] ─(12) distnoted app.qotti.local.kontingent ─▶ [Gnotchi: QottiLink → Insel]
+[Familien-App / jeder lokale Prozess] ─(13) distnoted app.mwlr.familie.update ─▶ [Gnotchi: FamilyUpdateLink → Insel]
+[Nutzer: Klick auf Update] ─(13a) Signaturprüfung, App öffnen, distnoted …update.show ─▶ [echte Familien-App]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
@@ -83,7 +90,9 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 (5) Gnotchi → andere Apps · (7) Gnotchi ↔ Netz · (8) jeder lokale Prozess → Gnotchi (G17) ·
 (9) System → Gnotchi, App-Namen sind Fremddaten (G18, G19) · (10) Gnotchi → Systemeinstellung (G20) ·
 (6a) Gnotchis Einstellungsdatei → Tippi (G17) · (11) Tippi ↔ Gnotchi über den Socket, Diktattext,
-beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur Zahlen (G22).
+beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur Zahlen (G22) · (13) jeder lokale
+Prozess → Gnotchi, nur Kürzel und Versionsnummer (G23) · (13a) Gnotchi → andere App, nur auf Klick, nur die
+signaturgeprüfte (G24).
 
 ## Entscheidungen
 
@@ -330,13 +339,18 @@ beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur 
   XPC-Schnittstelle. Distributed Notifications nur **empfangend und nur zur Anzeige** (ab 0.2.0,
   G17: Tippi-Aufnahme) – eine Meldung löst nie einen Befehl, nie Apple Events, nie einen Prozess-
   start aus, nur Text und Pegel in der Insel. Ab 0.3.0 dazu der Live-Text-Socket (G21): ebenfalls nur
-  Anzeige, nur von einem Developer-ID-signierten Tippi angenommen, keine Befehle.
+  Anzeige, nur von einem Developer-ID-signierten Tippi angenommen, keine Befehle. Ab 0.4.0 (G23/G24):
+  Update-Meldungen der App-Familie ebenfalls nur Anzeige; erst ein **Klick des Nutzers** öffnet die
+  gemeldete App – die fest im Code zugeordnete, signaturgeprüfte, nie einen Pfad aus der Meldung.
 - **Warum:** Sonst könnten andere Programme Gnotchi als Werkzeug benutzen und über dessen
   Automation-Freigabe Spotify/Musik steuern, ohne selbst gefragt zu werden.
 
 ### G14 – Gespeicherte Daten (vormals Seam E10)
 - **Entschieden:** Nur Schalter in UserDefaults (`notchMedia`, `expandDelay`; ab 0.2.0
-  `headphoneNotice`, `micCamera`, `tippiRecording` – letzteren liest Tippi, G17). Titel, Interpret, Cover und
+  `headphoneNotice`, `micCamera`, `tippiRecording` – letzteren liest Tippi, G17; ab 0.3.0 `qottiQuota`; ab 0.4.0
+  `liveRotation`, `headphoneActivity`, `familyUpdates` – liest jede Familien-App vor dem Senden, G23 – und
+  `mediaExcluded`, eine Liste von Bundle-IDs, G25). Update-Meldungen (G23) und gesehene Wiedergabe-Apps leben nur
+  im Speicher. Titel, Interpret, Cover und
   Verlauf bleiben im Speicher und sind nach dem Beenden weg.
 - **Verworfen:** „Zuletzt gehört“-Liste. Das wäre ein Protokoll von Michaels Hörgewohnheiten;
   erst mit eigenem Durchgang, falls je gewünscht.
@@ -480,6 +494,47 @@ beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur 
 - **Restrisiko (hingenommen):** Jeder lokale Prozess kann die Prozente mitlesen und ein Kontingent
   vortäuschen (feste Texte, kurzer Hinweis).
 
+### G23 – Update-Meldung der App-Familie: nur Schema, feste Texte, nur Anzeige (neu, 2026-10-21, 0.4.0)
+- **Weg:** distnoted, Name `app.mwlr.familie.update`. Jeder lokale Prozess kann senden und mitlesen (wie
+  G17/G22) → nur öffentliche Angaben: `{"v":1, "app":"kalli", "version":"0.11.0", "ready":true}`.
+- **Gnotchi** (`FamilyUpdates.parse`, `FamilyUpdateLink`): `v` Zahl 1 (kein Bool), `app` aus der festen
+  Positivliste `tippi · kalli · qotti · seam` (Gnotchi selbst nie über diesen Weg), `version` passt auf
+  `^[0-9]{1,3}(\.[0-9]{1,3}){1,2}$` (nur ASCII-Ziffern), `ready` echter Wahrheitswert. Alles andere verworfen,
+  **bevor** irgendetwas gespeichert wird; unbekannte Schlüssel ignoriert. Je App ein Eintrag (höchstens 4),
+  je App höchstens 1 Meldung/s (schnellere verworfen).
+- **Anzeige** nur „<Name aus der Positivliste> <geprüfte Version> bereit“, nie Text aus der Meldung.
+- **Erledigt-Regel:** `ready:false` entfernt; nicht angezeigt bzw. entfernt, sobald die installierte App
+  (Info.plist der App, die LaunchServices zur festen Bundle-ID kennt) mindestens diese Version hat – geprüft bei
+  jeder Meldung, bei jedem Start einer Familien-App und stündlich; nach 14 Tagen ohne neue Meldung weg.
+- **Gnotchis eigenes Update** kommt aus Sparkle im eigenen Prozess (G11), Version ebenfalls nur in geprüfter Form.
+- **Sender** (je App eigenes Release): sendet nur, wenn ein Developer-ID-signiertes Gnotchi ≥ 0.4.0 läuft und
+  `familyUpdates` nicht aus ist (wie G22); sendet erneut, wenn Gnotchi startet (Gnotchi speichert keine Meldungen).
+- **Restrisiko (hingenommen):** Ein fremder Prozess kann „Kalli 9.9 bereit“ vortäuschen → falsche Anzeige, Klick
+  öffnet das echte Kalli (G24). Die installierte Version wird ohne Signaturprüfung gelesen: Eine Attrappe mit hoher
+  Versionsnummer kann höchstens eine Anzeige unterdrücken.
+
+### G24 – Klick öffnet nur die echte App (neu, 2026-10-21, 0.4.0)
+- **Entschieden:** Kürzel → Bundle-ID **fest im Code** (`FamilyApp.bundleID`, gemessen 21.10. an den installierten
+  Apps: `com.tippi.app`, `com.kalli.app`, `app.qotti.local`, `dev.mwlr.seam`, alle Team LTKJ6Z2VYB). Programm über
+  `NSWorkspace.urlForApplication(withBundleIdentifier:)`, dann **statische Signaturprüfung** (`SecStaticCode`,
+  alle Architekturen, mit Ressourcen) gegen dieselbe Anforderung wie G21: Developer ID + Team + Kennung. Scheitert
+  sie → nichts starten, Hinweis „App nicht gefunden“. Prüfung außerhalb des Hauptthreads.
+- **Danach** `app.mwlr.familie.update.show` mit `{"v":1,"app":"kalli"}` (1,5 s nach dem Öffnen, damit eine frisch
+  gestartete App lauscht). Die App reagiert nur, wenn sie selbst ein Update bereit hat, und zeigt ihr eigenes
+  Sparkle-Fenster. Eine Fälschung durch Dritte kann höchstens das echte Update-Fenster öffnen.
+- **Gemessen (Test):** Attrappe mit Kennung `com.kalli.app`, ad hoc signiert → abgelehnt; Gegenprobe: nur mit der
+  Kennung als Anforderung ginge sie durch; ohne die Prüfung im Code werden zwei Tests rot. Das installierte Kalli
+  besteht.
+- **Restrisiko (hingenommen):** Zwischen Prüfung und Start könnte ein Prozess mit Nutzerrechten das Bundle
+  austauschen. Wer das kann, kann die App ohnehin ersetzen.
+
+### G25 – Medienfilter speichert nur App-Kennungen (neu, 2026-10-21, 0.4.0)
+- **Entschieden:** UserDefaults `mediaExcluded`: Liste von Bundle-IDs, nur `[A-Za-z0-9.-]`, je 1…255 Zeichen,
+  ohne Doppelte, höchstens 64 – beim Lesen und Schreiben geprüft, Ungültiges fällt weg. Keine Titel, keine
+  Zeitpunkte (G14). Die Liste „seit Start gesehene Apps“ (höchstens 64) lebt nur im Speicher.
+- **Wirkung:** Wiedergabe einer ausgeschlossenen App wird vor jeder Verarbeitung verworfen (kein Cover-Dekodieren,
+  keine Wiedergabeweg-Abfrage).
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -510,6 +565,11 @@ beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur 
 | **T** | lokaler Prozess → Gnotchi (11) | kaputte/übergroße Rahmen, Steuer-/Richtungszeichen | G21: Rahmen ≤ 4 KB, Schema, Bereinigung |
 | **I** | Gnotchi/Tippi → Protokoll (11) | Diktattext im Log | G21: nie protokolliert |
 | **D** | lokaler Prozess → Gnotchi (11) | fremde Datei am Pfad, Socket gelöscht, Flut | G21: Funktion aus bzw. Rückfall auf Tippis Pille, 4/s |
+| **S** | lokaler Prozess → Gnotchi (13) | vorgetäuschtes Update einer Familien-App | G23: feste Texte, Positivliste; Klick öffnet nur die echte App (G24) |
+| **T** | lokaler Prozess → Gnotchi (13) | überlange Version, Steuer-/Richtungszeichen, fremde App | G23: Schema vor jeder Verarbeitung, nur geprüfte Version angezeigt |
+| **I** | Familien-App → distnoted (13) | installierte Apps und Versionen mitlesbar | G23: öffentliche Angaben, hingenommen (wie G22) |
+| **D** | lokaler Prozess → Gnotchi (13) | Meldungsflut | G23: Schema-Abbruch, 1/s je App, höchstens 4 Einträge, Takt 4 s fest |
+| **E** | Gnotchi → andere App (13a) | Klick startet eine Attrappe gleicher Kennung | G24: Signaturprüfung vor dem Öffnen |
 
 ## Negativraum: was wir stillschweigend annehmen
 
@@ -542,6 +602,18 @@ beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur 
 
 Kein Paket wird nach einem von einem Sprachmodell vorgeschlagenen Namen installiert, nur nach der
 Adresse aus dem offiziellen README (Slopsquat).
+
+## Ausstiegskriterien 0.4.0 (Live-Aktivitäten)
+
+Spezifikation: `specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md`.
+
+- [x] Tests 21.10.: Schema G23 (gültig/ungültig, Bool statt Zahl, fremde App, Versionsform), Erledigt-Regel,
+      Drossel je App, Rotationsfolge + Pause beim Überfahren, Trackwechsel nur bei anderem Titel, Medienfilter
+      (G25), G24 (Zuordnung fest, ad-hoc-signierte Attrappe abgelehnt, Gegenprobe ohne Prüfung rot, echtes Kalli
+      besteht). 365 Tests grün.
+- [ ] Sichttest: Rotation Medien + Kopfhörer + vorgetäuschtes Update (`tools/fake-update.swift`), Klick öffnet Kalli
+- [ ] `rafter-code-review` + `rafter run`
+- [ ] Positivliste der Berechtigungen unverändert (`entitlement-gate.sh` beim Release)
 
 ## Ausstiegskriterien 0.3.0 (Live-Text)
 

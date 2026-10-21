@@ -113,11 +113,43 @@ final class IslandViewRenderTests: XCTestCase {
         try render(notchScreen, .notice, name: "notch-notice-quota", notice: QottiLink.notice(name: "Claude", p, .percent80))
     }
 
+    // 0.4.0 Live-Aktivitäten – erfundene Gerätenamen und Versionen (G16)
+    private static let buds = Headphones(name: "Beispiel-Kopfhörer Pro", symbol: "headphones")
+    private static let kalli = FamilyUpdates.Entry(app: .kalli, version: "0.11.0", seen: Date())
+    private static let seam = FamilyUpdates.Entry(app: .seam, version: "1.4.2", seen: Date())
+    func testRenderNotchCompactHeadphones() throws {
+        try render(notchScreen, .compact, name: "notch-compact-headphones", withMedia: false, headphones: Self.buds)
+    }
+    func testRenderPillCompactHeadphones() throws {
+        try render(pillScreen, .compact, name: "pill-compact-headphones", withMedia: false, headphones: Self.buds)
+    }
+    func testRenderNotchCompactUpdate() throws {
+        try render(notchScreen, .compact, name: "notch-compact-update", updates: [Self.kalli], cursor: .update(.kalli))
+    }
+    func testRenderPillCompactUpdate() throws {
+        try render(pillScreen, .compact, name: "pill-compact-update", updates: [Self.kalli], cursor: .update(.kalli))
+    }
+    func testRenderNotchWide() throws {
+        try render(notchScreen, .wide, name: "notch-wide")
+    }
+    func testRenderPillWide() throws {
+        try render(pillScreen, .wide, name: "pill-wide")
+    }
+    func testRenderNotchExpandedUpdates() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-updates", updates: [Self.kalli, Self.seam])
+    }
+    func testRenderPillExpandedDetailsNoMusic() throws {
+        try render(pillScreen, .expanded, name: "pill-expanded-details", privacy: callPrivacy, withMedia: false,
+                   headphones: Self.buds, updates: [Self.kalli])
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
                         withMedia: Bool = true, recording: ActivityModel.Recording? = nil,
-                        liveText: String? = nil, quota: QottiLink.Snapshot? = nil) throws {
+                        liveText: String? = nil, quota: QottiLink.Snapshot? = nil,
+                        headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
+                        cursor: LiveActivity? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -130,6 +162,9 @@ final class IslandViewRenderTests: XCTestCase {
         if let notice { activity.post(notice) }
         activity.setPrivacy(privacy)
         activity.setQuota(quota)
+        activity.setHeadphones(headphones)
+        activity.setFamilyUpdates(updates)
+        activity.rotationCursor = cursor
         if let recording {
             activity.setRecording(recording)
             activity.setRecordingLevel(0.7)
@@ -137,8 +172,11 @@ final class IslandViewRenderTests: XCTestCase {
         }
 
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
+        let rows = IslandController.detailRows(headphones: headphones != nil, updates: updates.count,
+                                               mic: privacy.mic, camera: privacy.camera)
         let panel = IslandController.panelFrame(mode: mode, layout: layout, hasMedia: withMedia,
-                                                privacy: privacy.isActive, quota: quota != nil) ?? layout.compact
+                                                privacy: privacy.isActive, quota: quota != nil,
+                                                updates: updates.count, rows: rows) ?? layout.compact
         let canvas = CGSize(width: 520, height: 210)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
