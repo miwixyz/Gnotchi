@@ -281,7 +281,8 @@ final class IslandController {
                               onHover: { [weak self] inside in self?.hover(inside, displayID: displayID) },
                               onOutputMenu: { [weak self] in self?.showOutputMenu(displayID: displayID) },
                               onOpenUpdate: { [weak self] app in self?.openUpdate(app) },
-                              onOpenEvent: { [weak self] in self?.openEvent() })
+                              onOpenEvent: { [weak self] in self?.openEvent() },
+                              onExpandFull: { [weak self] in self?.expandFromBand(displayID) })
             .environment(model)
             .environment(activity)
         let host = ClickableHostingView(rootView: view)
@@ -344,7 +345,8 @@ final class IslandController {
             }
             entry.panel.orderFrontRegardless()
             // Stecknadel gelöst, Maus schon weg: jetzt zuklappen wie beim Verlassen.
-            if entry.state.mode == .expanded, !activity.pinned, pointerInside[id] != true, collapseTasks[id] == nil {
+            if entry.state.mode == .expanded || entry.state.mode == .band, !activity.pinned, pointerInside[id] != true,
+               collapseTasks[id] == nil {
                 hover(false, displayID: id)
             }
         }
@@ -407,7 +409,7 @@ final class IslandController {
             }
             // Ist die Insel inzwischen weg, bleibt sie weg.
             guard !Task.isCancelled, let self, let e = self.panels[displayID] else { return }
-            if e.state.mode == .expanded {
+            if e.state.mode == .expanded || e.state.mode == .band {
                 activity.endMirror()   // Spiegel nur, solange groß sichtbar (G27)
                 e.state.mode = .compact
                 try? await Task.sleep(for: Self.animationTail)   // Animation auslaufen lassen, dann Panel verkleinern
@@ -417,16 +419,6 @@ final class IslandController {
             guard !Task.isCancelled, e.state.mode == .compact else { return }
             e.panel.setFrame(e.state.layout.compact, display: true)
         }
-    }
-
-    private func expandIfStillInside(_ displayID: CGDirectDisplayID) {
-        expandTasks[displayID] = nil
-        guard let e = panels[displayID],
-              Self.shouldExpand(stillInside: pointerInside[displayID] == true,
-                                mouseDown: NSEvent.pressedMouseButtons != 0, mode: e.state.mode) else { return }
-        // Erst das Panel groß, dann der Zustand: sonst schnitte das kleine Panel die Animation ab.
-        if let f = frame(.expanded, e.state.layout) { e.panel.setFrame(f, display: true) }
-        e.state.mode = .expanded
     }
 
     /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – nur über NSRunningApplication(PID) aus dem
@@ -452,6 +444,24 @@ final class IslandController {
 
 // Menüs über der Insel – Erweiterung in derselben Datei (Zugriff auf private Zustände der Insel).
 extension IslandController {
+    fileprivate func expandIfStillInside(_ displayID: CGDirectDisplayID) {
+        expandTasks[displayID] = nil
+        guard let e = panels[displayID],
+              Self.shouldExpand(stillInside: pointerInside[displayID] == true,
+                                mouseDown: NSEvent.pressedMouseButtons != 0, mode: e.state.mode) else { return }
+        // Erst das Panel groß, dann der Zustand: sonst schnitte das kleine Panel die Animation ab.
+        // „Aufklappen als Band“ (0.5.0): seitlich statt nach unten.
+        let target: IslandState.Mode = activity.bandStyle ? .band : .expanded
+        if let f = frame(target, e.state.layout) { e.panel.setFrame(f, display: true) }
+        e.state.mode = target
+    }
+
+    /// Klick auf das Band: zur vollen Insel (Leiste mit Timer, Spiegel, Stecknadel).
+    func expandFromBand(_ displayID: CGDirectDisplayID) {
+        guard let e = panels[displayID], e.state.mode == .band else { return }
+        if let f = frame(.expanded, e.state.layout) { e.panel.setFrame(f, display: true) }
+        e.state.mode = .expanded
+    }
 
     /// Kontextmenü (Einstellungen, Hilfe). Klappt die Insel nicht auf: Eine laufende Aufklapp-Verzögerung
     /// wird abgebrochen, die Insel bleibt, wie sie ist. `popUpContextMenu` kehrt erst nach dem Schließen

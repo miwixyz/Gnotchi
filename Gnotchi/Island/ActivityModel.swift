@@ -87,6 +87,8 @@ final class ActivityModel {
     var playerFirst = false
     /// Einstellung „Wiedergabe-Knöpfe in der kleinen Insel“: Pause/Wiedergabe und Weiter dauerhaft (statt Pegel).
     var compactControls = false
+    /// Einstellung „Aufklappen als Band“ (0.5.0): seitlich breit statt nach unten.
+    var bandStyle = false
     /// Bei „Wiedergabe immer groß“: in der Leiste gewählte Aktivität, die über dem Player liegt.
     var overlayActivity: LiveActivity?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.

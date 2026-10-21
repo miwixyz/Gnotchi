@@ -8,7 +8,7 @@ final class IslandState {
     /// `notice`: kurzer Hinweis (Kopfhörer), eigene Form unter der Notch (0.2.0).
     /// `live`: Tippis Live-Text, zwei Zeilen unter der Aufnahme-Zeile (0.3.0).
     /// `wide`: Trackwechsel, 3 s breiter mit Titel · Interpret (0.4.0).
-    enum Mode { case hidden, compact, expanded, notice, live, wide }
+    enum Mode { case hidden, compact, expanded, notice, live, wide, band }
     var mode: Mode = .hidden
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
@@ -29,12 +29,15 @@ struct IslandView: View {
     var onOpenUpdate: (FamilyApp) -> Void = { _ in }
     /// Klick auf den Termin (0.5.0): IslandController → Apple Kalender.
     var onOpenEvent: () -> Void = {}
+    /// Klick auf das Band (0.5.0): volle Insel.
+    var onExpandFull: () -> Void = {}
 
     private var size: CGSize {
         switch state.mode {
         case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
         case .compact: state.layout.compact.size
         case .wide: state.layout.wide.size
+        case .band: state.layout.band.size
         case .expanded:
             IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
                                       chipRow: activity.showsChipRow, mirror: activity.mirrorActive)?.size ?? state.layout.expanded.size
@@ -74,7 +77,7 @@ struct IslandView: View {
         switch state.mode {
         case .expanded: 22
         case .notice, .live: 16
-        case .hidden, .compact, .wide: 10
+        case .hidden, .compact, .wide, .band: 10
         }
     }
 
@@ -91,6 +94,12 @@ struct IslandView: View {
             } else {
                 rotationCompact
             }
+        case .band:
+            BandView(info: model.info, event: activity.upcomingEvent, timer: activity.timer,
+                     notchWidth: state.layout.notch?.width, height: state.layout.band.height,
+                     onPlayPause: { model.playPause() }, onNext: { model.next() }, onOpenEvent: onOpenEvent,
+                     onTimerToggle: { activity.timer?.isPaused == true ? activity.resumeTimer() : activity.pauseTimer() },
+                     onExpand: onExpandFull, cover: { cover(18, radius: 4) })
         case .wide:
             if let info = model.info {
                 TrackFlash(info: info, notchWidth: state.layout.notch?.width, height: state.layout.wide.height) {
@@ -128,33 +137,6 @@ struct IslandView: View {
             AlarmCompact(pill: pill, height: height) { activity.dismissTimerAlarm() }
         } else {
             rotationCompactActivity(height: height)
-        }
-    }
-
-    @ViewBuilder private func rotationCompactActivity(height: CGFloat) -> some View {
-        switch activity.currentActivity {
-        case .timer?:
-            if let t = activity.timer { TimerCompact(timer: t, pill: pill, height: height) }
-        case .event?:
-            if let ev = activity.upcomingEvent {
-                EventCompact(event: ev, privacy: activity.privacy, pill: pill, height: height, onOpen: onOpenEvent)
-            }
-        case .media?:
-            if let info = model.info { compact(info) }
-        case .headphones?:
-            if let h = activity.headphones {
-                HeadphonesCompact(headphones: h, privacy: activity.privacy, pill: pill, height: height)
-            }
-        case .update(let app)?:
-            if let e = activity.update(for: app) {
-                UpdateCompact(entry: e, privacy: activity.privacy, pill: pill, height: height) { onOpenUpdate(app) }
-            }
-        case nil:
-            if let info = model.info {
-                compact(info)
-            } else if activity.privacy.isActive {
-                privacyCompact
-            }
         }
     }
 
@@ -438,6 +420,33 @@ struct IslandView: View {
 
 // „Eine Sache groß“ (0.5.0) – als Erweiterung, Strukturrumpf ≤ 350 Zeilen.
 extension IslandView {
+    @ViewBuilder fileprivate func rotationCompactActivity(height: CGFloat) -> some View {
+        switch activity.currentActivity {
+        case .timer?:
+            if let t = activity.timer { TimerCompact(timer: t, pill: pill, height: height) }
+        case .event?:
+            if let ev = activity.upcomingEvent {
+                EventCompact(event: ev, privacy: activity.privacy, pill: pill, height: height, onOpen: onOpenEvent)
+            }
+        case .media?:
+            if let info = model.info { compact(info) }
+        case .headphones?:
+            if let h = activity.headphones {
+                HeadphonesCompact(headphones: h, privacy: activity.privacy, pill: pill, height: height)
+            }
+        case .update(let app)?:
+            if let e = activity.update(for: app) {
+                UpdateCompact(entry: e, privacy: activity.privacy, pill: pill, height: height) { onOpenUpdate(app) }
+            }
+        case nil:
+            if let info = model.info {
+                compact(info)
+            } else if activity.privacy.isActive {
+                privacyCompact
+            }
+        }
+    }
+
     /// „Wiedergabe immer groß“: gewählte Aktivität als Glas über Cover und Titel; rechts bleiben die Player-Knöpfe frei.
     @ViewBuilder func playerOverlay(_ item: LiveActivity, top: CGFloat) -> some View {
         let width = size.width - 32 - 150

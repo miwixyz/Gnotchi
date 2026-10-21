@@ -33,6 +33,8 @@ final class Preferences {
         static let playerFirst = "playerFirst"
         /// 0.5.0 Wiedergabe-Knöpfe in der kleinen Insel.
         static let compactControls = "compactControls"
+        /// 0.5.0 Aufklappen als Band.
+        static let bandStyle = "bandStyle"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -91,6 +93,9 @@ final class Preferences {
     /// Wiedergabe-Knöpfe (Pause/Wiedergabe, Weiter) dauerhaft in der kleinen Insel (0.5.0). Ab Werk aus.
     var compactControls: Bool { didSet { defaults.set(compactControls, forKey: Key.compactControls) } }
 
+    /// Aufklappen als Band (0.5.0): seitlich breit in Menüleisten-Höhe statt nach unten. Ab Werk aus (Insel).
+    var bandStyle: Bool { didSet { defaults.set(bandStyle, forKey: Key.bandStyle) } }
+
     /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
     var timerSound: String {
         didSet {
@@ -122,6 +127,7 @@ final class Preferences {
         timerAlarm = defaults.object(forKey: Key.timerAlarm) as? Bool ?? true
         playerFirst = defaults.object(forKey: Key.playerFirst) as? Bool ?? false
         compactControls = defaults.object(forKey: Key.compactControls) as? Bool ?? false
+        bandStyle = defaults.object(forKey: Key.bandStyle) as? Bool ?? false
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

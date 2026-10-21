@@ -23,6 +23,8 @@ enum IslandGeometry {
         /// Trackwechsel (0.4.0): kurz breiter, Titel · Interpret neben der Notch bzw. in der breiteren Pille.
         /// Mit Standardwert, damit bestehende Tests ihr Layout ohne ihn bauen können.
         var wide: CGRect = .zero
+        /// Band (0.5.0, Michael 21.10., Vorbild-Video): seitlich breit in Menüleisten-Höhe statt nach unten.
+        var band: CGRect = .zero
     }
 
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
@@ -43,6 +45,10 @@ enum IslandGeometry {
     /// Trackwechsel (0.4.0, Michael 21.10.: „kurz breiter“): Flügel neben der Notch bzw. Pillenbreite.
     static let wideWing: CGFloat = 130
     static let widePillWidth: CGFloat = 340
+    /// Band: je Seite neben der Notch bzw. Gesamtbreite ohne Notch. Nicht bis an den Rand: Menüs der aktiven App
+    /// und Menüleisten-Symbole blieben sonst verdeckt, und macOS verrät nicht, wo die Symbole beginnen.
+    static let bandWing: CGFloat = 300
+    static let bandPillWidth: CGFloat = 720
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY
@@ -58,6 +64,8 @@ enum IslandGeometry {
                           notice: band(noticeSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
                           live: band(liveSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
                           wide: band(CGSize(width: notch.width + 2 * wideWing, height: 0), midX: notch.midX, top: top,
+                                     extraHeight: notch.height, in: m.frame),
+                          band: band(CGSize(width: notch.width + 2 * bandWing, height: 0), midX: notch.midX, top: top,
                                      extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
@@ -68,6 +76,8 @@ enum IslandGeometry {
                       notice: band(noticeSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
                       live: band(liveSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
                       wide: band(CGSize(width: widePillWidth, height: pillSize.height), midX: midX, top: top,
+                                 extraHeight: 0, in: m.frame),
+                      band: band(CGSize(width: bandPillWidth, height: pillSize.height), midX: midX, top: top,
                                  extraHeight: 0, in: m.frame))
     }
 

@@ -15,8 +15,8 @@ extension IslandController {
         // Timer-Alarm (0.5.0): anklickbar – deshalb klein/groß, nie Hinweis (der lässt Klicks durch) oder breit.
         if alarm { return current == .expanded ? .expanded : .compact }
         if current == .live { return notice ? .notice : .compact }
-        if notice { return current == .expanded ? .expanded : .notice }
-        if current == .expanded { return .expanded }
+        if notice { return current == .expanded || current == .band ? current : .notice }
+        if current == .expanded || current == .band { return current }
         return trackFlash ? .wide : .compact
     }
 
@@ -31,6 +31,7 @@ extension IslandController {
         case .hidden: return nil
         case .compact: return layout.compact
         case .wide: return layout.wide
+        case .band: return layout.band
         case .notice: return layout.notice
         case .live: return layout.live
         case .expanded:

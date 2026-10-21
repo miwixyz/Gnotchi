@@ -197,6 +197,13 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .compact, name: "pill-compact-controls", compactControls: true)
     }
 
+    func testRenderNotchBand() throws {
+        try render(notchScreen, .band, name: "notch-band", event: Self.dentist)
+    }
+    func testRenderPillBand() throws {
+        try render(pillScreen, .band, name: "pill-band", event: Self.dentist)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
@@ -238,7 +245,7 @@ final class IslandViewRenderTests: XCTestCase {
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,
                                         chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
             : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
-        let canvas = CGSize(width: 520, height: 210)
+        let canvas = CGSize(width: mode == .band ? 1100 : 520, height: 210)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)
