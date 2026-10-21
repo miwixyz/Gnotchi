@@ -28,6 +28,17 @@ struct SettingsView: View {
                     .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
                 toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
                     .onChange(of: prefs.mirror) { model.applyNotchSetting() }
+                row("Timer-Ton") {
+                    Picker("Timer-Ton", selection: $prefs.timerSound) {
+                        Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)
+                        Divider()
+                        ForEach(CountdownTimer.sounds, id: \.self) { Text(verbatim: $0).tag($0) }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                    // Probehören beim Auswählen.
+                    .onChange(of: prefs.timerSound) { CountdownTimer.play(prefs.timerSound) }
+                }
                 // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
                 row("Aufklappen nach") {
                     Picker("Aufklappen nach", selection: $prefs.expandDelay) {

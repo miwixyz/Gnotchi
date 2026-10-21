@@ -22,6 +22,25 @@ struct CountdownTimer: Equatable, Sendable {
         return clampCustom(up ? m + step : m - step)
     }
 
+    /// Töne bei Ablauf (Michael 21.10.: Tonauswahl): die Systemtöne aus /System/Library/Sounds, gemessen 21.10.
+    /// unter macOS 27. Gespielt wird nur ein Name aus dieser Liste, nie ein Pfad aus den Einstellungen.
+    nonisolated static let sounds = ["Basso", "Blow", "Bottle", "Frog", "Funk", "Glass", "Hero", "Morse", "Ping", "Pop",
+                                     "Purr", "Sosumi", "Submarine", "Tink"]
+    nonisolated static let defaultSound = "Glass"
+    /// Leerer Name = kein Ton.
+    nonisolated static let silent = ""
+
+    /// Gespeicherter Wert → gültiger Ton (unbekannt → Werkseinstellung).
+    nonisolated static func validSound(_ value: Any?) -> String {
+        guard let s = value as? String else { return defaultSound }
+        return s == silent || sounds.contains(s) ? s : defaultSound
+    }
+
+    @MainActor static func play(_ sound: String) {
+        guard sounds.contains(sound) else { return }
+        NSSound(named: NSSound.Name(sound))?.play()
+    }
+
     /// Eingabe aus dem Menü-Fenster: nur ganze Minuten im Bereich, sonst nil.
     nonisolated static func parseCustom(_ text: String) -> Int? {
         guard let m = Int(text.trimmingCharacters(in: .whitespaces)), customRange.contains(m) else { return nil }
@@ -127,6 +146,6 @@ extension ActivityModel {
         Self.timerLog.notice("Timer abgelaufen")
         post(Notice(symbol: "timer", title: "Timer abgelaufen",
                     subtitle: "\(Int(t.duration / 60)) Minuten sind um"))
-        NSSound(named: "Glass")?.play()
+        CountdownTimer.play(CountdownTimer.validSound(UserDefaults.standard.object(forKey: Preferences.Key.timerSound)))
     }
 }

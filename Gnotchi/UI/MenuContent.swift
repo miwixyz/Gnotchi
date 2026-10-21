@@ -29,6 +29,11 @@ struct MenuContent: View {
                 Button { model.activity.startTimer(minutes: m) } label: { Text(verbatim: "\(m) Minuten") }
             }
             Button("Eigene Zeit …") { askCustomTimer() }
+            Picker("Ton", selection: Binding(get: { model.prefs.timerSound },
+                                             set: { model.prefs.timerSound = $0; CountdownTimer.play($0) })) {
+                Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)
+                ForEach(CountdownTimer.sounds, id: \.self) { Text(verbatim: $0).tag($0) }
+            }
             if model.activity.timer != nil {
                 Divider()
                 Button("Timer stoppen") { model.activity.stopTimer() }

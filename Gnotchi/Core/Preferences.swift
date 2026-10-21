@@ -25,6 +25,8 @@ final class Preferences {
         static let kalliEvents = "kalliEvents"
         /// 0.5.0 Spiegel (G27).
         static let mirror = "mirror"
+        /// 0.5.0 Ton bei Ablauf des Timers (Name aus CountdownTimer.sounds, leer = kein Ton).
+        static let timerSound = "timerSound"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -74,6 +76,15 @@ final class Preferences {
     /// Spiegel in der großen Insel (0.5.0, G27). Kamera nur nach Klick und nur, solange er sichtbar ist. Ab Werk an.
     var mirror: Bool { didSet { defaults.set(mirror, forKey: Key.mirror) } }
 
+    /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
+    var timerSound: String {
+        didSet {
+            let valid = CountdownTimer.validSound(timerSound)
+            if valid != timerSound { timerSound = valid; return }
+            defaults.set(timerSound, forKey: Key.timerSound)
+        }
+    }
+
     /// Medienfilter (0.4.0, G25): Wiedergabe dieser Apps erscheint nie in der Insel. Nur über `setMediaExcluded`.
     private(set) var mediaExcluded: [String] { didSet { defaults.set(mediaExcluded, forKey: Key.mediaExcluded) } }
 
@@ -92,6 +103,7 @@ final class Preferences {
         familyUpdates = defaults.object(forKey: Key.familyUpdates) as? Bool ?? true
         kalliEvents = defaults.object(forKey: Key.kalliEvents) as? Bool ?? true
         mirror = defaults.object(forKey: Key.mirror) as? Bool ?? true
+        timerSound = CountdownTimer.validSound(defaults.object(forKey: Key.timerSound))
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

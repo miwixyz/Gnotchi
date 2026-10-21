@@ -46,6 +46,17 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertNil(CountdownTimer.parseCustom("1.5"))
     }
 
+    func testSoundOnlyFromFixedList() {
+        XCTAssertEqual(CountdownTimer.validSound("Hero"), "Hero")
+        XCTAssertEqual(CountdownTimer.validSound(""), "", "kein Ton")
+        XCTAssertEqual(CountdownTimer.validSound(nil), "Glass", "Werkseinstellung")
+        XCTAssertEqual(CountdownTimer.validSound("/tmp/fremd.aiff"), "Glass", "nie ein Pfad")
+        XCTAssertEqual(CountdownTimer.validSound(42), "Glass")
+        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-test-\(UUID().uuidString)")!)
+        prefs.timerSound = "../../evil"
+        XCTAssertEqual(prefs.timerSound, "Glass", "ungültiger Wert wird nie gespeichert")
+    }
+
     func testShortClockFitsNotchWing() {
         XCTAssertEqual(CountdownTimer.shortClock(1500), "25′")
         XCTAssertEqual(CountdownTimer.shortClock(61), "2′")
