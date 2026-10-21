@@ -194,6 +194,8 @@ final class IslandController {
             _ = activity.bigContent
             _ = activity.showsChipRow
             _ = activity.mirrorActive
+            _ = activity.timer != nil
+            _ = activity.timerPickerActive
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -339,20 +341,6 @@ final class IslandController {
             }
             entry.panel.orderFrontRegardless()
         }
-    }
-
-    /// Konkurrent in dieser Fensterliste (Notch bzw. Pille jedes Bildschirms).
-    private func competitor(in windows: [WindowInfo]) -> String? {
-        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
-        let targets: [NotchTarget] = panels.compactMap { id, entry in
-            guard let screen = NSScreen.screens.first(where: { $0.displayID == id }) else { return nil }
-            return NotchTarget(
-                notch: Self.cgWindowRect(fromAppKit: entry.state.layout.notch ?? entry.state.layout.compact,
-                                         primaryHeight: primaryHeight),
-                screen: Self.cgWindowRect(fromAppKit: screen.frame, primaryHeight: primaryHeight))
-        }
-        return Self.competingNotchApp(windows: windows, ownPID: ProcessInfo.processInfo.processIdentifier,
-                                      targets: targets, app: Self.otherApp)
     }
 
     /// Kein Konkurrent → Hinweis sofort weg. Neuer Konkurrent → erst nach bestätigender zweiter Prüfung;
@@ -512,6 +500,20 @@ extension NSScreen {
 }
 
 extension IslandController {
+    /// Konkurrent in dieser Fensterliste (Notch bzw. Pille jedes Bildschirms).
+    fileprivate func competitor(in windows: [WindowInfo]) -> String? {
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        let targets: [NotchTarget] = panels.compactMap { id, entry in
+            guard let screen = NSScreen.screens.first(where: { $0.displayID == id }) else { return nil }
+            return NotchTarget(
+                notch: Self.cgWindowRect(fromAppKit: entry.state.layout.notch ?? entry.state.layout.compact,
+                                         primaryHeight: primaryHeight),
+                screen: Self.cgWindowRect(fromAppKit: screen.frame, primaryHeight: primaryHeight))
+        }
+        return Self.competingNotchApp(windows: windows, ownPID: ProcessInfo.processInfo.processIdentifier,
+                                      targets: targets, app: Self.otherApp)
+    }
+
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }

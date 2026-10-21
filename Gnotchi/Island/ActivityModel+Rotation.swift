@@ -3,7 +3,7 @@ import Foundation
 /// Eine Aktivität der kleinen Insel (0.4.0, specs/2026-10-21-gnotchi-0.4.0-live-aktivitaeten.md). Aufnahme und
 /// Hinweise gehören nicht dazu: Sie rotieren nicht mit, sie verdrängen.
 enum LiveActivity: Hashable, Sendable {
-    case event, media, headphones
+    case event, timer, media, headphones
     case update(FamilyApp)
 }
 
@@ -17,10 +17,10 @@ extension ActivityModel {
 
     // MARK: Reine Teile (getestet)
 
-    /// Feste Reihenfolge: Termin (0.5.0, das Dringendste), Medien, Kopfhörer, Updates der Familie.
-    nonisolated static func rotationItems(event: Bool = false, media: Bool, headphones: Bool,
+    /// Feste Reihenfolge: Termin (0.5.0, das Dringendste), Timer, Medien, Kopfhörer, Updates der Familie.
+    nonisolated static func rotationItems(event: Bool = false, timer: Bool = false, media: Bool, headphones: Bool,
                                           updates: [FamilyApp]) -> [LiveActivity] {
-        (event ? [.event] : []) + (media ? [.media] : []) + (headphones ? [.headphones] : [])
+        (event ? [.event] : []) + (timer ? [.timer] : []) + (media ? [.media] : []) + (headphones ? [.headphones] : [])
             + updates.map(LiveActivity.update)
     }
 
@@ -46,8 +46,8 @@ extension ActivityModel {
     }
 
     var rotationItems: [LiveActivity] {
-        Self.rotationItems(event: upcomingEvent != nil, media: media.isVisible, headphones: headphones != nil,
-                           updates: allUpdates.map(\.app))
+        Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.isVisible,
+                           headphones: headphones != nil, updates: allUpdates.map(\.app))
     }
 
     /// Zeilen über der Musik bzw. in der großen Insel: je Update eine, dazu der Termin.
@@ -60,14 +60,16 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, headphones, update(FamilyApp), privacy, mirror, none
+        case media, event, timer, timerPicker, headphones, update(FamilyApp), privacy, mirror, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
-                                       mirror: Bool = false) -> BigContent {
+                                       mirror: Bool = false, timerPicker: Bool = false) -> BigContent {
         if mirror { return .mirror }
+        if timerPicker { return .timerPicker }
         return switch current {
         case .event?: .event
+        case .timer?: .timer
         case .media?: .media
         case .headphones?: .headphones
         case .update(let app)?: .update(app)
@@ -76,17 +78,17 @@ extension ActivityModel {
     }
 
     /// Symbolleiste über der großen Sache: sobald es mehr als eine Sache gibt – mehrere Aktivitäten, oder
-    /// Mikrofon/Kamera bzw. Qotti-Kontingent neben der großen Sache.
+    /// Mikrofon/Kamera bzw. Qotti-Kontingent neben der großen Sache, oder feste Knöpfe (Timer, Spiegel).
     nonisolated static func showsChipRow(items: Int, big: BigContent, privacy: Bool, quota: Bool,
-                                         mirrorEnabled: Bool = false) -> Bool {
-        mirrorEnabled || items > 1 || (privacy && big != .privacy) || quota
+                                         fixedButtons: Bool = false) -> Bool {
+        fixedButtons || items > 1 || (privacy && big != .privacy) || quota
     }
 
     /// Symbole der Leiste: wie die Rotation, aber Musik auch pausiert (dort will man sie weiterspielen; die
     /// kleine Insel blendet pausierte Musik nach 5 s aus – gemessen 21.10.: Musik-Symbol fehlte).
     var chipItems: [LiveActivity] {
-        Self.rotationItems(event: upcomingEvent != nil, media: media.info != nil, headphones: headphones != nil,
-                           updates: allUpdates.map(\.app))
+        Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.info != nil,
+                           headphones: headphones != nil, updates: allUpdates.map(\.app))
     }
 
     /// Was die große Insel zeigt: die gewählte bzw. gerade rotierende Sache aus der Leiste.
@@ -96,29 +98,32 @@ extension ActivityModel {
 
     var bigContent: BigContent {
         Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
-                        mirror: mirrorActive)
+                        mirror: mirrorActive, timerPicker: timerPickerActive)
     }
 
     var showsChipRow: Bool {
         Self.showsChipRow(items: chipItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil,
-                          mirrorEnabled: mirrorEnabled)
+                          fixedButtons: true)   // Timer-Symbol steht immer in der Leiste (0.5.0)
     }
 
     /// Klick auf ein Symbol der Leiste: diese Aktivität groß zeigen (der Takt steht, solange die Maus darauf ist).
     func select(_ item: LiveActivity) {
         if chipItems.contains(item) { rotationCursor = item }
         mirrorActive = false
+        timerPickerActive = false
     }
 
     // MARK: Spiegel (0.5.0, G27) – Kamera nur, solange der Spiegel groß sichtbar ist
 
     func selectMirror() {
         if mirrorEnabled { mirrorActive = true }
+        timerPickerActive = false
     }
 
     /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
     func endMirror() {
         if mirrorActive { mirrorActive = false }
+        if timerPickerActive { timerPickerActive = false }
     }
 
     func setMirrorEnabled(_ on: Bool) {

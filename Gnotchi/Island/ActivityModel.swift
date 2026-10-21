@@ -71,6 +71,11 @@ final class ActivityModel {
     /// Spiegel (0.5.0, G27): Schalter in den Einstellungen bzw. gerade groß gezeigt.
     var mirrorEnabled = false
     var mirrorActive = false
+    /// Eigener Timer (0.5.0); Logik in CountdownTimer.swift. Nur dort setzen.
+    var timer: CountdownTimer?
+    /// Timer-Auswahl groß gezeigt (Klick auf das Timer-Symbol, solange keiner läuft).
+    var timerPickerActive = false
+    @ObservationIgnored var timerTask: Task<Void, Never>?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
     var rotationCursor: LiveActivity?
     /// Maus über einer Insel: Takt steht.
@@ -97,7 +102,7 @@ final class ActivityModel {
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
-            || upcomingEvent != nil
+            || upcomingEvent != nil || timer != nil
     }
 
     func setHeadphones(_ h: Headphones?) {

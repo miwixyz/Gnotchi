@@ -46,7 +46,8 @@ struct EventCompact: View {
                     if privacy.isActive {
                         PrivacyDots(privacy: privacy)
                     } else {
-                        Text(verbatim: "\(KalliEvents.minutesLeft(event, now: context.date)) Min")
+                        let m = KalliEvents.minutesLeft(event, now: context.date)
+                        Text(verbatim: pill ? "\(m) Min" : "\(m)′")
                             .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white).fixedSize()
                     }
                 }
@@ -81,8 +82,11 @@ struct ChipRow: View {
     let quota: String?
     /// nil = Spiegel ausgeschaltet; sonst ob er gerade gezeigt wird.
     var mirror: Bool?
+    /// nil = ein Timer läuft (dann steht er bei den Aktivitäten); sonst ob die Auswahl gerade gezeigt wird.
+    var timerButton: Bool?
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
+    var onTimer: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 6) {
@@ -96,6 +100,9 @@ struct ChipRow: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text(verbatim: label(item)))
                 .accessibilityAddTraits(item == current ? .isSelected : [])
+            }
+            if let timerButton {
+                fixedButton("timer", label: "Timer", selected: timerButton, action: onTimer)
             }
             if let mirror {
                 Button(action: onMirror) {
@@ -126,11 +133,26 @@ struct ChipRow: View {
             if let mediaApp { AppSymbol(bundleID: mediaApp, size: 14) } else { symbol("music.note", tint) }
         case .event:
             symbol("calendar", event?.color.map(Color.init(rgb:)) ?? tint)
+        case .timer:
+            symbol("timer", tint)
         case .headphones:
             symbol(headphones?.symbol ?? "headphones", tint)
         case .update(let app):
             AppSymbol(bundleID: app.bundleID, size: 14)
         }
+    }
+
+    private func fixedButton(_ name: String, label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: name).font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(selected ? .white : .secondary)
+                .frame(width: 26, height: 18)
+                .background(Capsule().fill(.white.opacity(selected ? 0.22 : 0)))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: label))
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func symbol(_ name: String, _ color: Color) -> some View {
@@ -141,6 +163,7 @@ struct ChipRow: View {
         switch item {
         case .media: "Musik"
         case .event: "Termin"
+        case .timer: "Timer"
         case .headphones: "Kopfhörer"
         case .update(let app): "Update \(app.name)"
         }
@@ -199,6 +222,98 @@ struct EventCard: View {
                     .foregroundStyle(event.color.map(Color.init(rgb:)) ?? .white)
             })
         }
+    }
+}
+
+// MARK: Timer (0.5.0)
+
+/// Kleine Insel, Timer: Symbol links, Restzeit rechts; ohne Notch dazu „Timer“.
+struct TimerCompact: View {
+    let timer: CountdownTimer
+    let pill: Bool
+    let height: CGFloat
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            HStack(spacing: 6) {
+                Image(systemName: timer.isPaused ? "pause.fill" : "timer").font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.orange).frame(width: 18)
+                if pill {
+                    Text(verbatim: "Timer").font(.system(size: 11, weight: .medium)).foregroundStyle(.white)
+                }
+                Spacer(minLength: 0)
+                let left = timer.remaining(now: context.date)
+                Text(verbatim: pill ? CountdownTimer.clock(left) : CountdownTimer.shortClock(left))
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit()).foregroundStyle(.white).fixedSize()
+            }
+            .padding(.horizontal, pill ? 12 : 10)
+            .frame(height: height)
+        }
+        .accessibilityElement(children: .combine)
+        .transition(.opacity)
+    }
+}
+
+/// Timer groß: Restzeit groß, darunter „von 25 Min“, rechts Pause/Weiter und Stopp.
+struct TimerCard: View {
+    let timer: CountdownTimer
+    let onPauseResume: () -> Void
+    let onStop: () -> Void
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            HStack(spacing: 14) {
+                Image(systemName: "timer").font(.system(size: 30, weight: .semibold)).foregroundStyle(.orange)
+                    .frame(width: 44, height: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: CountdownTimer.clock(timer.remaining(now: context.date)))
+                        .font(.system(size: 28, weight: .semibold).monospacedDigit()).foregroundStyle(.white)
+                    Text(verbatim: timer.isPaused ? "pausiert · von \(Int(timer.duration / 60)) Min"
+                                                  : "von \(Int(timer.duration / 60)) Min")
+                        .font(.system(size: 13)).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                roundButton(timer.isPaused ? "play.fill" : "pause.fill", label: timer.isPaused ? "Weiter" : "Pause",
+                            action: onPauseResume)
+                roundButton("xmark", label: "Timer stoppen", action: onStop)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: IslandGeometry.expandedSize.height - 12)
+        }
+    }
+
+    private func roundButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol).font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                .frame(width: 36, height: 36).background(Circle().fill(.white.opacity(0.18)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: label))
+    }
+}
+
+/// Timer-Auswahl groß: 5 · 10 · 15 · 25 Minuten.
+struct TimerPicker: View {
+    let onStart: (Int) -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "timer").font(.system(size: 30, weight: .semibold)).foregroundStyle(.orange)
+                .frame(width: 44, height: 44)
+            Text(verbatim: "Timer").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+            Spacer(minLength: 0)
+            ForEach(CountdownTimer.choices, id: \.self) { m in
+                Button { onStart(m) } label: {
+                    Text(verbatim: "\(m)").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                        .frame(width: 40, height: 32).background(Capsule().fill(.white.opacity(0.18)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: "\(m) Minuten"))
+            }
+            Text(verbatim: "Min").font(.system(size: 12)).foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: IslandGeometry.expandedSize.height - 12)
     }
 }
 

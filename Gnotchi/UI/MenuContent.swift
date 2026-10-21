@@ -23,6 +23,17 @@ struct MenuContent: View {
             Button { updater.checkForUpdates() } label: { Text(verbatim: "Update \(version) verfügbar …") }
             Divider()
         }
+        // Eigener Timer (0.5.0): Start hier oder über das Timer-Symbol in der großen Insel.
+        Menu("Timer") {
+            ForEach(CountdownTimer.choices, id: \.self) { m in
+                Button { model.activity.startTimer(minutes: m) } label: { Text(verbatim: "\(m) Minuten") }
+            }
+            if model.activity.timer != nil {
+                Divider()
+                Button("Timer stoppen") { model.activity.stopTimer() }
+            }
+        }
+        Divider()
         Button("Einstellungen …") { open(AppModel.WindowID.settings) }
             .keyboardShortcut(",")
         Button("Hilfe …") { open(AppModel.WindowID.help) }

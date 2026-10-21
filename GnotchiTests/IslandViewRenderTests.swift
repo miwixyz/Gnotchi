@@ -168,13 +168,25 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .expanded, name: "pill-big-headphones", withMedia: false, headphones: Self.buds)
     }
 
+    // 0.5.0 Timer
+    func testRenderNotchCompactTimer() throws {
+        try render(notchScreen, .compact, name: "notch-compact-timer", cursor: .timer, timerMinutes: 25)
+    }
+    func testRenderPillBigTimer() throws {
+        try render(pillScreen, .expanded, name: "pill-big-timer", cursor: .timer, timerMinutes: 25)
+    }
+    func testRenderNotchBigTimerPicker() throws {
+        try render(notchScreen, .expanded, name: "notch-big-timer-picker", timerPicker: true)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
                         withMedia: Bool = true, recording: ActivityModel.Recording? = nil,
                         liveText: String? = nil, quota: QottiLink.Snapshot? = nil,
                         headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
-                        cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil) throws {
+                        cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
+                        timerMinutes: Int? = nil, timerPicker: Bool = false) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -197,6 +209,8 @@ final class IslandViewRenderTests: XCTestCase {
         }
 
         activity.setUpcomingEvent(event)
+        if let timerMinutes { activity.startTimer(minutes: timerMinutes); activity.rotationCursor = cursor }
+        if timerPicker { activity.showTimerPicker() }
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = (mode == .expanded
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,

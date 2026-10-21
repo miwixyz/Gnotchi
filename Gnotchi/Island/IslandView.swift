@@ -96,50 +96,18 @@ struct IslandView: View {
             let chips = activity.showsChipRow
             VStack(spacing: 0) {
                 if chips {
-                    ChipRow(items: activity.chipItems, current: activity.mirrorActive ? nil : activity.bigActivity,
+                    ChipRow(items: activity.chipItems,
+                            current: activity.mirrorActive || activity.timerPickerActive ? nil : activity.bigActivity,
                             event: activity.upcomingEvent, headphones: activity.headphones,
                             mediaApp: model.info?.appBundleID, privacy: activity.privacy, quota: activity.quotaLine,
                             mirror: activity.mirrorEnabled ? activity.mirrorActive : nil,
-                            onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() })
+                            timerButton: activity.timer == nil ? activity.timerPickerActive : nil,
+                            onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
+                            onTimer: { activity.showTimerPicker() })
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
                 big(topInset: chips ? 0 : nil)
             }
-        }
-    }
-
-    /// Die große Sache. `topInset` nil = direkt unter der Notch (ohne Symbolleiste).
-    @ViewBuilder private func big(topInset: CGFloat?) -> some View {
-        let top = topInset ?? (state.layout.notch?.height ?? 0)
-        switch activity.bigContent {
-        case .media:
-            if let info = model.info { expanded(info, topInset: topInset.map { $0 + 4 }) }
-        case .event:
-            if let ev = activity.upcomingEvent {
-                EventCard(event: ev, onOpen: onOpenEvent).padding(.top, top).transition(.opacity)
-            }
-        case .headphones:
-            if let h = activity.headphones {
-                ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
-                    Image(systemName: h.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(.white)
-                }
-                .padding(.top, top).transition(.opacity)
-            }
-        case .update(let app):
-            if let e = activity.update(for: app) {
-                ActivityCard(title: e.label, subtitle: "Zum Installieren öffnen", action: "Öffnen", onTap: { onOpenUpdate(app) },
-                             leading: { AppSymbol(bundleID: app.bundleID, size: 44) })
-                .padding(.top, top).transition(.opacity)
-            }
-        case .privacy:
-            privacyDetails(topInset: topInset)
-        case .mirror:
-            MirrorView(onSettings: MirrorView.openCameraSettings)
-                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 16, bottom: 12,
-                                    trailing: 16))
-                .transition(.opacity)
-        case .none:
-            EmptyView()
         }
     }
 
@@ -148,6 +116,8 @@ struct IslandView: View {
     @ViewBuilder private var rotationCompact: some View {
         let height = state.layout.compact.height
         switch activity.currentActivity {
+        case .timer?:
+            if let t = activity.timer { TimerCompact(timer: t, pill: pill, height: height) }
         case .event?:
             if let ev = activity.upcomingEvent {
                 EventCompact(event: ev, privacy: activity.privacy, pill: pill, height: height, onOpen: onOpenEvent)
@@ -426,57 +396,49 @@ struct IslandView: View {
     }
 }
 
-/// Echter Pegel aus Tippis Meldung (0…1), vier Balken unterschiedlich stark – wie Tippis eigene Pille.
-struct LiveLevelBars: View {
-    let level: Double
-    private static let weights: [Double] = [0.55, 1, 0.8, 0.45]
-    var body: some View {
-        HStack(alignment: .center, spacing: 2) {
-            ForEach(Self.weights.indices, id: \.self) { i in
-                Capsule().fill(.white).frame(width: 2.5, height: 4 + 10 * level * Self.weights[i])
+// „Eine Sache groß“ (0.5.0) – als Erweiterung, Strukturrumpf ≤ 350 Zeilen.
+extension IslandView {
+    /// Die große Sache. `topInset` nil = direkt unter der Notch (ohne Symbolleiste).
+    @ViewBuilder private func big(topInset: CGFloat?) -> some View {
+        let top = topInset ?? (state.layout.notch?.height ?? 0)
+        switch activity.bigContent {
+        case .media:
+            if let info = model.info { expanded(info, topInset: topInset.map { $0 + 4 }) }
+        case .event:
+            if let ev = activity.upcomingEvent {
+                EventCard(event: ev, onOpen: onOpenEvent).padding(.top, top).transition(.opacity)
             }
-        }
-        .frame(height: 14)
-        .animation(.easeOut(duration: 0.12), value: level)
-        .accessibilityHidden(true)
-    }
-}
-
-/// „Wandelt um“: drei Punkte, die nacheinander aufleuchten. Reines SwiftUI statt ProgressView (der
-/// Testrenderer zeichnet AppKit-Bausteine nicht); 15 Bilder/s reichen, die Ansicht gibt es nur beim Umwandeln.
-struct WorkingDots: View {
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in
-            let t = ctx.date.timeIntervalSinceReferenceDate
-            HStack(spacing: 3) {
-                ForEach(0..<3, id: \.self) { i in
-                    Circle().fill(.white)
-                        .frame(width: 4, height: 4)
-                        .opacity(0.35 + 0.65 * max(0, sin(t * 4 - Double(i) * 0.9)))
+        case .headphones:
+            if let h = activity.headphones {
+                ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
+                    Image(systemName: h.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(.white)
                 }
+                .padding(.top, top).transition(.opacity)
             }
-            .frame(height: 14)
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-/// Animierter Pegel – reine Animation, kein Audiosignal (Spezifikation „Nicht in diesem Schritt“).
-struct LevelBars: View {
-    let playing: Bool
-    var body: some View {
-        // 30 Bilder/s reichen für einen Pegel; ungebremst liefe er mit der Bildschirmrate (bis 120 Hz).
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !playing)) { ctx in
-            let t = ctx.date.timeIntervalSinceReferenceDate
-            HStack(alignment: .center, spacing: 2) {
-                ForEach(0..<4, id: \.self) { i in
-                    Capsule().fill(.white)
-                        .frame(width: 2.5, height: playing ? 5 + 7 * abs(sin(t * (3 + Double(i)) + Double(i))) : 4)
-                }
+        case .update(let app):
+            if let e = activity.update(for: app) {
+                ActivityCard(title: e.label, subtitle: "Zum Installieren öffnen", action: "Öffnen", onTap: { onOpenUpdate(app) },
+                             leading: { AppSymbol(bundleID: app.bundleID, size: 44) })
+                .padding(.top, top).transition(.opacity)
             }
-            .frame(height: 14)
+        case .privacy:
+            privacyDetails(topInset: topInset)
+        case .timer:
+            if let t = activity.timer {
+                TimerCard(timer: t, onPauseResume: { t.isPaused ? activity.resumeTimer() : activity.pauseTimer() },
+                          onStop: { activity.stopTimer() })
+                    .padding(.top, top).transition(.opacity)
+            }
+        case .timerPicker:
+            TimerPicker { activity.startTimer(minutes: $0) }.padding(.top, top).transition(.opacity)
+        case .mirror:
+            MirrorView(onSettings: MirrorView.openCameraSettings)
+                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 16, bottom: 12,
+                                    trailing: 16))
+                .transition(.opacity)
+        case .none:
+            EmptyView()
         }
-        .accessibilityHidden(true)
     }
 }
 
