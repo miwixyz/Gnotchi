@@ -645,7 +645,8 @@ Adresse aus dem offiziellen README (Slopsquat).
       Schema-Prüfung, keine Titel im Protokoll; zwei Funde behoben (Kamera nach Freigabe-Dialog, lange Titel)
 - [x] `rafter run` 21.10. am gepushten Stand `9d185cb`: Scan `0eaad162`, keine Befunde (Kalli `87c8493`: Scan
       `fee0de22`, keine Befunde)
-- [ ] Positivliste `release.sh` mit `device.camera` am exportierten Build
+- [x] Positivliste `release.sh` mit `device.camera` am exportierten Build; am heruntergeladenen 0.5.0 (Build 106)
+      gemessen: genau `automation.apple-events` + `device.camera`, `Notarized Developer ID`
 
 ## Ausstiegskriterien 0.4.0 (Live-Aktivitäten)
 
