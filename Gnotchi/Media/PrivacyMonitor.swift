@@ -36,11 +36,24 @@ final class PrivacyMonitor: NotchPart {
         let address: CMIOObjectPropertyAddress
         let block: CMIOObjectPropertyListenerBlock
     }
-    private var audioListeners: [AudioListener] = []
-    private var cameraListeners: [CameraListener] = []
+    /// Zwei getrennte Sätze (Fix 21.10.): System-Beobachter („Geräteliste geändert“, Prozessliste) werden
+    /// **nur in `start()` angemeldet** und erst in `stop()` abgemeldet. Wurden sie bei jeder Geräteänderung
+    /// im eigenen Rückruf getauscht, rief Core Audio die alten trotz `noErr` beim Abmelden weiter auf —
+    /// jede Änderung vervierfachte die Meldungen (gemessen mit `tools/listener-probe.swift`).
+    private struct Listeners {
+        var audio: [AudioListener] = []
+        var camera: [CameraListener] = []
+    }
+    private var systemListeners = Listeners()
+    /// Je Gerät „läuft irgendwo“ — wird bei Geräteänderungen getauscht, verschoben und gebündelt.
+    private var deviceListeners = Listeners()
+    private var deviceRefreshPending = false
     private var pending: Task<Void, Never>?
     private var poll: Task<Void, Never>?
     private var generation = 0
+    /// Messpunkt (Diagnose 21.10.): wie oft „Geräteliste geändert“ ankam. Wuchs vor dem Fix je
+    /// Geräteänderung auf das Vierfache (3, 12, 48, 192 …) → nach 15 Std. 120 % CPU, 800 MB.
+    private(set) var devicesChangedCount = 0
 
     init(activity: ActivityModel) {
         self.activity = activity
@@ -78,7 +91,8 @@ final class PrivacyMonitor: NotchPart {
         guard !running else { return }
         running = true
         generation += 1
-        registerListeners()
+        registerSystemListeners()
+        registerDeviceListeners()
         scheduleRead()
     }
 
@@ -86,7 +100,9 @@ final class PrivacyMonitor: NotchPart {
         guard running else { return }
         running = false
         generation += 1
-        removeListeners()
+        remove(&deviceListeners)
+        remove(&systemListeners)
+        deviceRefreshPending = false
         pending?.cancel()
         poll?.cancel()
         pending = nil
@@ -94,12 +110,22 @@ final class PrivacyMonitor: NotchPart {
         activity.setPrivacy(.none)
     }
 
-    /// Geräteliste geändert: Beobachter je Gerät neu anmelden.
+    /// Geräteliste geändert: nur die Beobachter je Gerät tauschen — nicht im Rückruf selbst, sondern
+    /// im nächsten Durchlauf der Hauptschleife, und mehrere Meldungen einer Salve nur einmal.
     private func devicesChanged() {
-        guard running else { return }
-        removeListeners()
-        registerListeners()
-        scheduleRead()
+        devicesChangedCount += 1
+        guard running, !deviceRefreshPending else { return }
+        deviceRefreshPending = true
+        let gen = generation
+        DispatchQueue.main.async { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.running, gen == self.generation else { return }
+                self.deviceRefreshPending = false
+                self.remove(&self.deviceListeners)
+                self.registerDeviceListeners()
+                self.scheduleRead()
+            }
+        }
     }
 
     private func scheduleRead() {
@@ -182,22 +208,26 @@ final class PrivacyMonitor: NotchPart {
 
     // MARK: Beobachter
 
-    private func registerListeners() {
+    private func registerSystemListeners() {
         let system = AudioObjectID(kAudioObjectSystemObject)
-        addAudio(system, kAudioHardwarePropertyDevices) { $0.devicesChanged() }
-        addAudio(system, kAudioHardwarePropertyProcessObjectList) { $0.scheduleRead() }
+        addAudio(system, kAudioHardwarePropertyDevices, into: &systemListeners) { $0.devicesChanged() }
+        addAudio(system, kAudioHardwarePropertyProcessObjectList, into: &systemListeners) { $0.scheduleRead() }
+        addCamera(CMIOObjectID(kCMIOObjectSystemObject), CMIOObjectPropertySelector(kCMIOHardwarePropertyDevices),
+                  into: &systemListeners) { $0.devicesChanged() }
+    }
+
+    private func registerDeviceListeners() {
+        let system = AudioObjectID(kAudioObjectSystemObject)
         for device in AudioRoute.objectList(system, kAudioHardwarePropertyDevices) where Self.hasInput(device) {
-            addAudio(device, kAudioDevicePropertyDeviceIsRunningSomewhere) { $0.scheduleRead() }
-        }
-        addCamera(CMIOObjectID(kCMIOObjectSystemObject), CMIOObjectPropertySelector(kCMIOHardwarePropertyDevices)) {
-            $0.devicesChanged()
+            addAudio(device, kAudioDevicePropertyDeviceIsRunningSomewhere, into: &deviceListeners) { $0.scheduleRead() }
         }
         for cam in Self.cameraDevices() {
-            addCamera(cam, CMIOObjectPropertySelector(kCMIODevicePropertyDeviceIsRunningSomewhere)) { $0.scheduleRead() }
+            addCamera(cam, CMIOObjectPropertySelector(kCMIODevicePropertyDeviceIsRunningSomewhere),
+                      into: &deviceListeners) { $0.scheduleRead() }
         }
     }
 
-    private func addAudio(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector,
+    private func addAudio(_ object: AudioObjectID, _ selector: AudioObjectPropertySelector, into set: inout Listeners,
                           _ action: @escaping @MainActor (PrivacyMonitor) -> Void) {
         var addr = AudioRoute.address(selector)
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
@@ -207,10 +237,10 @@ final class PrivacyMonitor: NotchPart {
         guard status == noErr else {
             return Self.log.error("Beobachter Core Audio nicht angemeldet (OSStatus \(status, privacy: .public))")
         }
-        audioListeners.append(AudioListener(object: object, address: addr, block: block))
+        set.audio.append(AudioListener(object: object, address: addr, block: block))
     }
 
-    private func addCamera(_ object: CMIOObjectID, _ selector: CMIOObjectPropertySelector,
+    private func addCamera(_ object: CMIOObjectID, _ selector: CMIOObjectPropertySelector, into set: inout Listeners,
                            _ action: @escaping @MainActor (PrivacyMonitor) -> Void) {
         var addr = Self.cmioAddress(selector)
         let block: CMIOObjectPropertyListenerBlock = { [weak self] _, _ in
@@ -220,20 +250,19 @@ final class PrivacyMonitor: NotchPart {
         guard status == noErr else {
             return Self.log.error("Beobachter Kamera nicht angemeldet (OSStatus \(status, privacy: .public))")
         }
-        cameraListeners.append(CameraListener(object: object, address: addr, block: block))
+        set.camera.append(CameraListener(object: object, address: addr, block: block))
     }
 
-    private func removeListeners() {
-        for l in audioListeners {
+    private func remove(_ set: inout Listeners) {
+        for l in set.audio {
             var a = l.address
             AudioObjectRemovePropertyListenerBlock(l.object, &a, .main, l.block)
         }
-        for l in cameraListeners {
+        for l in set.camera {
             var a = l.address
             CMIOObjectRemovePropertyListenerBlock(l.object, &a, .main, l.block)
         }
-        audioListeners.removeAll()
-        cameraListeners.removeAll()
+        set = Listeners()
     }
 
     private nonisolated static func hasInput(_ device: AudioObjectID) -> Bool {

@@ -562,11 +562,16 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
       (nur Sendesperre für ohnehin öffentliche Zahlen). `rafter secrets .`: Gnotchi/Qotti nichts, Tippi nur
       Testdateien fremder Pakete in ungetrackten `build*/`-Ordnern.
 - [ ] `rafter run` nur Gnotchi + Tippi, ab 25.10. (Qotti ist privat, geht nicht an Rafter – Michael 10.10.)
-- [ ] **Ressourcenfund 21.10. (kein Sicherheitsfund, blockiert trotzdem):** Testkopie nach 15 Std. 120 % CPU,
-      800 MB, ohne Menüleisten-Symbol; Stichprobe fast nur in `HALPropertyListener::operator==` /
-      `CMIO::DAL::PropertyListener::operator==` → Beobachterliste wächst vermutlich (`PrivacyMonitor`,
-      seit 0.2.0). Widerlegt: Abmelden scheitert (Messung 200/200 ok). Messpunkt `/tmp/gnotchi-speicher.log`.
-- [ ] Positivliste der Berechtigungen am ausgelieferten 0.3.0 unverändert (`release.sh`)
+- [x] **Ressourcenfund 21.10. behoben (kein Sicherheitsfund):** Testkopie nach 15 Std. 120 % CPU, 800 MB,
+      ohne Menüleisten-Symbol. Ursache (`/diagnose`, Messschleife `tools/listener-probe.swift`): `PrivacyMonitor.
+      devicesChanged` meldete die System-Beobachter („Geräteliste geändert“, Audio + Kamera) im eigenen Rückruf ab und
+      neu an; Core Audio rief die alten trotz `noErr` weiter auf → Meldungen je Geräteänderung ×4 (3, 12, 48, 192, 768).
+      Widerlegt: Abmelden scheitert (200/200 ok); nur verschieben reicht nicht (weiter +6 je Runde). Fix: System-
+      Beobachter nur in `start()`/`stop()`, je Gerät verschoben + gebündelt tauschen. Regressionstest
+      `PrivacyMonitorListenerTests` (echte Geräteänderung über Aggregat-Gerät): vorher 1023, nachher ≤ 30.
+      Gegenprobe echte App: alt nach 5 Änderungen 89 % CPU/292 MB, neu nach 10 Änderungen 0 Stichproben in
+      Beobachterlisten. **Betrifft auch die veröffentlichte 0.2.0.** Kamera-Seite nur über denselben Code abgedeckt
+      (keine CMIO-Geräte im Test erzeugbar).
 
 ## Ausstiegskriterien 0.2.0
 
