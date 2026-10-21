@@ -28,6 +28,8 @@ struct SettingsView: View {
                     .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
                 toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
                     .onChange(of: prefs.mirror) { model.applyNotchSetting() }
+                toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)
+                    .onChange(of: prefs.timerAlarm) { model.applyNotchSetting() }
                 row("Timer-Ton") {
                     Picker("Timer-Ton", selection: $prefs.timerSound) {
                         Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)

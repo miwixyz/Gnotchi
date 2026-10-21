@@ -60,11 +60,12 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, headphones, update(FamilyApp), privacy, mirror, none
+        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
-                                       mirror: Bool = false, timerPicker: Bool = false) -> BigContent {
+                                       mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false) -> BigContent {
+        if alarm { return .alarm }
         if mirror { return .mirror }
         if timerPicker { return .timerPicker }
         return switch current {
@@ -98,7 +99,7 @@ extension ActivityModel {
 
     var bigContent: BigContent {
         Self.bigContent(current: bigActivity, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
-                        mirror: mirrorActive, timerPicker: timerPickerActive)
+                        mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm)
     }
 
     var showsChipRow: Bool {

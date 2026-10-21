@@ -8,6 +8,10 @@ struct CountdownTimer: Equatable, Sendable {
 
     /// Auswahl im Menü und in der großen Insel (Minuten).
     nonisolated static let choices = [5, 10, 15, 25]
+    /// Ton-Wiederholung beim Alarm: alle 2,5 s, höchstens 1 Minute (danach pulsiert nur noch die Insel).
+    nonisolated static let alarmRepeat: Duration = .milliseconds(2500)
+    nonisolated static let alarmSoundLimit = 24
+
     /// Eigene Zeit (Michael 21.10.): 1 bis 180 Minuten, zuletzt gewählte bleibt (UserDefaults).
     nonisolated static let customRange = 1...180
     nonisolated static let customKey = "timerCustomMinutes"
@@ -97,6 +101,7 @@ extension ActivityModel {
 
     /// Startet einen Timer (ersetzt einen laufenden) und zeigt ihn groß, falls die Insel offen ist.
     func startTimer(minutes: Int) {
+        dismissTimerAlarm()
         timer = CountdownTimer(minutes: minutes, now: Date())
         timerPickerActive = false
         mirrorActive = false
@@ -139,13 +144,35 @@ extension ActivityModel {
         }
     }
 
-    private func timerFinished() {
+    /// Intern statt privat: Tests lösen den Ablauf aus, ohne zu warten.
+    func timerFinished() {
         guard let t = timer else { return }
         timer = nil
         timerTask = nil
         Self.timerLog.notice("Timer abgelaufen")
-        post(Notice(symbol: "timer", title: "Timer abgelaufen",
-                    subtitle: "\(Int(t.duration / 60)) Minuten sind um"))
-        CountdownTimer.play(CountdownTimer.validSound(UserDefaults.standard.object(forKey: Preferences.Key.timerSound)))
+        let sound = CountdownTimer.validSound(UserDefaults.standard.object(forKey: Preferences.Key.timerSound))
+        guard timerAlarmEnabled else {
+            post(Notice(symbol: "timer", title: "Timer abgelaufen", subtitle: "\(Int(t.duration / 60)) Minuten sind um"))
+            return CountdownTimer.play(sound)
+        }
+        timerAlarm = true
+        alarmSoundTask?.cancel()
+        alarmSoundTask = Task { [weak self] in
+            for _ in 0..<CountdownTimer.alarmSoundLimit {
+                guard !Task.isCancelled, self?.timerAlarm == true else { return }
+                CountdownTimer.play(sound)
+                try? await Task.sleep(for: CountdownTimer.alarmRepeat)
+            }
+        }
+    }
+
+    /// Klick auf die pulsierende Insel: Alarm aus.
+    func dismissTimerAlarm() {
+        alarmSoundTask?.cancel()
+        alarmSoundTask = nil
+        if timerAlarm {
+            timerAlarm = false
+            Self.timerLog.notice("Timer-Alarm bestätigt")
+        }
     }
 }

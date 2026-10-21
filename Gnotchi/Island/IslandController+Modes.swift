@@ -9,8 +9,11 @@ extension IslandController {
     /// klappt sie zu `live` auf (0.3.0).
     /// Trackwechsel (0.4.0): `wide` statt klein, solange `trackFlash`; groß bleibt groß.
     nonisolated static func nextMode(current: IslandState.Mode, notice: Bool, recording: Bool = false,
-                                     liveText: Bool = false, trackFlash: Bool = false) -> IslandState.Mode {
+                                     liveText: Bool = false, trackFlash: Bool = false,
+                                     alarm: Bool = false) -> IslandState.Mode {
         if recording { return liveText ? .live : .compact }
+        // Timer-Alarm (0.5.0): anklickbar – deshalb klein/groß, nie Hinweis (der lässt Klicks durch) oder breit.
+        if alarm { return current == .expanded ? .expanded : .compact }
         if current == .live { return notice ? .notice : .compact }
         if notice { return current == .expanded ? .expanded : .notice }
         if current == .expanded { return .expanded }

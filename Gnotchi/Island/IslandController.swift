@@ -196,6 +196,7 @@ final class IslandController {
             _ = activity.mirrorActive
             _ = activity.timer != nil
             _ = activity.timerPickerActive
+            _ = activity.timerAlarm
             _ = activity.showsTrackFlash
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
@@ -333,7 +334,7 @@ final class IslandController {
             }
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
                                              recording: activity.recording != nil, liveText: activity.showsLiveText,
-                                             trackFlash: activity.showsTrackFlash)
+                                             trackFlash: activity.showsTrackFlash, alarm: activity.timerAlarm)
             // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {

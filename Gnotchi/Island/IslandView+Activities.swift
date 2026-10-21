@@ -254,6 +254,54 @@ struct TimerCompact: View {
     }
 }
 
+/// Abgelaufener Timer, klein: pulsiert orange, bis man klickt. Ohne Notch dazu „Timer abgelaufen“.
+struct AlarmCompact: View {
+    let pill: Bool
+    let height: CGFloat
+    let onDismiss: () -> Void
+
+    var body: some View {
+        Button(action: onDismiss) {
+            HStack(spacing: 6) {
+                Image(systemName: "timer").font(.system(size: 12, weight: .bold)).foregroundStyle(.white).frame(width: 18)
+                if pill {
+                    Text(verbatim: "Timer abgelaufen").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+            }
+            .padding(.horizontal, pill ? 12 : 10)
+            .frame(height: height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: "Timer abgelaufen, bestätigen"))
+    }
+}
+
+/// Orangefarbenes Pulsieren hinter dem Alarm (1 s an/ab).
+struct AlarmPulse: View {
+    var body: some View {
+        PhaseAnimator([0.25, 0.85]) { opacity in
+            Color.orange.opacity(opacity)
+        } animation: { _ in .easeInOut(duration: 0.8) }
+    }
+}
+
+/// Abgelaufener Timer, groß: pulsierender Rahmen, „OK“ beendet.
+struct AlarmCard: View {
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ActivityCard(title: "Timer abgelaufen", subtitle: "Zum Beenden klicken", action: "OK", onTap: onDismiss,
+                     leading: {
+            Image(systemName: "timer").font(.system(size: 28, weight: .bold)).foregroundStyle(.white)
+                .frame(width: 44, height: 44).background(Circle().fill(Color.orange.opacity(0.9)))
+        })
+        .background(AlarmPulse().opacity(0.6).clipShape(RoundedRectangle(cornerRadius: 14)).padding(.horizontal, 8))
+    }
+}
+
 /// Timer groß: Restzeit groß, darunter „von 25 Min“, rechts Pause/Weiter und Stopp.
 struct TimerCard: View {
     let timer: CountdownTimer

@@ -179,6 +179,13 @@ final class IslandViewRenderTests: XCTestCase {
         try render(notchScreen, .expanded, name: "notch-big-timer-picker", timerPicker: true)
     }
 
+    func testRenderPillCompactAlarm() throws {
+        try render(pillScreen, .compact, name: "pill-compact-alarm", withMedia: false, alarm: true)
+    }
+    func testRenderNotchBigAlarm() throws {
+        try render(notchScreen, .expanded, name: "notch-big-alarm", alarm: true)
+    }
+
     private func render(_ screen: IslandGeometry.ScreenMetrics, _ mode: IslandState.Mode, name: String,
                         appBundleID: String? = nil, route: PlaybackRoute = .local,
                         notice: ActivityModel.Notice? = nil, privacy: ActivityModel.Privacy = .none,
@@ -186,7 +193,7 @@ final class IslandViewRenderTests: XCTestCase {
                         liveText: String? = nil, quota: QottiLink.Snapshot? = nil,
                         headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
                         cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
-                        timerMinutes: Int? = nil, timerPicker: Bool = false) throws {
+                        timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -211,6 +218,7 @@ final class IslandViewRenderTests: XCTestCase {
         activity.setUpcomingEvent(event)
         if let timerMinutes { activity.startTimer(minutes: timerMinutes); activity.rotationCursor = cursor }
         if timerPicker { activity.showTimerPicker() }
+        if alarm { activity.timerAlarm = true }
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = (mode == .expanded
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,

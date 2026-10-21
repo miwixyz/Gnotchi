@@ -140,6 +140,7 @@ final class AppModel {
     func applyNotchSetting() {
         activity.setRotationEnabled(prefs.liveRotation)
         activity.setMirrorEnabled(prefs.mirror)
+        activity.timerAlarmEnabled = prefs.timerAlarm
         syncOwnUpdate()
         guard allowStart else { return }
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })

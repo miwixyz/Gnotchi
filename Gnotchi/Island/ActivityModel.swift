@@ -76,6 +76,11 @@ final class ActivityModel {
     /// Timer-Auswahl groß gezeigt (Klick auf das Timer-Symbol, solange keiner läuft).
     var timerPickerActive = false
     @ObservationIgnored var timerTask: Task<Void, Never>?
+    /// Abgelaufener Timer: Insel pulsiert, bis man klickt (Michael 21.10.: „Töne zu kurz, man überhört es“).
+    var timerAlarm = false
+    /// Schalter „Timer-Ablauf bis Klick anzeigen“; aus = kurzer Hinweis + ein Ton wie zuvor.
+    var timerAlarmEnabled = true
+    @ObservationIgnored var alarmSoundTask: Task<Void, Never>?
     /// Welche Aktivität die kleine Insel gerade zeigt; nil oder nicht mehr aktiv = die erste.
     var rotationCursor: LiveActivity?
     /// Maus über einer Insel: Takt steht.
@@ -102,7 +107,7 @@ final class ActivityModel {
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
-            || upcomingEvent != nil || timer != nil
+            || upcomingEvent != nil || timer != nil || timerAlarm
     }
 
     func setHeadphones(_ h: Headphones?) {
@@ -123,7 +128,7 @@ final class ActivityModel {
 
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre: die Tippi-Aufnahme (Tippi blendet seine
     /// eigene Pille aus, wenn Gnotchi anzeigt). Musik hält sich an die Vollbild-Regel.
-    var showsOverFullscreen: Bool { recording != nil }
+    var showsOverFullscreen: Bool { recording != nil || timerAlarm }
 
     func setRecording(_ r: Recording?) {
         if recording != r { recording = r }

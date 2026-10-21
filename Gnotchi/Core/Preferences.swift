@@ -27,6 +27,8 @@ final class Preferences {
         static let mirror = "mirror"
         /// 0.5.0 Ton bei Ablauf des Timers (Name aus CountdownTimer.sounds, leer = kein Ton).
         static let timerSound = "timerSound"
+        /// 0.5.0 Timer-Ablauf: Insel pulsiert bis Klick (aus = kurzer Hinweis).
+        static let timerAlarm = "timerAlarm"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
     }
@@ -76,6 +78,9 @@ final class Preferences {
     /// Spiegel in der großen Insel (0.5.0, G27). Kamera nur nach Klick und nur, solange er sichtbar ist. Ab Werk an.
     var mirror: Bool { didSet { defaults.set(mirror, forKey: Key.mirror) } }
 
+    /// Timer-Ablauf bis Klick anzeigen (0.5.0): Insel pulsiert, Ton wiederholt sich höchstens 1 Minute. Ab Werk an.
+    var timerAlarm: Bool { didSet { defaults.set(timerAlarm, forKey: Key.timerAlarm) } }
+
     /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
     var timerSound: String {
         didSet {
@@ -104,6 +109,7 @@ final class Preferences {
         kalliEvents = defaults.object(forKey: Key.kalliEvents) as? Bool ?? true
         mirror = defaults.object(forKey: Key.mirror) as? Bool ?? true
         timerSound = CountdownTimer.validSound(defaults.object(forKey: Key.timerSound))
+        timerAlarm = defaults.object(forKey: Key.timerAlarm) as? Bool ?? true
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
     }
 

@@ -94,4 +94,48 @@ final class CountdownTimerTests: XCTestCase {
         model.endMirror()
         XCTAssertFalse(model.timerPickerActive)
     }
+
+    // MARK: Alarm bis Klick
+
+    func testAlarmPulsesUntilDismissed() {
+        let model = ActivityModel(media: NowPlayingModel())
+        model.startTimer(minutes: 1)
+        model.timerFinished()
+        XCTAssertNil(model.timer)
+        XCTAssertTrue(model.timerAlarm)
+        XCTAssertTrue(model.isVisible)
+        XCTAssertTrue(model.showsOverFullscreen, "auch über Vollbild")
+        XCTAssertEqual(model.bigContent, .alarm)
+        XCTAssertNil(model.notice, "kein kurzer Hinweis, der von selbst verschwindet")
+        model.dismissTimerAlarm()
+        XCTAssertFalse(model.timerAlarm)
+        XCTAssertFalse(model.isVisible)
+    }
+
+    func testAlarmOffFallsBackToShortNotice() {
+        let model = ActivityModel(media: NowPlayingModel())
+        model.timerAlarmEnabled = false
+        model.startTimer(minutes: 1)
+        model.timerFinished()
+        XCTAssertFalse(model.timerAlarm)
+        XCTAssertEqual(model.notice?.title, "Timer abgelaufen")
+    }
+
+    func testNewTimerEndsAlarm() {
+        let model = ActivityModel(media: NowPlayingModel())
+        model.startTimer(minutes: 1)
+        model.timerFinished()
+        model.startTimer(minutes: 5)
+        XCTAssertFalse(model.timerAlarm)
+    }
+
+    func testAlarmModeIsClickable() {
+        XCTAssertEqual(IslandController.nextMode(current: .compact, notice: false, trackFlash: true, alarm: true), .compact,
+                       "nicht breit")
+        XCTAssertEqual(IslandController.nextMode(current: .expanded, notice: false, alarm: true), .expanded)
+        XCTAssertEqual(IslandController.nextMode(current: .compact, notice: true, alarm: true), .compact,
+                       "nie Hinweis-Modus (lässt Klicks durch)")
+        XCTAssertEqual(IslandController.nextMode(current: .compact, notice: false, recording: true, alarm: true), .compact,
+                       "Aufnahme hat Vorrang, bleibt klein")
+    }
 }

@@ -46,8 +46,11 @@ struct IslandView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
-                UnevenRoundedRectangle(bottomLeadingRadius: corner, bottomTrailingRadius: corner, style: .continuous)
-                    .fill(.black)
+                let shape = UnevenRoundedRectangle(bottomLeadingRadius: corner, bottomTrailingRadius: corner,
+                                                   style: .continuous)
+                shape.fill(.black)
+                // Timer-Alarm klein: die ganze Insel pulsiert orange, in ihrer eigenen Form (0.5.0).
+                if activity.timerAlarm && state.mode == .compact { AlarmPulse().clipShape(shape) }
                 content
             }
             .frame(width: size.width, height: size.height)
@@ -115,6 +118,14 @@ struct IslandView: View {
     /// der letzte Titel (pausiert, Insel offen wegen Mikrofon/Kamera) bzw. nur die Punkte.
     @ViewBuilder private var rotationCompact: some View {
         let height = state.layout.compact.height
+        if activity.timerAlarm {
+            AlarmCompact(pill: pill, height: height) { activity.dismissTimerAlarm() }
+        } else {
+            rotationCompactActivity(height: height)
+        }
+    }
+
+    @ViewBuilder private func rotationCompactActivity(height: CGFloat) -> some View {
         switch activity.currentActivity {
         case .timer?:
             if let t = activity.timer { TimerCompact(timer: t, pill: pill, height: height) }
@@ -429,6 +440,8 @@ extension IslandView {
                           onStop: { activity.stopTimer() })
                     .padding(.top, top).transition(.opacity)
             }
+        case .alarm:
+            AlarmCard { activity.dismissTimerAlarm() }.padding(.top, top).transition(.opacity)
         case .timerPicker:
             TimerPicker { activity.startTimer(minutes: $0) }.padding(.top, top).transition(.opacity)
         case .mirror:
