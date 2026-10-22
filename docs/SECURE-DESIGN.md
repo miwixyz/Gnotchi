@@ -734,6 +734,8 @@ nur aus Klicks (G29, G30).
   (Review: sonst ginge eine gleichzeitige Änderung von Claude Code verloren). Link, > 1 MB, kein JSON → nichts.
 - Schalter aus entfernt die Einträge; Start mit „aus“ entfernt übrig gebliebene (gemessen 22.10.: 5 → 0, Datei wieder
   byte-gleich). Beenden von Gnotchi lässt sie stehen (Hook endet dann still).
+- **Prüfung 0.9.0 (22.10.):** `rafter-code-review` beider Stufen (Rest Mitteilungen: 3 Funde, Code & KI: 2 Funde,
+  alle behoben); `rafter run` Scan `86131b95` auf `b35371d`: keine Befunde.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
