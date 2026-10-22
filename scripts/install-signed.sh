@@ -39,6 +39,16 @@ for part in "$STAGE/Gnotchi.app/Contents/MacOS/MediaRemoteAdapterTestClient" \
             "$STAGE/Gnotchi.app/Contents/Frameworks/MediaRemoteAdapter.framework"; do
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$part"
 done
+# Hilfsprogramm „Gnotchi Mitteilungen“ (0.6.0, G28): ohne Berechtigungen. Unsigniert startete Gnotchi es nie
+# (Signaturprüfung vor dem Start) – Review 22.10.
+HELPER="$STAGE/Gnotchi.app/Contents/Library/LoginItems/Gnotchi Mitteilungen.app"
+if [ -d "$HELPER" ]; then
+    for part in "$HELPER"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --timestamp --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HELPER"
+fi
 codesign --force --options runtime --timestamp \
     --entitlements Gnotchi/Resources/Gnotchi.entitlements --sign "$IDENTITY" "$STAGE/Gnotchi.app"
 codesign --verify --deep --strict "$STAGE/Gnotchi.app"

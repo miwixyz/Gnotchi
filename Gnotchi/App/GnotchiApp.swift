@@ -112,6 +112,8 @@ final class AppModel {
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
             NotchFeature(part: FamilyUpdateLink(activity: activity)) { $0.familyUpdates },
+            // 0.6.0 (G28–G30): startet das Hilfsprogramm mit der Bedienungshilfen-Freigabe, nicht Gnotchi selbst.
+            NotchFeature(part: NotifyLink(activity: activity, prefs: prefs)) { $0.notifications },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras

@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.6.0] — noch nicht veröffentlicht
+
+Mitteilungen und Anrufe in der Notch.
+
+### Neu
+- **Mitteilungen in der Notch:** Mitteilungen der Apps, die du auswählst (etwa Nachrichten, WhatsApp, Telegram, Slack, Mail), erscheinen in der Notch statt oben rechts: App, Titel, Text und die Knöpfe der Mitteilung (z. B. „Erledigt“). Ein Klick öffnet die App an der richtigen Stelle, × schließt sie. Kommen mehrere, zeigt die Insel „+2“. Apples Banner ist so lange versteckt; danach liegt die Mitteilung wie gewohnt in der Mitteilungszentrale. Ab Werk aus.
+- **Anrufe in der Notch:** Ruft jemand dein iPhone an, zeigt die Notch Name und Anrufart mit grünem Annehmen und rotem Ablehnen. Nach dem Annehmen wird daraus die Gesprächsleiste mit rotem Auflegen. Apples Anruf-Fenster bleibt zur Sicherheit vorerst zusätzlich sichtbar.
+- Dafür gibt es ein eigenes Hilfsprogramm, **„Gnotchi Mitteilungen“**. Es braucht die Bedienungshilfen-Freigabe; Gnotchi selbst bleibt ohne. Gnotchi startet es nur, wenn du die Mitteilungen einschaltest.
+
+### Intern
+- Hilfsprogramm `Contents/Library/LoginItems/Gnotchi Mitteilungen.app` (eigene Kennung, keine Berechtigungen), Socket `notify.sock` mit beidseitiger Signaturprüfung, Mitteilungstexte nie im Protokoll (SECURE-DESIGN G28–G30). Release-Skript prüft das Hilfsprogramm. 451 Tests.
+
 ## [0.5.0] — 2026-10-21
 
 Termine, Timer, Spiegel – und eine aufgeräumte große Insel.

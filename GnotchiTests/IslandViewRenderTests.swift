@@ -16,6 +16,28 @@ final class IslandViewRenderTests: XCTestCase {
     private let pillScreen = IslandGeometry.ScreenMetrics(
         frame: CGRect(x: 0, y: 0, width: 2560, height: 1440), safeTop: 0, auxLeftWidth: nil, auxRightWidth: nil)
 
+    // MARK: 0.6.0 Mitteilungen und Anrufe (SYNTHETISCH)
+
+    private static let sampleNote = NotifyWire.Note(
+        id: "a1", kind: .note, app: "Erinnerungen", bundle: nil, title: "Blumen gießen", subtitle: "Balkon",
+        body: "Erfundener Beispieltext, der so lang ist, dass er auf zwei Zeilen umbricht und am Ende gekürzt wird, damit man das sieht.",
+        actions: ["Erledigt", "In einer Stunde erinnern", "Schließen"])
+    private static let sampleCall = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                                    title: "Erika Muster", subtitle: "", body: "", actions: ["Annehmen", "Ablehnen"])
+
+    func testRenderNotchMessage() throws {
+        try render(notchScreen, .message, name: "notch-message", notes: [Self.sampleNote, Self.sampleNote.with(id: "a2")])
+    }
+    func testRenderPillMessageShort() throws {
+        let short = NotifyWire.Note(id: "b1", kind: .note, app: "Nachrichten", bundle: nil, title: "Max", subtitle: "",
+                                    body: "Kommst du heute?", actions: ["Schließen"])
+        try render(pillScreen, .message, name: "pill-message-short", notes: [short])
+    }
+    func testRenderNotchCall() throws { try render(notchScreen, .call, name: "notch-call", notes: [Self.sampleCall]) }
+    func testRenderPillCallNotArmed() throws {
+        try render(pillScreen, .call, name: "pill-call-unarmed", notes: [Self.sampleCall], callArmed: false)
+    }
+
     func testRenderNotchCompact() throws { try render(notchScreen, .compact, name: "notch-compact") }
     func testRenderNotchExpanded() throws { try render(notchScreen, .expanded, name: "notch-expanded") }
     func testRenderPillCompact() throws { try render(pillScreen, .compact, name: "pill-compact") }
@@ -212,7 +234,8 @@ final class IslandViewRenderTests: XCTestCase {
                         headphones: Headphones? = nil, updates: [FamilyUpdates.Entry] = [],
                         cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
                         timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false,
-                        playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false) throws {
+                        playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false,
+                        notes: [NotifyWire.Note] = [], callArmed: Bool = true) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -240,8 +263,9 @@ final class IslandViewRenderTests: XCTestCase {
         if alarm { activity.timerAlarm = true }
         activity.compactControls = compactControls
         if let playerFirstOverlay { activity.playerFirst = true; activity.select(playerFirstOverlay) }
+        notes.forEach { activity.receiveNote($0) }; activity.callArmed = callArmed
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
-        let panel = (mode == .expanded
+        let panel = mode == .message ? IslandController.messageFrame(layout: layout, note: activity.currentNote) : (mode == .expanded
             ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,
                                         chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
             : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
@@ -286,5 +310,12 @@ final class IslandViewRenderTests: XCTestCase {
             NSGradient(starting: .systemOrange, ending: .systemPink)?.draw(in: rect, angle: 45)
             return true
         }
+    }
+}
+
+private extension NotifyWire.Note {
+    func with(id: String) -> NotifyWire.Note {
+        NotifyWire.Note(id: id, kind: kind, app: app, bundle: bundle, title: title, subtitle: subtitle, body: body,
+                        actions: actions)
     }
 }

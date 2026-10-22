@@ -104,10 +104,32 @@ final class ActivityModel {
     @ObservationIgnored let rotationInterval: Duration
     @ObservationIgnored let flashDuration: Duration
 
+    // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
+
+    /// Warteschlange, vorn die angezeigte Mitteilung.
+    var notes: [NotifyWire.Note] = []
+    /// Eingehender Anruf.
+    var call: NotifyWire.Note?
+    /// Anruf-Knöpfe erst kurz nach dem Erscheinen klickbar (kein versehentliches Annehmen beim Überfahren).
+    var callArmed = false
+    /// Freigabe des Hilfsprogramms: nil = nicht verbunden.
+    var notifyTrust: Bool?
+    /// Kennung der vordersten Mitteilung, sobald sie in einer Insel zu sehen war (dann läuft ihre Zeit).
+    @ObservationIgnored var noteShownID: String?
+    @ObservationIgnored var noteTask: Task<Void, Never>?
+    @ObservationIgnored var callArmTask: Task<Void, Never>?
+    /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
+    @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
+    @ObservationIgnored let noteDuration: Duration
+    @ObservationIgnored let callArmDelay: Duration
+
     /// `noticeDuration`, `rotationInterval`, `flashDuration` nur für Tests anders als 3 s / 4 s / 3 s (Michael 20./21.10.).
     init(media: NowPlayingModel, noticeDuration: Duration = .seconds(3), rotationInterval: Duration = .seconds(4),
-         flashDuration: Duration = .seconds(3)) {
+         flashDuration: Duration = .seconds(3), noteDuration: Duration = .seconds(6),
+         callArmDelay: Duration = .milliseconds(500)) {
         self.media = media
+        self.noteDuration = noteDuration
+        self.callArmDelay = callArmDelay
         self.noticeDuration = noticeDuration
         self.rotationInterval = rotationInterval
         self.flashDuration = flashDuration
@@ -117,7 +139,7 @@ final class ActivityModel {
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
-            || upcomingEvent != nil || timer != nil || timerAlarm
+            || upcomingEvent != nil || timer != nil || timerAlarm || !notes.isEmpty || call != nil
     }
 
     func setHeadphones(_ h: Headphones?) {
@@ -138,7 +160,8 @@ final class ActivityModel {
 
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre: die Tippi-Aufnahme (Tippi blendet seine
     /// eigene Pille aus, wenn Gnotchi anzeigt). Musik hält sich an die Vollbild-Regel.
-    var showsOverFullscreen: Bool { recording != nil || timerAlarm }
+    /// 0.6.0: auch ein eingehender Anruf (wie Apples Banner); Mitteilungen nicht.
+    var showsOverFullscreen: Bool { recording != nil || timerAlarm || call != nil }
 
     func setRecording(_ r: Recording?) {
         if recording != r { recording = r }

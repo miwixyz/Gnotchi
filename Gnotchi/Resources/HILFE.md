@@ -165,6 +165,26 @@ Anruf. Die Kamera läuft nur, solange der Spiegel zu sehen ist: Klappt die Insel
 Symbol, ist sie sofort aus. Beim ersten Mal fragt macOS nach der Kamera-Freigabe. Schalter: „Spiegel in
 der Notch“.
 
+## Mitteilungen und Anrufe
+
+Einstellungen → **Mitteilungen in der Notch** (ab Werk aus). Beim Einschalten startet Gnotchi das Hilfsprogramm
+**„Gnotchi Mitteilungen“** und macOS fragt nach der Bedienungshilfen-Freigabe für dieses Programm. Erlaube sie
+unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → „Gnotchi Mitteilungen“. Gnotchi selbst
+bekommt keine Freigabe.
+
+- **Welche Apps:** In der Liste darunter hakst du die Apps an, deren Mitteilungen in die Notch dürfen. Beim
+  ersten Einschalten sind Nachrichten-Apps vorgeschlagen. Weitere über **App hinzufügen …**. Alle anderen
+  Mitteilungen bleiben, wo sie waren.
+- **Eine Mitteilung** klappt die Insel auf: App, Titel, Text und die Knöpfe der Mitteilung. Klick auf die
+  Mitteilung öffnet die App, ein Knopf macht genau das, was er bei Apple auch macht, × schließt sie. Solange die
+  Maus darauf ist, bleibt sie stehen. Danach liegt sie wie gewohnt in der Mitteilungszentrale.
+- **Antworten** geht nicht in der Notch, dafür öffnest du die App.
+- **Anrufe** (Schalter „Anrufe in der Notch“): grün Annehmen, rot Ablehnen, im Gespräch rot Auflegen. Die
+  Knöpfe werden eine halbe Sekunde nach dem Erscheinen klickbar. Apples Anruf-Fenster bleibt vorerst zusätzlich
+  sichtbar.
+- Während die Tippi-Aufnahme läuft oder die große Insel offen ist, wartet eine Mitteilung. So lange bleibt Apples
+  Banner stehen, es geht nichts verloren.
+
 ## Einstellungen
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
@@ -189,6 +209,8 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 ## Berechtigungen
 
 Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth.
+Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
+„Gnotchi Mitteilungen“, nicht Gnotchi.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
 
 macOS fragt höchstens in diesen Fällen:
@@ -217,6 +239,9 @@ nicht wirkt.
 - Deinen nächsten Termin bekommt Gnotchi von Kalli auf demselben geschützten Weg wie Tippis Live-Text: Beide Apps prüfen vorher die Signatur der anderen. Kalli schickt nur Titel, Beginn und Kalenderfarbe des Termins, den seine Menüleiste ohnehin zeigt. Gnotchi speichert ihn nicht, protokolliert ihn nicht und vergisst ihn bei Beginn.
 - Das Kamerabild des Spiegels geht direkt auf den Bildschirm. Gnotchi speichert es nicht, verarbeitet es nicht und schickt es nirgendwohin.
 - Der Timer lebt nur im Arbeitsspeicher.
+- Mitteilungen liest nur das Hilfsprogramm „Gnotchi Mitteilungen“, und nur die der Apps, die du ausgewählt hast,
+  gehen an Gnotchi weiter. Beide prüfen vorher die Signatur des anderen. Texte werden nicht gespeichert, nicht
+  protokolliert und sind weg, sobald die Mitteilung verschwindet. Gespeichert wird nur die App-Liste.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
 
 ## Nur eine Notch-App gleichzeitig

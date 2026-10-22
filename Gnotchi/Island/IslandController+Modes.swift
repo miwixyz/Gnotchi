@@ -8,12 +8,19 @@ extension IslandController {
     /// Die Tippi-Aufnahme bleibt klein und verdrängt Hinweis und groß (Spezifikation 0.2.0); mit Live-Text
     /// klappt sie zu `live` auf (0.3.0).
     /// Trackwechsel (0.4.0): `wide` statt klein, solange `trackFlash`; groß bleibt groß.
+    /// Mitteilungen (0.6.0): Ein Anruf geht vor alles (auch vor die Aufnahme). Eine Mitteilung verdrängt wie ein
+    /// Hinweis nur „klein“, nicht „groß“/Band (dort wird gerade bedient) und nicht die Aufnahme – sie wartet dann,
+    /// Apples Banner bleibt so lange stehen (ActivityModel.noteDisplayed).
     nonisolated static func nextMode(current: IslandState.Mode, notice: Bool, recording: Bool = false,
                                      liveText: Bool = false, trackFlash: Bool = false,
-                                     alarm: Bool = false) -> IslandState.Mode {
+                                     alarm: Bool = false, call: Bool = false, message: Bool = false) -> IslandState.Mode {
+        if call { return .call }
         if recording { return liveText ? .live : .compact }
+        if current == .call { return message ? .message : .compact }
         // Timer-Alarm (0.5.0): anklickbar – deshalb klein/groß, nie Hinweis (der lässt Klicks durch) oder breit.
         if alarm { return current == .expanded ? .expanded : .compact }
+        if message { return current == .expanded || current == .band ? current : .message }
+        if current == .message { return notice ? .notice : .compact }
         if current == .live { return notice ? .notice : .compact }
         if notice { return current == .expanded || current == .band ? current : .notice }
         if current == .expanded || current == .band { return current }
@@ -34,6 +41,8 @@ extension IslandController {
         case .band: return layout.band
         case .notice: return layout.notice
         case .live: return layout.live
+        case .message: return layout.message
+        case .call: return layout.call
         case .expanded:
             guard hasMedia else {
                 var r = layout.notice
@@ -61,6 +70,18 @@ extension IslandController {
         let extra = IslandGeometry.mirrorHeight - IslandGeometry.expandedSize.height
         r.origin.y -= extra
         r.size.height += extra
+        return r
+    }
+
+    /// Mitteilung (0.6.0): oben bündig wie `layout.message`, unten nur so lang wie der Inhalt.
+    nonisolated static func messageFrame(layout: IslandGeometry.Layout, note: NotifyWire.Note?) -> CGRect {
+        var r = layout.message
+        guard let note else { return r }
+        let h = IslandGeometry.messageHeight(title: !note.title.isEmpty, subtitle: !note.subtitle.isEmpty,
+                                             bodyChars: note.body.count, buttons: !NotifyWire.buttonActions(note).isEmpty)
+        let cut = IslandGeometry.messageSize.height - h
+        r.origin.y += cut
+        r.size.height -= cut
         return r
     }
 

@@ -102,6 +102,7 @@ struct SettingsView: View {
                 }
                 .disabled(!prefs.notchMedia)
             }
+            notifyCard
             card("Allgemein") {
                 toggleRow("Bei Anmeldung starten", isOn: Binding(
                     get: { login == .on || login == .needsApproval },
@@ -146,6 +147,63 @@ struct SettingsView: View {
         .onAppear {
             login = LoginItem.state
             model.recheckNotch()
+        }
+    }
+
+    /// Mitteilungen und Anrufe (0.6.0, G28–G30). Ab Werk aus; braucht das Hilfsprogramm mit Bedienungshilfen.
+    @ViewBuilder private var notifyCard: some View {
+        @Bindable var prefs = prefs
+        card("Mitteilungen") {
+            toggleRow("Mitteilungen in der Notch", isOn: $prefs.notifications)
+                .onChange(of: prefs.notifications) {
+                    if prefs.notifications { prefs.seedNotifyApps(NotifyApps.suggestedInstalled) }
+                    model.applyNotchSetting()
+                }
+            if !prefs.notifications {
+                note("Ein eigenes Hilfsprogramm „Gnotchi Mitteilungen“ liest Apples Mitteilungen und braucht dafür die "
+                     + "Bedienungshilfen-Freigabe. Gnotchi selbst bleibt ohne.", symbol: "info.circle",
+                     color: FamilyTheme.textSecondary)
+            } else {
+                switch model.activity.notifyTrust {
+                case nil:
+                    note("Hilfsprogramm startet …", symbol: "hourglass", color: FamilyTheme.textSecondary)
+                case false?:
+                    row(nil) {
+                        Label("Bedienungshilfen für „Gnotchi Mitteilungen“ freigeben", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(FamilyTheme.warning)
+                        Spacer()
+                        Button("Öffnen …") { NotifyApps.openAccessibilitySettings() }
+                            .buttonStyle(CardButtonStyle())
+                    }
+                case true?:
+                    EmptyView()
+                }
+                toggleRow("Anrufe in der Notch", isOn: $prefs.notifyCalls)
+                    .onChange(of: prefs.notifyCalls) { model.applyNotchSetting() }
+                divider
+                Text("Apps")
+                    .font(FamilyTheme.font(.callout, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textSecondary)
+                    .padding(.top, FamilyTheme.Space.s)
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: FamilyTheme.Space.l), GridItem(.flexible())],
+                          spacing: 0) {
+                    ForEach(NotifyApps.list(selected: prefs.notifyApps ?? []), id: \.id) { app in
+                        toggleRow(verbatim: app.name, isOn: Binding(
+                            get: { prefs.isNotifyApp(app.id) },
+                            set: { on in
+                                prefs.setNotifyApp(app.id, on)
+                                model.applyNotchSetting()
+                            }))
+                    }
+                }
+                Button("App hinzufügen …") {
+                    guard let id = NotifyApps.pickApp() else { return }
+                    prefs.setNotifyApp(id, true)
+                    model.applyNotchSetting()
+                }
+                .buttonStyle(CardButtonStyle())
+                .padding(.vertical, FamilyTheme.Space.s)
+            }
         }
     }
 

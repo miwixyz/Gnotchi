@@ -35,6 +35,11 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G23 | – (neu, 0.4.0) | Update-Meldung der App-Familie: nur Schema, feste Texte, nur Anzeige |
 | G24 | – (neu, 0.4.0) | Klick öffnet nur die echte, signaturgeprüfte App |
 | G25 | – (neu, 0.4.0) | Medienfilter speichert nur App-Kennungen |
+| G26 | – (neu, 0.5.0) | Kallis nächster Termin: eigener Socket, beidseitig geprüft, nie protokolliert |
+| G27 | – (neu, 0.5.0) | Spiegel: Kamera nur sichtbar, Bild nur in der Vorschau-Ebene |
+| G28 | – (neu, 0.6.0) | Hilfsprogramm „Gnotchi Mitteilungen“: einzige Bedienungshilfen-Freigabe, kleinstmöglich |
+| G29 | – (neu, 0.6.0) | Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert |
+| G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -51,7 +56,9 @@ eines Interpreters, der Fremdcode lädt. Gnotchi trennt das.
 
 **Befugnisse von Gnotchi:**
 
-- **Keine Bedienungshilfen-Freigabe.** Gnotchi fragt sie nie an und prüft sie nie (G1).
+- **Keine Bedienungshilfen-Freigabe.** Gnotchi fragt sie nie an und prüft sie nie (G1). Ab 0.6.0 hält sie
+  ausschließlich das eingebettete Hilfsprogramm „Gnotchi Mitteilungen“, ein eigener Prozess mit eigener
+  Kennung, nur bei eingeschalteten Mitteilungen (G28).
 - **Apple Events** (Berechtigung `com.apple.security.automation.apple-events`), tatsächlich
   benutzt nur für Spotify und Musik (Rückfall G7) und fürs Spulen in Spotify. Welche App Gnotchi steuern darf, erteilt der Nutzer je
   Ziel-App im macOS-Dialog (Automation).
@@ -83,6 +90,8 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Qotti / jeder lokale Prozess] ─(12) distnoted app.qotti.local.kontingent ─▶ [Gnotchi: QottiLink → Insel]
 [Familien-App / jeder lokale Prozess] ─(13) distnoted app.mwlr.familie.update ─▶ [Gnotchi: FamilyUpdateLink → Insel]
 [Nutzer: Klick auf Update] ─(13a) Signaturprüfung, App öffnen, distnoted …update.show ─▶ [echte Familien-App]
+[Mitteilungszentrale] ─(14) AX: Banner lesen, Fenster verschieben, Aktion ─▶ [Gnotchi Mitteilungen (eigene Freigabe)]
+[Gnotchi Mitteilungen, geprüft] ─(14a) Unix-Socket notify.sock: Mitteilungen ⇄ Filter/Befehle ─▶ [Gnotchi: NotifyLink → Insel]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
@@ -92,7 +101,9 @@ vertrauenswürdig** (bei Browsern frei von jeder Website gesetzt) · (2)/(4) Gno
 (6a) Gnotchis Einstellungsdatei → Tippi (G17) · (11) Tippi ↔ Gnotchi über den Socket, Diktattext,
 beidseitig signaturgeprüft (G21) · (12) jeder lokale Prozess → Gnotchi, nur Zahlen (G22) · (13) jeder lokale
 Prozess → Gnotchi, nur Kürzel und Versionsnummer (G23) · (13a) Gnotchi → andere App, nur auf Klick, nur die
-signaturgeprüfte (G24).
+signaturgeprüfte (G24) · (14) Mitteilungszentrale → Hilfsprogramm, fremde Inhalte jeder App, das Hilfsprogramm
+hält Bedienungshilfen (G28) · (14a) Hilfsprogramm ↔ Gnotchi über den Socket, beidseitig signaturgeprüft, Befehle
+nur aus Klicks (G29, G30).
 
 ## Entscheidungen
 
@@ -109,6 +120,12 @@ signaturgeprüfte (G24).
   Freigabe. Belegt mit `tools/ax-probe.swift`: 15 s Ruhe → 0 Einträge; Abfrage an Gnotchi →
   40 ms später „Gnotchi prüft ax-probe“; dieselbe Abfrage an Finder → „Finder prüft ax-probe“.
   Gnotchi fragt dabei nichts für sich selbst an und liest nichts.
+- **Ergänzt 22.10. (0.6.0, G28):** Mitteilungen brauchen Bedienungshilfen. Sie liegen **nicht** bei Gnotchi, sondern
+  beim eingebetteten Hilfsprogramm `Gnotchi Mitteilungen.app` (`dev.mwlr.gnotchi.mitteilungen`), gestartet über
+  LaunchServices, also eigener verantwortlicher Prozess. Gemessen 22.10. mit `tools/responsible-pid.swift`:
+  Hilfsprogramm → verantwortlich es selbst, Gnotchi → Gnotchi. Die Lint-Regel gilt weiter für Gnotchi und die
+  Tests, nur `GnotchiMitteilungen/` ist ausgenommen. Verworfen: XPC-Dienst im Gnotchi-Paket (dort wäre Gnotchi
+  verantwortlich und bekäme die Freigabe, samt Perl-Kind).
 
 ### G2 – Bundle-Signatur und Identität vor jedem Start (vormals Seam E17a, Kern)
 - **Entschieden:** `/usr/bin/perl` prüft keine Signatur und lädt das Framework ohne
@@ -314,6 +331,10 @@ signaturgeprüfte (G24).
   `com.apple.developer.team-identifier`); Gegenprobe 18.10. an einer ad hoc signierten Kopie:
   Berechtigung am Test-Programm, `disable-library-validation` an der App und fehlende
   Apple-Events-Berechtigung brechen jeweils ab.
+- **Ab 0.6.0:** Das Hilfsprogramm `Contents/Library/LoginItems/Gnotchi Mitteilungen.app` hat **keine**
+  Berechtigungen (Bedienungshilfen sind keine, der Nutzer erteilt sie), Hardened Runtime, Developer ID. Es fällt
+  unter die rekursive Positivliste (`entitlement-gate.sh`: alles nicht Genannte darf keine haben); `release.sh`
+  prüft zusätzlich, dass es da und gültig signiert ist.
 - **Signierreihenfolge:** `dev-signed.sh` und `install-signed.sh` signieren von innen nach außen
   ohne `--deep` – Sparkles Teile mit ihren eigenen Berechtigungen, dann Test-Programm und
   Framework ohne, zuletzt die App mit `Gnotchi.entitlements`.
@@ -343,6 +364,8 @@ signaturgeprüfte (G24).
   Anzeige, nur von einem Developer-ID-signierten Tippi angenommen, keine Befehle. Ab 0.4.0 (G23/G24):
   Update-Meldungen der App-Familie ebenfalls nur Anzeige; erst ein **Klick des Nutzers** öffnet die
   gemeldete App – die fest im Code zugeordnete, signaturgeprüfte, nie einen Pfad aus der Meldung.
+  Ab 0.6.0 (G29/G30): Über `notify.sock` kommen vom geprüften Hilfsprogramm nur Mitteilungen zur Anzeige; Befehle
+  laufen in die **andere** Richtung (Gnotchi → Hilfsprogramm) und entstehen nur aus einem Klick in der Insel.
 - **Warum:** Sonst könnten andere Programme Gnotchi als Werkzeug benutzen und über dessen
   Automation-Freigabe Spotify/Musik steuern, ohne selbst gefragt zu werden.
 
@@ -568,6 +591,56 @@ signaturgeprüfte (G24).
 - **Gemessen 21.10.:** Testkopie mit genau zwei Berechtigungen; Michael: Bild gespiegelt, LED aus nach
   Einklappen (Protokoll an 19:26:49, aus 19:27:06).
 
+### G28 – Hilfsprogramm: einzige Bedienungshilfen-Freigabe, kleinstmöglich (neu, 2026-10-22, 0.6.0)
+- **Entschieden:** `Gnotchi Mitteilungen.app` beobachtet **nur** den Prozess `com.apple.notificationcenterui`
+  (AXObserver + Abfrage im Sekundentakt). Es schreibt genau zwei Dinge: `AXPosition` von Banner-Fenstern dieses
+  Prozesses (verstecken/zurück) und `AXPerformAction` an einem gemeldeten Banner bzw. dessen Anruf-Knopf. Kein
+  `AXValue` setzen (kein Tippen), keine Event-Taps, keine künstlichen Eingaben, keine Prozesse, kein AppleScript,
+  kein Netz. Maschinell: Lint-Regeln `keine_eingaben_im_helfer` und `kindprozess_nur_im_adapter` (gilt auch hier).
+- **Fail-open:** Ein Fenster wird nur versteckt, wenn **alle** seine Banner gerade in Gnotchi zu sehen sind
+  (sonst verschwände eine nicht ausgewählte Mitteilung mit). Ohne Banner, bei geöffneter Mitteilungszentrale, beim
+  Beenden (auch SIGTERM/SIGINT/SIGHUP) → alles zurück. Ohne Verbindung zu Gnotchi wird nichts versteckt.
+- **Lebensdauer:** Gnotchi startet es (nur signaturgeprüft, nur aus dem eigenen Paket) bei eingeschaltetem
+  Schalter; es beendet sich, wenn Gnotchi trennt oder 10 s nicht erreichbar ist.
+- **Gemessen 22.10.:** eigener verantwortlicher Prozess (G1); Banner-Fenster per `AXPosition` weg und zurück
+  (`tools/nc-park.swift`); Gnotchi beendet → Hilfsprogramm „Ende: Gnotchi getrennt“ nach < 1 s.
+- **Anrufe:** Apples Anruf-Banner wird in 0.6.0 **nicht** versteckt, solange „Ablehnen aus der Notch“ nicht am
+  echten Anruf gemessen ist – sonst ließe sich ein Anruf bei einem Fehler gar nicht mehr wegdrücken.
+
+### G29 – Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert (neu, 2026-10-22, 0.6.0)
+- **Weg:** Unix-Socket `~/Library/Application Support/Gnotchi/notify.sock`, Gnotchi ist Server (derselbe
+  `PeerSocketServer` wie G21/G26, hier ungedrosselt: jede Nachricht zählt, höchstens 10/s, Rahmen ≤ 8 KB).
+- **Hilfsprogramm prüft Gnotchi** vor dem ersten Inhalt (Audit-Token, Developer ID, `dev.mwlr.gnotchi`, Team
+  LTKJ6Z2VYB, `ok` binnen 0,5 s). Wichtigste Prüfung: Ein falscher „Gnotchi“ bekäme sonst alle Mitteilungen.
+  **Gegenprobe 22.10.:** Python-Server am Pfad, sendet `ok` → 21 Versuche „kein echtes Gnotchi (OSStatus -67050)“,
+  **0 Bytes** empfangen, Hilfsprogramm nach 10 s beendet.
+- **Gnotchi prüft das Hilfsprogramm** genauso (`dev.mwlr.gnotchi.mitteilungen`). Test
+  `testNotifyRequirementRejectsOtherProcess`: Testlauf ist nicht das Hilfsprogramm → kein `ok`, nichts angezeigt.
+- **Filter im Hilfsprogramm:** Inhalte nicht ausgewählter Apps verlassen es nie; vor dem ersten Filter von Gnotchi
+  wird nichts gemeldet. Zuordnung App-Name → Kennung nur eindeutig (laufende Apps, sonst installierte nach
+  angezeigtem Namen); zwei Apps gleichen Namens → keine Kennung → nicht gezeigt. Gemessen 22.10.: leere Liste →
+  Apples Banner blieb auf (0,0), Gnotchi klein.
+- **Schema statt Vertrauen, beide Seiten** (`NotifyWire`, dieselbe Datei in beiden Zielen): unbekannte Schlüssel →
+  ungültig, `v` Zahl 1, Kennungen nur `[A-Za-z0-9_-]` ≤ 64, Bundle-IDs `[A-Za-z0-9.-]`, Texte bereinigt wie G21
+  und gekürzt (App 40, Titel/Untertitel 120, Text 500), ≤ 6 Aktionen à ≤ 40 Zeichen, Eingabe-Aktionen
+  („Antworten“, „Mit Nachricht ablehnen“, „Details einblenden“, Live-Voicemail) werden auf beiden Seiten entfernt.
+  Anzeige nur `Text(verbatim:)`. Warteschlange ≤ 20.
+- **Nur im Arbeitsspeicher**, nie gespeichert, nie protokolliert. Protokoll: verbunden/abgelehnt (OSStatus)/
+  Beobachtung/„Gemeldet: note|call, n Knöpfe, nach x ms“/„Aktion „<Beschriftung>“ ausgeführt (AXError)“. Die
+  Beschriftung ist ein macOS-Text („Annehmen“), kein Inhalt. Gemessen 22.10.: Protokoll nach Testmitteilung
+  0 Treffer auf Titel/Text/App. Die App-Liste speichert nur Kennungen (wie G25).
+
+### G30 – Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner (neu, 2026-10-22, 0.6.0)
+- Gnotchi schickt `act` nur aus einem SwiftUI-Knopf/Tipp in der Insel (G13), nie zeitgesteuert. Anruf-Knöpfe erst
+  0,5 s nach dem Erscheinen klickbar; nach einem Klick grau, bis macOS neue Knöpfe meldet.
+- Das Hilfsprogramm führt `act` nur an einem **gerade sichtbaren, gemeldeten** Banner aus, und nur eine Aktion, die
+  macOS **jetzt** dafür meldet; Anrufe nur Annehmen/Ablehnen/Beenden (de/en) an einem frisch gesuchten `AXButton`.
+- **Gemessen 22.10. (iPhone-Anruf über Continuity):** Banner `FACETIME_NOTIFICATION` ist in der ersten Zehntelsekunde
+  leer (Knöpfe nach 245–1496 ms) → Hilfsprogramm liest bis 3 s alle 0,2 s nach. Nach „Annehmen“ wird dasselbe Banner
+  nach ~5 s zur Gesprächsleiste (Beenden, Weitere, Ziffernblock, Stumm, FaceTime-Video); angeboten wird nur
+  Beenden. Michael 11:09: „Annehmen“ und „Beenden“ aus der Notch wirken (Protokoll AXError 0). **Nicht gemessen:**
+  Ablehnen aus der Notch, FaceTime-Audio/-Video.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -603,6 +676,15 @@ signaturgeprüfte (G24).
 | **I** | Familien-App → distnoted (13) | installierte Apps und Versionen mitlesbar | G23: öffentliche Angaben, hingenommen (wie G22) |
 | **D** | lokaler Prozess → Gnotchi (13) | Meldungsflut | G23: Schema-Abbruch, 1/s je App, höchstens 4 Einträge, Takt 4 s fest |
 | **E** | Gnotchi → andere App (13a) | Klick startet eine Attrappe gleicher Kennung | G24: Signaturprüfung vor dem Öffnen |
+| **S** | lokaler Prozess → Hilfsprogramm (14a) | gibt sich als Gnotchi aus, liest alle Mitteilungen | G29: Hilfsprogramm prüft den Server vor dem ersten Inhalt (Gegenprobe 22.10.) |
+| **S** | lokaler Prozess → Gnotchi (14a) | falscher Anruf/Phishing-Text in der Notch | G29: Gnotchi prüft den Client |
+| **S** | fremde App (14) | nennt sich „WhatsApp“, erscheint mit dessen Symbol | G29: nur eindeutige Zuordnung; Rest hingenommen (Apples Banner zeigt dasselbe) |
+| **T** | lokaler Prozess → Hilfsprogramm (14a) | beliebige Aktion auslösen | G30: nur geprüfte Gegenseite, nur gemeldete Aktion am sichtbaren Banner |
+| **I** | Hilfsprogramm/Gnotchi → Protokoll (14) | Mitteilungstexte im Log | G29: nie protokolliert |
+| **I** | Hilfsprogramm → Gnotchi (14a) | Inhalte nicht ausgewählter Apps | G29: Filter im Hilfsprogramm |
+| **D** | Mitteilungszentrale → Hilfsprogramm (14) | Flut, Gnotchi hängt → Mitteilungen weg | G28/G29: verstecken erst nach `shown`, 10/s, ≤ 20, alles zurück beim Beenden |
+| **E** | Hilfsprogramm (14) | Bedienungshilfen als Hebel | G28: nur Mitteilungszentrale, nur Position + Aktion, keine Eingaben/Prozesse/Netz |
+| **E** | Gnotchi/Perl (14) | erben die Freigabe | G1/G28: eigenes Paket, eigener verantwortlicher Prozess (gemessen) |
 
 ## Negativraum: was wir stillschweigend annehmen
 

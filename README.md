@@ -47,6 +47,10 @@ Freigabe nicht und fragt nie danach.
   die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute.
 - **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die
   Kamera läuft nur, solange der Spiegel zu sehen ist.
+- **Mitteilungen und Anrufe (0.6):** Mitteilungen ausgewählter Apps erscheinen in der Notch statt oben rechts,
+  mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
+  Auflegen. Ein eigenes Hilfsprogramm mit Bedienungshilfen-Freigabe liest Apples Banner; Gnotchi selbst bleibt
+  ohne. Ab Werk aus.
 - **Spulen:** im Balken klicken oder ziehen, gespult wird beim Loslassen. In Spotify auch dann,
   wenn die Musik über Spotify Connect auf einem anderen Gerät läuft. Ohne Dauer (Livestream) ist
   der Balken gesperrt.
@@ -125,9 +129,10 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **Automation für Spotify** | beim ersten Spulen in Spotify | Spotify spult per AppleScript. Über Spotify Connect springt die Zeit sonst zurück (gemessen 18.10.2026). |
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
 | **Kamera** | beim ersten Klick auf den Spiegel (0.5) | Nur der Spiegel. Das Bild geht direkt auf den Bildschirm, nie in eine Datei ([G27](docs/SECURE-DESIGN.md)) |
+| **Bedienungshilfen für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
-Was Gnotchi **nicht** braucht: keine Bedienungshilfen, keine Bildschirmaufnahme, kein Mikrofon,
+Was Gnotchi **nicht** braucht: keine Bedienungshilfen (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon,
 kein Bluetooth (die Kamera nur für den Spiegel, siehe oben). Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
 CoreMediaIO ohne Freigabe (gemessen 20.10.2026: Kamera ohne Anfrage, beim Mikrofon nur eine stille
 Vorabprüfung von macOS, kein Dialog).
@@ -169,6 +174,10 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 - **Spiegel:** Das Kamerabild geht nur in die Vorschau auf dem Bildschirm, nie in Gnotchis eigenen
   Code, eine Datei oder das Netz. Die Kamera läuft nur, solange der Spiegel sichtbar ist
   ([G27](docs/SECURE-DESIGN.md)).
+- **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
+  der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
+  Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird
+  nur die App-Liste. Knöpfe wirken nur auf deinen Klick ([G28–G30](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 

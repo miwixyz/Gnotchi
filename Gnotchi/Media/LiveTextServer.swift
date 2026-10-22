@@ -37,6 +37,12 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     private let parse: @Sendable (Data) -> Value?
     private let onValue: @Sendable (Value?) -> Void
     private let queue: DispatchQueue
+    /// Größte Nachricht (Länge + JSON); Mitteilungen (0.6.0) brauchen mehr als Live-Text.
+    private let maxFrame: Int
+    /// `true` (Live-Text, Termine): gedrosselt, der letzte Stand gewinnt. `false` (Mitteilungen, 0.6.0): jede
+    /// Nachricht zählt – sofort weitergeben, aber höchstens `maxPerSecond`, der Rest fällt weg.
+    private let coalesce: Bool
+    nonisolated static var maxPerSecond: Int { 10 }
 
     // Nur auf `queue`:
     private var listenFD: Int32 = -1
@@ -47,9 +53,14 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     private var lastDelivery = Date.distantPast
     private var pending: Value?
     private var flushScheduled = false
+    private var windowStart = Date.distantPast
+    private var windowCount = 0
 
     init(directory: URL, fileName: String, label: String, peer: String, requirement: SecRequirement,
+         maxFrame: Int = LiveText.maxFrame, coalesce: Bool = true,
          parse: @escaping @Sendable (Data) -> Value?, onValue: @escaping @Sendable (Value?) -> Void) {
+        self.maxFrame = maxFrame
+        self.coalesce = coalesce
         socketPath = directory.appendingPathComponent(fileName).path
         self.requirement = requirement
         self.label = label
@@ -166,13 +177,13 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     }
 
     private func readClient() {
-        var chunk = [UInt8](repeating: 0, count: LiveText.maxFrame)
+        var chunk = [UInt8](repeating: 0, count: maxFrame)
         let n = read(clientFD, &chunk, chunk.count)
         if n == 0 { return closeClient(reason: "getrennt") }
         if n < 0 { return errno == EAGAIN ? () : closeClient(reason: "Lesefehler") }
         buffer.append(contentsOf: chunk[0..<n])
         while true {
-            switch LiveText.nextFrame(&buffer) {
+            switch LiveText.nextFrame(&buffer, max: maxFrame) {
             case .needMore:
                 return
             case .invalid:
@@ -194,8 +205,26 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
         onValue(nil)
     }
 
-    /// Drosseln: höchstens alle 0,25 s, der letzte Stand gewinnt.
+    /// An den verbundenen, geprüften Client schreiben (Mitteilungen: Filter und Befehle, G29/G30). Ohne Client nichts.
+    func send(_ object: [String: Any]) {
+        guard let data = LiveText.frame(object, max: maxFrame) else { return }
+        queue.async { [weak self] in
+            guard let self, clientFD >= 0 else { return }
+            let n = data.withUnsafeBytes { write(self.clientFD, $0.baseAddress, data.count) }
+            if n != data.count { closeClient(reason: "Schreibfehler") }
+        }
+    }
+
+    /// Drosseln: höchstens alle 0,25 s, der letzte Stand gewinnt. Ohne `coalesce` jede Nachricht, höchstens
+    /// `maxPerSecond` je Sekunde (Flut → der Rest fällt weg; das Hilfsprogramm lässt Apples Banner dann stehen).
     private func deliver(_ value: Value) {
+        guard coalesce else {
+            let now = Date()
+            if now.timeIntervalSince(windowStart) >= 1 { windowStart = now; windowCount = 0 }
+            windowCount += 1
+            if windowCount <= Self.maxPerSecond { onValue(value) }
+            return
+        }
         let wait = Self.minDeliveryInterval - Date().timeIntervalSince(lastDelivery)
         guard wait > 0 else {
             lastDelivery = Date()

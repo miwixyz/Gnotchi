@@ -151,6 +151,77 @@ final class LiveTextServerTests: XCTestCase {
         XCTAssertFalse(got.values.contains { $0 != nil }, "nichts angezeigt")
     }
 
+    // MARK: 0.6.0 Mitteilungen (G29) über denselben Server, ungedrosselt, mit Rückkanal
+
+    private func notifyServer(_ req: SecRequirement, got: Box) -> PeerSocketServer<NotifyWire.HelperMessage> {
+        PeerSocketServer<NotifyWire.HelperMessage>(
+            directory: dir, fileName: NotifyWire.socketName, label: "Mitteilungen", peer: "Hilfsprogramm", requirement: req,
+            maxFrame: NotifyWire.maxFrame, coalesce: false, parse: { NotifyWire.parseHelperMessage($0) },
+            onValue: { got.append($0.map { "\($0)" }) })
+    }
+
+    private func noteFrame(_ id: String) -> [String: Any] {
+        ["v": 1, "note": ["id": id, "kind": "note", "app": "Beispiel", "title": "Erfunden", "subtitle": "", "body": "",
+                          "actions": []]]
+    }
+
+    func testNotifySocketDeliversEveryNoteAndSendsCommands() throws {
+        let got = Box()
+        let server = notifyServer(try selfRequirement(), got: got)
+        try server.start()
+        defer { server.stop() }
+        let fd = try connect(server.socketPath)
+        defer { close(fd) }
+        XCTAssertEqual(try readAck(fd), true)
+        for i in 1...5 { try send(fd, noteFrame("n\(i)")) }
+        XCTAssertTrue(waitFor { got.values.compactMap { $0 }.count == 5 }, "jede Mitteilung kommt an, nicht nur die letzte")
+        server.send(NotifyWire.encode(.filter(apps: ["com.example.app"], calls: true)))
+        let cmd = try XCTUnwrap(readFrame(fd))
+        XCTAssertEqual(NotifyWire.parseCommand(cmd), .filter(apps: ["com.example.app"], calls: true), "Rückkanal")
+    }
+
+    func testNotifyFloodIsCapped() throws {
+        let got = Box()
+        let server = notifyServer(try selfRequirement(), got: got)
+        try server.start()
+        defer { server.stop() }
+        let fd = try connect(server.socketPath)
+        defer { close(fd) }
+        _ = try readAck(fd)
+        for i in 1...40 { try send(fd, noteFrame("f\(i)")) }
+        XCTAssertTrue(waitFor { got.values.compactMap { $0 }.count >= PeerSocketServer<NotifyWire.HelperMessage>.maxPerSecond })
+        XCTAssertLessThanOrEqual(got.values.compactMap { $0 }.count, 2 * PeerSocketServer<NotifyWire.HelperMessage>.maxPerSecond,
+                                 "Flut gedeckelt")
+    }
+
+    /// Gegenprobe G29: Der Testlauf ist nicht das Hilfsprogramm → kein ok, nichts angezeigt, nichts zurück.
+    func testNotifyRequirementRejectsOtherProcess() throws {
+        let got = Box()
+        var req: SecRequirement?
+        SecRequirementCreateWithString(NotifyLink.requirement as CFString, [], &req)
+        let server = notifyServer(try XCTUnwrap(req), got: got)
+        try server.start()
+        defer { server.stop() }
+        let fd = try connect(server.socketPath)
+        defer { close(fd) }
+        _ = try? send(fd, noteFrame("untergeschoben"))
+        XCTAssertNil(try readAck(fd), "kein ok, Verbindung zu")
+        server.send(NotifyWire.encode(.filter(apps: ["com.example.app"], calls: true)))
+        XCTAssertFalse(got.values.contains { $0 != nil }, "nichts angezeigt")
+    }
+
+    /// Nächste Nachricht als Rohdaten (nach dem ok).
+    private func readFrame(_ fd: Int32) throws -> Data? {
+        var buf = Data()
+        var chunk = [UInt8](repeating: 0, count: 512)
+        while true {
+            let n = read(fd, &chunk, chunk.count)
+            guard n > 0 else { return nil }
+            buf.append(contentsOf: chunk[0..<n])
+            if case .message(let p) = NotifyWire.nextFrame(&buf) { return p }
+        }
+    }
+
     // MARK: Hilfen
 
     /// Anforderung, die genau dieser Testlauf erfüllt (seine eigene Designated Requirement).

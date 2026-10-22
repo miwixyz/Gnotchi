@@ -30,20 +30,20 @@ enum LiveText {
 
     /// Nimmt die nächste vollständige Nachricht vorne aus `buffer`. `invalid`: Länge 0 oder zu groß –
     /// der Aufrufer trennt die Verbindung.
-    nonisolated static func nextFrame(_ buffer: inout Data) -> Frame {
+    nonisolated static func nextFrame(_ buffer: inout Data, max: Int = maxFrame) -> Frame {
         guard buffer.count >= 4 else { return .needMore }
         let b = [UInt8](buffer.prefix(4))
         let length = Int(b[0]) << 24 | Int(b[1]) << 16 | Int(b[2]) << 8 | Int(b[3])
-        guard length > 0, length + 4 <= maxFrame else { return .invalid }
+        guard length > 0, length + 4 <= max else { return .invalid }
         guard buffer.count >= length + 4 else { return .needMore }
         let payload = Data(buffer.dropFirst(4).prefix(length))
         buffer = Data(buffer.dropFirst(4 + length))
         return .message(payload)
     }
 
-    nonisolated static func frame(_ object: [String: Any]) -> Data? {
+    nonisolated static func frame(_ object: [String: Any], max: Int = maxFrame) -> Data? {
         guard let json = try? JSONSerialization.data(withJSONObject: object),
-              json.count + 4 <= maxFrame else { return nil }
+              json.count + 4 <= max else { return nil }
         let n = UInt32(json.count).bigEndian
         return withUnsafeBytes(of: n) { Data($0) } + json
     }

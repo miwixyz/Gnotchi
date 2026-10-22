@@ -8,7 +8,8 @@ final class IslandState {
     /// `notice`: kurzer Hinweis (Kopfhörer), eigene Form unter der Notch (0.2.0).
     /// `live`: Tippis Live-Text, zwei Zeilen unter der Aufnahme-Zeile (0.3.0).
     /// `wide`: Trackwechsel, 3 s breiter mit Titel · Interpret (0.4.0).
-    enum Mode { case hidden, compact, expanded, notice, live, wide, band }
+    /// `message`/`call`: Mitteilung bzw. eingehender Anruf aus dem Hilfsprogramm (0.6.0).
+    enum Mode { case hidden, compact, expanded, notice, live, wide, band, message, call }
     var mode: Mode = .hidden
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
@@ -43,6 +44,8 @@ struct IslandView: View {
                                       chipRow: activity.showsChipRow, mirror: activity.mirrorActive)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
+        case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
+        case .call: state.layout.call.size
         }
     }
 
@@ -75,8 +78,8 @@ struct IslandView: View {
 
     private var corner: CGFloat {
         switch state.mode {
-        case .expanded: 22
-        case .notice, .live: 16
+        case .expanded, .message: 22
+        case .notice, .live, .call: 16
         case .hidden, .compact, .wide, .band: 10
         }
     }
@@ -88,6 +91,16 @@ struct IslandView: View {
         case .hidden: EmptyView()
         case .notice: if let n = activity.notice { notice(n) }
         case .live: if let rec = activity.recording { liveText(rec) }
+        case .message:
+            if let n = activity.currentNote {
+                NoteIsland(note: n, queued: activity.queuedNotes, topInset: state.layout.notch?.height ?? 0,
+                           onOpen: { activity.openNote() }, onAction: { activity.performNoteAction($0) })
+            }
+        case .call:
+            if let c = activity.call {
+                CallIsland(call: c, armed: activity.callArmed, topInset: state.layout.notch?.height ?? 0,
+                           onAnswer: { activity.answerCall($0) })
+            }
         case .compact:
             if let rec = activity.recording {
                 recordingCompact(rec)

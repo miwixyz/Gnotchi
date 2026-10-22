@@ -28,6 +28,10 @@ enum IslandGeometry {
         var wide: CGRect = .zero
         /// Band (0.5.0, Michael 21.10., Vorbild-Video): seitlich breit in Menüleisten-Höhe statt nach unten.
         var band: CGRect = .zero
+        /// Mitteilung (0.6.0): App, Titel, Text, Knöpfe – so breit wie die große Insel.
+        var message: CGRect = .zero
+        /// Eingehender Anruf (0.6.0): Anrufer und zwei runde Knöpfe.
+        var call: CGRect = .zero
     }
 
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
@@ -52,6 +56,22 @@ enum IslandGeometry {
     /// und Menüleisten-Symbole blieben sonst verdeckt, und macOS verrät nicht, wo die Symbole beginnen.
     static let bandWing: CGFloat = 300
     static let bandPillWidth: CGFloat = 720
+    /// Mitteilung (0.6.0): größte Form (Kopfzeile, Titel, Untertitel, zwei Zeilen Text, Knopfzeile); die Insel ist nur
+    /// so hoch wie ihr Inhalt (`messageHeight`, Testbild 22.10.: fest 118 pt quetschte den Text auf eine Zeile).
+    static let messageSize = CGSize(width: 460, height: 140)
+
+    /// Höhe der Mitteilung ohne Notch-Streifen: Ränder 20, Kopfzeile 18, je Zeile Abstand 2 + Zeilenhöhe; Text zweizeilig
+    /// ab etwa 60 Zeichen (≈ 394 pt bei 12 pt), Knopfzeile 4 + 24.
+    static func messageHeight(title: Bool, subtitle: Bool, bodyChars: Int, buttons: Bool) -> CGFloat {
+        var h: CGFloat = 20 + 18
+        if title { h += 2 + 18 }
+        if subtitle { h += 2 + 16 }
+        if bodyChars > 0 { h += 2 + (bodyChars > 60 ? 32 : 16) }
+        if buttons { h += 2 + 28 }
+        return min(h, messageSize.height)
+    }
+    /// Anruf (0.6.0, Vorbild DynamicLake): eine Zeile mit Anrufer und zwei Knöpfen.
+    static let callSize = CGSize(width: 400, height: 60)
 
     static func layout(for m: ScreenMetrics) -> Layout {
         let top = m.frame.maxY
@@ -69,7 +89,9 @@ enum IslandGeometry {
                           wide: band(CGSize(width: notch.width + 2 * wideWing, height: 0), midX: notch.midX, top: top,
                                      extraHeight: notch.height, in: m.frame),
                           band: band(CGSize(width: notch.width + 2 * bandWing, height: 0), midX: notch.midX, top: top,
-                                     extraHeight: notch.height, in: m.frame))
+                                     extraHeight: notch.height, in: m.frame),
+                          message: band(messageSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
+                          call: band(callSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
         let pill = CGRect(x: midX - pillSize.width / 2, y: top - pillSize.height,
@@ -81,7 +103,9 @@ enum IslandGeometry {
                       wide: band(CGSize(width: widePillWidth, height: pillSize.height), midX: midX, top: top,
                                  extraHeight: 0, in: m.frame),
                       band: band(CGSize(width: bandPillWidth, height: max(pillSize.height, m.menuBarHeight)), midX: midX,
-                                 top: top, extraHeight: 0, in: m.frame))
+                                 top: top, extraHeight: 0, in: m.frame),
+                      message: band(messageSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
+                      call: band(callSize, midX: midX, top: top, extraHeight: 0, in: m.frame))
     }
 
     /// Rechteck oben bündig, mittig über `midX`, mit Notch um deren Höhe länger (Inhalt beginnt darunter).

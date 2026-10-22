@@ -227,6 +227,14 @@ NESTED="${GATE_COUNT}"
     || fail "MediaRemoteAdapter.framework fehlt im Bundle"
 [ -x "${APP_PATH}/Contents/MacOS/MediaRemoteAdapterTestClient" ] \
     || fail "MediaRemoteAdapterTestClient fehlt im Bundle"
+# 0.6.0 (G28): Hilfsprogramm für Mitteilungen – da, eigene Kennung, gültig mit Developer ID signiert (Gnotchi startet
+# es nur nach dieser Prüfung). Berechtigungen prüft gate_check_nested oben (keine erlaubt).
+HELPER_APP="${APP_PATH}/Contents/Library/LoginItems/Gnotchi Mitteilungen.app"
+[ -d "${HELPER_APP}" ] || fail "Gnotchi Mitteilungen.app fehlt im Bundle"
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${HELPER_APP}/Contents/Info.plist")" = "dev.mwlr.gnotchi.mitteilungen" ] \
+    || fail "Hilfsprogramm hat die falsche Kennung"
+codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.mitteilungen"' "${HELPER_APP}" \
+    || fail "Hilfsprogramm nicht gültig mit Developer ID signiert"
 echo "  ✓ Developer ID (Team LTKJ6Z2VYB) + Hardened Runtime"
 echo "  ✓ Berechtigungen: App nur Apple Events, ${NESTED} eingebettete Teile ohne"
 

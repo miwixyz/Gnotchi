@@ -37,6 +37,10 @@ final class Preferences {
         static let bandStyle = "bandStyle"
         /// Medienfilter: nur Bundle-IDs (G25).
         static let mediaExcluded = "mediaExcluded"
+        /// 0.6.0 Mitteilungen und Anrufe in der Notch (G28–G30): Schalter, App-Liste (nur Kennungen), Anrufe.
+        static let notifications = "notifications"
+        static let notifyApps = "notifyApps"
+        static let notifyCalls = "notifyCalls"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -108,6 +112,14 @@ final class Preferences {
     /// Medienfilter (0.4.0, G25): Wiedergabe dieser Apps erscheint nie in der Insel. Nur über `setMediaExcluded`.
     private(set) var mediaExcluded: [String] { didSet { defaults.set(mediaExcluded, forKey: Key.mediaExcluded) } }
 
+    /// Mitteilungen in der Notch (0.6.0). Ab Werk **aus**: braucht das Hilfsprogramm mit Bedienungshilfen (G28).
+    var notifications: Bool { didSet { defaults.set(notifications, forKey: Key.notifications) } }
+    /// Anrufe in der Notch (0.6.0), wirkt nur bei eingeschalteten Mitteilungen.
+    var notifyCalls: Bool { didSet { defaults.set(notifyCalls, forKey: Key.notifyCalls) } }
+    /// Apps, deren Mitteilungen in die Notch dürfen (G29) – nur Kennungen, gleiche Regeln wie G25. Nur über
+    /// `setNotifyApp`; `nil` = noch nie eingeschaltet (dann schlägt Gnotchi einmal Nachrichten-Apps vor).
+    private(set) var notifyApps: [String]? { didSet { defaults.set(notifyApps, forKey: Key.notifyApps) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
@@ -129,6 +141,26 @@ final class Preferences {
         compactControls = defaults.object(forKey: Key.compactControls) as? Bool ?? false
         bandStyle = defaults.object(forKey: Key.bandStyle) as? Bool ?? false
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
+        notifications = defaults.object(forKey: Key.notifications) as? Bool ?? false
+        notifyCalls = defaults.object(forKey: Key.notifyCalls) as? Bool ?? true
+        notifyApps = defaults.object(forKey: Key.notifyApps).map { Self.validExcluded($0) }
+    }
+
+    func isNotifyApp(_ bundleID: String) -> Bool {
+        notifyApps?.contains(bundleID) ?? false
+    }
+
+    func setNotifyApp(_ bundleID: String, _ on: Bool) {
+        var list = (notifyApps ?? []).filter { $0 != bundleID }
+        if on { list.append(bundleID) }
+        let valid = Self.validExcluded(list)
+        if valid != notifyApps { notifyApps = valid }
+    }
+
+    /// Beim ersten Einschalten: vorgeschlagene Apps übernehmen (nur einmal; danach entscheidet der Nutzer).
+    func seedNotifyApps(_ ids: [String]) {
+        guard notifyApps == nil else { return }
+        notifyApps = Self.validExcluded(ids)
     }
 
     func isMediaExcluded(_ bundleID: String) -> Bool {

@@ -59,6 +59,17 @@ for part in "$APP"/Contents/MacOS/*.dylib; do
     [ -e "$part" ] || continue
     codesign --force --options runtime --sign "$IDENTITY" "$part"
 done
+# 2c. Hilfsprogramm „Gnotchi Mitteilungen“ (0.6.0, G28): ohne Berechtigungen, eigene Kennung. Erst seine
+# ausgelagerten Debug-Dylibs, dann das Paket. Developer ID ist Pflicht: Gnotchi startet es nur signaturgeprüft,
+# beide Seiten prüfen sich am Socket, und die Bedienungshilfen-Freigabe hängt an dieser Signatur.
+HELPER="$APP/Contents/Library/LoginItems/Gnotchi Mitteilungen.app"
+if [ -d "$HELPER" ]; then
+    for part in "$HELPER"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --sign "$IDENTITY" "$HELPER"
+fi
 # 3. Die App zuletzt, als einzige mit Gnotchis Berechtigung (Apple Events).
 codesign --force --options runtime \
     --entitlements Gnotchi/Resources/Gnotchi.entitlements \

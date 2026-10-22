@@ -4,6 +4,7 @@
 
 included:
   - Gnotchi
+  - GnotchiMitteilungen
   - GnotchiTests
 
 excluded:
@@ -50,10 +51,24 @@ custom_rules:
   keine_bedienungshilfen:
     name: "Keine Bedienungshilfen, keine Eingaben"
     regex: '\b(AXIsProcessTrusted\w*|AXUIElement\w*|AXObserver\w*|kAXTrustedCheckOptionPrompt|CGEventTapCreate\w*|CGEventPost\w*|addGlobalMonitorForEvents|IOHIDManager\w*)\b|CGEvent\.tapCreate|\.post\(tap:'
+    # 0.6.0 (G28): einzige Ausnahme ist das Hilfsprogramm „Gnotchi Mitteilungen“ – eigenes Paket, eigene Freigabe.
+    excluded: 'GnotchiMitteilungen/'
     excluded_match_kinds:
       - comment
       - doccomment
     message: "Gnotchi nutzt keine Bedienungshilfen und erzeugt/beobachtet keine Eingaben (SECURE-DESIGN G1)."
+    severity: error
+
+  # Gnotchi, docs/SECURE-DESIGN.md G28: Das Hilfsprogramm hat Bedienungshilfen, erzeugt aber NIE Eingaben und
+  # beobachtet keine – nur Banner lesen, Fenster verschieben, gemeldete Aktion auslösen.
+  keine_eingaben_im_helfer:
+    name: "Hilfsprogramm: keine Eingaben"
+    regex: '\b(CGEventTapCreate\w*|CGEventPost\w*|CGEventCreate\w*|addGlobalMonitorForEvents|IOHIDManager\w*|NSAppleScript)\b|CGEvent\.tapCreate|\.post\(tap:|CGEvent\('
+    included: 'GnotchiMitteilungen/.*\.swift'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Das Hilfsprogramm erzeugt und beobachtet keine Eingaben und tippt nichts (SECURE-DESIGN G28)."
     severity: error
 
   # Gnotchi, docs/SECURE-DESIGN.md G3/G9: Kindprozesse (Perl, pgrep) entstehen nur in
@@ -66,7 +81,8 @@ custom_rules:
     # Klassenmethode, die ohne `Process(` startet (Security-Review 18.10., B11). `perlProcess(` trifft
     # das nicht (kein Wortanfang vor `Process`).
     regex: '\b(Process\s*\(|Process\.run\(|NSTask|posix_spawn\w*|(?<!\.)system\(|popen\()'
-    included: 'Gnotchi/.*\.swift'
+    # 0.6.0: auch im Hilfsprogramm (G28) – das startet gar keine Prozesse.
+    included: '(Gnotchi|GnotchiMitteilungen)/.*\.swift'
     # Tests ausgenommen: BundleIntegrityTests ruft codesign für ein Probe-Bundle auf.
     excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift'
     excluded_match_kinds:

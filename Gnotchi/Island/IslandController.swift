@@ -200,6 +200,8 @@ final class IslandController {
             _ = activity.pinned
             _ = activity.playerOverlay
             _ = activity.showsTrackFlash
+            _ = activity.currentNote?.id
+            _ = activity.call?.id
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -316,7 +318,11 @@ final class IslandController {
         let windows = visible ? Self.onScreenWindows() : []
         let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
         updateCompetitor(visible ? competitor(in: windows) : nil)
-        defer { model.setIslandShown(panels.values.contains { $0.state.mode != .hidden }) }
+        defer {
+            model.setIslandShown(panels.values.contains { $0.state.mode != .hidden })
+            // Mitteilung wirklich zu sehen → erst jetzt darf Apples Banner weg (0.6.0, G29 fail-open).
+            if panels.values.contains(where: { $0.state.mode == .message }) { activity.noteDisplayed() }
+        }
         for (id, entry) in panels {
             let screen = NSScreen.screens.first { $0.displayID == id }
             let fullscreen = screen.map {
@@ -337,7 +343,8 @@ final class IslandController {
             }
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
                                              recording: activity.recording != nil, liveText: activity.showsLiveText,
-                                             trackFlash: activity.showsTrackFlash, alarm: activity.timerAlarm)
+                                             trackFlash: activity.showsTrackFlash, alarm: activity.timerAlarm,
+                                             call: activity.call != nil, message: activity.currentNote != nil)
             // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {
@@ -535,6 +542,7 @@ extension IslandController {
 
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
+        if mode == .message { return Self.messageFrame(layout: layout, note: activity.currentNote) }
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
         return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
     }
