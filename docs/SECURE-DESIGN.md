@@ -710,6 +710,31 @@ nur aus Klicks (G29, G30).
 - **Restrisiko (hingenommen):** Eine App kann beim Ziehen eine präparierte Datei (z. B. `.app`) anbieten – sie liegt
   dann als Verweis in der Ablage und wird nur weitergereicht, nie gestartet.
 
+### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
+- **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine
+  Berechtigungen) wird von Claude Code je Ereignis gestartet (`async: true`), liest stdin (≤ 4 MB), prüft Gnotchi über
+  das Audit-Token **bevor** es sendet (Claudes Antwort kann Vault-Inhalte enthalten), endet. Gnotchi prüft den
+  Absender genauso (`claude.sock`). Gibt **nie** etwas auf stdout aus → nie eine Entscheidung an Claude Code.
+- **Datensparsam:** Sitzungs-Kennung, Ereignis, Projektname (letzter Pfadteil), App-Kennung + PID, Werkzeugname,
+  Kurzfassung (Bash-Befehl ≤ 120 Zeichen, sonst nur Dateiname), Antwort ≤ 300 Zeichen. Nie `transcript_path`, Prompt,
+  Dateiinhalte (`ClaudeWire`, getestet). Protokoll nur Ereignis-Art, App-Kennung, Zahl der Sitzungen.
+- **Klick** holt nur das laufende Programm mit genau dieser PID **und** Kennung über LaunchServices nach vorn
+  (`activate()` ignoriert macOS, wenn Gnotchi nicht vorn ist – Sichttest 22.10.).
+- **Hingenommen:** Der Socket nimmt eine Verbindung zur Zeit; gleichzeitige Ereignisse mehrerer Sitzungen können
+  selten eines verlieren, der 30-Minuten-Ablauf räumt auf.
+
+### G35 – `~/.claude/settings.json`: nur eigene Einträge, byte-genau oder gar nicht (neu, 2026-10-22, 0.9.0)
+- Reihenfolgetreuer Leser/Schreiber (Format `json.dumps(indent=2, ensure_ascii=False)`); geschrieben wird nur, wenn
+  Lesen + Zurückschreiben das Original **byte-gleich** ergibt (Gegenprobe ohne diese Sperre → Test rot). Gemessen an
+  Michaels Datei 22.10.: Rundlauf byte-gleich, Eintragen + Entfernen = Original, zweite Implementierung (Python)
+  bestätigt seine 20 Hooks unverändert.
+- Nur Einträge mit `Gnotchi Claude.app` im Befehl; Pfad in `'…'`, ein `'` im Pfad wird verweigert.
+- Sicherung `settings.json.gnotchi-backup` (0600), dann temporäre Datei **mit den Zielrechten** + `rename` (Review:
+  `.atomic` legte sie kurz mit Standardrechten an); unmittelbar davor erneut gelesen – geändert → nichts schreiben
+  (Review: sonst ginge eine gleichzeitige Änderung von Claude Code verloren). Link, > 1 MB, kein JSON → nichts.
+- Schalter aus entfernt die Einträge; Start mit „aus“ entfernt übrig gebliebene (gemessen 22.10.: 5 → 0, Datei wieder
+  byte-gleich). Beenden von Gnotchi lässt sie stehen (Hook endet dann still).
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |

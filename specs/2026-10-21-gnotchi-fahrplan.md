@@ -32,7 +32,7 @@ Dateiablage erst danach. Die ursprüngliche Planung steht unten unter „Erste F
 | **0.8.0 Dateiablage, Ruhe-Insel, Reiter** | Ablage (Verweise, ZIP mit AES-Passwort), Ruhe-Insel, Einstellungen in Reitern, Absturz-Fix Fortschrittsbalken | **v0.8.0**, 22.10. | `2026-10-22-gnotchi-0.8.0-ablage.md`, G32 |
 | **0.9.0** gebaut 22.10. (nicht veröffentlicht) | **Rest Mitteilungen:** Rot = Ablehnen + Apples Fenster weg, Mitlesen, Apples Anruf-Banner beim Klingeln versteckt, Ungelesen-Zahlen aus dem Dock → `specs/2026-10-22-gnotchi-0.9.0-rest-mitteilungen.md`. Offen: FaceTime-Audio/-Video messen | – | G28/G30 erweitert, G33 |
 | offen | **Lautstärke-/Helligkeitsanzeige** (aus der ersten Fassung „0.9.0“) | – | Helligkeit = private Schnittstelle (DisplayServices) → eigene Abwägung; Bedienungshilfen nur im Hilfsprogramm |
-| offen | **Code & KI** (Michael 21.10.: „ja“): Claude-Code-Sitzungen in der Notch mit Status, letzter Nachricht und Erlauben/Ablehnen, wenn die Kommandozeile wartet; danach ggf. Cursor, GitHub-Reviews, Übersetzung | – | Weg über Claude-Code-Hooks (lokal, ohne Bedienungshilfen). Erlauben/Ablehnen aus der Notch = Freigabe von KI-Werkzeugen → eigener Sicherheitsentwurf: nur echter Klick, Sitzung eindeutig, Zeitlimit, nie automatisch |
+| **0.9.0** gebaut 22.10. (nicht veröffentlicht) | **Code & KI:** Claude-Code-Sitzungen (arbeitet/wartet/fertig, Antwort gekürzt, Klick holt das Programm), Hooks per Schalter in `~/.claude/settings.json` → `specs/2026-10-22-gnotchi-0.9.0-code-ki.md`. Erlauben/Ablehnen bewusst nur anzeigen. Später ggf. Cursor, GitHub-Reviews | – | G34, G35 |
 
 Nächste freie Versionsnummer: **0.9.0**.
 

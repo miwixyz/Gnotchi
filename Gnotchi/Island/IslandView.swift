@@ -99,6 +99,9 @@ struct IslandView: View {
                      onTimerToggle: { activity.timer?.isPaused == true ? activity.resumeTimer() : activity.pauseTimer() },
                      onExpand: onExpandFull, shelfItems: activity.shelfItems, shelfLink: activity.shelf,
                      onOpenShelf: { activity.selectShelf(); onExpandFull() }, unread: activity.unread,
+                     // Auch fertige Sitzungen (Sichttest 22.10.: Band war nach „fertig“ leer, Michael nutzt das Band).
+                     claude: activity.claudeOrdered.first,
+                     onOpenClaude: { if let s = activity.claudeOrdered.first { ClaudeLink.open(s) } },
                      cover: { cover(18, radius: 4) })
         case .wide:
             if let info = model.info {
@@ -458,6 +461,11 @@ extension IslandView {
             if let h = activity.headphones {
                 HeadphonesCompact(headphones: h, privacy: activity.privacy, pill: pill, height: height)
             }
+        case .claude?:
+            if let s = activity.claudeHeadline {
+                ClaudeCompact(session: s, count: activity.claudeSessions.filter { $0.state != .done }.count, pill: pill,
+                              height: height)
+            }
         case .update(let app)?:
             if let e = activity.update(for: app) {
                 UpdateCompact(entry: e, privacy: activity.privacy, pill: pill, height: height) { onOpenUpdate(app) }
@@ -501,6 +509,11 @@ extension IslandView {
                 if let h = activity.headphones {
                     OverlayCard(symbol: h.symbol, tint: .white, title: h.name, subtitle: "Ton über Bluetooth")
                 }
+            case .claude:
+                if let s = activity.claudeHeadline {
+                    OverlayCard(symbol: ClaudeStyle.symbol, tint: ClaudeStyle.color(s.state), title: s.project,
+                                subtitle: s.statusLine, onTap: { ClaudeLink.open(s) })
+                }
             case .update(let app):
                 if let e = activity.update(for: app) {
                     OverlayCard(symbol: "arrow.down.circle.fill", tint: .white, title: e.label,
@@ -530,13 +543,8 @@ extension IslandView {
             if let ev = activity.upcomingEvent {
                 EventCard(event: ev, onOpen: onOpenEvent).padding(.top, top).transition(.opacity)
             }
-        case .headphones:
-            if let h = activity.headphones {
-                ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
-                    Image(systemName: h.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(.white)
-                }
-                .padding(.top, top).transition(.opacity)
-            }
+        case .headphones: headphonesBig(top: top)
+        case .claude: claudeBig(top: top)
         case .update(let app):
             if let e = activity.update(for: app) {
                 ActivityCard(title: e.label, subtitle: "Zum Installieren öffnen", action: "Öffnen", onTap: { onOpenUpdate(app) },
@@ -580,6 +588,22 @@ extension IslandView {
                 .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 12, bottom: 10, trailing: 12))
                 .transition(.opacity)
         }
+    }
+
+    /// Kopfhörer groß – eigene Funktion, damit `big` kurz bleibt (0.9.0).
+    @ViewBuilder fileprivate func headphonesBig(top: CGFloat) -> some View {
+        if let h = activity.headphones {
+            ActivityCard(title: h.name, subtitle: "Ton über Bluetooth") {
+                Image(systemName: h.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(.white)
+            }
+            .padding(.top, top).transition(.opacity)
+        }
+    }
+
+    /// Claude-Sitzungen groß (0.9.0) – eigene Funktion, damit `big` kurz bleibt.
+    fileprivate func claudeBig(top: CGFloat) -> some View {
+        ClaudeBig(sessions: activity.claudeOrdered, onOpen: { ClaudeLink.open($0) })
+            .padding(EdgeInsets(top: top + 6, leading: 16, bottom: 8, trailing: 16))
     }
 
     /// Wetter groß (0.7.0) – eigene Funktion, damit `big` kurz bleibt.

@@ -164,6 +164,8 @@ struct ChipRow: View {
             symbol("timer", tint)
         case .headphones:
             symbol(headphones?.symbol ?? "headphones", tint)
+        case .claude:
+            symbol("sparkles", tint)
         case .update(let app):
             AppSymbol(bundleID: app.bundleID, size: 14)
         }
@@ -192,6 +194,7 @@ struct ChipRow: View {
         case .event: "Termin"
         case .timer: "Timer"
         case .headphones: "Kopfhörer"
+        case .claude: "Claude"
         case .update(let app): "Update \(app.name)"
         }
     }

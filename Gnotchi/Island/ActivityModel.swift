@@ -138,6 +138,10 @@ final class ActivityModel {
     @ObservationIgnored var callShownID: String?
     /// Ungelesen-Zahlen aus dem Dock (0.9.0, G33): nur Kennung + Zahl, nur Arbeitsspeicher.
     var unread: [NotifyWire.Badge] = []
+    /// Claude-Code-Sitzungen (0.9.0 Code & KI, G34): neueste zuerst, nur Arbeitsspeicher. Logik in ActivityModel+Claude.
+    var claudeSessions: [ClaudeSession] = []
+    /// Einrichtung der Hooks: nil = in Ordnung, sonst Hinweis für die Einstellungen (G35).
+    var claudeSetupNote: String?
     /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
     @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
     @ObservationIgnored let noteDuration: Duration
@@ -160,6 +164,7 @@ final class ActivityModel {
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
             || upcomingEvent != nil || timer != nil || timerAlarm || !notes.isEmpty || call != nil || fileDragActive
+            || claudeActive
             || hasIdleContent
     }
 

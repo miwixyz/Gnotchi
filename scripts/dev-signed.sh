@@ -70,6 +70,16 @@ if [ -d "$HELPER" ]; then
     done
     codesign --force --options runtime --sign "$IDENTITY" "$HELPER"
 fi
+# 2d. Hook-Programm „Gnotchi Claude“ (0.9.0, G34): ohne Berechtigungen, eigene Kennung – Gnotchi prüft es am Socket
+# und trägt es nur signaturgeprüft in ~/.claude/settings.json ein.
+HOOK="$APP/Contents/Helpers/Gnotchi Claude.app"
+if [ -d "$HOOK" ]; then
+    for part in "$HOOK"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --sign "$IDENTITY" "$HOOK"
+fi
 # 3. Die App zuletzt, als einzige mit Gnotchis Berechtigung (Apple Events).
 codesign --force --options runtime \
     --entitlements Gnotchi/Resources/Gnotchi.entitlements \

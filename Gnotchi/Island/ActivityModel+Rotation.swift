@@ -4,6 +4,8 @@ import Foundation
 /// Hinweise gehören nicht dazu: Sie rotieren nicht mit, sie verdrängen.
 enum LiveActivity: Hashable, Sendable {
     case event, timer, media, headphones
+    /// Claude-Code-Sitzung arbeitet oder wartet (0.9.0 Code & KI).
+    case claude
     case update(FamilyApp)
 }
 
@@ -19,9 +21,9 @@ extension ActivityModel {
 
     /// Feste Reihenfolge: Termin (0.5.0, das Dringendste), Timer, Medien, Kopfhörer, Updates der Familie.
     nonisolated static func rotationItems(event: Bool = false, timer: Bool = false, media: Bool, headphones: Bool,
-                                          updates: [FamilyApp]) -> [LiveActivity] {
+                                          claude: Bool = false, updates: [FamilyApp]) -> [LiveActivity] {
         (event ? [.event] : []) + (timer ? [.timer] : []) + (media ? [.media] : []) + (headphones ? [.headphones] : [])
-            + updates.map(LiveActivity.update)
+            + (claude ? [.claude] : []) + updates.map(LiveActivity.update)
     }
 
     /// Was gerade zu sehen ist: der Zeiger, solange seine Aktivität noch läuft und die Rotation an ist, sonst die erste.
@@ -47,7 +49,7 @@ extension ActivityModel {
 
     var rotationItems: [LiveActivity] {
         Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.isVisible,
-                           headphones: headphones != nil, updates: allUpdates.map(\.app))
+                           headphones: headphones != nil, claude: claudeActive, updates: allUpdates.map(\.app))
     }
 
     /// Zeilen über der Musik bzw. in der großen Insel: je Update eine, dazu der Termin.
@@ -60,7 +62,7 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, weather, shelf, none
+        case media, event, timer, timerPicker, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
@@ -77,6 +79,7 @@ extension ActivityModel {
         case .timer?: .timer
         case .media?: .media
         case .headphones?: .headphones
+        case .claude?: .claude
         case .update(let app)?: .update(app)
         case nil: privacy ? .privacy : (hasMediaInfo ? .media : idle)
         }
@@ -93,9 +96,11 @@ extension ActivityModel {
     /// kleine Insel blendet pausierte Musik nach 5 s aus – gemessen 21.10.: Musik-Symbol fehlte).
     /// Musik nur, solange sie sichtbar ist (spielt / < 5 s Pause) – auch groß und im Band (Michael 22.10.: alte Titel
     /// „würden irritieren“). Vorher reichte ein zuletzt gespielter Titel.
+    /// Claude: in der Leiste auch fertige Sitzungen (Sichttest 22.10.: nach „fertig“ gab es nichts mehr zum Anklicken,
+    /// gerade dann will man zurück) – in der Rotation der kleinen Insel nur laufende.
     var chipItems: [LiveActivity] {
         Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.isVisible,
-                           headphones: headphones != nil, updates: allUpdates.map(\.app))
+                           headphones: headphones != nil, claude: !claudeSessions.isEmpty, updates: allUpdates.map(\.app))
     }
 
     /// Was die große Insel zeigt: die gewählte bzw. gerade rotierende Sache aus der Leiste.

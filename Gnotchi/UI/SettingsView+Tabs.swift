@@ -120,6 +120,20 @@ extension SettingsView {
             toggleRow("Updates der App-Familie", isOn: $prefs.familyUpdates)
                 .onChange(of: prefs.familyUpdates) { model.applyNotchSetting() }
         }
+        // 0.9.0 Code & KI (G34/G35): trägt Hooks in ~/.claude/settings.json ein – deshalb Erklärung und Hinweis direkt hier.
+        card("Code & KI") {
+            toggleRow("Claude Code in der Notch", isOn: $prefs.claudeCode)
+                .onChange(of: prefs.claudeCode) { model.applyNotchSetting() }
+            if let warn = model.activity.claudeSetupNote, prefs.claudeCode {
+                note(warn, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+            } else {
+                note(prefs.claudeCode
+                     ? "Eingetragen in ~/.claude/settings.json (nur Gnotchis eigene Einträge, Sicherung daneben)."
+                     : "Zeigt laufende Claude-Code-Sitzungen: arbeitet, wartet auf Erlaubnis, fertig. Trägt dafür "
+                       + "eigene Hooks in ~/.claude/settings.json ein; aus entfernt genau diese.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
+            }
+        }
         card("Timer und Spiegel") {
             toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)
                 .onChange(of: prefs.timerAlarm) { model.applyNotchSetting() }

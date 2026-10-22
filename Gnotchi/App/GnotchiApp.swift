@@ -118,6 +118,8 @@ final class AppModel {
             NotchFeature(part: WeatherLink(activity: activity, prefs: prefs)) { $0.weather },
             // 0.8.0 (G32): Ziehen erkennen ohne Freigabe, Verweise statt Kopien.
             NotchFeature(part: ShelfLink(activity: activity, prefs: prefs)) { $0.shelf },
+            // 0.9.0 Code & KI (G34/G35): Hooks in ~/.claude/settings.json nur bei eingeschaltetem Schalter.
+            NotchFeature(part: ClaudeLink(activity: activity, prefs: prefs)) { $0.claudeCode },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
@@ -131,6 +133,7 @@ final class AppModel {
         updater = Updater()
         updater?.onPendingChange = { [weak self] _ in self?.syncOwnUpdate() }
         Self.log.notice("Start")
+        if !prefs.claudeCode { ClaudeLink.removeLeftoverHooks() }
         applyNotchSetting()
         // Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
         terminateObserver = NotificationCenter.default.addObserver(

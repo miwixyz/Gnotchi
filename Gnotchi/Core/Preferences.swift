@@ -44,6 +44,8 @@ final class Preferences {
         /// 0.9.0 Ungelesen-Zahlen aus dem Dock (G33).
         static let notifyBadges = "notifyBadges"
         static let compactUnread = "compactUnread"
+        /// 0.9.0 Code & KI (G34/G35): Claude-Code-Sitzungen in der Notch.
+        static let claudeCode = "claudeCode"
         /// 0.7.0 Wetter (G31): Schalter, gewählter Ort (Name, Region, Land, gerundete Koordinaten), Einheit.
         static let weather = "weather"
         static let weatherPlace = "weatherPlace"
@@ -130,6 +132,8 @@ final class Preferences {
     var notifyBadges: Bool { didSet { defaults.set(notifyBadges, forKey: Key.notifyBadges) } }
     /// Zähler auch in der kleinen Insel (0.9.0). Ab Werk an, wirkt nur mit `notifyBadges`.
     var compactUnread: Bool { didSet { defaults.set(compactUnread, forKey: Key.compactUnread) } }
+    /// Claude-Code-Sitzungen in der Notch (0.9.0). Ab Werk **aus**: trägt Hooks in `~/.claude/settings.json` ein (G35).
+    var claudeCode: Bool { didSet { defaults.set(claudeCode, forKey: Key.claudeCode) } }
     /// Apps, deren Mitteilungen in die Notch dürfen (G29) – nur Kennungen, gleiche Regeln wie G25. Nur über
     /// `setNotifyApp`; `nil` = noch nie eingeschaltet (dann schlägt Gnotchi einmal Nachrichten-Apps vor).
     private(set) var notifyApps: [String]? { didSet { defaults.set(notifyApps, forKey: Key.notifyApps) } }
@@ -174,6 +178,7 @@ final class Preferences {
         notifyCalls = defaults.object(forKey: Key.notifyCalls) as? Bool ?? true
         notifyBadges = defaults.object(forKey: Key.notifyBadges) as? Bool ?? false
         compactUnread = defaults.object(forKey: Key.compactUnread) as? Bool ?? true
+        claudeCode = defaults.object(forKey: Key.claudeCode) as? Bool ?? false
         notifyApps = defaults.object(forKey: Key.notifyApps).map { Self.validExcluded($0) }
         weather = defaults.object(forKey: Key.weather) as? Bool ?? false
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true

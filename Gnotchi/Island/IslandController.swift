@@ -208,6 +208,7 @@ final class IslandController {
             _ = activity.shelfItems.count
             _ = activity.shelfActive
             _ = activity.hasIdleContent
+            _ = activity.claudeActive
             _ = activity.showsShelfStrip
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.

@@ -235,6 +235,14 @@ HELPER_APP="${APP_PATH}/Contents/Library/LoginItems/Gnotchi Mitteilungen.app"
     || fail "Hilfsprogramm hat die falsche Kennung"
 codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.mitteilungen"' "${HELPER_APP}" \
     || fail "Hilfsprogramm nicht gültig mit Developer ID signiert"
+# 0.9.0 (G34): Hook-Programm für Claude Code – da, eigene Kennung, gültig mit Developer ID (Gnotchi prüft es am Socket
+# und trägt nur ein signaturgeprüftes Programm in ~/.claude/settings.json ein).
+HOOK_APP="${APP_PATH}/Contents/Helpers/Gnotchi Claude.app"
+[ -d "${HOOK_APP}" ] || fail "Gnotchi Claude.app fehlt im Bundle"
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${HOOK_APP}/Contents/Info.plist")" = "dev.mwlr.gnotchi.claude" ] \
+    || fail "Hook-Programm hat die falsche Kennung"
+codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.claude"' "${HOOK_APP}" \
+    || fail "Hook-Programm nicht gültig mit Developer ID signiert"
 echo "  ✓ Developer ID (Team LTKJ6Z2VYB) + Hardened Runtime"
 echo "  ✓ Berechtigungen: App nur Apple Events, ${NESTED} eingebettete Teile ohne"
 

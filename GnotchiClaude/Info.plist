@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Gnotchi Claude</string>
+	<key>CFBundleDisplayName</key>
+	<string>Gnotchi Claude</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<!-- Hook-Programm (docs/SECURE-DESIGN.md G34): von Claude Code je Ereignis kurz gestartet, liest stdin,
+	     meldet Gnotchi einen bereinigten Status und endet. Nie eine Oberfläche, nie eine Entscheidung,
+	     keine Berechtigungen. -->
+	<key>LSUIElement</key>
+	<true/>
+	<!-- Bewusst KEIN URL-Schema, kein AppleScript-Empfang, keine Dienste (wie Gnotchi, G13). -->
+</dict>
+</plist>

@@ -69,6 +69,13 @@ final class IslandViewRenderTests: XCTestCase {
         if let weather { activity.setWeather(weather); if showWeatherBig { activity.selectWeather() } }
     }
 
+    /// Ungelesen und Claude-Sitzungen (0.9.0) – ausgelagert, damit `render` kurz bleibt.
+    private static func applyNotify(_ activity: ActivityModel, unread: [NotifyWire.Badge], claude: [ClaudeWire.Message]) {
+        activity.receiveBadges(unread)
+        claude.forEach { activity.receiveClaude($0) }
+        if !claude.isEmpty { activity.clearNotice() }
+    }
+
     /// Ablage (0.8.0): erfundene Dateien in einem Temp-Ordner, eigener Speicher, Einstellungen getrennt von den echten.
     private static func applyShelf(_ activity: ActivityModel, files: [String], drag: Bool) -> ShelfLink? {
         activity.fileDragActive = drag
@@ -302,7 +309,7 @@ final class IslandViewRenderTests: XCTestCase {
                         playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false,
                         notes: [NotifyWire.Note] = [], callArmed: Bool = true, weather: Weather.Forecast? = nil,
                         shelfFiles: [String] = [], drag: Bool = false, showWeatherBig: Bool = true,
-                        unread: [NotifyWire.Badge] = []) throws {
+                        unread: [NotifyWire.Badge] = [], claude: [ClaudeWire.Message] = []) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -312,7 +319,7 @@ final class IslandViewRenderTests: XCTestCase {
         model.setPreviewState(info: withMedia ? Self.info(appBundleID: appBundleID, playing: mode == .expanded) : nil,
                               artwork: Self.artwork(), route: route)
         let activity = ActivityModel(media: model)
-        activity.receiveBadges(unread)
+        Self.applyNotify(activity, unread: unread, claude: claude)
         if let notice { activity.post(notice) }
         activity.setPrivacy(privacy)
         activity.setQuota(quota)
@@ -446,6 +453,18 @@ extension IslandViewRenderTests {
     func testRenderNotchPrivacyUnread() throws {
         try render(notchScreen, .compact, name: "notch-privacy-unread", privacy: .init(micApps: ["Beispiel"], camera: false),
                    withMedia: false, unread: Self.sampleUnread)
+    }
+    func testRenderPillBandClaudeDone() throws {
+        try render(pillScreen, .band, name: "pill-band-claude-fertig", withMedia: false, claude: [
+            ClaudeWire.Message(session: "s1", event: .stop, project: "Beispielprojekt", text: "Erfundene Antwort, fertig."),
+        ])
+    }
+    func testRenderNotchExpandedClaude() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-claude", withMedia: false, claude: [
+            ClaudeWire.Message(session: "s1", event: .stop, project: "Beispielprojekt",
+                               text: "Erfundene Antwort, zwei Zeilen lang, damit man sieht, wie sie gekürzt wird."),
+            ClaudeWire.Message(session: "s2", event: .permission, project: "Zweites", tool: "Bash", detail: "git push origin main"),
+        ])
     }
     func testRenderNotchBandShelfUnread() throws {
         try render(notchScreen, .band, name: "notch-band-shelf-unread", shelfFiles: ["a.pdf", "b.pdf"], unread: Self.sampleUnread)

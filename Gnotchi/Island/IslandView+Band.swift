@@ -6,10 +6,10 @@ import SwiftUI
 
 /// Rechte Seite des Bands: welche Seite gerade dran ist (alle 4 s die nächste).
 enum BandPage: Equatable {
-    case media, event, timer
+    case media, event, timer, claude
 
-    nonisolated static func pages(media: Bool, event: Bool, timer: Bool) -> [BandPage] {
-        (media ? [.media] : []) + (event ? [.event] : []) + (timer ? [.timer] : [])
+    nonisolated static func pages(media: Bool, event: Bool, timer: Bool, claude: Bool = false) -> [BandPage] {
+        (media ? [.media] : []) + (event ? [.event] : []) + (timer ? [.timer] : []) + (claude ? [.claude] : [])
     }
 
     nonisolated static func current(_ pages: [BandPage], at date: Date, interval: TimeInterval = 4) -> BandPage? {
@@ -36,6 +36,9 @@ struct BandView<Cover: View>: View {
     var onOpenShelf: () -> Void = {}
     /// Ungelesen-Zahlen (0.9.0, Michael nutzt „Band“ – jede neue Anzeige auch hier).
     var unread: [NotifyWire.Badge] = []
+    /// Claude-Code-Sitzung, die arbeitet oder wartet (0.9.0 Code & KI).
+    var claude: ClaudeSession?
+    var onOpenClaude: () -> Void = {}
     @ViewBuilder let cover: () -> Cover
 
     var body: some View {
@@ -44,9 +47,20 @@ struct BandView<Cover: View>: View {
                 // Ablage und Ungelesen gehören zur linken Hälfte – als eigene Elemente daneben schoben sie die
                 // Notch-Lücke aus der Mitte (Bildprüfung 22.10.: „12“ lag unter der Notch).
                 HStack(spacing: 10) {
-                    Button(action: onExpand) { left.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
+                    // Steht links nur Claude, ist die Zeile selbst der Knopf (Sichttest 22.10.: der Klick öffnete sonst
+                    // die große Insel statt der Sitzung – im Protokoll kam nie ein Klick an).
+                    if info == nil, event == nil, timer == nil, let claude {
+                        Button(action: onOpenClaude) {
+                            ClaudeBandLabel(session: claude).frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(verbatim: "Große Ansicht öffnen"))
+                        .accessibilityLabel(Text(verbatim: "Claude-Sitzung \(claude.project) öffnen"))
+                    } else {
+                        Button(action: onExpand) { left.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text(verbatim: "Große Ansicht öffnen"))
+                    }
                     if let shelfLink, !shelfItems.isEmpty {
                         ShelfMini(items: shelfItems, link: shelfLink, onOpen: onOpenShelf).fixedSize()
                     }
@@ -81,8 +95,11 @@ struct BandView<Cover: View>: View {
     }
 
     @ViewBuilder private func right(at date: Date) -> some View {
-        let pages = BandPage.pages(media: info != nil, event: event != nil && info != nil, timer: timer != nil)
+        let pages = BandPage.pages(media: info != nil, event: event != nil && info != nil, timer: timer != nil,
+                                   claude: claude != nil && (info != nil || event != nil || timer != nil))
         switch BandPage.current(pages, at: date) {
+        case .claude?:
+            if let claude { Button(action: onOpenClaude) { ClaudeBandLabel(session: claude) }.buttonStyle(.plain) }
         case .media?:
             if let info { mediaControls(info, now: date) }
         case .event?:
