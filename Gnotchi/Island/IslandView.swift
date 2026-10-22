@@ -9,8 +9,13 @@ final class IslandState {
     /// `live`: Tippis Live-Text, zwei Zeilen unter der Aufnahme-Zeile (0.3.0).
     /// `wide`: Trackwechsel, 3 s breiter mit Titel · Interpret (0.4.0).
     /// `message`/`call`: Mitteilung bzw. eingehender Anruf aus dem Hilfsprogramm (0.6.0).
-    enum Mode { case hidden, compact, expanded, notice, live, wide, band, message, call }
+    /// `shelfDrop`: Ablagefeld, solange irgendwo Dateien gezogen werden (0.8.0).
+    enum Mode { case hidden, compact, expanded, notice, live, wide, band, message, call, shelfDrop }
     var mode: Mode = .hidden
+    /// Nach dem Ablegen (0.8.0) hochgezählt: Die Insel-Ansicht wird neu aufgebaut, damit SwiftUIs Überfahren-Zustand
+    /// stimmt. Während des Ziehens kommt kein „Maus raus“ an – danach hielt die Insel die Maus für drin und klappte
+    /// nicht mehr auf (Michael 22.10.: „Ich muss x-mal klicken“).
+    var hoverEpoch = 0
     var layout: IslandGeometry.Layout
     init(layout: IslandGeometry.Layout) { self.layout = layout }
 }
@@ -33,23 +38,6 @@ struct IslandView: View {
     /// Klick auf das Band (0.5.0): volle Insel.
     var onExpandFull: () -> Void = {}
 
-    private var size: CGSize {
-        switch state.mode {
-        case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
-        case .compact: state.layout.compact.size
-        case .wide: state.layout.wide.size
-        case .band: state.layout.band.size
-        case .expanded:
-            IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
-                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
-                                      weather: activity.bigContent == .weather)?.size ?? state.layout.expanded.size
-        case .notice: state.layout.notice.size
-        case .live: state.layout.live.size
-        case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
-        case .call: state.layout.call.size
-        }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
@@ -67,6 +55,7 @@ struct IslandView: View {
             }
             .frame(width: size.width, height: size.height)
             .onHover(perform: onHover)
+            .id(state.hoverEpoch)
             Spacer(minLength: 0)
         }
         // Füllt das Panel (klein ODER groß); die Insel hängt oben mittig – beide Rechtecke teilen midX und Oberkante.
@@ -75,14 +64,6 @@ struct IslandView: View {
         // Titelwechsel weich überblenden (Spezifikation „Bewegung“).
         .animation(.smooth, value: model.info?.title)
         .environment(\.colorScheme, .dark)
-    }
-
-    private var corner: CGFloat {
-        switch state.mode {
-        case .expanded, .message: 22
-        case .notice, .live, .call: 16
-        case .hidden, .compact, .wide, .band: 10
-        }
     }
 
     private var pill: Bool { state.layout.notch == nil }
@@ -97,6 +78,8 @@ struct IslandView: View {
                 NoteIsland(note: n, queued: activity.queuedNotes, topInset: state.layout.notch?.height ?? 0,
                            onOpen: { activity.openNote() }, onAction: { activity.performNoteAction($0) })
             }
+        case .shelfDrop:
+            ShelfDropZone(count: activity.shelfItems.count, topInset: state.layout.notch?.height ?? 0) { activity.shelf?.drop($0) }
         case .call:
             if let c = activity.call {
                 CallIsland(call: c, armed: activity.callArmed, topInset: state.layout.notch?.height ?? 0,
@@ -113,7 +96,8 @@ struct IslandView: View {
                      notchWidth: state.layout.notch?.width, height: state.layout.band.height,
                      onPlayPause: { model.playPause() }, onNext: { model.next() }, onOpenEvent: onOpenEvent,
                      onTimerToggle: { activity.timer?.isPaused == true ? activity.resumeTimer() : activity.pauseTimer() },
-                     onExpand: onExpandFull, cover: { cover(18, radius: 4) })
+                     onExpand: onExpandFull, shelfItems: activity.shelfItems, shelfLink: activity.shelf,
+                     onOpenShelf: { activity.selectShelf(); onExpandFull() }, cover: { cover(18, radius: 4) })
         case .wide:
             if let info = model.info {
                 TrackFlash(info: info, notchWidth: state.layout.notch?.width, height: state.layout.wide.height) {
@@ -135,12 +119,20 @@ struct IslandView: View {
                             timerButton: activity.timer == nil ? activity.timerPickerActive : nil,
                             weather: activity.weather.map { ($0, activity.weatherActive) },
                             onWeather: { activity.selectWeather() },
+                            shelf: activity.shelfItems.isEmpty ? nil : (activity.shelfItems.count, activity.shelfActive),
+                            onShelf: { activity.selectShelf() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
                             pinned: activity.pinned, onPin: { activity.togglePin() })
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
                 big(topInset: chips ? 0 : nil)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                if activity.showsShelfStrip, let shelf = activity.shelf {
+                    ShelfStrip(items: activity.shelfItems, link: shelf)
+                        .frame(height: IslandGeometry.shelfStripHeight)
+                        .padding(.horizontal, 12)
+                }
             }
         }
     }
@@ -459,6 +451,9 @@ extension IslandView {
                 compact(info)
             } else if activity.privacy.isActive {
                 privacyCompact
+            } else if activity.hasIdleContent {
+                IdleCompact(weather: activity.weather, shelfCount: activity.shelfItems.count, pill: pill,
+                            height: state.layout.compact.height)
             }
         }
     }
@@ -548,17 +543,63 @@ extension IslandView {
                 .transition(.opacity)
         case .weather:
             weatherBig(topInset: topInset)
+        case .shelf:
+            shelfBig(topInset: topInset)
         case .none:
             EmptyView()
         }
     }
 
+}
+
+// Große Wetter- und Ablage-Ansicht (0.7.0/0.8.0) – ausgelagert, damit der Struct-Rumpf unter 350 Zeilen bleibt.
+extension IslandView {
+    /// Ablage groß (0.8.0) – eigene Funktion, damit `big` kurz bleibt.
+    @ViewBuilder fileprivate func shelfBig(topInset: CGFloat?) -> some View {
+        if let shelf = activity.shelf {
+            ShelfBig(items: activity.shelfItems, link: shelf)
+                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 12, bottom: 10, trailing: 12))
+                .transition(.opacity)
+        }
+    }
+
     /// Wetter groß (0.7.0) – eigene Funktion, damit `big` kurz bleibt.
-    @ViewBuilder private func weatherBig(topInset: CGFloat?) -> some View {
+    @ViewBuilder fileprivate func weatherBig(topInset: CGFloat?) -> some View {
         if let w = activity.weather {
             WeatherBig(forecast: w)
                 .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 12, bottom: 10, trailing: 12))
                 .transition(.opacity)
+        }
+    }
+}
+
+// Größe und Ecken je Zustand – ausgelagert, damit der Struct-Rumpf unter 350 Zeilen bleibt (0.8.0).
+extension IslandView {
+    fileprivate var size: CGSize {
+        switch state.mode {
+        case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
+        case .compact: state.layout.compact.size
+        case .wide: state.layout.wide.size
+        case .band: state.layout.band.size
+        case .expanded:
+            IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
+                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
+                                      weather: activity.bigContent == .weather,
+                                      shelf: activity.bigContent == .shelf,
+                                      strip: activity.showsShelfStrip)?.size ?? state.layout.expanded.size
+        case .notice: state.layout.notice.size
+        case .live: state.layout.live.size
+        case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
+        case .call: state.layout.call.size
+        case .shelfDrop: state.layout.shelfDrop.size
+        }
+    }
+
+    fileprivate var corner: CGFloat {
+        switch state.mode {
+        case .expanded, .message: 22
+        case .notice, .live, .call, .shelfDrop: 16
+        case .hidden, .compact, .wide, .band: 10
         }
     }
 }

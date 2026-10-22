@@ -51,6 +51,10 @@ Freigabe nicht und fragt nie danach.
   mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
   Auflegen. Ein eigenes Hilfsprogramm mit Bedienungshilfen-Freigabe liest Apples Banner; Gnotchi selbst bleibt
   ohne. Ab Werk aus.
+- **Dateiablage (0.8):** Datei zur Notch ziehen → „Hier ablegen“ → später woanders herausziehen. Reihe unter der
+  großen Insel bzw. direkt im Band; volle Ablage mit Im Finder zeigen, Teilen, AirDrop und ZIP (optional AES-256 mit
+  Passwort). Verweise statt Kopien, ohne Freigabe.
+- **Ruhe-Insel (0.8):** Läuft nichts, bleibt die kleine Insel bei Wetter/Ablage mit Temperatur bzw. Anzahl.
 - **Wetter (0.7):** Wetter-Symbol in der großen Insel → Temperatur, Zustand, 8 Stunden, 7 Tage, Feuchte, Wind,
   UV, Druck, Sonnenauf-/-untergang auf einem Himmel-Farbverlauf. Ort in den Einstellungen suchen, °C/°F. Daten:
   [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0). Ab Werk aus.
@@ -179,6 +183,9 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 - **Spiegel:** Das Kamerabild geht nur in die Vorschau auf dem Bildschirm, nie in Gnotchis eigenen
   Code, eine Datei oder das Netz. Die Kamera läuft nur, solange der Spiegel sichtbar ist
   ([G27](docs/SECURE-DESIGN.md)).
+- **Dateiablage:** gespeichert werden nur Lesezeichen (Ort der Datei) in `~/Library/Application Support/Gnotchi/ablage.json`
+  (nur für dich lesbar). Nichts wird geöffnet oder ausgeführt, entfernen löscht nie etwas. ZIP im Programm
+  (libarchive), Passwort nie gespeichert ([G32](docs/SECURE-DESIGN.md)).
 - **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird

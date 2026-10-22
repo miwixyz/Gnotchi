@@ -108,6 +108,13 @@ final class ActivityModel {
     private(set) var weather: Weather.Forecast?
     var weatherActive = false
 
+    /// Dateiablage (0.8.0, G32): angezeigte Einträge (nur Name + Lesezeichen), gerade wird irgendwo eine Datei gezogen,
+    /// Ablage groß gezeigt. Aktionen über `shelf` (ShelfLink).
+    var shelfItems: [ShelfStore.Item] = []
+    var fileDragActive = false
+    var shelfActive = false
+    @ObservationIgnored weak var shelf: ShelfLink?
+
     // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
 
     /// Warteschlange, vorn die angezeigte Mitteilung.
@@ -143,8 +150,12 @@ final class ActivityModel {
     /// Insel sichtbar, sobald irgendetwas zu zeigen ist.
     var isVisible: Bool {
         media.isVisible || notice != nil || privacy.isActive || recording != nil || headphones != nil || !allUpdates.isEmpty
-            || upcomingEvent != nil || timer != nil || timerAlarm || !notes.isEmpty || call != nil
+            || upcomingEvent != nil || timer != nil || timerAlarm || !notes.isEmpty || call != nil || fileDragActive
+            || hasIdleContent
     }
+
+    /// Ruhe-Insel (0.8.0, Michael 22.10.: „mit Inhalt“): Wetter an oder etwas in der Ablage → Insel bleibt da.
+    var hasIdleContent: Bool { weather != nil || !shelfItems.isEmpty }
 
     func setHeadphones(_ h: Headphones?) {
         if headphones != h { headphones = h }
@@ -170,7 +181,7 @@ final class ActivityModel {
     /// Über Apps im Vollbild nur, was sonst nirgends zu sehen wäre: die Tippi-Aufnahme (Tippi blendet seine
     /// eigene Pille aus, wenn Gnotchi anzeigt). Musik hält sich an die Vollbild-Regel.
     /// 0.6.0: auch ein eingehender Anruf (wie Apples Banner); Mitteilungen nicht.
-    var showsOverFullscreen: Bool { recording != nil || timerAlarm || call != nil }
+    var showsOverFullscreen: Bool { recording != nil || timerAlarm || call != nil || fileDragActive }
 
     func setRecording(_ r: Recording?) {
         if recording != r { recording = r }

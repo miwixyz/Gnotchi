@@ -60,15 +60,17 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, weather, none
+        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, weather, shelf, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
                                        mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
-                                       weather: Bool = false) -> BigContent {
+                                       weather: Bool = false, shelf: Bool = false,
+                                       idle: BigContent = .none) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
         if weather { return .weather }
+        if shelf { return .shelf }
         if timerPicker { return .timerPicker }
         return switch current {
         case .event?: .event
@@ -76,7 +78,7 @@ extension ActivityModel {
         case .media?: .media
         case .headphones?: .headphones
         case .update(let app)?: .update(app)
-        case nil: privacy ? .privacy : (hasMediaInfo ? .media : .none)
+        case nil: privacy ? .privacy : (hasMediaInfo ? .media : idle)
         }
     }
 
@@ -104,7 +106,8 @@ extension ActivityModel {
         let current: LiveActivity? = playerFirst && media.info != nil ? .media : bigActivity
         return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
-                               weather: weatherActive && weather != nil)
+                               weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
+                               idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
     }
 
     /// Glas-Schicht über dem Player (nur bei „Wiedergabe immer groß“): die gewählte, noch laufende Aktivität.
@@ -115,7 +118,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive || weatherActive { return nil }
+        if mirrorActive || timerPickerActive || weatherActive || shelfActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -135,6 +138,7 @@ extension ActivityModel {
         mirrorActive = false
         timerPickerActive = false
         weatherActive = false
+        shelfActive = false
         // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
         if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
@@ -145,6 +149,7 @@ extension ActivityModel {
         if mirrorEnabled { mirrorActive = true }
         timerPickerActive = false
         weatherActive = false
+        shelfActive = false
     }
 
     /// Wetter groß (0.7.0): nur mit einer Vorhersage.
@@ -153,6 +158,21 @@ extension ActivityModel {
         weatherActive = true
         mirrorActive = false
         timerPickerActive = false
+        shelfActive = false
+    }
+
+    /// Kachelreihe der Ablage unter der großen Sache (Michael 22.10.: „schneller zugänglich“) – nicht, wenn die Ablage
+    /// selbst groß ist.
+    var showsShelfStrip: Bool { !shelfItems.isEmpty && bigContent != .shelf }
+
+    /// Ablage groß (0.8.0): nur, wenn etwas drin ist.
+    func selectShelf() {
+        guard !shelfItems.isEmpty else { return }
+        shelfActive = true
+        weatherActive = false
+        mirrorActive = false
+        timerPickerActive = false
+        shelf?.prune()
     }
 
     /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
@@ -160,6 +180,7 @@ extension ActivityModel {
         if mirrorActive { mirrorActive = false }
         if timerPickerActive { timerPickerActive = false }
         if weatherActive { weatherActive = false }
+        if shelfActive { shelfActive = false }
         if overlayActivity != nil { overlayActivity = nil }
     }
 

@@ -1,3 +1,4 @@
+import OSLog
 import AppKit
 import SwiftUI
 
@@ -203,6 +204,11 @@ final class IslandController {
             _ = activity.showsTrackFlash
             _ = activity.currentNote?.id
             _ = activity.call?.id
+            _ = activity.fileDragActive
+            _ = activity.shelfItems.count
+            _ = activity.shelfActive
+            _ = activity.hasIdleContent
+            _ = activity.showsShelfStrip
         } onChange: { [weak self] in
             // onChange kommt VOR dem Setzen des neuen Werts – deshalb erst im nächsten Durchlauf lesen.
             DispatchQueue.main.async {
@@ -213,22 +219,6 @@ final class IslandController {
                 }
             }
         }
-    }
-
-    private func cancelTasks() {
-        collapseTasks.values.forEach { $0.cancel() }
-        collapseTasks.removeAll()
-        expandTasks.values.forEach { $0.cancel() }
-        expandTasks.removeAll()
-        pointerInside.removeAll()
-        activity.setRotationPaused(false)
-        spaceRecheck?.cancel()
-        spaceRecheck = nil
-        competitorCheck?.cancel()
-        competitorCheck = nil
-        pendingCompetitor = nil
-        screenDebounce?.cancel()
-        screenDebounce = nil
     }
 
     private static func currentLayouts() -> [CGDirectDisplayID: IslandGeometry.Layout] {
@@ -342,10 +332,13 @@ final class IslandController {
                 }
                 continue
             }
+            let before = entry.state.mode
             entry.state.mode = Self.nextMode(current: entry.state.mode, notice: activity.notice != nil,
                                              recording: activity.recording != nil, liveText: activity.showsLiveText,
                                              trackFlash: activity.showsTrackFlash, alarm: activity.timerAlarm,
-                                             call: activity.call != nil, message: activity.currentNote != nil)
+                                             call: activity.call != nil, message: activity.currentNote != nil,
+                                             drag: activity.fileDragActive)
+            if before == .shelfDrop && entry.state.mode != .shelfDrop { resetHover(id, entry.state) }
             // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
             entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {
@@ -385,6 +378,8 @@ final class IslandController {
     }
 
     private func hover(_ inside: Bool, displayID: CGDirectDisplayID) {
+        // Messpunkt (0.8.0): jedes Hinein/Hinaus mit Form – nur Debug-Stufe, nicht dauerhaft gespeichert.
+        Self.hoverLog.debug("Überfahren \(inside ? "rein" : "raus", privacy: .public) – Form \(String(describing: self.panels[displayID]?.state.mode), privacy: .public)")
         guard !menuOpen.contains(displayID), let entry = panels[displayID], entry.state.mode != .hidden else { return }
         pointerInside[displayID] = inside
         // Maus über einer Insel: Takt der Rotation steht (0.4.0).
@@ -546,6 +541,38 @@ extension IslandController {
         if mode == .message { return Self.messageFrame(layout: layout, note: activity.currentNote) }
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
         return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
-                             weather: activity.bigContent == .weather)
+                             weather: activity.bigContent == .weather, shelf: activity.bigContent == .shelf,
+                             strip: activity.showsShelfStrip)
+    }
+}
+
+extension IslandController {
+    /// Alle laufenden Aufgaben abbrechen (stop). In einer Erweiterung, damit der Klassenrumpf unter 350 Zeilen bleibt.
+    fileprivate func cancelTasks() {
+        collapseTasks.values.forEach { $0.cancel() }
+        collapseTasks.removeAll()
+        expandTasks.values.forEach { $0.cancel() }
+        expandTasks.removeAll()
+        pointerInside.removeAll()
+        activity.setRotationPaused(false)
+        spaceRecheck?.cancel()
+        spaceRecheck = nil
+        competitorCheck?.cancel()
+        competitorCheck = nil
+        pendingCompetitor = nil
+        screenDebounce?.cancel()
+        screenDebounce = nil
+    }
+}
+
+extension IslandController {
+    static let hoverLog = Logger(subsystem: "dev.mwlr.gnotchi", category: "insel")
+
+    /// Nach dem Ziehen (0.8.0): Maus gilt als draußen, Ansicht neu aufbauen (siehe `IslandState.hoverEpoch`).
+    fileprivate func resetHover(_ id: CGDirectDisplayID, _ state: IslandState) {
+        pointerInside[id] = false
+        activity.setRotationPaused(pointerInside.values.contains(true))
+        state.hoverEpoch += 1
+        Self.hoverLog.notice("Überfahren nach dem Ablegen zurückgesetzt")
     }
 }

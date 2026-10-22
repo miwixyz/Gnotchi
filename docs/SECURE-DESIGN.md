@@ -41,6 +41,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G29 | – (neu, 0.6.0) | Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert |
 | G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
 | G31 | – (neu, 0.7.0) | Wetter: zwei feste Adressen, nur der gewählte Ort geht raus, Antwort als Fremddaten |
+| G32 | – (neu, 0.8.0) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -93,6 +94,8 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Nutzer: Klick auf Update] ─(13a) Signaturprüfung, App öffnen, distnoted …update.show ─▶ [echte Familien-App]
 [Mitteilungszentrale] ─(14) AX: Banner lesen, Fenster verschieben, Aktion ─▶ [Gnotchi Mitteilungen (eigene Freigabe)]
 [Gnotchi Mitteilungen, geprüft] ─(14a) Unix-Socket notify.sock: Mitteilungen ⇄ Filter/Befehle ─▶ [Gnotchi: NotifyLink → Insel]
+[beliebige App: Ziehen] ─(16) Datei-URLs beim Loslassen auf der Insel ─▶ [Gnotchi: ShelfLink → ablage.json (Lesezeichen)]
+[Gnotchi: Ablage] ─(16b) Rausziehen / Teilen / AirDrop / ZIP (libarchive) ─▶ [Ziel-App, Downloads]
 [Gnotchi: WeatherLink] ─(15) HTTPS, gerundete Koordinaten / Ortsname ─▶ [api. / geocoding-api.open-meteo.com] ─(15a) JSON ─▶ [Insel]
 ```
 
@@ -666,6 +669,22 @@ nur aus Klicks (G29, G30).
   Ortssuche mit 5 Treffern, kein Treffer = Schlüssel `results` fehlt); Testkopie „Wetter aktualisiert“ Sekunden
   nach dem Start, danach keine offene Verbindung.
 
+### G32 – Dateiablage: Verweise, nichts ausführen, ZIP im Prozess (neu, 2026-10-22, 0.8.0)
+- **Ziehen erkennen ohne Beobachter (G1 bleibt):** alle 0,1 s `NSEvent.pressedMouseButtons` und Zähler/Typen der
+  Zieh-Zwischenablage, Inhalte erst beim Loslassen auf der Insel. Gemessen 22.10. (`tools/drag-probe.swift`): drei
+  Finder-Ziehvorgänge → Zähler +1 ~200 ms nach dem Drücken, Typ `public.file-url`; ~40 Klicks → unverändert.
+- **Nur Datei-URLs**, gespeichert als Lesezeichen in `ablage.json` (Ordner 0700, Datei 0600, ≤ 50, Schema beim Lesen).
+  Nichts wird geöffnet/ausgeführt (kein `NSWorkspace.open`), Entfernen/Leeren löscht nie eine Datei. Rausziehen über
+  eine AppKit-Ziehquelle, die nur die URL übergibt; „angekommen“ (Operation ≠ keine) → aus der Ablage.
+- **ZIP ohne Kindprozess (G3 bleibt):** libarchive (SDK `libarchive.tbd`, `-larchive`, eigene Deklarationen), nur
+  relative Pfade, Links übersprungen und beim Öffnen per `O_NOFOLLOW` abgelehnt (Review 22.10.), ≤ 10 000 Dateien /
+  4 GB, Ziel `~/Downloads`, nie überschreiben, halbes ZIP wird gelöscht, Quarantäne-Merkmal übernommen. AES-256 mit
+  Passwort (≥ 8 Zeichen, doppelt); Passwort nur im Speicher, nie Argument/Protokoll/Datei. Gemessen 22.10.: richtiges
+  Passwort entpackt, falsches nicht; macOS `ditto`/`unzip` öffnen AES-ZIPs nicht (Hinweis im Dialog).
+- **Protokoll:** nur Zahlen. **Berechtigungen:** keine neue.
+- **Restrisiko (hingenommen):** Eine App kann beim Ziehen eine präparierte Datei (z. B. `.app`) anbieten – sie liegt
+  dann als Verweis in der Ablage und wird nur weitergereicht, nie gestartet.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -712,6 +731,9 @@ nur aus Klicks (G29, G30).
 | **E** | Gnotchi/Perl (14) | erben die Freigabe | G1/G28: eigenes Paket, eigener verantwortlicher Prozess (gemessen) |
 | **T** | Netz → Gnotchi (15a) | Riesen-JSON, NaN, Steuerzeichen im Ortsnamen | G31: 64 KB beim Lesen, Schema, Bereiche, Bereinigung |
 | **I** | Gnotchi → Open-Meteo (15) | Ort und IP beim Anbieter | G31: nur gewählter Ort, gerundet, ab Werk aus, Hinweis |
+| **S** | App → Ablage (16) | präparierte Datei/`.app` | G32: nichts wird geöffnet, nur weitergereicht |
+| **T** | Ablage → ZIP (16b) | Link/`..` im ZIP, Austausch gegen Link | G32: relative Pfade, Links übersprungen, `O_NOFOLLOW` |
+| **I** | Ablage → Platte/Protokoll | Dateinamen, Passwort | G32: `ablage.json` 0600, Protokoll nur Zahlen, Passwort nie gespeichert |
 | **E** | Eingabe → Anfrage (15b) | Ortsname als URL/Host | G31: nur Query-Wert, feste Hosts, keine Weiterleitungen |
 
 ## Negativraum: was wir stillschweigend annehmen

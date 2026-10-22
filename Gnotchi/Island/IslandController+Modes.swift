@@ -13,10 +13,11 @@ extension IslandController {
     /// Apples Banner bleibt so lange stehen (ActivityModel.noteDisplayed).
     nonisolated static func nextMode(current: IslandState.Mode, notice: Bool, recording: Bool = false,
                                      liveText: Bool = false, trackFlash: Bool = false,
-                                     alarm: Bool = false, call: Bool = false, message: Bool = false) -> IslandState.Mode {
-        if call { return .call }
-        if recording { return liveText ? .live : .compact }
-        if current == .call { return message ? .message : .compact }
+                                     alarm: Bool = false, call: Bool = false, message: Bool = false,
+                                     drag: Bool = false) -> IslandState.Mode {
+        if let urgent = urgentMode(current: current, call: call, drag: drag,
+                                   recordMode: recording ? (liveText ? .live : .compact) : nil,
+                                   message: message) { return urgent }
         // Timer-Alarm (0.5.0): anklickbar – deshalb klein/groß, nie Hinweis (der lässt Klicks durch) oder breit.
         if alarm { return current == .expanded ? .expanded : .compact }
         if message { return current == .expanded || current == .band ? current : .message }
@@ -25,6 +26,18 @@ extension IslandController {
         if notice { return current == .expanded || current == .band ? current : .notice }
         if current == .expanded || current == .band { return current }
         return trackFlash ? .wide : .compact
+    }
+
+    /// Was vor allem anderen gilt: Anruf (0.6.0), Ablagefeld beim Ziehen (0.8.0, auch über groß/Aufnahme), Aufnahme;
+    /// und der Weg zurück, wenn Anruf bzw. Ziehen enden. nil = normale Regeln.
+    nonisolated static func urgentMode(current: IslandState.Mode, call: Bool, drag: Bool,
+                                       recordMode: IslandState.Mode?, message: Bool) -> IslandState.Mode? {
+        if call { return .call }
+        if drag { return .shelfDrop }
+        if current == .shelfDrop { return .compact }
+        if let recordMode { return recordMode }
+        if current == .call { return message ? .message : .compact }
+        return nil
     }
 
     /// Panelgröße je Zustand; nil = Panel ist weg. Groß hängt am Inhalt (0.2.0): ohne Musik nur die
@@ -43,6 +56,7 @@ extension IslandController {
         case .live: return layout.live
         case .message: return layout.message
         case .call: return layout.call
+        case .shelfDrop: return layout.shelfDrop
         case .expanded:
             guard hasMedia else {
                 var r = layout.notice
@@ -63,14 +77,20 @@ extension IslandController {
     /// Große Insel „Eine Sache groß“ (0.5.0): alles in Player-Größe (Michael 21.10.: Hinweis-Größe war zu klein),
     /// nur „nur Mikrofon/Kamera“ in Hinweis-Größe; die Symbolleiste eine Zeile höher.
     nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool,
-                                     mirror: Bool = false, weather: Bool = false) -> CGRect? {
-        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather,
+                                     mirror: Bool = false, weather: Bool = false, shelf: Bool = false,
+                                     strip: Bool = false) -> CGRect? {
+        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather || shelf,
                                  updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2) else { return nil }
-        guard mirror || weather else { return r }
-        let extra = (mirror ? IslandGeometry.mirrorHeight : IslandGeometry.weatherHeight) - IslandGeometry.expandedSize.height
+        if strip {   // Kachelreihe der Ablage unten dran (0.8.0)
+            r.origin.y -= IslandGeometry.shelfStripHeight
+            r.size.height += IslandGeometry.shelfStripHeight
+        }
+        guard mirror || weather || shelf else { return r }
+        let tall = mirror ? IslandGeometry.mirrorHeight : (weather ? IslandGeometry.weatherHeight : IslandGeometry.shelfHeight)
+        let extra = tall - IslandGeometry.expandedSize.height
         r.origin.y -= extra
         r.size.height += extra
-        if weather {   // breiter, mittig um dieselbe Achse; nie breiter als der Bildschirm erlaubt (layout.wide als Maß)
+        if weather || shelf {   // breiter (Wetter: Lesbarkeit, Ablage: Kacheln + Knopfleiste), mittig um dieselbe Achse
             let wider = IslandGeometry.weatherWidth - r.width
             r.origin.x -= wider / 2
             r.size.width += wider

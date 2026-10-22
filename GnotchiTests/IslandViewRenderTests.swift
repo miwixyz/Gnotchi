@@ -38,6 +38,22 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .call, name: "pill-call-unarmed", notes: [Self.sampleCall], callArmed: false)
     }
 
+    func testRenderNotchShelfDrop() throws {
+        try render(notchScreen, .shelfDrop, name: "notch-shelf-drop", withMedia: false, shelfFiles: ["a.pdf"], drag: true)
+    }
+    func testRenderNotchShelfBig() throws {
+        try render(notchScreen, .expanded, name: "notch-shelf-big", withMedia: false,
+                   shelfFiles: ["Angebot Kino.pdf", "Plakat.png", "Notizen.txt", "Tabelle mit sehr langem Namen.xlsx"])
+    }
+    func testRenderNotchIdle() throws {
+        try render(notchScreen, .compact, name: "notch-idle", withMedia: false, weather: Self.sampleWeather(code: 0, day: true),
+                   shelfFiles: ["a.pdf", "b.pdf"], showWeatherBig: false)
+    }
+    func testRenderPillIdle() throws {
+        try render(pillScreen, .compact, name: "pill-idle", withMedia: false, weather: Self.sampleWeather(code: 0, day: true),
+                   shelfFiles: ["a.pdf", "b.pdf"], showWeatherBig: false)
+    }
+
     func testRenderNotchWeather() throws {
         try render(notchScreen, .expanded, name: "notch-weather", withMedia: false, weather: Self.sampleWeather(code: 2, day: true))
     }
@@ -47,10 +63,29 @@ final class IslandViewRenderTests: XCTestCase {
 
     /// Mitteilungen/Anruf (0.6.0) und Wetter (0.7.0) setzen – ausgelagert, damit `render` kurz bleibt.
     private static func applyExtras(_ activity: ActivityModel, notes: [NotifyWire.Note], callArmed: Bool,
-                                    weather: Weather.Forecast?) {
+                                    weather: Weather.Forecast?, showWeatherBig: Bool) {
         notes.forEach { activity.receiveNote($0) }
         activity.callArmed = callArmed
-        if let weather { activity.setWeather(weather); activity.selectWeather() }
+        if let weather { activity.setWeather(weather); if showWeatherBig { activity.selectWeather() } }
+    }
+
+    /// Ablage (0.8.0): erfundene Dateien in einem Temp-Ordner, eigener Speicher, Einstellungen getrennt von den echten.
+    private static func applyShelf(_ activity: ActivityModel, files: [String], drag: Bool) -> ShelfLink? {
+        activity.fileDragActive = drag
+        guard !files.isEmpty else { return nil }
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("gnotchi-render-\(UUID().uuidString.prefix(6))")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let urls = files.map { name -> URL in
+            let u = dir.appendingPathComponent(name)
+            FileManager.default.createFile(atPath: u.path, contents: Data("x".utf8))
+            return u
+        }
+        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-render-\(UUID().uuidString)") ?? .standard)
+        let link = ShelfLink(activity: activity, prefs: prefs, store: ShelfStore(directory: dir.appendingPathComponent("store")))
+        activity.shelf = link
+        link.drop(urls)
+        activity.clearNotice()
+        return link
     }
 
     /// Erfundene Vorhersage (Aufbau wie Open-Meteo, 22.10.).
@@ -265,7 +300,8 @@ final class IslandViewRenderTests: XCTestCase {
                         cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
                         timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false,
                         playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false,
-                        notes: [NotifyWire.Note] = [], callArmed: Bool = true, weather: Weather.Forecast? = nil) throws {
+                        notes: [NotifyWire.Note] = [], callArmed: Bool = true, weather: Weather.Forecast? = nil,
+                        shelfFiles: [String] = [], drag: Bool = false, showWeatherBig: Bool = true) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -293,13 +329,10 @@ final class IslandViewRenderTests: XCTestCase {
         if alarm { activity.timerAlarm = true }
         activity.compactControls = compactControls
         if let playerFirstOverlay { activity.playerFirst = true; activity.select(playerFirstOverlay) }
-        Self.applyExtras(activity, notes: notes, callArmed: callArmed, weather: weather)
-        // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
-        let panel = mode == .message ? IslandController.messageFrame(layout: layout, note: activity.currentNote) : (mode == .expanded
-            ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow,
-                                        mirror: activity.mirrorActive, weather: activity.bigContent == .weather)
-            : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
-        let canvas = CGSize(width: mode == .band ? 1100 : (weather != nil ? 680 : 520), height: weather != nil ? 420 : 210)
+        Self.applyExtras(activity, notes: notes, callArmed: callArmed, weather: weather, showWeatherBig: showWeatherBig)
+        let shelfLink = Self.applyShelf(activity, files: shelfFiles, drag: drag)
+        defer { _ = shelfLink }
+        let (panel, canvas) = Self.frames(mode, layout, activity, wide: weather != nil || !shelfFiles.isEmpty)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)
@@ -323,6 +356,23 @@ final class IslandViewRenderTests: XCTestCase {
         let folder = URL(fileURLWithPath: dir, isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try png.write(to: folder.appendingPathComponent("gnotchi-island-\(name).png"), options: .atomic)
+    }
+
+    /// Panel so groß wie der aktuelle Zustand (wie im IslandController) und die Leinwand drumherum.
+    private static func frames(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout, _ activity: ActivityModel,
+                               wide: Bool) -> (CGRect, CGSize) {
+        let panel: CGRect
+        switch mode {
+        case .message: panel = IslandController.messageFrame(layout: layout, note: activity.currentNote)
+        case .expanded:
+            panel = IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow,
+                                              mirror: activity.mirrorActive, weather: activity.bigContent == .weather,
+                                              shelf: activity.bigContent == .shelf,
+                                              strip: activity.showsShelfStrip) ?? layout.compact
+        default: panel = IslandController.panelFrame(mode: mode, layout: layout) ?? layout.compact
+        }
+        let canvas = CGSize(width: mode == .band ? 1100 : (wide ? 680 : 520), height: wide ? 420 : 210)
+        return (panel, canvas)
     }
 
     private static func info(appBundleID: String?, playing: Bool) -> NowPlayingInfo {

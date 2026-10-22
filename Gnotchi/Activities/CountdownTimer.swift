@@ -131,6 +131,7 @@ extension ActivityModel {
         timerPickerActive = true
         mirrorActive = false
         weatherActive = false
+        shelfActive = false
     }
 
     private func scheduleTimerEnd() {

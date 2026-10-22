@@ -74,6 +74,10 @@ targets:
         CODE_SIGN_STYLE: Automatic
         COMBINE_HIDPI_IMAGES: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        # 0.8.0 (G32): ZIP der Ablage im Prozess über die System-Bibliothek libarchive (SDK: libarchive.tbd, kein
+        # Header → eigene Deklarationen im Bridging-Header). Kein Kindprozess (G3), Passwort nie als Argument.
+        SWIFT_OBJC_BRIDGING_HEADER: Gnotchi/Shelf/Gnotchi-Bridging-Header.h
+        OTHER_LDFLAGS: "$(inherited) -larchive"
 
   # „Gnotchi Mitteilungen“ (0.6.0, SECURE-DESIGN G28): EINZIGES Ziel mit Bedienungshilfen-Code. Liest Apples
   # Mitteilungsbanner, versteckt sie und löst auf Klick in Gnotchi eine gemeldete Aktion aus. Keine Berechtigungen

@@ -3,147 +3,58 @@ import SwiftUI
 /// Einstellungen als eigenes Fenster, gleiche Bausteine wie Seam (Verlauf, weiße Karten, Titel in
 /// der Karte, Plus Jakarta Sans) statt Apples grauem Formular.
 struct SettingsView: View {
-    @Environment(AppModel.self) private var model
-    @Environment(Preferences.self) private var prefs
+    @Environment(AppModel.self) var model
+    @Environment(Preferences.self) var prefs
     /// Autostart-Zustand: von macOS gelesen, nicht gespiegelt (siehe LoginItem). Seam-Code-Audit
     /// 09.10. (C3): vorher wurde ein Fehler verworfen und „Freigabe nötig“ als „aus“ gezeigt.
-    @State private var login = LoginItem.state
-    @State private var loginError: String?
+    @State var login = LoginItem.state
+    @State var loginError: String?
+    /// Zuletzt gewählter Reiter (Michael 22.10.: Fenster war zu lang → Reiter oben wie Safari/Mail).
+    @AppStorage("settingsTab") private var tab: Tab = .general
 
-    var body: some View {
-        @Bindable var prefs = prefs
-        VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
-            card("Notch") {
-                toggleRow("Musik in der Notch", isOn: $prefs.notchMedia)
-                    .onChange(of: prefs.notchMedia) { model.applyNotchSetting() }
-                toggleRow("Kopfhörer-Hinweis", isOn: $prefs.headphoneNotice)
-                    .onChange(of: prefs.headphoneNotice) { model.applyNotchSetting() }
-                toggleRow("Mikrofon & Kamera anzeigen", isOn: $prefs.micCamera)
-                    .onChange(of: prefs.micCamera) { model.applyNotchSetting() }
-                toggleRow("Tippi-Aufnahme anzeigen", isOn: $prefs.tippiRecording)
-                    .onChange(of: prefs.tippiRecording) { model.applyNotchSetting() }
-                toggleRow("Qotti-Kontingent anzeigen", isOn: $prefs.qottiQuota)
-                    .onChange(of: prefs.qottiQuota) { model.applyNotchSetting() }
-                toggleRow("Termine aus Kalli anzeigen", isOn: $prefs.kalliEvents)
-                    .onChange(of: prefs.kalliEvents) { model.applyNotchSetting() }
-                row("Aufklappen als") {
-                    Picker("Aufklappen als", selection: $prefs.bandStyle) {
-                        Text(verbatim: "Insel").tag(false)
-                        Text(verbatim: "Band").tag(true)
-                    }
-                    .labelsHidden().pickerStyle(.segmented).fixedSize()
-                    .onChange(of: prefs.bandStyle) { model.applyNotchSetting() }
-                }
-                toggleRow("Wiedergabe-Knöpfe in der kleinen Insel", isOn: $prefs.compactControls)
-                    .onChange(of: prefs.compactControls) { model.applyNotchSetting() }
-                toggleRow("Wiedergabe immer groß", isOn: $prefs.playerFirst)
-                    .onChange(of: prefs.playerFirst) { model.applyNotchSetting() }
-                toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
-                    .onChange(of: prefs.mirror) { model.applyNotchSetting() }
-                toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)
-                    .onChange(of: prefs.timerAlarm) { model.applyNotchSetting() }
-                row("Timer-Ton") {
-                    Picker("Timer-Ton", selection: $prefs.timerSound) {
-                        Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)
-                        Divider()
-                        ForEach(CountdownTimer.sounds, id: \.self) { Text(verbatim: $0).tag($0) }
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                    // Probehören beim Auswählen.
-                    .onChange(of: prefs.timerSound) { CountdownTimer.play(prefs.timerSound) }
-                }
-                // Wirkt beim nächsten Überfahren (IslandController liest den Wert jedes Mal neu).
-                row("Aufklappen nach") {
-                    Picker("Aufklappen nach", selection: $prefs.expandDelay) {
-                        ForEach(Preferences.expandDelayChoices, id: \.self) { d in
-                            Text(verbatim: Self.delayLabel(d)).tag(d)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                }
-                .disabled(!prefs.notchMedia)
-                // Grund steht für sich (z. B. „… – nur Spotify und Musik“): Der Rückfall läuft dann
-                // ja noch, ein Vorsatz „nicht verfügbar“ wäre falsch.
-                if prefs.notchMedia, let reason = model.nowPlaying.unavailableReason {
-                    note(reason, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
-                }
-                if prefs.notchMedia, let other = model.nowPlaying.competingNotchApp {
-                    note(IslandController.competingWarning(name: other),
-                         symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
-                }
-            }
-            card("Live-Aktivitäten") {
-                toggleRow("Rotation", isOn: $prefs.liveRotation)
-                    .onChange(of: prefs.liveRotation) { model.applyNotchSetting() }
-                toggleRow("Kopfhörer-Aktivität", isOn: $prefs.headphoneActivity)
-                    .onChange(of: prefs.headphoneActivity) { model.applyNotchSetting() }
-                toggleRow("Updates der App-Familie", isOn: $prefs.familyUpdates)
-                    .onChange(of: prefs.familyUpdates) { model.applyNotchSetting() }
-                divider
-                Text("Medienfilter")
-                    .font(FamilyTheme.font(.callout, weight: .medium))
-                    .foregroundStyle(FamilyTheme.textSecondary)
-                    .padding(.top, FamilyTheme.Space.s)
-                // Zweispaltig: Mit allen installierten Wiedergabe-Apps würde das Fenster sonst höher als ein MacBook-Bildschirm.
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: FamilyTheme.Space.l), GridItem(.flexible())],
-                          spacing: 0) {
-                    ForEach(mediaApps, id: \.id) { app in
-                        // App-Namen aus dem lokalen Bundle, unbekannte als Bundle-ID → nie als Schlüssel lesen.
-                        toggleRow(verbatim: app.name, isOn: Binding(
-                            get: { !prefs.isMediaExcluded(app.id) },
-                            set: { on in
-                                prefs.setMediaExcluded(app.id, !on)
-                                model.applyMediaFilter()
-                            }))
-                    }
-                }
-                .disabled(!prefs.notchMedia)
-            }
-            notifyCard
-            card("Wetter") {
-                toggleRow("Wetter in der Notch", isOn: $prefs.weather)
-                    .onChange(of: prefs.weather) { model.applyNotchSetting() }
-                WeatherSettings(onChange: { model.applyNotchSetting() })
-            }
-            card("Allgemein") {
-                toggleRow("Bei Anmeldung starten", isOn: Binding(
-                    get: { login == .on || login == .needsApproval },
-                    set: { on in
-                        loginError = LoginItem.set(on)?.localizedDescription
-                        login = LoginItem.state
-                    }
-                ))
-                .disabled(login == .unavailable)
-                if login == .needsApproval {
-                    row(nil) {
-                        Label("macOS wartet auf deine Freigabe", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(FamilyTheme.warning)
-                        Spacer()
-                        Button("Freigeben …") { LoginItem.openSystemSettings() }
-                            .buttonStyle(CardButtonStyle())
-                    }
-                }
-                if login == .unavailable {
-                    note("macOS meldet einen unbekannten Autostart-Status",
-                         symbol: "info.circle", color: FamilyTheme.textSecondary)
-                }
-                if let loginError {
-                    note(loginError, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
-                }
-                if let updater = model.updater {
-                    divider
-                    Button("Nach Updates suchen …") { updater.checkForUpdates() }
-                        .buttonStyle(CardButtonStyle())
-                        .disabled(!updater.canCheck)
-                        .padding(.vertical, FamilyTheme.Space.s)
-                }
+    enum Tab: String, CaseIterable, Identifiable {
+        case general, playback, activities, notify, weather, shelf
+        var id: Self { self }
+
+        var title: String {
+            switch self {
+            case .general: "Allgemein"
+            case .playback: "Wiedergabe"
+            case .activities: "Aktivitäten"
+            case .notify: "Mitteilungen"
+            case .weather: "Wetter"
+            case .shelf: "Ablage"
             }
         }
-        .frame(width: 400)
-        .padding(FamilyTheme.Space.l)
+
+        var symbol: String {
+            switch self {
+            case .general: "gearshape"
+            case .playback: "music.note"
+            case .activities: "square.stack.3d.up"
+            case .notify: "bell.badge"
+            case .weather: "cloud.sun"
+            case .shelf: "tray.full"
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            tabBar
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
+                switch tab {
+                case .general: generalTab
+                case .playback: playbackTab
+                case .activities: activitiesTab
+                case .notify: notifyCard
+                case .weather: weatherTab
+                case .shelf: shelfTab
+                }
+            }
+            .padding(FamilyTheme.Space.l)
+        }
+        .frame(width: 440)
         .font(FamilyTheme.font(.body))
         .foregroundStyle(FamilyTheme.textPrimary)
         .tint(FamilyTheme.accent)
@@ -155,67 +66,28 @@ struct SettingsView: View {
         }
     }
 
-    /// Mitteilungen und Anrufe (0.6.0, G28–G30). Ab Werk aus; braucht das Hilfsprogramm mit Bedienungshilfen.
-    @ViewBuilder private var notifyCard: some View {
-        @Bindable var prefs = prefs
-        card("Mitteilungen") {
-            toggleRow("Mitteilungen in der Notch", isOn: $prefs.notifications)
-                .onChange(of: prefs.notifications) {
-                    if prefs.notifications { prefs.seedNotifyApps(NotifyApps.suggestedInstalled) }
-                    model.applyNotchSetting()
-                }
-            if !prefs.notifications {
-                note("Ein eigenes Hilfsprogramm „Gnotchi Mitteilungen“ liest Apples Mitteilungen und braucht dafür die "
-                     + "Bedienungshilfen-Freigabe. Gnotchi selbst bleibt ohne.", symbol: "info.circle",
-                     color: FamilyTheme.textSecondary)
-            } else {
-                switch model.activity.notifyTrust {
-                case nil:
-                    note("Hilfsprogramm startet …", symbol: "hourglass", color: FamilyTheme.textSecondary)
-                case false?:
-                    row(nil) {
-                        Label("Bedienungshilfen für „Gnotchi Mitteilungen“ freigeben", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(FamilyTheme.warning)
-                        Spacer()
-                        Button("Öffnen …") { NotifyApps.openAccessibilitySettings() }
-                            .buttonStyle(CardButtonStyle())
+    /// Reiterleiste oben (Symbol über Titel), wie die Einstellungen von Safari und Mail.
+    private var tabBar: some View {
+        HStack(spacing: 2) {
+            ForEach(Tab.allCases) { t in
+                Button { tab = t } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: t.symbol).font(.system(size: 17, weight: .medium)).frame(height: 20)
+                        Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1)
                     }
-                case true?:
-                    EmptyView()
+                    .frame(width: 70, height: 48)
+                    .foregroundStyle(tab == t ? FamilyTheme.accent : FamilyTheme.textSecondary)
+                    .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(tab == t ? FamilyTheme.accent.opacity(0.14) : .clear))
+                    .contentShape(Rectangle())
                 }
-                toggleRow("Anrufe in der Notch", isOn: $prefs.notifyCalls)
-                    .onChange(of: prefs.notifyCalls) { model.applyNotchSetting() }
-                divider
-                Text("Apps")
-                    .font(FamilyTheme.font(.callout, weight: .medium))
-                    .foregroundStyle(FamilyTheme.textSecondary)
-                    .padding(.top, FamilyTheme.Space.s)
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: FamilyTheme.Space.l), GridItem(.flexible())],
-                          spacing: 0) {
-                    ForEach(NotifyApps.list(selected: prefs.notifyApps ?? []), id: \.id) { app in
-                        toggleRow(verbatim: app.name, isOn: Binding(
-                            get: { prefs.isNotifyApp(app.id) },
-                            set: { on in
-                                prefs.setNotifyApp(app.id, on)
-                                model.applyNotchSetting()
-                            }))
-                    }
-                }
-                Button("App hinzufügen …") {
-                    guard let id = NotifyApps.pickApp() else { return }
-                    prefs.setNotifyApp(id, true)
-                    model.applyNotchSetting()
-                }
-                .buttonStyle(CardButtonStyle())
-                .padding(.vertical, FamilyTheme.Space.s)
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(t.title))
+                .accessibilityAddTraits(tab == t ? .isSelected : [])
             }
         }
-    }
-
-    /// Medienfilter: bekannte installierte Apps, seit Start gesehene und ausgeschlossene (G25).
-    private var mediaApps: [(id: String, name: String)] {
-        NowPlayingModel.filterApps(known: NowPlayingModel.knownPlayers, seen: model.nowPlaying.seenApps,
-                                   excluded: prefs.mediaExcluded, name: AppIcons.name(for:))
+        .padding(.top, FamilyTheme.Space.m)
+        .frame(maxWidth: .infinity)
     }
 
     /// „Sofort“, „0,3 s“, „0,6 s“, „1 s“ – deutsches Komma, ganze Sekunden ohne Nachkommastelle.
@@ -227,7 +99,7 @@ struct SettingsView: View {
 
     // MARK: - Bausteine (aus Seams SettingsView, 18.10.)
 
-    private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
                 .font(FamilyTheme.font(.headline))
@@ -240,7 +112,7 @@ struct SettingsView: View {
         .familyCard(radius: FamilyTheme.Radius.tile)
     }
 
-    private func row<Control: View>(_ title: String?, @ViewBuilder control: () -> Control) -> some View {
+    func row<Control: View>(_ title: String?, @ViewBuilder control: () -> Control) -> some View {
         HStack(spacing: FamilyTheme.Space.m) {
             if let title {
                 Text(title).foregroundStyle(FamilyTheme.textPrimary)
@@ -251,7 +123,7 @@ struct SettingsView: View {
         .frame(minHeight: 34)
     }
 
-    private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
+    func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
         row(title) {
             Toggle(title, isOn: isOn)
                 .labelsHidden()
@@ -260,7 +132,7 @@ struct SettingsView: View {
     }
 
     /// Schalter mit fremdem Text (App-Name): `Text(verbatim:)`, nie Übersetzungsschlüssel oder Markdown.
-    private func toggleRow(verbatim title: String, isOn: Binding<Bool>) -> some View {
+    func toggleRow(verbatim title: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: FamilyTheme.Space.m) {
             Text(verbatim: title).foregroundStyle(FamilyTheme.textPrimary).lineLimit(1).truncationMode(.tail)
             Spacer(minLength: FamilyTheme.Space.m)
@@ -273,14 +145,14 @@ struct SettingsView: View {
 
     /// `Text(verbatim:)`: Hinweise können App-Namen enthalten (Automation verweigert) – nie als
     /// Markdown oder Übersetzungsschlüssel lesen.
-    private func note(_ text: String, symbol: String, color: Color) -> some View {
+    func note(_ text: String, symbol: String, color: Color) -> some View {
         Label { Text(verbatim: text) } icon: { Image(systemName: symbol) }
             .font(FamilyTheme.font(.callout))
             .foregroundStyle(color)
             .padding(.vertical, FamilyTheme.Space.xs)
     }
 
-    private var divider: some View {
+    var divider: some View {
         Rectangle().fill(FamilyTheme.cardStroke).frame(height: 0.8)
     }
 }

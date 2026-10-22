@@ -12,6 +12,15 @@ Dazu kommen ab 0.7.0 **Wetterdaten** von Open-Meteo (keine Software, aber mit Li
 
 ---
 
+## libarchive (System-Bibliothek, ab 0.8.0)
+
+Für das ZIP der Ablage nutzt Gnotchi die in macOS enthaltene Bibliothek libarchive (nicht mitgeliefert). Die
+Funktionsdeklarationen im Bridging-Header folgen `archive.h`/`archive_entry.h` von libarchive.
+
+- Projekt: <https://www.libarchive.org> · Lizenz: **BSD-2-Clause** (Copyright Tim Kientzle u. a.)
+
+---
+
 ## Wetterdaten: Open-Meteo
 
 Nur wenn „Wetter in der Notch“ eingeschaltet ist.

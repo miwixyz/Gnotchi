@@ -30,6 +30,10 @@ struct BandView<Cover: View>: View {
     let onOpenEvent: () -> Void
     let onTimerToggle: () -> Void
     let onExpand: () -> Void
+    /// Ablage im Band (0.8.0, Michael 22.10.: im Band kam man nur mit mehreren Klicks an die Ablage).
+    var shelfItems: [ShelfStore.Item] = []
+    var shelfLink: ShelfLink?
+    var onOpenShelf: () -> Void = {}
     @ViewBuilder let cover: () -> Cover
 
     var body: some View {
@@ -38,6 +42,9 @@ struct BandView<Cover: View>: View {
                 Button(action: onExpand) { left.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(verbatim: "Große Ansicht öffnen"))
+                if let shelfLink, !shelfItems.isEmpty {
+                    ShelfMini(items: shelfItems, link: shelfLink, onOpen: onOpenShelf).fixedSize()
+                }
                 if let notchWidth { Color.clear.frame(width: notchWidth) }
                 right(at: ctx.date).frame(maxWidth: .infinity, alignment: .trailing)
             }

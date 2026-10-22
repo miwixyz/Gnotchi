@@ -32,6 +32,8 @@ enum IslandGeometry {
         var message: CGRect = .zero
         /// Eingehender Anruf (0.6.0): Anrufer und zwei runde Knöpfe.
         var call: CGRect = .zero
+        /// Ablagefeld beim Ziehen (0.8.0): „Hier ablegen“.
+        var shelfDrop: CGRect = .zero
     }
 
     /// Platz links (Cover) und rechts (Pegel) neben der Notch.
@@ -45,7 +47,13 @@ enum IslandGeometry {
     /// Wetter groß (0.7.0): Kopf, 8 Stunden, 7 Tage, Einzelwerte, Quellenangabe (Testbild 22.10.: 262 ließ 28 pt leer).
     static let weatherHeight: CGFloat = 300
     /// Michael 22.10.: „zu klein, kann es kaum lesen“ → Wetter breiter als die übrige große Insel, Schrift ~⅓ größer.
+    /// Ab 0.8.0 auch die Ablage (Testbild: Knopfleiste bei 460 pt abgeschnitten).
     static let weatherWidth: CGFloat = 600
+    /// Ablage (0.8.0): Ablagefeld beim Ziehen und große Ablage (Kacheln + Knopfleiste).
+    static let shelfDropSize = CGSize(width: 460, height: 84)
+    static let shelfHeight: CGFloat = 160
+    /// Kachelreihe unter der großen Sache (Michael 22.10.: „Rack schneller zugänglich“ → immer unten, sobald etwas liegt).
+    static let shelfStripHeight: CGFloat = 70
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt
     /// kein Name; nebeneinander kürzte der Zustand den Namen schon nach 15 Zeichen (Testbild 20.10.).
     static let noticeSize = CGSize(width: 260, height: 44)
@@ -95,7 +103,8 @@ enum IslandGeometry {
                           band: band(CGSize(width: notch.width + 2 * bandWing, height: 0), midX: notch.midX, top: top,
                                      extraHeight: notch.height, in: m.frame),
                           message: band(messageSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
-                          call: band(callSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
+                          call: band(callSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame),
+                          shelfDrop: band(shelfDropSize, midX: notch.midX, top: top, extraHeight: notch.height, in: m.frame))
         }
         let midX = m.frame.midX
         let pill = CGRect(x: midX - pillSize.width / 2, y: top - pillSize.height,
@@ -109,7 +118,8 @@ enum IslandGeometry {
                       band: band(CGSize(width: bandPillWidth, height: max(pillSize.height, m.menuBarHeight)), midX: midX,
                                  top: top, extraHeight: 0, in: m.frame),
                       message: band(messageSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
-                      call: band(callSize, midX: midX, top: top, extraHeight: 0, in: m.frame))
+                      call: band(callSize, midX: midX, top: top, extraHeight: 0, in: m.frame),
+                      shelfDrop: band(shelfDropSize, midX: midX, top: top, extraHeight: 0, in: m.frame))
     }
 
     /// Rechteck oben bündig, mittig über `midX`, mit Notch um deren Höhe länger (Inhalt beginnt darunter).

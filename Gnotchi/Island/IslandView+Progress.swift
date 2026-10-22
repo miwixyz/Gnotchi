@@ -17,6 +17,14 @@ struct ProgressRow: View {
     /// Schritt für VoiceOver (Erhöhen/Verringern).
     nonisolated static let accessibilityStep: TimeInterval = 10
 
+    /// Nie größer als der Bereich: SwiftUIs `Slider` bricht sonst hart ab (Absturz 22.10., 13:14 – Wiedergabe ohne
+    /// Dauer → Bereich 0…1, Schritt 10; gemessen: 0…1 und 0…5 mit Schritt 10 stürzen ab, 0…10 nicht). Ausgelöst, sobald
+    /// ein Bedienungshilfen-Programm die Insel abfragt.
+    nonisolated static func accessibilityStep(upper: TimeInterval) -> TimeInterval {
+        guard upper.isFinite, upper > 0 else { return 1 }
+        return min(accessibilityStep, upper / 10)
+    }
+
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
             let shown = dragValue ?? pending?.value(for: info, now: ctx.date) ?? info.elapsed(at: ctx.date)
@@ -31,7 +39,7 @@ struct ProgressRow: View {
                     .accessibilityRepresentation {
                         // Für VoiceOver ein echter Regler: Wert, Erhöhen/Verringern wie zuvor beim Slider.
                         Slider(value: Binding(get: { d.sliderValue }, set: { seek($0) }), in: 0...d.sliderUpper,
-                               step: Self.accessibilityStep)
+                               step: Self.accessibilityStep(upper: d.sliderUpper))
                             .disabled(!d.seekable)
                     }
                     .accessibilityLabel(Text(verbatim: "Position"))

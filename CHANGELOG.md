@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.8.0] — noch nicht veröffentlicht
+
+Dateiablage, Ruhe-Insel und aufgeräumte Einstellungen.
+
+### Neu
+- **Dateiablage:** Zieh Dateien oder Ordner zur Notch. Die Insel wird zum Ablagefeld „Hier ablegen“, auch über Apps im Vollbild. Dort parken sie, bis du sie woanders wieder herausziehst. Die Ablage merkt sich nur, wo die Datei liegt (keine Kopie) und entfernt sie nach dem Rausziehen. Liegt etwas darin, hängt unter der großen Insel eine Reihe mit den Dateien; im Band stehen sie direkt neben dem Titel. Die volle Ablage bietet Im Finder zeigen, Teilen, AirDrop und ZIP, auf Wunsch mit Passwort (AES-256; öffnet sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick).
+- **Ruhe-Insel:** Läuft gerade nichts, bleibt die kleine Insel da, wenn das Wetter an ist oder etwas in der Ablage liegt, und zeigt Temperatur bzw. Anzahl. Überfahren öffnet Wetter bzw. Ablage.
+- **Einstellungen in Reitern:** Allgemein, Wiedergabe, Aktivitäten, Mitteilungen, Wetter, Ablage statt eines langen Fensters.
+
+### Behoben
+- Gnotchi stürzte ab, wenn ein Hilfsprogramm mit Bedienungshilfen (z. B. Thaw) die Insel abfragte, während etwas ohne Dauer lief. Der unsichtbare Regler für die Sprachausgabe hatte einen Schritt, der größer war als sein Bereich.
+- Nach dem Ablegen einer Datei klappte die Insel beim Überfahren nicht mehr auf, bis man mehrmals geklickt hatte.
+
+### Intern
+- Ziehen wird ohne Freigabe erkannt (Maustaste und Zähler der Zieh-Zwischenablage, kein Ereignis-Beobachter). ZIP im Programm über die System-Bibliothek libarchive, kein Hilfsprozess, das Passwort nie als Argument (SECURE-DESIGN G32). 479 Tests.
+
 ## [0.7.0] — noch nicht veröffentlicht
 
 Wetter in der Notch.

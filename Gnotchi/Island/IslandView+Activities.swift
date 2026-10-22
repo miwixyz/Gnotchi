@@ -87,6 +87,9 @@ struct ChipRow: View {
     /// Wetter (0.7.0): nil = keine Vorhersage; sonst Vorhersage und ob sie gerade groß gezeigt wird.
     var weather: (Weather.Forecast, Bool)?
     var onWeather: () -> Void = {}
+    /// Ablage (0.8.0): nil = leer; sonst Anzahl und ob sie gerade groß gezeigt wird.
+    var shelf: (Int, Bool)?
+    var onShelf: () -> Void = {}
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
     var onTimer: () -> Void = {}
@@ -120,6 +123,9 @@ struct ChipRow: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text(verbatim: "Wetter"))
                 .accessibilityAddTraits(shown ? .isSelected : [])
+            }
+            if let (count, shown) = shelf {
+                fixedButton("tray.full.fill", label: "Ablage, \(count)", selected: shown, action: onShelf)
             }
             if let mirror {
                 Button(action: onMirror) {

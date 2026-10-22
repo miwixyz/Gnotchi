@@ -185,6 +185,20 @@ bekommt keine Freigabe.
 - Während die Tippi-Aufnahme läuft oder die große Insel offen ist, wartet eine Mitteilung. So lange bleibt Apples
   Banner stehen, es geht nichts verloren.
 
+## Dateiablage
+
+Zieh eine Datei (oder einen Ordner, auch mehrere) zur Notch. Die Insel wird zum Feld **„Hier ablegen“**, dort
+loslassen. Die Datei bleibt, wo sie war; die Ablage merkt sich nur den Ort. Dann wechselst du in Ruhe App oder
+Space und ziehst sie dort wieder heraus.
+
+- **Rausziehen:** aus der Reihe unter der großen Insel oder – bei „Aufklappen als: Band“ – direkt aus dem Band
+  (die kleinen Symbole neben dem Titel). Danach verschwindet sie aus der Ablage (abschaltbar).
+- **Volle Ablage:** Klick auf das Ablage-Symbol. Rechtsklick auf eine Datei: Im Finder zeigen, Teilen …, AirDrop,
+  Entfernen. Unten für alle: Teilen, AirDrop, ZIP, ZIP mit Passwort, Leeren.
+- **ZIP** landet als „Ablage.zip“ in deinem Downloads-Ordner und auch in der Ablage. **Mit Passwort** ist es mit
+  AES-256 verschlüsselt; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick auf dem Mac.
+- Entfernen und Leeren löschen nie eine Datei. Höchstens 50 Einträge.
+
 ## Wetter
 
 Einstellungen → **Wetter in der Notch** einschalten (ab Werk aus), dann unter „Stadt suchen“ deinen Ort eingeben,
@@ -221,7 +235,8 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth.
+Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Auch
+die Dateiablage braucht keine Freigabe.
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
 „Gnotchi Mitteilungen“, nicht Gnotchi.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
@@ -255,6 +270,8 @@ nicht wirkt.
 - Mitteilungen liest nur das Hilfsprogramm „Gnotchi Mitteilungen“, und nur die der Apps, die du ausgewählt hast,
   gehen an Gnotchi weiter. Beide prüfen vorher die Signatur des anderen. Texte werden nicht gespeichert, nicht
   protokolliert und sind weg, sobald die Mitteilung verschwindet. Gespeichert wird nur die App-Liste.
+- Die Dateiablage speichert nur, wo die Dateien liegen (nur für dich lesbar), nie ihren Inhalt. ZIP-Passwörter
+  werden nicht gespeichert.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen, und – wenn du das Wetter einschaltest – zu
   Open-Meteo.com. Dorthin geht nur der gewählte Ort, gerundet auf etwa einen Kilometer; Open-Meteo speichert laut
   eigenen Angaben IP-Adresse und Koordinaten bis zu 90 Tage in seinen Serverprotokollen und gibt sie nicht weiter.
