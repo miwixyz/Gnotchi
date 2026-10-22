@@ -51,6 +51,9 @@ Freigabe nicht und fragt nie danach.
   mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
   Auflegen. Ein eigenes Hilfsprogramm mit Bedienungshilfen-Freigabe liest Apples Banner; Gnotchi selbst bleibt
   ohne. Ab Werk aus.
+- **Wetter (0.7):** Wetter-Symbol in der großen Insel → Temperatur, Zustand, 8 Stunden, 7 Tage, Feuchte, Wind,
+  UV, Druck, Sonnenauf-/-untergang auf einem Himmel-Farbverlauf. Ort in den Einstellungen suchen, °C/°F. Daten:
+  [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0). Ab Werk aus.
 - **Spulen:** im Balken klicken oder ziehen, gespult wird beim Loslassen. In Spotify auch dann,
   wenn die Musik über Spotify Connect auf einem anderen Gerät läuft. Ohne Dauer (Livestream) ist
   der Balken gesperrt.
@@ -143,7 +146,9 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 
 ## Datenschutz
 
-- **Nichts verlässt den Mac** außer der Update-Prüfung (Sparkle, bei GitHub).
+- **Nichts verlässt den Mac** außer der Update-Prüfung (Sparkle, bei GitHub) und – nur bei eingeschaltetem
+  Wetter – der Abfrage bei Open-Meteo: dorthin gehen nur der gewählte Ort (gerundete Koordinaten) und bei der
+  Ortssuche der eingetippte Name, nie dein Standort ([G31](docs/SECURE-DESIGN.md)).
 - Titel, Interpret und Cover bleiben im Arbeitsspeicher. Gnotchi speichert sie nicht, schreibt sie
   nicht ins Protokoll und lädt keine Cover-Adressen aus dem Netz. Ins Protokoll kommen nur
   Zustandswechsel und die Kennung der Quell-App.

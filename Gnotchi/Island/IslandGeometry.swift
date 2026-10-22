@@ -42,6 +42,10 @@ enum IslandGeometry {
     static let expandedSize = CGSize(width: 460, height: 110)
     /// Spiegel (0.5.0): Inhaltshöhe statt 110 – Bild 16:9 über die Breite (428 × 240) plus Rand.
     static let mirrorHeight: CGFloat = 256   // 0.5.0: 380 → 460 (Michael 21.10.: „breiter“)
+    /// Wetter groß (0.7.0): Kopf, 8 Stunden, 7 Tage, Einzelwerte, Quellenangabe (Testbild 22.10.: 262 ließ 28 pt leer).
+    static let weatherHeight: CGFloat = 300
+    /// Michael 22.10.: „zu klein, kann es kaum lesen“ → Wetter breiter als die übrige große Insel, Schrift ~⅓ größer.
+    static let weatherWidth: CGFloat = 600
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt
     /// kein Name; nebeneinander kürzte der Zustand den Namen schon nach 15 Zeichen (Testbild 20.10.).
     static let noticeSize = CGSize(width: 260, height: 44)

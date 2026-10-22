@@ -60,13 +60,15 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, none
+        case media, event, timer, timerPicker, alarm, headphones, update(FamilyApp), privacy, mirror, weather, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
-                                       mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false) -> BigContent {
+                                       mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
+                                       weather: Bool = false) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
+        if weather { return .weather }
         if timerPicker { return .timerPicker }
         return switch current {
         case .event?: .event
@@ -101,7 +103,8 @@ extension ActivityModel {
         // „Wiedergabe immer groß“: Player als Grundlage, solange Musik da ist (Alarm, Spiegel, Timer-Auswahl gehen vor).
         let current: LiveActivity? = playerFirst && media.info != nil ? .media : bigActivity
         return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
-                               mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm)
+                               mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
+                               weather: weatherActive && weather != nil)
     }
 
     /// Glas-Schicht über dem Player (nur bei „Wiedergabe immer groß“): die gewählte, noch laufende Aktivität.
@@ -112,7 +115,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive { return nil }
+        if mirrorActive || timerPickerActive || weatherActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -131,6 +134,7 @@ extension ActivityModel {
         if chipItems.contains(item) { rotationCursor = item }
         mirrorActive = false
         timerPickerActive = false
+        weatherActive = false
         // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
         if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
@@ -140,12 +144,22 @@ extension ActivityModel {
     func selectMirror() {
         if mirrorEnabled { mirrorActive = true }
         timerPickerActive = false
+        weatherActive = false
+    }
+
+    /// Wetter groß (0.7.0): nur mit einer Vorhersage.
+    func selectWeather() {
+        guard weather != nil else { return }
+        weatherActive = true
+        mirrorActive = false
+        timerPickerActive = false
     }
 
     /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
     func endMirror() {
         if mirrorActive { mirrorActive = false }
         if timerPickerActive { timerPickerActive = false }
+        if weatherActive { weatherActive = false }
         if overlayActivity != nil { overlayActivity = nil }
     }
 

@@ -8,6 +8,18 @@ in Gnotchi unter „Hilfe …“ → „Fremdcode“ erreichbar.
 
 Gnotchi selbst steht unter der MIT-Lizenz, siehe `LICENSE`.
 
+Dazu kommen ab 0.7.0 **Wetterdaten** von Open-Meteo (keine Software, aber mit Lizenzpflicht, siehe unten).
+
+---
+
+## Wetterdaten: Open-Meteo
+
+Nur wenn „Wetter in der Notch“ eingeschaltet ist.
+
+- Dienst: <https://open-meteo.com> (kostenlose Schnittstelle für nicht-kommerzielle Nutzung)
+- Lizenz der Daten: **CC BY 4.0** (<https://creativecommons.org/licenses/by/4.0/>), Quelle: Open-Meteo.com
+- Gnotchi zeigt die Daten unverändert an, nur gerundet und mit deutschen Bezeichnungen der WMO-Wettercodes.
+
 ---
 
 ## Sparkle

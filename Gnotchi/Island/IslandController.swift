@@ -194,6 +194,7 @@ final class IslandController {
             _ = activity.bigContent
             _ = activity.showsChipRow
             _ = activity.mirrorActive
+            _ = activity.weatherActive
             _ = activity.timer != nil
             _ = activity.timerPickerActive
             _ = activity.timerAlarm
@@ -544,6 +545,7 @@ extension IslandController {
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
         if mode == .message { return Self.messageFrame(layout: layout, note: activity.currentNote) }
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
-        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
+        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
+                             weather: activity.bigContent == .weather)
     }
 }

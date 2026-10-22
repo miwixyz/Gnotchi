@@ -41,6 +41,10 @@ final class Preferences {
         static let notifications = "notifications"
         static let notifyApps = "notifyApps"
         static let notifyCalls = "notifyCalls"
+        /// 0.7.0 Wetter (G31): Schalter, gewählter Ort (Name, Region, Land, gerundete Koordinaten), Einheit.
+        static let weather = "weather"
+        static let weatherPlace = "weatherPlace"
+        static let weatherUnit = "weatherUnit"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -120,6 +124,18 @@ final class Preferences {
     /// `setNotifyApp`; `nil` = noch nie eingeschaltet (dann schlägt Gnotchi einmal Nachrichten-Apps vor).
     private(set) var notifyApps: [String]? { didSet { defaults.set(notifyApps, forKey: Key.notifyApps) } }
 
+    /// Wetter in der Notch (0.7.0). Ab Werk **aus**: erster Netzzugriff außer Updates (G31).
+    var weather: Bool { didSet { defaults.set(weather, forKey: Key.weather) } }
+    var weatherUnit: Weather.Unit { didSet { defaults.set(weatherUnit.rawValue, forKey: Key.weatherUnit) } }
+    /// Gewählter Ort; nur über die Ortssuche gesetzt. Gespeichert nur Name, Region, Land, gerundete Koordinaten.
+    var weatherPlace: Weather.Place? {
+        didSet {
+            guard let p = weatherPlace else { return defaults.removeObject(forKey: Key.weatherPlace) }
+            defaults.set(["name": p.name, "region": p.region, "country": p.country, "lat": p.latitude, "lon": p.longitude],
+                         forKey: Key.weatherPlace)
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
@@ -144,6 +160,20 @@ final class Preferences {
         notifications = defaults.object(forKey: Key.notifications) as? Bool ?? false
         notifyCalls = defaults.object(forKey: Key.notifyCalls) as? Bool ?? true
         notifyApps = defaults.object(forKey: Key.notifyApps).map { Self.validExcluded($0) }
+        weather = defaults.object(forKey: Key.weather) as? Bool ?? false
+        weatherUnit = (defaults.string(forKey: Key.weatherUnit)).flatMap(Weather.Unit.init(rawValue:)) ?? .celsius
+        weatherPlace = Self.validPlace(defaults.object(forKey: Key.weatherPlace))
+    }
+
+    /// Gespeicherter Ort nur mit gültigen Werten (per `defaults write` gesetzt → verworfen).
+    nonisolated static func validPlace(_ stored: Any?) -> Weather.Place? {
+        guard let d = stored as? [String: Any], let name = d["name"] as? String,
+              let lat = Weather.number(d["lat"], -90...90), let lon = Weather.number(d["lon"], -180...180) else { return nil }
+        let clean = NotifyWire.clean(name, max: Weather.maxPlaceName)
+        guard !clean.isEmpty else { return nil }
+        return Weather.Place(name: clean, region: NotifyWire.clean(d["region"] as? String ?? "", max: Weather.maxPlaceName),
+                             country: NotifyWire.clean(d["country"] as? String ?? "", max: 3),
+                             latitude: Weather.rounded(lat), longitude: Weather.rounded(lon))
     }
 
     func isNotifyApp(_ bundleID: String) -> Bool {

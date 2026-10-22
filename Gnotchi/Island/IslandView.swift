@@ -41,7 +41,8 @@ struct IslandView: View {
         case .band: state.layout.band.size
         case .expanded:
             IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
-                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive)?.size ?? state.layout.expanded.size
+                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
+                                      weather: activity.bigContent == .weather)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
@@ -132,6 +133,8 @@ struct IslandView: View {
                             mediaApp: model.info?.appBundleID, privacy: activity.privacy, quota: activity.quotaLine,
                             mirror: activity.mirrorEnabled ? activity.mirrorActive : nil,
                             timerButton: activity.timer == nil ? activity.timerPickerActive : nil,
+                            weather: activity.weather.map { ($0, activity.weatherActive) },
+                            onWeather: { activity.selectWeather() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
                             pinned: activity.pinned, onPin: { activity.togglePin() })
@@ -543,8 +546,19 @@ extension IslandView {
                 .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 16, bottom: 12,
                                     trailing: 16))
                 .transition(.opacity)
+        case .weather:
+            weatherBig(topInset: topInset)
         case .none:
             EmptyView()
+        }
+    }
+
+    /// Wetter groß (0.7.0) – eigene Funktion, damit `big` kurz bleibt.
+    @ViewBuilder private func weatherBig(topInset: CGFloat?) -> some View {
+        if let w = activity.weather {
+            WeatherBig(forecast: w)
+                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 12, bottom: 10, trailing: 12))
+                .transition(.opacity)
         }
     }
 }

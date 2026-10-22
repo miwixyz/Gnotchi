@@ -38,6 +38,36 @@ final class IslandViewRenderTests: XCTestCase {
         try render(pillScreen, .call, name: "pill-call-unarmed", notes: [Self.sampleCall], callArmed: false)
     }
 
+    func testRenderNotchWeather() throws {
+        try render(notchScreen, .expanded, name: "notch-weather", withMedia: false, weather: Self.sampleWeather(code: 2, day: true))
+    }
+    func testRenderPillWeatherNightRain() throws {
+        try render(pillScreen, .expanded, name: "pill-weather-night", withMedia: false, weather: Self.sampleWeather(code: 63, day: false))
+    }
+
+    /// Mitteilungen/Anruf (0.6.0) und Wetter (0.7.0) setzen – ausgelagert, damit `render` kurz bleibt.
+    private static func applyExtras(_ activity: ActivityModel, notes: [NotifyWire.Note], callArmed: Bool,
+                                    weather: Weather.Forecast?) {
+        notes.forEach { activity.receiveNote($0) }
+        activity.callArmed = callArmed
+        if let weather { activity.setWeather(weather); activity.selectWeather() }
+    }
+
+    /// Erfundene Vorhersage (Aufbau wie Open-Meteo, 22.10.).
+    private static func sampleWeather(code: Int, day: Bool) -> Weather.Forecast {
+        let tz = TimeZone(secondsFromGMT: 7200) ?? .current
+        let base = Date(timeIntervalSince1970: 1_800_000_000)
+        var f = Weather.Forecast(
+            fetched: base, timeZone: tz, temperature: 10.4, apparent: 6.3, code: code, isDay: day, humidity: 63, wind: 14.8,
+            pressure: 1014.9, uvMax: 2.9, sunrise: base.addingTimeInterval(-3600), sunset: base.addingTimeInterval(8 * 3600),
+            hours: (0..<8).map { Weather.Hour(time: base.addingTimeInterval(Double($0) * 3600), temperature: 10 + Double($0 % 3),
+                                               code: [code, 3, 61, 2][$0 % 4]) },
+            days: (0..<7).map { Weather.Day(date: base.addingTimeInterval(Double($0) * 86_400), code: [code, 61, 3, 0, 71, 95, 2][$0],
+                                             max: 12 - Double($0), min: 4 - Double($0)) })
+        f.placeName = "Beispielstadt"
+        return f
+    }
+
     func testRenderNotchCompact() throws { try render(notchScreen, .compact, name: "notch-compact") }
     func testRenderNotchExpanded() throws { try render(notchScreen, .expanded, name: "notch-expanded") }
     func testRenderPillCompact() throws { try render(pillScreen, .compact, name: "pill-compact") }
@@ -235,7 +265,7 @@ final class IslandViewRenderTests: XCTestCase {
                         cursor: LiveActivity? = nil, event: KalliEvents.Event? = nil,
                         timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false,
                         playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false,
-                        notes: [NotifyWire.Note] = [], callArmed: Bool = true) throws {
+                        notes: [NotifyWire.Note] = [], callArmed: Bool = true, weather: Weather.Forecast? = nil) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -263,13 +293,13 @@ final class IslandViewRenderTests: XCTestCase {
         if alarm { activity.timerAlarm = true }
         activity.compactControls = compactControls
         if let playerFirstOverlay { activity.playerFirst = true; activity.select(playerFirstOverlay) }
-        notes.forEach { activity.receiveNote($0) }; activity.callArmed = callArmed
+        Self.applyExtras(activity, notes: notes, callArmed: callArmed, weather: weather)
         // Panel ist so groß wie der aktuelle Zustand (wie im IslandController).
         let panel = mode == .message ? IslandController.messageFrame(layout: layout, note: activity.currentNote) : (mode == .expanded
-            ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy,
-                                        chipRow: activity.showsChipRow, mirror: activity.mirrorActive)
+            ? IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow,
+                                        mirror: activity.mirrorActive, weather: activity.bigContent == .weather)
             : IslandController.panelFrame(mode: mode, layout: layout)) ?? layout.compact
-        let canvas = CGSize(width: mode == .band ? 1100 : 520, height: 210)
+        let canvas = CGSize(width: mode == .band ? 1100 : (weather != nil ? 680 : 520), height: weather != nil ? 420 : 210)
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)

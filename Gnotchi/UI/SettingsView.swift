@@ -103,6 +103,11 @@ struct SettingsView: View {
                 .disabled(!prefs.notchMedia)
             }
             notifyCard
+            card("Wetter") {
+                toggleRow("Wetter in der Notch", isOn: $prefs.weather)
+                    .onChange(of: prefs.weather) { model.applyNotchSetting() }
+                WeatherSettings(onChange: { model.applyNotchSetting() })
+            }
             card("Allgemein") {
                 toggleRow("Bei Anmeldung starten", isOn: Binding(
                     get: { login == .on || login == .needsApproval },

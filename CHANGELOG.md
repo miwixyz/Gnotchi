@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.7.0] — noch nicht veröffentlicht
+
+Wetter in der Notch.
+
+### Neu
+- **Wetter:** In der großen Insel steht ein Wetter-Symbol. Ein Klick zeigt das Wetter für deinen Ort: Temperatur, Zustand, gefühlte Temperatur, Höchst- und Tiefstwert, die nächsten 8 Stunden, 7 Tage, Luftfeuchte, Wind, UV, Luftdruck sowie Sonnenauf- und -untergang, auf einem Himmel-Farbverlauf passend zum Wetter. Den Ort suchst du in den Einstellungen, °C oder °F. Ab Werk aus.
+- Die Daten kommen von Open-Meteo.com. Gesendet wird nur der gewählte Ort, nicht dein Standort; Gnotchi fragt alle 30 Minuten nach.
+
+### Intern
+- Erster Netzzugriff außer Updates, nur bei eingeschaltetem Wetter: zwei feste Adressen, keine Weiterleitungen, Antwort höchstens 64 KB und streng geprüft (SECURE-DESIGN G31). 462 Tests.
+
 ## [0.6.0] — noch nicht veröffentlicht
 
 Mitteilungen und Anrufe in der Notch.

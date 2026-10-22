@@ -40,6 +40,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G28 | – (neu, 0.6.0) | Hilfsprogramm „Gnotchi Mitteilungen“: einzige Bedienungshilfen-Freigabe, kleinstmöglich |
 | G29 | – (neu, 0.6.0) | Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert |
 | G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
+| G31 | – (neu, 0.7.0) | Wetter: zwei feste Adressen, nur der gewählte Ort geht raus, Antwort als Fremddaten |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -65,7 +66,7 @@ eines Interpreters, der Fremdcode lädt. Gnotchi trennt das.
 - **Ein Kindprozess:** `/usr/bin/perl` mit dem Adapter-Skript und -Framework aus dem eigenen
   Bundle. Er liest systemweit, was gerade spielt, und sendet Steuerbefehle (Play/Pause, Weiter,
   Zurück, Spulen).
-- **Netz:** nur die Update-Prüfung (Sparkle, G11).
+- **Netz:** die Update-Prüfung (Sparkle, G11); ab 0.7.0 bei eingeschaltetem Wetter Open-Meteo (G31).
 
 Die wertvollsten Güter sind damit (1) **was Michael hört und sieht** (Titel, Interpret, Cover –
 privat), (2) die **Automation-Freigabe für Spotify/Musik** und (3) die **Unversehrtheit dessen,
@@ -92,6 +93,7 @@ was unter Gnotchis Verantwortung im Perl-Prozess läuft**.
 [Nutzer: Klick auf Update] ─(13a) Signaturprüfung, App öffnen, distnoted …update.show ─▶ [echte Familien-App]
 [Mitteilungszentrale] ─(14) AX: Banner lesen, Fenster verschieben, Aktion ─▶ [Gnotchi Mitteilungen (eigene Freigabe)]
 [Gnotchi Mitteilungen, geprüft] ─(14a) Unix-Socket notify.sock: Mitteilungen ⇄ Filter/Befehle ─▶ [Gnotchi: NotifyLink → Insel]
+[Gnotchi: WeatherLink] ─(15) HTTPS, gerundete Koordinaten / Ortsname ─▶ [api. / geocoding-api.open-meteo.com] ─(15a) JSON ─▶ [Insel]
 ```
 
 Grenzen: (1)/(2) fremde Herkunft → Gnotchi – Titel, Interpret, Cover und Bundle-ID sind **nicht
@@ -318,7 +320,8 @@ nur aus Klicks (G29, G30).
   fragt beim ersten Mal). Keine Mitteilung bei gefundenem Update, stattdessen Menüeintrag; im
   Testlauf startet der Updater nicht. `release.sh` prüft die Appcast-Signatur kryptografisch gegen
   das ausgelieferte ZIP und die Feed-Signatur.
-- **Einziger Netzwerkzugriff** der App ist diese Update-Prüfung.
+- **Einziger Netzwerkzugriff** der App ist diese Update-Prüfung. **Ab 0.7.0 (G31):** dazu, nur bei eingeschaltetem
+  „Wetter in der Notch“ (ab Werk aus), Open-Meteo an zwei festen Adressen.
 
 ### G12 – Gnotchi härten, Berechtigungen per Positivliste (vormals Seam E8)
 - **Entschieden:** Hardened Runtime **ohne** Ausnahmen (keine `disable-library-validation`, keine
@@ -641,6 +644,28 @@ nur aus Klicks (G29, G30).
   Beenden. Michael 11:09: „Annehmen“ und „Beenden“ aus der Notch wirken (Protokoll AXError 0). **Nicht gemessen:**
   Ablehnen aus der Notch, FaceTime-Audio/-Video.
 
+### G31 – Wetter: zwei feste Adressen, nur der gewählte Ort geht raus (neu, 2026-10-22, 0.7.0)
+- **Ziele:** nur `https://api.open-meteo.com/v1/forecast` und `https://geocoding-api.open-meteo.com/v1/search`,
+  gebaut mit `URLComponents`; Nutzereingabe nur als Query-Wert `name` (bereinigt, ≤ 100 Zeichen), Koordinaten nur
+  als Zahlen. Keine Weiterleitungen (Delegate gibt `nil`), Host der Antwort muss der angefragte sein. Test
+  `testSearchURLOnlyQueryValueEncodedAndCapped`: „…?x=1&host=evil.example“ bleibt Wert, Host unverändert.
+- **Sitzung:** `ephemeral`, keine Cookies, kein Cache, 10 s/15 s Zeitlimit, User-Agent „Gnotchi/<Version>“, kein
+  Schlüssel, keine Kennung.
+- **Antwort = Fremddaten:** Status 200, ≤ 64 KB **beim Lesen** abgebrochen, Schema streng (Zahlen endlich und im
+  Bereich, Arrays gleich lang ≤ 200, Zeiten lesbar – auch Sonnenauf-/-untergang, Fund im Test 22.10.; unbekannter
+  WMO-Code → verworfen). Ortsnamen bereinigt wie G21, ≤ 60 Zeichen, `Text(verbatim:)`.
+- **Datensparsamkeit:** nur der in den Einstellungen gewählte Ort, Koordinaten auf 2 Stellen gerundet; keine
+  Standort-Berechtigung. Ortssuche nur auf Klick. Open-Meteo protokolliert IP und Koordinaten bis 90 Tage
+  (Bedingungen, 22.10.) – Hinweis in Einstellungen, Hilfe, README.
+- **Gespeichert:** Ort (Name, Region, Land, gerundete Koordinaten), Einheit; beim Lesen geprüft
+  (`Preferences.validPlace`). Vorhersage nur im Arbeitsspeicher. Protokoll: „Wetter aktualisiert“ /
+  „Wetter-Fehler (status(n)|network|invalid|…)“ – kein Ort, keine Werte.
+- **Last/Lizenz:** ≤ 1 Abruf je 5 Min, normal 30 Min (Bedingung < 10 000/Tag); nicht-kommerziell (Gnotchi kostenlos,
+  quelloffen); Quellenangabe CC BY 4.0 in der Insel, Hilfe, README, `THIRD-PARTY-LICENSES.md`.
+- **Berechtigungen:** keine neue (keine Sandbox). **Gemessen 22.10.:** Parser gegen echte Antworten (°C, °F,
+  Ortssuche mit 5 Treffern, kein Treffer = Schlüssel `results` fehlt); Testkopie „Wetter aktualisiert“ Sekunden
+  nach dem Start, danach keine offene Verbindung.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |
@@ -685,6 +710,9 @@ nur aus Klicks (G29, G30).
 | **D** | Mitteilungszentrale → Hilfsprogramm (14) | Flut, Gnotchi hängt → Mitteilungen weg | G28/G29: verstecken erst nach `shown`, 10/s, ≤ 20, alles zurück beim Beenden |
 | **E** | Hilfsprogramm (14) | Bedienungshilfen als Hebel | G28: nur Mitteilungszentrale, nur Position + Aktion, keine Eingaben/Prozesse/Netz |
 | **E** | Gnotchi/Perl (14) | erben die Freigabe | G1/G28: eigenes Paket, eigener verantwortlicher Prozess (gemessen) |
+| **T** | Netz → Gnotchi (15a) | Riesen-JSON, NaN, Steuerzeichen im Ortsnamen | G31: 64 KB beim Lesen, Schema, Bereiche, Bereinigung |
+| **I** | Gnotchi → Open-Meteo (15) | Ort und IP beim Anbieter | G31: nur gewählter Ort, gerundet, ab Werk aus, Hinweis |
+| **E** | Eingabe → Anfrage (15b) | Ortsname als URL/Host | G31: nur Query-Wert, feste Hosts, keine Weiterleitungen |
 
 ## Negativraum: was wir stillschweigend annehmen
 

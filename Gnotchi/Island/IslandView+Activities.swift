@@ -84,6 +84,9 @@ struct ChipRow: View {
     var mirror: Bool?
     /// nil = ein Timer läuft (dann steht er bei den Aktivitäten); sonst ob die Auswahl gerade gezeigt wird.
     var timerButton: Bool?
+    /// Wetter (0.7.0): nil = keine Vorhersage; sonst Vorhersage und ob sie gerade groß gezeigt wird.
+    var weather: (Weather.Forecast, Bool)?
+    var onWeather: () -> Void = {}
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
     var onTimer: () -> Void = {}
@@ -105,6 +108,18 @@ struct ChipRow: View {
             }
             if let timerButton {
                 fixedButton("timer", label: "Timer", selected: timerButton, action: onTimer)
+            }
+            if let (w, shown) = weather {
+                Button(action: onWeather) {
+                    Image(systemName: Weather.symbol(w.code, day: w.isDay)).font(.system(size: 13, weight: .semibold))
+                        .symbolRenderingMode(.multicolor)
+                        .frame(width: 26, height: 18)
+                        .background(Capsule().fill(.white.opacity(shown ? 0.22 : 0)))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: "Wetter"))
+                .accessibilityAddTraits(shown ? .isSelected : [])
             }
             if let mirror {
                 Button(action: onMirror) {

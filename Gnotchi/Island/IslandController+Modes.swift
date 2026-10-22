@@ -63,13 +63,18 @@ extension IslandController {
     /// Große Insel „Eine Sache groß“ (0.5.0): alles in Player-Größe (Michael 21.10.: Hinweis-Größe war zu klein),
     /// nur „nur Mikrofon/Kamera“ in Hinweis-Größe; die Symbolleiste eine Zeile höher.
     nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool,
-                                     mirror: Bool = false) -> CGRect? {
-        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror, updates: chipRow ? 1 : 0,
-                                 rows: chipRow ? 3 : 2) else { return nil }
-        guard mirror else { return r }
-        let extra = IslandGeometry.mirrorHeight - IslandGeometry.expandedSize.height
+                                     mirror: Bool = false, weather: Bool = false) -> CGRect? {
+        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather,
+                                 updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2) else { return nil }
+        guard mirror || weather else { return r }
+        let extra = (mirror ? IslandGeometry.mirrorHeight : IslandGeometry.weatherHeight) - IslandGeometry.expandedSize.height
         r.origin.y -= extra
         r.size.height += extra
+        if weather {   // breiter, mittig um dieselbe Achse; nie breiter als der Bildschirm erlaubt (layout.wide als Maß)
+            let wider = IslandGeometry.weatherWidth - r.width
+            r.origin.x -= wider / 2
+            r.size.width += wider
+        }
         return r
     }
 

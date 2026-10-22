@@ -104,6 +104,10 @@ final class ActivityModel {
     @ObservationIgnored let rotationInterval: Duration
     @ObservationIgnored let flashDuration: Duration
 
+    /// Wetter (0.7.0, G31): letzte Vorhersage für den gewählten Ort; nur Arbeitsspeicher. Groß gezeigt = `weatherActive`.
+    private(set) var weather: Weather.Forecast?
+    var weatherActive = false
+
     // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
 
     /// Warteschlange, vorn die angezeigte Mitteilung.
@@ -148,6 +152,11 @@ final class ActivityModel {
 
     func setFamilyUpdates(_ list: [FamilyUpdates.Entry]) {
         if familyUpdates != list { familyUpdates = list }
+    }
+
+    func setWeather(_ f: Weather.Forecast?) {
+        if weather != f { weather = f }
+        if f == nil, weatherActive { weatherActive = false }
     }
 
     func setUpcomingEvent(_ e: KalliEvents.Event?) {

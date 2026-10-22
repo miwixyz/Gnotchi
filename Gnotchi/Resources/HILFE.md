@@ -185,6 +185,19 @@ bekommt keine Freigabe.
 - Während die Tippi-Aufnahme läuft oder die große Insel offen ist, wartet eine Mitteilung. So lange bleibt Apples
   Banner stehen, es geht nichts verloren.
 
+## Wetter
+
+Einstellungen → **Wetter in der Notch** einschalten (ab Werk aus), dann unter „Stadt suchen“ deinen Ort eingeben,
+**Suchen**, und den richtigen Treffer anklicken (es gibt z. B. mehrere „München“). °C oder °F wählst du darunter.
+
+In der großen Insel steht dann ein Wetter-Symbol. Ein Klick zeigt das Wetter groß: Temperatur, Zustand, gefühlt,
+Höchst- und Tiefstwert, die nächsten 8 Stunden, 7 Tage, Luftfeuchte, Wind, UV, Luftdruck, Sonnenauf- und
+-untergang. Gnotchi fragt beim Einschalten, alle 30 Minuten und nach dem Aufwachen nach. Ohne Internet bleibt der
+letzte Stand bis zu 3 Stunden stehen.
+
+Die Daten kommen von **Open-Meteo.com** (Lizenz CC BY 4.0). Gesendet wird nur der gewählte Ort (gerundet), nie
+dein Standort.
+
 ## Einstellungen
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
@@ -242,7 +255,9 @@ nicht wirkt.
 - Mitteilungen liest nur das Hilfsprogramm „Gnotchi Mitteilungen“, und nur die der Apps, die du ausgewählt hast,
   gehen an Gnotchi weiter. Beide prüfen vorher die Signatur des anderen. Texte werden nicht gespeichert, nicht
   protokolliert und sind weg, sobald die Mitteilung verschwindet. Gespeichert wird nur die App-Liste.
-- Ins Internet geht Gnotchi nur, um nach Updates zu suchen.
+- Ins Internet geht Gnotchi nur, um nach Updates zu suchen, und – wenn du das Wetter einschaltest – zu
+  Open-Meteo.com. Dorthin geht nur der gewählte Ort, gerundet auf etwa einen Kilometer; Open-Meteo speichert laut
+  eigenen Angaben IP-Adresse und Koordinaten bis zu 90 Tage in seinen Serverprotokollen und gibt sie nicht weiter.
 
 ## Nur eine Notch-App gleichzeitig
 
