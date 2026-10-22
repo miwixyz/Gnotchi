@@ -56,6 +56,10 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   Die Kamera ist aus, sobald die Insel zuklappt.
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer
   mag, heftet sie fest oder lässt sie als schmales Band über die Menüleiste aufgehen.
+- Mitteilungen von Apps, die du auswählst, erscheinen in der Notch statt oben rechts, mit ihren Knöpfen. Ein Klick öffnet die App. Ruft dich jemand auf dem iPhone an, nimmst du in der Notch an oder lehnst ab.
+- Hinter einem Symbol in der großen Insel steckt das Wetter für deinen Ort, von jetzt bis zum Ende der Woche.
+- Zieh eine Datei zur Notch, und sie wartet dort. Dann wechselst du in Ruhe die App oder den Bildschirm und ziehst sie am Ziel wieder heraus. Auf Wunsch packt Gnotchi alles in ein ZIP, auch mit Passwort.
+- Läuft gerade nichts, zeigt die kleine Insel die Temperatur oder wie viele Dateien warten.
 
 ## Wie von Apple
 
@@ -64,11 +68,11 @@ im Kontrollzentrum. In der Notch steht kein Logo und keine eigene Farbe.
 
 ## Datenschutz
 
-Gnotchi braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine
-Eingaben aus.
+Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest ausschließlich Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Mitteilungstexte werden weder gespeichert noch protokolliert.
 
-Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um
-nach Updates zu suchen. Im Systemprotokoll steht nicht, was du hörst.
+Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
+
+Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Sie öffnet nichts, sie löscht nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen.
 
 Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt. Es hört
 nichts mit und nimmt nichts auf.
@@ -80,7 +84,6 @@ nächsten Termin schickt Kalli auf demselben Weg, und Gnotchi vergisst ihn bei B
 
 Die Kamera braucht Gnotchi nur für den Spiegel. macOS fragt erst, wenn du ihn zum ersten Mal öffnest.
 Das Bild landet nirgends außer auf deinem Bildschirm.
-Er steht nur in der Insel, gespeichert oder protokolliert wird er nicht.
 
 Für ein Update öffnet Gnotchi nur die echte App und prüft vorher ihre Signatur. Die Meldung, die
 dafür ankommt, enthält nur ein Kürzel der App und die Versionsnummer.
@@ -95,7 +98,7 @@ kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sper
 
 ## So bekommst du Gnotchi
 
-Version 0.4.0 gibt es als signierte, von Apple notarisierte App unter
+Version 0.8.0 gibt es als signierte, von Apple notarisierte App unter
 [GitHub-Releases](https://github.com/miwixyz/Gnotchi/releases/latest). Danach aktualisiert sich
 Gnotchi selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 

@@ -2,44 +2,25 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [0.8.0] — noch nicht veröffentlicht
+## [0.8.0] — 2026-10-22
 
-Dateiablage, Ruhe-Insel und aufgeräumte Einstellungen.
+Mitteilungen, Anrufe, Wetter und eine Ablage für Dateien. 0.6.0 und 0.7.0 sind nie einzeln erschienen, sie stecken hier mit drin.
 
 ### Neu
-- **Dateiablage:** Zieh Dateien oder Ordner zur Notch. Die Insel wird zum Ablagefeld „Hier ablegen“, auch über Apps im Vollbild. Dort parken sie, bis du sie woanders wieder herausziehst. Die Ablage merkt sich nur, wo die Datei liegt (keine Kopie) und entfernt sie nach dem Rausziehen. Liegt etwas darin, hängt unter der großen Insel eine Reihe mit den Dateien; im Band stehen sie direkt neben dem Titel. Die volle Ablage bietet Im Finder zeigen, Teilen, AirDrop und ZIP, auf Wunsch mit Passwort (AES-256; öffnet sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick).
-- **Ruhe-Insel:** Läuft gerade nichts, bleibt die kleine Insel da, wenn das Wetter an ist oder etwas in der Ablage liegt, und zeigt Temperatur bzw. Anzahl. Überfahren öffnet Wetter bzw. Ablage.
-- **Einstellungen in Reitern:** Allgemein, Wiedergabe, Aktivitäten, Mitteilungen, Wetter, Ablage statt eines langen Fensters.
+- **Mitteilungen in der Notch:** Mitteilungen der Apps, die du auswählst (etwa Nachrichten, WhatsApp, Telegram, Slack, Mail), erscheinen in der Notch statt oben rechts: App, Titel, Text und die Knöpfe der Mitteilung, zum Beispiel „Erledigt“. Ein Klick öffnet die App an der richtigen Stelle, × schließt sie. Kommen mehrere, zeigt die Insel „+2“. Apples Banner ist so lange weg. Danach liegt die Mitteilung wie immer in der Mitteilungszentrale. Ab Werk aus.
+- **Anrufe in der Notch:** Ruft jemand dein iPhone an, zeigt die Notch Name und Anrufart mit grünem Annehmen und rotem Ablehnen. Nach dem Annehmen wird daraus eine Gesprächsleiste mit rotem Auflegen. Apples eigenes Anruf-Fenster bleibt vorerst trotzdem stehen.
+- Mitteilungen und Anrufe liest ein eigenes kleines Hilfsprogramm, **„Gnotchi Mitteilungen“**. Nur es bekommt die Bedienungshilfen-Freigabe, Gnotchi selbst nicht. Gnotchi startet es erst, wenn du die Mitteilungen einschaltest.
+- **Wetter:** In der großen Insel steht ein Wetter-Symbol. Ein Klick zeigt das Wetter für deinen Ort: Temperatur, gefühlt, Höchst- und Tiefstwert, die nächsten 8 Stunden, 7 Tage, Luftfeuchte, Wind, UV, Luftdruck, Sonnenauf- und -untergang. Den Ort suchst du in den Einstellungen, °C oder °F. Die Daten kommen von Open-Meteo.com, gesendet wird nur der gewählte Ort. Ab Werk aus.
+- **Dateiablage:** Zieh Dateien oder Ordner zur Notch und lass sie bei „Hier ablegen“ los. Dort warten sie, bis du sie woanders wieder herausziehst. Die Ablage merkt sich nur, wo die Datei liegt, und vergisst sie nach dem Herausziehen. Liegt etwas darin, hängt unter der großen Insel eine Reihe mit den Dateien, im Band stehen sie neben dem Titel. Die volle Ablage kann Im Finder zeigen, Teilen, AirDrop und ZIP, auf Wunsch mit Passwort (AES-256; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick).
+- **Ruhe-Insel:** Läuft gerade nichts, bleibt die kleine Insel trotzdem da, wenn das Wetter an ist oder etwas in der Ablage liegt. Sie zeigt dann Temperatur oder Anzahl.
+- **Einstellungen in Reitern:** Allgemein, Wiedergabe, Aktivitäten, Mitteilungen, Wetter und Ablage statt eines langen Fensters.
 
 ### Behoben
-- Gnotchi stürzte ab, wenn ein Hilfsprogramm mit Bedienungshilfen (z. B. Thaw) die Insel abfragte, während etwas ohne Dauer lief. Der unsichtbare Regler für die Sprachausgabe hatte einen Schritt, der größer war als sein Bereich.
-- Nach dem Ablegen einer Datei klappte die Insel beim Überfahren nicht mehr auf, bis man mehrmals geklickt hatte.
+- Gnotchi stürzte ab, wenn ein Programm mit Bedienungshilfen (etwa Thaw) die Insel abfragte, während etwas ohne Dauer lief.
+- Nach dem Ablegen einer Datei klappte die Insel erst nach mehreren Klicks wieder auf.
 
 ### Intern
-- Ziehen wird ohne Freigabe erkannt (Maustaste und Zähler der Zieh-Zwischenablage, kein Ereignis-Beobachter). ZIP im Programm über die System-Bibliothek libarchive, kein Hilfsprozess, das Passwort nie als Argument (SECURE-DESIGN G32). 479 Tests.
-
-## [0.7.0] — noch nicht veröffentlicht
-
-Wetter in der Notch.
-
-### Neu
-- **Wetter:** In der großen Insel steht ein Wetter-Symbol. Ein Klick zeigt das Wetter für deinen Ort: Temperatur, Zustand, gefühlte Temperatur, Höchst- und Tiefstwert, die nächsten 8 Stunden, 7 Tage, Luftfeuchte, Wind, UV, Luftdruck sowie Sonnenauf- und -untergang, auf einem Himmel-Farbverlauf passend zum Wetter. Den Ort suchst du in den Einstellungen, °C oder °F. Ab Werk aus.
-- Die Daten kommen von Open-Meteo.com. Gesendet wird nur der gewählte Ort, nicht dein Standort; Gnotchi fragt alle 30 Minuten nach.
-
-### Intern
-- Erster Netzzugriff außer Updates, nur bei eingeschaltetem Wetter: zwei feste Adressen, keine Weiterleitungen, Antwort höchstens 64 KB und streng geprüft (SECURE-DESIGN G31). 462 Tests.
-
-## [0.6.0] — noch nicht veröffentlicht
-
-Mitteilungen und Anrufe in der Notch.
-
-### Neu
-- **Mitteilungen in der Notch:** Mitteilungen der Apps, die du auswählst (etwa Nachrichten, WhatsApp, Telegram, Slack, Mail), erscheinen in der Notch statt oben rechts: App, Titel, Text und die Knöpfe der Mitteilung (z. B. „Erledigt“). Ein Klick öffnet die App an der richtigen Stelle, × schließt sie. Kommen mehrere, zeigt die Insel „+2“. Apples Banner ist so lange versteckt; danach liegt die Mitteilung wie gewohnt in der Mitteilungszentrale. Ab Werk aus.
-- **Anrufe in der Notch:** Ruft jemand dein iPhone an, zeigt die Notch Name und Anrufart mit grünem Annehmen und rotem Ablehnen. Nach dem Annehmen wird daraus die Gesprächsleiste mit rotem Auflegen. Apples Anruf-Fenster bleibt zur Sicherheit vorerst zusätzlich sichtbar.
-- Dafür gibt es ein eigenes Hilfsprogramm, **„Gnotchi Mitteilungen“**. Es braucht die Bedienungshilfen-Freigabe; Gnotchi selbst bleibt ohne. Gnotchi startet es nur, wenn du die Mitteilungen einschaltest.
-
-### Intern
-- Hilfsprogramm `Contents/Library/LoginItems/Gnotchi Mitteilungen.app` (eigene Kennung, keine Berechtigungen), Socket `notify.sock` mit beidseitiger Signaturprüfung, Mitteilungstexte nie im Protokoll (SECURE-DESIGN G28–G30). Release-Skript prüft das Hilfsprogramm. 451 Tests.
+- Hilfsprogramm `Contents/Library/LoginItems/Gnotchi Mitteilungen.app` ohne Berechtigungen, Socket `notify.sock` mit beidseitiger Signaturprüfung, Mitteilungstexte nie im Protokoll (SECURE-DESIGN G28–G30). Wetter: zwei feste Adressen, keine Weiterleitungen, Antwort höchstens 64 KB und streng geprüft (G31). Ablage: Ziehen wird ohne Freigabe erkannt, ZIP im Programm über libarchive, das Passwort nie als Argument (G32). 479 Tests.
 
 ## [0.5.0] — 2026-10-21
 
