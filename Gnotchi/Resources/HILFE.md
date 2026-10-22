@@ -31,11 +31,12 @@ Bildschirm eine App im Vollbild, blendet sie sich dort aus.
 ## Live-Aktivitäten
 
 Läuft mehr als eine Sache gleichzeitig, etwa Musik und Kopfhörer, wechselt die kleine Insel alle
-4 Sekunden zwischen ihnen. Die Reihenfolge ist immer gleich: Musik, Kopfhörer, Updates. Bleibst du mit
+4 Sekunden zwischen ihnen. Die Reihenfolge ist immer gleich: Musik, Kopfhörer, Claude, Updates. Bleibst du mit
 der Maus auf der Insel, wechselt sie nicht weiter. Gibt es nur eine Aktivität, bleibt sie stehen.
 
 - **Musik:** Cover und Pegel wie gewohnt. Beginnt ein neuer Titel, wird die Insel 3 Sekunden breiter und zeigt Titel und Interpret. Pausieren und Weiterspielen lösen das nicht aus.
 - **Kopfhörer:** Solange der Ton über Bluetooth läuft, zeigt die Insel ein Kopfhörer-Symbol, ohne Notch auch den Namen.
+- **Claude:** Arbeitet eine Claude-Code-Sitzung oder wartet sie auf deine Erlaubnis, zeigt die Insel ✦ mit einem Punkt (orange arbeitet, gelb wartet), ohne Notch auch den Projektnamen. Siehe „Claude Code“.
 - **Updates:** Meldet eine App der Familie ein bereites Update, zeigt die Insel ihr Symbol, ohne Notch auch „Kalli 0.11.0 bereit“. Das bleibt so, bis das Update installiert ist. Ein Klick öffnet die App bei ihrem Update-Fenster. Gnotchi öffnet dabei nur die echte, von Michael signierte App.
 
 In der großen Insel stehen alle Aktivitäten untereinander, Updates mit „Öffnen“. Mit Notch passt neben
@@ -120,13 +121,13 @@ Das klappt mit Tippi ab der Version, die Gnotchi unterstützt (steht in Tippis �
 
 ## Qotti-Kontingent
 
-Läuft Qotti, warnt die Insel kurz, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 %
+Läuft Qotti, warnt die Insel kurz, wenn das 5-Stunden-Limit von Claude oder Codex 80 % und 95 %
 erreicht, und wenn Claude drosselt. Darunter steht, wann das Limit zurückgesetzt wird. Jede Stufe
 warnt einmal und erst wieder, nachdem der Wert darunter gefallen ist. Hast du die große Insel gerade
 offen, bleibt sie offen und die Warnung entfällt. In der großen Insel steht über der Musik
-„Claude 42 % · GPT 17 %“. Hört Qotti 5 Minuten lang auf zu melden, verschwinden die Werte.
+„Claude 42 % · Codex 17 %“, im Band rechts daneben. Hört Qotti 5 Minuten lang auf zu melden, verschwinden die Werte.
 
-Das klappt mit Qotti ab der Version, die Gnotchi unterstützt (steht in Qottis Änderungen).
+Das klappt ab Qotti 1.5.0.
 
 ## Große Insel
 
@@ -179,11 +180,35 @@ bekommt keine Freigabe.
   Mitteilung öffnet die App, ein Knopf macht genau das, was er bei Apple auch macht, × schließt sie. Solange die
   Maus darauf ist, bleibt sie stehen. Danach liegt sie wie gewohnt in der Mitteilungszentrale.
 - **Antworten** geht nicht in der Notch, dafür öffnest du die App.
-- **Anrufe** (Schalter „Anrufe in der Notch“): grün Annehmen, rot Ablehnen, im Gespräch rot Auflegen. Die
-  Knöpfe werden eine halbe Sekunde nach dem Erscheinen klickbar. Apples Anruf-Fenster bleibt vorerst zusätzlich
-  sichtbar.
+- **Anrufe** (Schalter „Anrufe in der Notch“): grün Annehmen, rot Ablehnen, dazwischen **Mitlesen**. Rot schickt
+  den Anrufer auf die Mailbox, und Apples Anruf-Fenster ist danach weg. Mitlesen schickt ihn ebenfalls auf die
+  Mailbox, du liest aber in Apples Fenster mit; in der Notch stehen dann „Mitlesen beenden“ und Annehmen. Im
+  Gespräch gibt es rot Auflegen, und Apples Gesprächsleiste bleibt mit Stumm und Ziffernblock sichtbar. Solange es
+  klingelt, ist Apples Anruf-Fenster versteckt. Die Knöpfe werden eine halbe Sekunde nach dem Erscheinen klickbar.
+  Ganz ohne Mailbox auflegen kann macOS nicht, auch nicht in Apples Fenster.
+- **Ungelesen-Zahlen** (Schalter „Ungelesen-Zahlen zeigen“, ab Werk aus): Die Zahlen auf den Dock-Symbolen der
+  ausgewählten Apps stehen im Band und in der großen Insel, ein Klick öffnet die App. Läuft keine Musik, zeigt die
+  kleine Insel die Summe („Zähler auch in der kleinen Insel“). Es zählen nur Apps, die im Dock liegen.
 - Während die Tippi-Aufnahme läuft oder die große Insel offen ist, wartet eine Mitteilung. So lange bleibt Apples
   Banner stehen, es geht nichts verloren.
+
+## Claude Code
+
+Aktivitäten → **Claude Code in der Notch** (ab Werk aus). Gnotchi zeigt dann deine laufenden Claude-Code-Sitzungen,
+egal ob im Terminal, in der Claude-App oder in einem Programm wie Obsidian:
+
+- **Arbeitet** (orange), **wartet auf Erlaubnis** (gelb, mit Werkzeug und Befehl, etwa „Bash – git push“) oder
+  **fertig** (grün, mit dem Anfang der Antwort). Ist eine Antwort fertig, klappt die Insel kurz auf.
+- In der großen Insel stehen bis zu zwei Sitzungen, im Band die neueste. Ein **Klick** holt das Programm nach vorn,
+  in dem die Sitzung läuft. Den einzelnen Tab oder Chat kann Gnotchi nicht auswählen.
+- **Erlauben oder ablehnen** geht nicht in der Notch, das machst du in der Sitzung. Gnotchi gibt Claude Code nie
+  eine Antwort.
+- Fertige Sitzungen verschwinden nach 30 Minuten.
+
+Beim Einschalten trägt Gnotchi eigene Einträge („Hooks“) in `~/.claude/settings.json` ein und legt vorher eine
+Sicherung `settings.json.gnotchi-backup` daneben. Deine übrigen Einstellungen bleiben Zeichen für Zeichen gleich.
+Kann Gnotchi das nicht garantieren, ändert es nichts und sagt dir in den Einstellungen, warum. Ausschalten nimmt
+genau diese Einträge wieder heraus. Ist Gnotchi beendet, laufen die Einträge ins Leere und bremsen nichts.
 
 ## Dateiablage
 
@@ -221,6 +246,7 @@ dein Standort.
 - **Spiegel in der Notch**, **Timer-Ablauf bis Klick anzeigen:** ab Werk an. **Timer-Ton:** ab Werk „Glass“, oder „Kein Ton“.
 - **Aufklappen nach:** Sofort, 0,3 s, 0,6 s oder 1 s. So lange musst du mit der Maus auf der kleinen Insel bleiben, bis sie aufgeht.
 - **Live-Aktivitäten:** „Rotation“, „Kopfhörer-Aktivität“ und „Updates der App-Familie“, jeweils ab Werk an. Darunter der Medienfilter mit einem Schalter je Wiedergabe-App.
+- **Claude Code in der Notch** (Aktivitäten), **Ungelesen-Zahlen zeigen** (Mitteilungen): ab Werk aus. **Zähler auch in der kleinen Insel:** ab Werk an.
 - **Bei Anmeldung starten:** Gnotchi startet nach dem Anmelden.
 - **Nach Updates suchen …:** sucht sofort nach einer neuen Version.
 
@@ -238,7 +264,8 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Auch
 die Dateiablage braucht keine Freigabe.
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
-„Gnotchi Mitteilungen“, nicht Gnotchi.
+„Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock.
+„Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
 
 macOS fragt höchstens in diesen Fällen:
@@ -270,6 +297,10 @@ nicht wirkt.
 - Mitteilungen liest nur das Hilfsprogramm „Gnotchi Mitteilungen“, und nur die der Apps, die du ausgewählt hast,
   gehen an Gnotchi weiter. Beide prüfen vorher die Signatur des anderen. Texte werden nicht gespeichert, nicht
   protokolliert und sind weg, sobald die Mitteilung verschwindet. Gespeichert wird nur die App-Liste.
+- Von Claude Code bekommt Gnotchi nur Projektname, Status, Werkzeug, einen gekürzten Befehl und den gekürzten
+  Anfang der Antwort, über einen eigenen Weg, auf dem beide Seiten die Signatur prüfen. Nie deine Eingabe, nie den
+  Verlauf, nie Dateiinhalte. Nichts davon wird gespeichert oder protokolliert.
+- Für die Ungelesen-Zahlen liest das Hilfsprogramm nur die Zahl am Dock-Symbol der ausgewählten Apps, nie deren Text.
 - Die Dateiablage speichert nur, wo die Dateien liegen (nur für dich lesbar), nie ihren Inhalt. ZIP-Passwörter
   werden nicht gespeichert.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen, und – wenn du das Wetter einschaltest – zu

@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.9.0] — 2026-10-22
+
+Das Wichtigste: Claude Code erscheint jetzt in der Notch. Dazu lehnst du Anrufe ab, ohne danach Apples Fenster wegklicken zu müssen, und siehst, wie viel ungelesen ist.
+
+### Neu
+- **Claude Code in der Notch:** Laufende Claude-Code-Sitzungen erscheinen in der Insel. Orange heißt „arbeitet“, gelb „wartet auf Erlaubnis“ (mit Werkzeug und Befehl), grün „fertig“ (mit dem Anfang der Antwort). Ist eine Antwort fertig, klappt die Insel kurz auf. Ein Klick auf die Sitzung holt das Programm nach vorn, in dem sie läuft, etwa Terminal oder Obsidian. Erlauben oder ablehnen musst du weiter in der Sitzung selbst, Gnotchi zeigt nur an. Einschalten unter Aktivitäten → „Claude Code in der Notch“. Gnotchi trägt dafür eigene Einträge in `~/.claude/settings.json` ein und nimmt genau diese beim Ausschalten wieder heraus. Der Rest der Datei bleibt Zeichen für Zeichen gleich. Ab Werk aus.
+- **Anruf ablehnen ohne Apples Fenster:** Rot lehnt ab, und Apples Anruf-Fenster ist danach weg. Der Anrufer landet auf der Mailbox. Neu ist der Knopf **Mitlesen**: Der Anrufer spricht auf die Mailbox, und du liest in Apples Fenster mit. In der Notch kannst du dann noch annehmen oder das Mitlesen beenden. Solange es klingelt, ist Apples Anruf-Fenster versteckt, auch wenn dort gerade eine Erinnerung steht.
+- **Ungelesen-Zahlen:** Die Zahlen auf den Dock-Symbolen der Apps, die du für Mitteilungen ausgewählt hast, stehen im Band und in der großen Insel. Ein Klick aufs Symbol öffnet die App. Läuft keine Musik, zeigt auch die kleine Insel die Summe (abschaltbar). Gnotchi übernimmt nur Ziffern, nie den Text eines Abzeichens. Es zählen nur Apps, die im Dock liegen. Ab Werk aus.
+- **Qotti-Kontingent auch im Band**, beschriftet mit „Codex“ statt „GPT“ wie in Qotti. Zu sehen ist es, sobald Qotti es sendet (ab Qotti 1.5.0).
+
+### Geändert
+- Pausierte Musik verschwindet nach 5 Sekunden überall, auch im Band und in der großen Insel. Bisher blieb der letzte Titel stehen, solange etwas anderes die Insel offen hielt.
+- Ohne Notch zeigt die kleine Insel den Titel in der freien Mitte, und das Band nutzt die ganze Breite.
+
+### Intern
+- Hook-Programm `Contents/Helpers/Gnotchi Claude.app` ohne Berechtigungen, Socket `claude.sock` mit beidseitiger Signaturprüfung. Gesendet werden nur Projektname, Status, Werkzeug, gekürzter Befehl und gekürzte Antwort, nie Eingabe, Verlauf oder Dateiinhalte (SECURE-DESIGN G34). `settings.json` wird nur geändert, wenn sie danach byte-genau gleich bleibt, mit Sicherung (G35). Dock-Abzeichen nur gelesen (G33). „Live-Voicemail stoppen“ nur direkt nach deinem Klick und am selben Anruf (G30). 519 Tests.
+
 ## [0.8.0] — 2026-10-22
 
 Mitteilungen, Anrufe, Wetter und eine Ablage für Dateien. 0.6.0 und 0.7.0 sind nie einzeln erschienen, sie stecken hier mit drin.

@@ -51,6 +51,13 @@ Freigabe nicht und fragt nie danach.
   mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
   Auflegen. Ein eigenes Hilfsprogramm mit Bedienungshilfen-Freigabe liest Apples Banner; Gnotchi selbst bleibt
   ohne. Ab Werk aus.
+- **Claude Code in der Notch (0.9):** laufende Claude-Code-Sitzungen mit „arbeitet“, „wartet auf Erlaubnis“
+  (Werkzeug + Befehl) und „fertig“ (Anfang der Antwort); Klick holt das Programm der Sitzung nach vorn. Nur
+  Anzeige, keine Entscheidung. Eigene Hooks in `~/.claude/settings.json`, byte-genau ein- und austragbar. Ab Werk aus.
+- **Anrufe ohne Apples Fenster (0.9):** Rot lehnt ab und Apples Anruf-Fenster ist weg, **Mitlesen** schickt auf die
+  Mailbox mit Abschrift. Beim Klingeln ist Apples Fenster versteckt.
+- **Ungelesen-Zahlen (0.9):** Dock-Abzeichen der ausgewählten Apps im Band und in der großen Insel, Klick öffnet die
+  App; ohne Musik auch als Summe in der kleinen Insel. Nur Ziffern, nie Text. Ab Werk aus.
 - **Dateiablage (0.8):** Datei zur Notch ziehen → „Hier ablegen“ → später woanders herausziehen. Reihe unter der
   großen Insel bzw. direkt im Band; volle Ablage mit Im Finder zeigen, Teilen, AirDrop und ZIP (optional AES-256 mit
   Passwort). Verweise statt Kopien, ohne Freigabe.
@@ -86,10 +93,11 @@ Freigabe nicht und fragt nie danach.
   eigene Anzeige aus, solange Gnotchi das zeigt. Vorrang vor Musik, auch über Vollbild-Apps.
 - **Tippis Live-Vorschau:** Ist sie in Tippi an, klappt die Insel auf und zeigt die letzten zwei Zeilen
   des Diktats. Ohne Verbindung zu Gnotchi zeigt Tippi seine eigene Anzeige.
-- **Qotti-Kontingent:** Kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT 80 % und 95 %
-  erreicht oder Claude drosselt; in der großen Insel „Claude 42 % · GPT 17 %“ über der Musik.
+- **Qotti-Kontingent:** Kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex 80 % und 95 %
+  erreicht oder Claude drosselt; in der großen Insel „Claude 42 % · Codex 17 %“ über der Musik, im Band daneben
+  (ab Qotti 1.5.0).
 - **Live-Aktivitäten:** Läuft mehr als eine Sache gleichzeitig, wechselt die kleine Insel alle
-  4 Sekunden zwischen Musik, Kopfhörern und Updates. Mit der Maus darauf bleibt sie stehen.
+  4 Sekunden zwischen Musik, Kopfhörern, Claude und Updates. Mit der Maus darauf bleibt sie stehen.
   Tippi-Aufnahme und kurze Hinweise haben Vorrang.
 - **Kopfhörer-Aktivität:** Solange der Ton über Bluetooth läuft, zeigt die Insel ein
   Kopfhörer-Symbol, ohne Notch auch den Namen.
@@ -190,6 +198,13 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird
   nur die App-Liste. Knöpfe wirken nur auf deinen Klick ([G28–G30](docs/SECURE-DESIGN.md)).
+- **Claude Code:** Das Hook-Programm „Gnotchi Claude“ schickt nur Projektname, Status, Werkzeug, gekürzten Befehl und
+  gekürzte Antwort über `claude.sock`, nachdem es Gnotchis Signatur geprüft hat (Gnotchi prüft umgekehrt genauso). Nie
+  Eingabe, Verlauf oder Dateiinhalte, nie gespeichert oder protokolliert, nie eine Entscheidung an Claude Code
+  ([G34](docs/SECURE-DESIGN.md)). `~/.claude/settings.json` ändert Gnotchi nur byte-genau, mit Sicherung
+  ([G35](docs/SECURE-DESIGN.md)).
+- **Ungelesen-Zahlen:** Das Hilfsprogramm liest im Dock nur die Zahl am Symbol der ausgewählten Apps
+  ([G33](docs/SECURE-DESIGN.md)).
 - Keine echten Hördaten im Quellcode: ein Gate prüft das bei jedem Commit und Release
   ([G16](docs/SECURE-DESIGN.md)).
 

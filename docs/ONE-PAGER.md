@@ -46,8 +46,8 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Hat eine meiner anderen Apps ein Update bereit (Tippi, Kalli, Qotti, Seam), steht es in der
   Notch, bis es installiert ist. Ein Klick, und das Update-Fenster ist offen. Dafür braucht jede
   App eine neue Version. Kalli kommt zuerst.
-- Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder ChatGPT
-  bei 80 und bei 95 Prozent steht.
+- Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex
+  bei 80 und bei 95 Prozent steht. Im Band steht der Stand dauerhaft.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
 - Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
   braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.12.0.
@@ -56,7 +56,9 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   Die Kamera ist aus, sobald die Insel zuklappt.
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer
   mag, heftet sie fest oder lässt sie als schmales Band über die Menüleiste aufgehen.
-- Mitteilungen von Apps, die du auswählst, erscheinen in der Notch statt oben rechts, mit ihren Knöpfen. Ein Klick öffnet die App. Ruft dich jemand auf dem iPhone an, nimmst du in der Notch an oder lehnst ab.
+- Mitteilungen von Apps, die du auswählst, erscheinen in der Notch statt oben rechts, mit ihren Knöpfen. Ein Klick öffnet die App. Ruft dich jemand auf dem iPhone an, nimmst du in der Notch an oder lehnst ab, und Apples Anruf-Fenster bleibt weg. Oder du lässt mitlesen, was der Anrufer auf die Mailbox spricht.
+- Wie viele ungelesene Mails und Nachrichten warten, steht im Band. Ein Klick, und die App ist offen.
+- Arbeitet Claude Code für dich, siehst du es in der Notch. Ist die Antwort fertig, klappt sie kurz auf. Wartet Claude auf deine Erlaubnis, wird der Punkt gelb. Ein Klick bringt dich zurück zur Sitzung.
 - Hinter einem Symbol in der großen Insel steckt das Wetter für deinen Ort, von jetzt bis zum Ende der Woche.
 - Zieh eine Datei zur Notch, und sie wartet dort. Dann wechselst du in Ruhe die App oder den Bildschirm und ziehst sie am Ziel wieder heraus. Auf Wunsch packt Gnotchi alles in ein ZIP, auch mit Passwort.
 - Läuft gerade nichts, zeigt die kleine Insel die Temperatur oder wie viele Dateien warten.
@@ -88,6 +90,10 @@ Das Bild landet nirgends außer auf deinem Bildschirm.
 Für ein Update öffnet Gnotchi nur die echte App und prüft vorher ihre Signatur. Die Meldung, die
 dafür ankommt, enthält nur ein Kürzel der App und die Versionsnummer.
 
+Von Claude Code erfährt Gnotchi nur, in welchem Projekt gerade gearbeitet wird, ob die Sitzung wartet
+und wie die Antwort anfängt. Deine Eingaben und deine Dateien sieht es nicht. Erlauben oder ablehnen
+kann Gnotchi nichts, das bleibt bei dir in der Sitzung.
+
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 
 ## Voraussetzungen
@@ -98,7 +104,7 @@ kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sper
 
 ## So bekommst du Gnotchi
 
-Version 0.8.0 gibt es als signierte, von Apple notarisierte App unter
+Version 0.9.0 gibt es als signierte, von Apple notarisierte App unter
 [GitHub-Releases](https://github.com/miwixyz/Gnotchi/releases/latest). Danach aktualisiert sich
 Gnotchi selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 
