@@ -41,6 +41,9 @@ final class Preferences {
         static let notifications = "notifications"
         static let notifyApps = "notifyApps"
         static let notifyCalls = "notifyCalls"
+        /// 0.9.0 Ungelesen-Zahlen aus dem Dock (G33).
+        static let notifyBadges = "notifyBadges"
+        static let compactUnread = "compactUnread"
         /// 0.7.0 Wetter (G31): Schalter, gewählter Ort (Name, Region, Land, gerundete Koordinaten), Einheit.
         static let weather = "weather"
         static let weatherPlace = "weatherPlace"
@@ -123,6 +126,10 @@ final class Preferences {
     var notifications: Bool { didSet { defaults.set(notifications, forKey: Key.notifications) } }
     /// Anrufe in der Notch (0.6.0), wirkt nur bei eingeschalteten Mitteilungen.
     var notifyCalls: Bool { didSet { defaults.set(notifyCalls, forKey: Key.notifyCalls) } }
+    /// Ungelesen-Zahlen der ausgewählten Apps (0.9.0, G33), wirkt nur bei eingeschalteten Mitteilungen. Ab Werk aus.
+    var notifyBadges: Bool { didSet { defaults.set(notifyBadges, forKey: Key.notifyBadges) } }
+    /// Zähler auch in der kleinen Insel (0.9.0). Ab Werk an, wirkt nur mit `notifyBadges`.
+    var compactUnread: Bool { didSet { defaults.set(compactUnread, forKey: Key.compactUnread) } }
     /// Apps, deren Mitteilungen in die Notch dürfen (G29) – nur Kennungen, gleiche Regeln wie G25. Nur über
     /// `setNotifyApp`; `nil` = noch nie eingeschaltet (dann schlägt Gnotchi einmal Nachrichten-Apps vor).
     private(set) var notifyApps: [String]? { didSet { defaults.set(notifyApps, forKey: Key.notifyApps) } }
@@ -165,6 +172,8 @@ final class Preferences {
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
         notifications = defaults.object(forKey: Key.notifications) as? Bool ?? false
         notifyCalls = defaults.object(forKey: Key.notifyCalls) as? Bool ?? true
+        notifyBadges = defaults.object(forKey: Key.notifyBadges) as? Bool ?? false
+        compactUnread = defaults.object(forKey: Key.compactUnread) as? Bool ?? true
         notifyApps = defaults.object(forKey: Key.notifyApps).map { Self.validExcluded($0) }
         weather = defaults.object(forKey: Key.weather) as? Bool ?? false
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true

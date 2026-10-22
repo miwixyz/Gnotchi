@@ -87,6 +87,9 @@ final class ActivityModel {
     var playerFirst = false
     /// Einstellung „Wiedergabe-Knöpfe in der kleinen Insel“: Pause/Wiedergabe und Weiter dauerhaft (statt Pegel).
     var compactControls = false
+    /// Ungelesen-Zähler in der kleinen Insel (0.9.0, Michael 22.10.: ein-/ausschaltbar). Band und groß zeigen die Zahlen
+    /// unabhängig davon.
+    var compactUnread = true
     /// Einstellung „Aufklappen als Band“ (0.5.0): seitlich breit statt nach unten.
     var bandStyle = false
     /// Bei „Wiedergabe immer groß“: in der Leiste gewählte Aktivität, die über dem Player liegt.
@@ -129,6 +132,12 @@ final class ActivityModel {
     @ObservationIgnored var noteShownID: String?
     @ObservationIgnored var noteTask: Task<Void, Never>?
     @ObservationIgnored var callArmTask: Task<Void, Never>?
+    /// Mit Rot abgelehnter Anruf (0.9.0): weitere Meldungen dieses Banners (Mailbox, leer) nicht mehr zeigen, bis es weg ist.
+    @ObservationIgnored var callDismissedID: String?
+    /// Anruf schon als angezeigt gemeldet (`shown`) – einmal je Anruf.
+    @ObservationIgnored var callShownID: String?
+    /// Ungelesen-Zahlen aus dem Dock (0.9.0, G33): nur Kennung + Zahl, nur Arbeitsspeicher.
+    var unread: [NotifyWire.Badge] = []
     /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
     @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
     @ObservationIgnored let noteDuration: Duration
@@ -155,7 +164,8 @@ final class ActivityModel {
     }
 
     /// Ruhe-Insel (0.8.0, Michael 22.10.: „mit Inhalt“): Wetter an oder etwas in der Ablage → Insel bleibt da.
-    var hasIdleContent: Bool { weather != nil || !shelfItems.isEmpty }
+    /// 0.9.0: auch Ungelesen-Zahlen halten die Ruhe-Insel.
+    var hasIdleContent: Bool { weather != nil || !shelfItems.isEmpty || compactUnreadTotal > 0 }
 
     func setHeadphones(_ h: Headphones?) {
         if headphones != h { headphones = h }

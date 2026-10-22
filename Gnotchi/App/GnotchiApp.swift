@@ -149,6 +149,7 @@ final class AppModel {
         activity.timerAlarmEnabled = prefs.timerAlarm
         activity.playerFirst = prefs.playerFirst
         activity.compactControls = prefs.compactControls
+        activity.compactUnread = prefs.compactUnread
         activity.bandStyle = prefs.bandStyle
         if !prefs.playerFirst { activity.overlayActivity = nil }
         syncOwnUpdate()

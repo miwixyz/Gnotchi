@@ -80,11 +80,15 @@ final class NotifyLink: NotchPart {
             activity.receiveNote(n)
         case .gone(let id)?:
             activity.noteGone(id)
+        case .badges(let list)?:
+            activity.receiveBadges(prefs.notifyBadges ? list : [], allowed: Set(prefs.notifyApps ?? []))
         }
     }
 
     private func sendFilter() {
-        let f = NotifyWire.Command.filter(apps: prefs.notifyApps ?? [], calls: prefs.notifyCalls)
+        let f = NotifyWire.Command.filter(apps: prefs.notifyApps ?? [], calls: prefs.notifyCalls,
+                                          badges: prefs.notifyBadges)
+        if !prefs.notifyBadges { activity.receiveBadges([]) }
         guard f != lastFilter else { return }
         lastFilter = f
         server?.send(NotifyWire.encode(f))

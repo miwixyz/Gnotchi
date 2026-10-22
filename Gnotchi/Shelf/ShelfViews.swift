@@ -231,6 +231,8 @@ struct DragSource: NSViewRepresentable {
 struct IdleCompact: View {
     let weather: Weather.Forecast?
     let shelfCount: Int
+    /// Ungelesen-Summe (0.9.0, G33); 0 = nichts.
+    var unread = 0
     let pill: Bool
     let height: CGFloat
 
@@ -251,6 +253,7 @@ struct IdleCompact: View {
                 }
                 Text(verbatim: WeatherBig.deg(w.temperature)).font(.system(size: 12, weight: .semibold))
             }
+            if unread > 0 { UnreadDot(total: unread) }
         }
         .foregroundStyle(.white)
         .padding(.horizontal, pill ? 12 : 10)
@@ -261,7 +264,8 @@ struct IdleCompact: View {
     }
 
     private var label: String {
-        [weather.map { "Wetter \(WeatherBig.deg($0.temperature))" }, shelfCount > 0 ? "\(shelfCount) in der Ablage" : nil]
+        [weather.map { "Wetter \(WeatherBig.deg($0.temperature))" }, shelfCount > 0 ? "\(shelfCount) in der Ablage" : nil,
+         unread > 0 ? "\(unread) ungelesen" : nil]
             .compactMap { $0 }.joined(separator: ", ")
     }
 }

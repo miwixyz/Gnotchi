@@ -313,6 +313,8 @@ final class IslandController {
             model.setIslandShown(panels.values.contains { $0.state.mode != .hidden })
             // Mitteilung wirklich zu sehen → erst jetzt darf Apples Banner weg (0.6.0, G29 fail-open).
             if panels.values.contains(where: { $0.state.mode == .message }) { activity.noteDisplayed() }
+            // Anruf zu sehen → Apples Anruf-Banner darf weg (0.9.0; im Gespräch nicht, siehe callDisplayed).
+            if panels.values.contains(where: { $0.state.mode == .call }) { activity.callDisplayed() }
         }
         for (id, entry) in panels {
             let screen = NSScreen.screens.first { $0.displayID == id }

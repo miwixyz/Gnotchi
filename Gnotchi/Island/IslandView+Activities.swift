@@ -95,6 +95,8 @@ struct ChipRow: View {
     var onTimer: () -> Void = {}
     var pinned = false
     var onPin: () -> Void = {}
+    /// Ungelesen-Zahlen (0.9.0, G33) rechts in der Leiste.
+    var unread: [NotifyWire.Badge] = []
 
     var body: some View {
         HStack(spacing: 6) {
@@ -141,6 +143,7 @@ struct ChipRow: View {
             }
             fixedButton(pinned ? "pin.fill" : "pin", label: pinned ? "Lösen" : "Anheften", selected: pinned, action: onPin)
             Spacer(minLength: 0)
+            if !unread.isEmpty { UnreadMini(badges: unread) }
             if let quota {
                 Text(verbatim: quota).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
                     .lineLimit(1).truncationMode(.tail)

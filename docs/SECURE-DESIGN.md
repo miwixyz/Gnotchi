@@ -612,6 +612,14 @@ nur aus Klicks (G29, G30).
   (`tools/nc-park.swift`); Gnotchi beendet → Hilfsprogramm „Ende: Gnotchi getrennt“ nach < 1 s.
 - **Anrufe:** Apples Anruf-Banner wird in 0.6.0 **nicht** versteckt, solange „Ablehnen aus der Notch“ nicht am
   echten Anruf gemessen ist – sonst ließe sich ein Anruf bei einem Fehler gar nicht mehr wegdrücken.
+- **Erweitert 0.9.0 (22.10.):** Ablehnen ist gemessen → Apples Anruf-Banner wird **nur beim Klingeln** versteckt,
+  sobald eine Insel den Anruf zeigt. Zurück beim Mitlesen (Abschrift nur bei Apple), im Gespräch (Apples Leiste hat
+  Stumm, Ziffernblock …), bei unbekanntem Zustand und 3 s nach der Folgeaktion (fail-open). Während eines Anrufs
+  dürfen Banner mit weg, die Gnotchi **früher schon gezeigt** hat (stehengebliebene Erinnerung, Michael „B“) – nie
+  solche, die Gnotchi nie gezeigt hat (`NotifyWire.mayHideWindow`, getestet).
+- **Zweiter beobachteter Prozess (0.9.0): Dock, nur lesen.** `com.apple.dock`, nur `AXURL` + `AXStatusLabel` von
+  `AXApplicationDockItem`; kein Schreiben, keine Aktion. Nur bei eingeschalteten „Ungelesen-Zahlen“ (ab Werk aus) und
+  erteilter Freigabe, alle 5 s, ≤ 300 Knoten (G33).
 
 ### G29 – Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert (neu, 2026-10-22, 0.6.0)
 - **Weg:** Unix-Socket `~/Library/Application Support/Gnotchi/notify.sock`, Gnotchi ist Server (derselbe
@@ -646,6 +654,23 @@ nur aus Klicks (G29, G30).
   nach ~5 s zur Gesprächsleiste (Beenden, Weitere, Ziffernblock, Stumm, FaceTime-Video); angeboten wird nur
   Beenden. Michael 11:09: „Annehmen“ und „Beenden“ aus der Notch wirken (Protokoll AXError 0). **Nicht gemessen:**
   Ablehnen aus der Notch, FaceTime-Audio/-Video.
+- **Erweitert 0.9.0 – Folgeaktion nur als Teil eines Klicks.** Gemessen 22.10.: „Ablehnen“ schickt den Anrufer bei
+  eingeschalteter Live-Voicemail auf die Mailbox mit Mitlesen; das Banner bleibt mit „Live-Voicemail stoppen“ +
+  „Annehmen“. „Stoppen“ beendet nur das Mitlesen. Rot = `act` „Ablehnen“ mit `then:"stopVoicemail"`; das Schema lässt
+  `then` nur mit Ablehnen am Anruf zu. Das Hilfsprogramm drückt „Live-Voicemail stoppen“ **einmal**, nur am selben
+  Banner, nur wenn „Ablehnen“ dort verschwunden ist, nur binnen 2 s (`NotifyWire.followUp`, getestet, Gegenprobe ohne
+  Bannerbindung rot). Schlimmster Fehlgriff: Mitlesen endet – kein Annehmen, kein Mikrofon. Sichttest 15:13/15:56:
+  Folgeaktion 0,12 s nach Ablehnen, Apples Fenster blieb versteckt.
+
+### G33 – Ungelesen-Zahlen: Zahl, nicht Inhalt (neu, 2026-10-22, 0.9.0)
+- **Quelle:** Dock-Abzeichen (G28 erweitert). Abzeichen-Texte setzt jede App selbst (`NSDockTile.badgeLabel`,
+  beliebig) → **unvertraut**: nur ASCII-Ziffern zählen (höchstens 9999), jedes andere Abzeichen = 1, Text verlässt das
+  Hilfsprogramm nie (`NotifyWire.badgeCount`, getestet).
+- **Weg:** `{"v":1,"badges":[{"bundle","count"}]}`, Schema streng (ganze Zahl 1…9999, kein Wahrheitswert, keine
+  Doppelten, ≤ 100, keine Zusatzschlüssel). Filter im Hilfsprogramm **und** in Gnotchi (nur ausgewählte Apps – Review
+  22.10.: sonst könnte ein falsches Hilfsprogramm per Klick beliebige installierte Apps öffnen lassen).
+- **Klick** öffnet die installierte App mit genau dieser Kennung über LaunchServices – wie ein Klick aufs Dock-Symbol.
+- **Nie gespeichert, nie protokolliert** (Protokoll nur „Ungelesen: n App(s)“).
 
 ### G31 – Wetter: zwei feste Adressen, nur der gewählte Ort geht raus (neu, 2026-10-22, 0.7.0)
 - **Ziele:** nur `https://api.open-meteo.com/v1/forecast` und `https://geocoding-api.open-meteo.com/v1/search`,

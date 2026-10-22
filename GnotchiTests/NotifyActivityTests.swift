@@ -154,6 +154,129 @@ final class NotifyActivityTests: XCTestCase {
         XCTAssertEqual(sent.list.last, .act(id: NotifyWire.callIdentifier, action: "Beenden"))
     }
 
+    private func waitArmed(_ m: ActivityModel) {
+        let armed = expectation(description: "scharf")
+        Task { @MainActor in
+            while !m.callArmed { try? await Task.sleep(for: .milliseconds(5)) }
+            armed.fulfill()
+        }
+        wait(for: [armed], timeout: 2)
+    }
+
+    /// 0.9.0 Rot: Ablehnen mit Folgeaktion, Anruf sofort weg, weitere Meldungen desselben Banners bis `gone` ignoriert.
+    func testDeclineStopsVoicemailAndDismisses() {
+        let (m, sent) = model()
+        m.receiveNote(call)
+        m.declineCall()
+        XCTAssertTrue(sent.list.isEmpty, "noch nicht scharf")
+        waitArmed(m)
+        m.declineCall()
+        XCTAssertEqual(sent.list, [.act(id: NotifyWire.callIdentifier, action: "Ablehnen", stopVoicemail: true)])
+        XCTAssertNil(m.call)
+        m.receiveNote(NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "Erika Muster", subtitle: "", body: "",
+                                      actions: ["Annehmen", "Live-Voicemail stoppen"]))
+        XCTAssertNil(m.call, "Mailbox-Zustand nach Rot nicht zeigen")
+        m.noteGone(NotifyWire.callIdentifier)
+        m.receiveNote(call)
+        XCTAssertNotNil(m.call, "nächster Anruf erscheint wieder")
+    }
+
+    /// 0.9.0 Mitlesen: Ablehnen ohne Folgeaktion, danach Mailbox mit „Mitlesen beenden“ + Annehmen.
+    func testScreenKeepsCallAndOffersStop() {
+        let (m, sent) = model()
+        m.receiveNote(call)
+        waitArmed(m)
+        m.screenCall()
+        XCTAssertEqual(sent.list, [.act(id: NotifyWire.callIdentifier, action: "Ablehnen")])
+        let screening = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                        title: "Erika Muster", subtitle: "", body: "",
+                                        actions: ["Annehmen", "Live-Voicemail stoppen"])
+        m.receiveNote(screening)
+        XCTAssertEqual(m.call, screening)
+        waitArmed(m)
+        m.declineCall()
+        XCTAssertEqual(sent.list.count, 1, "im Mailbox-Zustand gibt es kein Ablehnen mehr")
+        m.answerCall("Live-Voicemail stoppen")
+        XCTAssertEqual(sent.list.last, .act(id: NotifyWire.callIdentifier, action: "Live-Voicemail stoppen"))
+    }
+
+    /// Apples Anruf-Banner weg, sobald eine Insel den Anruf zeigt – einmal; nicht im Gespräch, nicht bei leerer Liste.
+    func testCallDisplayedSendsShownOnce() {
+        let (m, sent) = model()
+        m.callDisplayed()
+        XCTAssertTrue(sent.list.isEmpty)
+        m.receiveNote(call)
+        m.callDisplayed()
+        m.callDisplayed()
+        XCTAssertEqual(sent.list, [.shown(NotifyWire.callIdentifier)])
+        m.noteGone(NotifyWire.callIdentifier)
+        m.receiveNote(NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "", subtitle: "", body: "", actions: ["Beenden"]))
+        m.callDisplayed()
+        XCTAssertEqual(sent.list.count, 1, "Gespräch: Apples Leiste bleibt")
+        m.noteGone(NotifyWire.callIdentifier)
+        m.receiveNote(NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "", subtitle: "", body: "", actions: []))
+        m.callDisplayed()
+        XCTAssertEqual(sent.list.count, 1, "unbekannter Zustand: Apples Banner bleibt")
+        m.noteGone(NotifyWire.callIdentifier)
+        m.receiveNote(NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "", subtitle: "", body: "", actions: ["Annehmen", "Live-Voicemail stoppen"]))
+        m.callDisplayed()
+        XCTAssertEqual(sent.list.count, 1, "Mitlesen: Abschrift steht nur in Apples Fenster")
+    }
+
+    /// Schalter „Zähler auch in der kleinen Insel“ aus: Zahlen bleiben (Band/groß), halten die kleine Insel aber nicht offen.
+    func testCompactUnreadSwitch() {
+        let (m, _) = model()
+        m.receiveBadges([NotifyWire.Badge(bundle: "com.apple.mail", count: 5)])
+        XCTAssertEqual(m.compactUnreadTotal, 5)
+        XCTAssertTrue(m.isVisible)
+        m.compactUnread = false
+        XCTAssertEqual(m.compactUnreadTotal, 0)
+        XCTAssertEqual(m.unread.count, 1, "Band und große Insel zeigen weiter")
+        XCTAssertFalse(m.isVisible, "nichts anderes da → Insel weg")
+    }
+
+    func testBadgesFilteredToSelectedApps() {
+        let (m, _) = model()
+        m.receiveBadges([NotifyWire.Badge(bundle: "com.apple.mail", count: 5),
+                         NotifyWire.Badge(bundle: "com.evil.app", count: 3)], allowed: ["com.apple.mail"])
+        XCTAssertEqual(m.unread, [NotifyWire.Badge(bundle: "com.apple.mail", count: 5)])
+    }
+
+    func testCallButtonsPerState() {
+        let ringing = CallIsland.buttons(call).map(\.label)
+        XCTAssertEqual(ringing, ["Ablehnen", "Mitlesen (Mailbox)", "Annehmen"])
+        let screening = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                        title: "", subtitle: "", body: "", actions: ["Annehmen", "Live-Voicemail stoppen"])
+        XCTAssertEqual(CallIsland.buttons(screening).map(\.label), ["Mitlesen beenden", "Annehmen"])
+        XCTAssertEqual(CallIsland.status(screening), "Mailbox · Mitlesen")
+        let ongoing = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "", subtitle: "", body: "", actions: ["Beenden"])
+        XCTAssertEqual(CallIsland.buttons(ongoing).map(\.label), ["Beenden"])
+        let unknown = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                      title: "", subtitle: "", body: "", actions: [])
+        XCTAssertTrue(CallIsland.buttons(unknown).isEmpty)
+        XCTAssertEqual(CallIsland.status(unknown), "Telefon · in macOS beantworten")
+    }
+
+    func testBadgesKeepIdleIslandAndSum() {
+        let (m, _) = model()
+        XCTAssertFalse(m.isVisible)
+        m.receiveBadges([NotifyWire.Badge(bundle: "com.apple.mail", count: 5),
+                         NotifyWire.Badge(bundle: "com.example.app", count: 9999)])
+        XCTAssertTrue(m.isVisible)
+        XCTAssertEqual(m.unreadTotal, NotifyWire.maxBadgeCount, "Summe gedeckelt")
+        m.receiveBadges([])
+        XCTAssertFalse(m.isVisible)
+        m.receiveBadges([NotifyWire.Badge(bundle: "com.apple.mail", count: 2)])
+        m.clearNotify()
+        XCTAssertTrue(m.unread.isEmpty)
+        XCTAssertEqual(UnreadMini.short(1000), "999+")
+    }
+
     func testClearDropsEverything() {
         let (m, _) = model()
         m.receiveNote(note("a"))

@@ -19,6 +19,9 @@ enum NotifyWire {
     nonisolated static let maxActionName = 40
     nonisolated static let maxApps = 100
     nonisolated static let maxBundleID = 255
+    /// Ungelesen-Zahlen (0.9.0, G33): höchstens so viele Apps, Zahl höchstens 9999.
+    nonisolated static let maxBadges = 100
+    nonisolated static let maxBadgeCount = 9999
 
     nonisolated static let helperBundleID = "dev.mwlr.gnotchi.mitteilungen"
     nonisolated static let gnotchiBundleID = "dev.mwlr.gnotchi"
@@ -44,14 +47,23 @@ enum NotifyWire {
         let actions: [String]
     }
 
+    /// Ungelesen-Zahl einer App aus dem Dock-Abzeichen (0.9.0, G33) – nur Kennung + Zahl, nie Text.
+    struct Badge: Equatable, Sendable {
+        let bundle: String
+        let count: Int
+    }
+
     enum HelperMessage: Equatable, Sendable {
         case note(Note), gone(String), trust(Bool)
+        case badges([Badge])
     }
 
     enum Command: Equatable, Sendable {
-        case filter(apps: [String], calls: Bool)
+        case filter(apps: [String], calls: Bool, badges: Bool = false)
         case shown(String), release(String)
-        case act(id: String, action: String)
+        /// `stopVoicemail` (0.9.0, G30 erweitert): nur mit „Ablehnen“ am Anruf. Das Hilfsprogramm drückt danach im selben
+        /// Banner einmal „Live-Voicemail stoppen“ – Apples Fenster ist weg, der Anrufer landet auf der Mailbox.
+        case act(id: String, action: String, stopVoicemail: Bool = false)
     }
 
     // MARK: Aktionen (G30)
@@ -68,6 +80,10 @@ enum NotifyWire {
     /// Laufendes Gespräch (gemessen 22.10.: nach Annehmen wird dasselbe Banner zur Gesprächsleiste mit „Beenden, Weitere,
     /// Ziffernblock, Stumm, FaceTime-Video“). Angeboten wird nur Beenden.
     nonisolated static let endActions: Set<String> = ["Beenden", "End"]
+    /// Nach „Ablehnen“ bei eingeschalteter Live-Voicemail (gemessen 22.10., 14:21/14:26): Das Banner bleibt mit
+    /// „Live-Voicemail stoppen“ + „Annehmen“, der Anrufer spricht auf die Mailbox, der Mac liest mit. „Stoppen“ beendet
+    /// nur das Mitlesen (Banner weg), der Anrufer bleibt auf der Mailbox. Englisch nicht gemessen.
+    nonisolated static let voicemailStopActions: Set<String> = ["Live-Voicemail stoppen", "Stop Live Voicemail"]
     /// Beschriftungen, die ins Protokoll dürfen (feste macOS-Texte). Eigene Aktionen fremder Apps können Inhalte tragen
     /// (z. B. einen Namen) → dort nur „App-Aktion“ (G29, Review 22.10.).
     nonisolated static func logLabel(_ action: String) -> String {
@@ -75,11 +91,42 @@ enum NotifyWire {
     }
 
     /// Alles, was ein Anruf in der Notch auslösen darf (G30).
-    nonisolated static let callActions = acceptActions.union(declineActions).union(endActions)
+    nonisolated static let callActions = acceptActions.union(declineActions).union(endActions).union(voicemailStopActions)
 
     /// Anruf schon angenommen (Gesprächsleiste)?
     nonisolated static func isOngoing(_ call: Note) -> Bool {
         call.actions.contains { endActions.contains($0) }
+    }
+
+    /// Anrufer spricht auf die Mailbox, der Mac liest mit (nach „Ablehnen“)?
+    nonisolated static func isScreening(_ call: Note) -> Bool {
+        call.actions.contains { voicemailStopActions.contains($0) }
+    }
+
+    /// Folgeaktion „Live-Voicemail stoppen“ nach eigenem Ablehnen (G30 erweitert): drücken, weiter warten oder verfallen
+    /// lassen. Rein, damit die Regel getestet ist – das Hilfsprogramm führt nur aus, was hier `.press` ergibt.
+    enum FollowUp: Equatable { case press, wait, expire }
+
+    nonisolated static let followUpWindow: TimeInterval = 2
+
+    /// Darf Apples Banner-Fenster mit diesen Bannern weg (G28, fail-open)? Nur wenn jedes gerade in Gnotchi zu sehen ist.
+    /// Ausnahme (0.9.0, Michael 22.10. „B“): Zeigt Gnotchi den Anruf in diesem Fenster, dürfen früher schon gezeigte
+    /// Banner mit – nie solche, die Gnotchi nie gezeigt hat (nicht ausgewählt, nicht lesbar).
+    nonisolated static func mayHideWindow(ids: [String], shown: Set<String>, everShown: Set<String>) -> Bool {
+        let duringCall = shown.contains(callIdentifier) && ids.contains(callIdentifier)
+        return !ids.isEmpty && ids.allSatisfy { shown.contains($0) || (duringCall && everShown.contains($0)) }
+    }
+
+    /// `pending` = eigenes Ablehnen mit `stopVoicemail` (Kennung, Zeitpunkt). Gedrückt wird nur am **selben** Banner, nur
+    /// solange „Ablehnen“ dort verschwunden und „Live-Voicemail stoppen“ erschienen ist, nur innerhalb der Frist.
+    nonisolated static func followUp(pending: (id: String, at: Date)?, id: String, actions: [String]?,
+                                     now: Date) -> FollowUp? {
+        guard let pending, pending.id == id else { return nil }
+        guard now.timeIntervalSince(pending.at) <= followUpWindow, now >= pending.at else { return .expire }
+        guard let actions else { return .wait }   // Banner gerade leer/weg
+        let stop = actions.contains { voicemailStopActions.contains($0) }
+        let decline = actions.contains { declineActions.contains($0) }
+        return stop && !decline ? .press : .wait
     }
 
     /// Was das Hilfsprogramm überhaupt meldet: ohne versteckte Aktionen, ohne Doppelte, höchstens `maxActions`.
@@ -124,6 +171,7 @@ enum NotifyWire {
             return ["v": 1, "note": note]
         case .gone(let id): return ["v": 1, "gone": id]
         case .trust(let t): return ["v": 1, "trust": t]
+        case .badges(let list): return ["v": 1, "badges": list.map { ["bundle": $0.bundle, "count": $0.count] }]
         }
     }
 
@@ -142,7 +190,37 @@ enum NotifyWire {
             guard obj.count == 2, let t = bool(raw) else { return nil }
             return .trust(t)
         }
+        if let raw = obj["badges"] {
+            guard obj.count == 2 else { return nil }
+            return parseBadges(raw).map(HelperMessage.badges)
+        }
         return nil
+    }
+
+    /// Liste aus Kennung + ganzer Zahl 1…9999, keine Doppelten, keine weiteren Felder (G33).
+    nonisolated static func parseBadges(_ raw: Any) -> [Badge]? {
+        guard let list = raw as? [[String: Any]], list.count <= maxBadges else { return nil }
+        var out: [Badge] = []
+        for entry in list {
+            guard entry.count == 2, let b = entry["bundle"] as? String, isValidBundleID(b),
+                  let n = entry["count"] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
+                  n.doubleValue == Double(n.intValue), (1...maxBadgeCount).contains(n.intValue),
+                  !out.contains(where: { $0.bundle == b }) else { return nil }
+            out.append(Badge(bundle: b, count: n.intValue))
+        }
+        return out
+    }
+
+    /// Dock-Abzeichen → Zahl (G33). Apps setzen ihren Abzeichen-Text selbst (`NSDockTile.badgeLabel`, beliebig) →
+    /// unvertraut: nur reine Ziffern zählen (gekürzt auf `maxBadgeCount`), jedes andere nicht leere Abzeichen
+    /// („•“, „!“, Text) = 1. Leer → nil (nichts ungelesen).
+    nonisolated static func badgeCount(_ label: String) -> Int? {
+        let t = label.trimmingCharacters(in: .whitespaces)
+        guard !t.isEmpty else { return nil }
+        guard t.utf8.allSatisfy({ $0 >= 0x30 && $0 <= 0x39 }) else { return 1 }
+        let digits = t.drop { $0 == "0" }
+        guard !digits.isEmpty else { return nil }   // „0“
+        return digits.count > 4 ? maxBadgeCount : min(Int(digits) ?? maxBadgeCount, maxBadgeCount)
     }
 
     nonisolated private static let noteKeys: Set<String> = ["id", "kind", "app", "bundle", "title", "subtitle", "body",
@@ -170,19 +248,20 @@ enum NotifyWire {
 
     nonisolated static func encode(_ c: Command) -> [String: Any] {
         switch c {
-        case .filter(let apps, let calls): ["v": 1, "apps": apps, "calls": calls]
+        case .filter(let apps, let calls, let badges): ["v": 1, "apps": apps, "calls": calls, "badges": badges]
         case .shown(let id): ["v": 1, "shown": id]
         case .release(let id): ["v": 1, "release": id]
-        case .act(let id, let action): ["v": 1, "act": id, "action": action]
+        case .act(let id, let action, let stop):
+            stop ? ["v": 1, "act": id, "action": action, "then": "stopVoicemail"] : ["v": 1, "act": id, "action": action]
         }
     }
 
     nonisolated static func parseCommand(_ payload: Data) -> Command? {
         guard let obj = object(payload) else { return nil }
         if let raw = obj["apps"] {
-            guard obj.count == 3, let apps = raw as? [String], apps.count <= maxApps, apps.allSatisfy(isValidBundleID),
-                  let calls = obj["calls"].flatMap(bool) else { return nil }
-            return .filter(apps: apps, calls: calls)
+            guard obj.count == 4, let apps = raw as? [String], apps.count <= maxApps, apps.allSatisfy(isValidBundleID),
+                  let calls = obj["calls"].flatMap(bool), let badges = obj["badges"].flatMap(bool) else { return nil }
+            return .filter(apps: apps, calls: calls, badges: badges)
         }
         if let raw = obj["shown"] {
             guard obj.count == 2, let id = raw as? String, isValidID(id) else { return nil }
@@ -192,12 +271,18 @@ enum NotifyWire {
             guard obj.count == 2, let id = raw as? String, isValidID(id) else { return nil }
             return .release(id)
         }
-        if let raw = obj["act"] {
-            guard obj.count == 3, let id = raw as? String, isValidID(id),
-                  let action = obj["action"] as? String, !action.isEmpty, action.count <= maxActionName else { return nil }
-            return .act(id: id, action: action)
-        }
+        if obj["act"] != nil { return parseAct(obj) }
         return nil
+    }
+
+    nonisolated private static func parseAct(_ obj: [String: Any]) -> Command? {
+        guard let id = obj["act"] as? String, isValidID(id),
+              let action = obj["action"] as? String, !action.isEmpty, action.count <= maxActionName else { return nil }
+        if obj.count == 3 { return .act(id: id, action: action) }
+        // Folgeaktion nur als einziger Zusatz, nur genau dieser Wert, nur mit Ablehnen am Anruf (G30 erweitert).
+        guard obj.count == 4, obj["then"] as? String == "stopVoicemail", id == callIdentifier,
+              declineActions.contains(action) else { return nil }
+        return .act(id: id, action: action, stopVoicemail: true)
     }
 
     nonisolated static func isAck(_ payload: Data) -> Bool {

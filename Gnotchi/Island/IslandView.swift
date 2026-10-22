@@ -83,7 +83,8 @@ struct IslandView: View {
         case .call:
             if let c = activity.call {
                 CallIsland(call: c, armed: activity.callArmed, topInset: state.layout.notch?.height ?? 0,
-                           onAnswer: { activity.answerCall($0) })
+                           onAnswer: { activity.answerCall($0) }, onDecline: { activity.declineCall() },
+                           onScreen: { activity.screenCall() })
             }
         case .compact:
             if let rec = activity.recording {
@@ -92,12 +93,13 @@ struct IslandView: View {
                 rotationCompact
             }
         case .band:
-            BandView(info: model.info, event: activity.upcomingEvent, timer: activity.timer,
+            BandView(info: model.isVisible ? model.info : nil, event: activity.upcomingEvent, timer: activity.timer,
                      notchWidth: state.layout.notch?.width, height: state.layout.band.height,
                      onPlayPause: { model.playPause() }, onNext: { model.next() }, onOpenEvent: onOpenEvent,
                      onTimerToggle: { activity.timer?.isPaused == true ? activity.resumeTimer() : activity.pauseTimer() },
                      onExpand: onExpandFull, shelfItems: activity.shelfItems, shelfLink: activity.shelf,
-                     onOpenShelf: { activity.selectShelf(); onExpandFull() }, cover: { cover(18, radius: 4) })
+                     onOpenShelf: { activity.selectShelf(); onExpandFull() }, unread: activity.unread,
+                     cover: { cover(18, radius: 4) })
         case .wide:
             if let info = model.info {
                 TrackFlash(info: info, notchWidth: state.layout.notch?.width, height: state.layout.wide.height) {
@@ -123,7 +125,7 @@ struct IslandView: View {
                             onShelf: { activity.selectShelf() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
-                            pinned: activity.pinned, onPin: { activity.togglePin() })
+                            pinned: activity.pinned, onPin: { activity.togglePin() }, unread: activity.unread)
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
                 big(topInset: chips ? 0 : nil)
@@ -137,8 +139,9 @@ struct IslandView: View {
         }
     }
 
-    /// Kleine Insel ohne Aufnahme (0.4.0): die Aktivität, die die Rotation gerade zeigt. Ohne Aktivität wie bisher
-    /// der letzte Titel (pausiert, Insel offen wegen Mikrofon/Kamera) bzw. nur die Punkte.
+    /// Kleine Insel ohne Aufnahme (0.4.0): die Aktivität, die die Rotation gerade zeigt. Ohne Aktivität die Musik, solange
+    /// sie sichtbar ist (spielt / < 5 s Pause), sonst die Punkte bzw. die Ruhe-Insel. Den letzten Titel nach längerer Pause
+    /// zeigt sie seit 0.9.0 nicht mehr (Michael 22.10.: „Musik ausblenden“).
     @ViewBuilder private var rotationCompact: some View {
         let height = state.layout.compact.height
         if activity.timerAlarm {
@@ -204,6 +207,8 @@ struct IslandView: View {
                 Text(verbatim: label).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
+            // Ungelesen auch neben Mikrofon/Kamera (Michael 22.10.: „der Zähler fehlt“).
+            if activity.compactUnreadTotal > 0 { UnreadDot(total: activity.compactUnreadTotal) }
         }
         .padding(.horizontal, state.layout.notch == nil ? 12 : 14)
         .frame(height: state.layout.compact.height)
@@ -256,10 +261,21 @@ struct IslandView: View {
     private func compact(_ info: NowPlayingInfo) -> some View {
         // Mit Knöpfen enger: zwei Knöpfe müssen in den 40-pt-Flügel neben der Notch (Testbild 21.10.).
         HStack(spacing: activity.compactControls ? 3 : nil) {
+            // Ungelesen-Zähler NICHT während der Wiedergabe (Michael 22.10.: „lieber während der Wiedergabe ausblenden“) –
+            // er steht in der Ruhe-Insel und bei Mikrofon/Kamera; Band und große Insel zeigen die Zahlen immer.
             cover(18, radius: 4)
                 // Kleines App-Abzeichen unten rechts am Cover (wie iOS); außerhalb des Cover-Zuschnitts.
                 .overlay(alignment: .bottomTrailing) { appIcon(info.appBundleID, size: 10).offset(x: 3, y: 3) }
-            Spacer()
+            if pill {
+                // Ohne Notch ist die Mitte frei (Michael 22.10.: „viel schwarzer ungenutzter Platz“) → Titel. Mit Notch
+                // sitzt dort die Kamera.
+                Text(verbatim: info.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                    .lineLimit(1).truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 3)
+            } else {
+                Spacer()
+            }
             if activity.compactControls {
                 // Wiedergabe-Knöpfe dauerhaft (Michael 21.10., Schalter): Pause/Wiedergabe und Weiter statt Pegel.
                 // Mikrofon/Kamera dann als Punkt am Cover (siehe unten).
@@ -447,12 +463,15 @@ extension IslandView {
                 UpdateCompact(entry: e, privacy: activity.privacy, pill: pill, height: height) { onOpenUpdate(app) }
             }
         case nil:
-            if let info = model.info {
+            // Nur sichtbare Musik (spielt oder < 5 s Pause): Hielt etwas anderes die Insel offen (Ungelesen, Wetter),
+            // stand sonst der zuletzt gespielte Titel dauerhaft da (Michael 22.10.: „obwohl gerade nichts läuft“).
+            if let info = model.info, model.isVisible {
                 compact(info)
             } else if activity.privacy.isActive {
                 privacyCompact
             } else if activity.hasIdleContent {
-                IdleCompact(weather: activity.weather, shelfCount: activity.shelfItems.count, pill: pill,
+                IdleCompact(weather: activity.weather, shelfCount: activity.shelfItems.count, unread: activity.compactUnreadTotal,
+                            pill: pill,
                             height: state.layout.compact.height)
             }
         }

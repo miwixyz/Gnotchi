@@ -190,6 +190,14 @@ extension SettingsView {
                 }
                 toggleRow("Anrufe in der Notch", isOn: $prefs.notifyCalls)
                     .onChange(of: prefs.notifyCalls) { model.applyNotchSetting() }
+                toggleRow("Ungelesen-Zahlen zeigen", isOn: $prefs.notifyBadges)
+                    .onChange(of: prefs.notifyBadges) { model.applyNotchSetting() }
+                if prefs.notifyBadges {
+                    toggleRow("Zähler auch in der kleinen Insel", isOn: $prefs.compactUnread)
+                        .onChange(of: prefs.compactUnread) { model.applyNotchSetting() }
+                    note("Zahlen von den Dock-Symbolen der ausgewählten Apps – nur Apps, die im Dock liegen.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
                 divider
                 Text("Apps")
                     .font(FamilyTheme.font(.callout, weight: .medium))

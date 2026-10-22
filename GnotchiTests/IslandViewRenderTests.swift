@@ -301,7 +301,8 @@ final class IslandViewRenderTests: XCTestCase {
                         timerMinutes: Int? = nil, timerPicker: Bool = false, alarm: Bool = false,
                         playerFirstOverlay: LiveActivity? = nil, compactControls: Bool = false,
                         notes: [NotifyWire.Note] = [], callArmed: Bool = true, weather: Weather.Forecast? = nil,
-                        shelfFiles: [String] = [], drag: Bool = false, showWeatherBig: Bool = true) throws {
+                        shelfFiles: [String] = [], drag: Bool = false, showWeatherBig: Bool = true,
+                        unread: [NotifyWire.Badge] = []) throws {
         let layout = IslandGeometry.layout(for: screen)
         let state = IslandState(layout: layout)
         state.mode = mode
@@ -311,6 +312,7 @@ final class IslandViewRenderTests: XCTestCase {
         model.setPreviewState(info: withMedia ? Self.info(appBundleID: appBundleID, playing: mode == .expanded) : nil,
                               artwork: Self.artwork(), route: route)
         let activity = ActivityModel(media: model)
+        activity.receiveBadges(unread)
         if let notice { activity.post(notice) }
         activity.setPrivacy(privacy)
         activity.setQuota(quota)
@@ -397,5 +399,55 @@ private extension NotifyWire.Note {
     func with(id: String) -> NotifyWire.Note {
         NotifyWire.Note(id: id, kind: kind, app: app, bundle: bundle, title: title, subtitle: subtitle, body: body,
                         actions: actions)
+    }
+}
+
+// 0.9.0 – als Erweiterung, damit der Klassenrumpf unter 350 Zeilen bleibt.
+extension IslandViewRenderTests {
+    // 0.9.0: Mailbox-Zustand nach „Mitlesen“, Ungelesen-Zahlen klein, in der Leiste und im Band (erfundene Zahlen).
+    private static let sampleUnread = [NotifyWire.Badge(bundle: "com.apple.mail", count: 5),
+                                       NotifyWire.Badge(bundle: "com.apple.reminders", count: 12)]
+    func testRenderNotchCallScreening() throws {
+        let screening = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                        title: "Erika Muster", subtitle: "", body: "",
+                                        actions: ["Annehmen", "Live-Voicemail stoppen"])
+        try render(notchScreen, .call, name: "notch-call-screening", notes: [screening])
+    }
+    func testRenderNotchIdleUnread() throws {
+        try render(notchScreen, .compact, name: "notch-idle-unread", withMedia: false,
+                   weather: Self.sampleWeather(code: 0, day: true), showWeatherBig: false, unread: Self.sampleUnread)
+    }
+    func testRenderPillIdleUnreadOnly() throws {
+        try render(pillScreen, .compact, name: "pill-idle-unread", withMedia: false, unread: Self.sampleUnread)
+    }
+    func testRenderNotchExpandedUnread() throws {
+        try render(notchScreen, .expanded, name: "notch-expanded-unread", unread: Self.sampleUnread)
+    }
+    func testRenderNotchBandUnread() throws {
+        try render(notchScreen, .band, name: "notch-band-unread", unread: Self.sampleUnread)
+    }
+    func testRenderNotchCompactUnreadWithMusic() throws {
+        try render(notchScreen, .compact, name: "notch-compact-unread", appBundleID: "com.apple.Music", unread: Self.sampleUnread)
+    }
+    func testRenderPillCompactUnreadWithMusic() throws {
+        try render(pillScreen, .compact, name: "pill-compact-unread", appBundleID: "com.apple.Music", compactControls: true,
+                   unread: Self.sampleUnread)
+    }
+    func testRenderPillCompactControlsNoUnread() throws {
+        try render(pillScreen, .compact, name: "pill-compact-controls", appBundleID: "com.apple.Music", compactControls: true)
+    }
+    func testRenderPillBandUnread() throws {
+        try render(pillScreen, .band, name: "pill-band-unread", unread: Self.sampleUnread)
+    }
+    func testRenderPillPrivacyUnread() throws {
+        try render(pillScreen, .compact, name: "pill-privacy-unread", privacy: .init(micApps: ["Beispiel"], camera: false),
+                   withMedia: false, unread: Self.sampleUnread)
+    }
+    func testRenderNotchPrivacyUnread() throws {
+        try render(notchScreen, .compact, name: "notch-privacy-unread", privacy: .init(micApps: ["Beispiel"], camera: false),
+                   withMedia: false, unread: Self.sampleUnread)
+    }
+    func testRenderNotchBandShelfUnread() throws {
+        try render(notchScreen, .band, name: "notch-band-shelf-unread", shelfFiles: ["a.pdf", "b.pdf"], unread: Self.sampleUnread)
     }
 }

@@ -34,19 +34,30 @@ struct BandView<Cover: View>: View {
     var shelfItems: [ShelfStore.Item] = []
     var shelfLink: ShelfLink?
     var onOpenShelf: () -> Void = {}
+    /// Ungelesen-Zahlen (0.9.0, Michael nutzt „Band“ – jede neue Anzeige auch hier).
+    var unread: [NotifyWire.Badge] = []
     @ViewBuilder let cover: () -> Cover
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { ctx in
             HStack(spacing: 10) {
-                Button(action: onExpand) { left.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text(verbatim: "Große Ansicht öffnen"))
-                if let shelfLink, !shelfItems.isEmpty {
-                    ShelfMini(items: shelfItems, link: shelfLink, onOpen: onOpenShelf).fixedSize()
+                // Ablage und Ungelesen gehören zur linken Hälfte – als eigene Elemente daneben schoben sie die
+                // Notch-Lücke aus der Mitte (Bildprüfung 22.10.: „12“ lag unter der Notch).
+                HStack(spacing: 10) {
+                    Button(action: onExpand) { left.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: "Große Ansicht öffnen"))
+                    if let shelfLink, !shelfItems.isEmpty {
+                        ShelfMini(items: shelfItems, link: shelfLink, onOpen: onOpenShelf).fixedSize()
+                    }
+                    if !unread.isEmpty { UnreadMini(badges: unread).fixedSize() }
                 }
+                .frame(maxWidth: .infinity)
                 if let notchWidth { Color.clear.frame(width: notchWidth) }
-                right(at: ctx.date).frame(maxWidth: .infinity, alignment: .trailing)
+                // Mit Notch zwei gleiche Hälften (die Lücke bleibt mittig über der Kamera). Ohne Notch nimmt rechts nur, was es
+                // braucht – sonst blieb die Mitte leer und der Titel wurde früh gekürzt (Michael 22.10., Bildschirmfoto).
+                right(at: ctx.date).frame(maxWidth: notchWidth == nil ? nil : .infinity, alignment: .trailing)
+                    .fixedSize(horizontal: notchWidth == nil, vertical: false)
             }
             .padding(.horizontal, 12)
             .frame(height: height)

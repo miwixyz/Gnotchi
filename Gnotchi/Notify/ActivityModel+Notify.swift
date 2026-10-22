@@ -21,6 +21,9 @@ extension ActivityModel {
     func receiveNote(_ n: NotifyWire.Note) {
         switch n.kind {
         case .call:
+            guard callDismissedID != n.id else { return }
+            // Gleicher Zustand noch einmal (z. B. nach Neuverbindung): nicht neu entschärfen.
+            guard call != n else { return }
             call = n
             callArmed = false
             callArmTask?.cancel()
@@ -39,6 +42,7 @@ extension ActivityModel {
 
     /// Banner ist bei Apple weg (weggeklickt, abgelaufen, Anruf beendet).
     func noteGone(_ id: String) {
+        if callDismissedID == id { callDismissedID = nil }
         if call?.id == id { endCall() }
         if notes.first?.id == id {
             advanceNote()
@@ -54,8 +58,23 @@ extension ActivityModel {
         noteShownID = nil
         if !notes.isEmpty { notes = [] }
         endCall()
+        callDismissedID = nil
+        if !unread.isEmpty { unread = [] }
         notifyTrust = nil
     }
+
+    /// Ungelesen-Zahlen vom Hilfsprogramm (Schema geprüft, G33). `allowed` = ausgewählte Apps: Gnotchi filtert selbst noch
+    /// einmal (wie bei Mitteilungen) – ein falsches Hilfsprogramm könnte sonst per Klick beliebige Apps öffnen lassen.
+    func receiveBadges(_ list: [NotifyWire.Badge], allowed: Set<String>? = nil) {
+        let kept = allowed.map { a in list.filter { a.contains($0.bundle) } } ?? list
+        if unread != kept { unread = kept }
+    }
+
+    /// Summe für die kleine Insel (höchstens 9999).
+    var unreadTotal: Int { min(unread.reduce(0) { $0 + $1.count }, NotifyWire.maxBadgeCount) }
+
+    /// Was die kleine Insel zeigt: 0, wenn der Zähler dort ausgeschaltet ist.
+    var compactUnreadTotal: Int { compactUnread ? unreadTotal : 0 }
 
     // MARK: Anzeige
 
@@ -77,6 +96,15 @@ extension ActivityModel {
         }
     }
 
+    /// Eine Insel zeigt den Anruf: jetzt darf Apples Anruf-Banner weg (0.9.0) – nur beim Klingeln. Nicht beim Mitlesen
+    /// (Abschrift nur bei Apple), nicht im Gespräch (Apples Leiste hat mehr Knöpfe), nicht bei unbekanntem Zustand.
+    func callDisplayed() {
+        guard let c = call, callShownID != c.id, !c.actions.isEmpty, !NotifyWire.isOngoing(c), !NotifyWire.isScreening(c)
+        else { return }
+        callShownID = c.id
+        notifyCommand(.shown(c.id))
+    }
+
     // MARK: Klicks (G30)
 
     /// Klick auf die Mitteilung: macOS öffnet die App an der richtigen Stelle (`AXPress` am Banner).
@@ -93,11 +121,31 @@ extension ActivityModel {
         advanceNote()
     }
 
-    /// Annehmen/Ablehnen. Erst nach `callArmDelay`; danach entscheidet Apples Banner (es verschwindet → `gone`).
+    /// Annehmen, Beenden, „Mitlesen beenden“. Erst nach `callArmDelay`; danach entscheidet Apples Banner (es
+    /// verschwindet → `gone`, oder es meldet den nächsten Zustand).
     func answerCall(_ action: String) {
         guard let c = call, callArmed, c.actions.contains(action) else { return }
         callArmed = false
         notifyCommand(.act(id: c.id, action: action))
+    }
+
+    /// Rot (0.9.0, Michael 22.10.): Ablehnen und Apples Fenster ist weg – das Hilfsprogramm drückt danach einmal
+    /// „Live-Voicemail stoppen“. Der Anrufer landet auf der Mailbox. Der Anruf verschwindet sofort aus der Insel.
+    func declineCall() {
+        guard let c = call, callArmed, let decline = c.actions.first(where: { NotifyWire.declineActions.contains($0) })
+        else { return }
+        notifyCommand(.act(id: c.id, action: decline, stopVoicemail: true))
+        callDismissedID = c.id
+        endCall()
+    }
+
+    /// „Mitlesen“: ablehnen ohne Folgeaktion – der Anrufer spricht auf die Mailbox, der Mac liest mit; die Insel zeigt
+    /// danach „Mitlesen beenden“ und „Annehmen“.
+    func screenCall() {
+        guard let c = call, callArmed, let decline = c.actions.first(where: { NotifyWire.declineActions.contains($0) })
+        else { return }
+        callArmed = false
+        notifyCommand(.act(id: c.id, action: decline))
     }
 
     // MARK: Intern
@@ -112,6 +160,7 @@ extension ActivityModel {
     private func endCall() {
         callArmTask?.cancel()
         callArmTask = nil
+        callShownID = nil
         if call != nil { call = nil }
         if callArmed { callArmed = false }
     }

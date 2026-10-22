@@ -100,7 +100,9 @@ final class NotifyWireTests: XCTestCase {
 
     func testCommandsRoundTrip() {
         let all: [NotifyWire.Command] = [.filter(apps: ["com.apple.MobileSMS"], calls: true), .shown("abc"), .release("abc"),
-                                         .act(id: "abc", action: "Erledigt"), .act(id: "FACETIME_NOTIFICATION", action: "Annehmen")]
+                                         .filter(apps: [], calls: false, badges: true),
+                                         .act(id: "abc", action: "Erledigt"), .act(id: "FACETIME_NOTIFICATION", action: "Annehmen"),
+                                         .act(id: "FACETIME_NOTIFICATION", action: "Ablehnen", stopVoicemail: true)]
         for c in all { XCTAssertEqual(NotifyWire.parseCommand(payload(NotifyWire.encode(c))), c) }
     }
 
@@ -117,5 +119,108 @@ final class NotifyWireTests: XCTestCase {
         XCTAssertTrue(NotifyWire.isAck(payload(["v": 1, "ok": true])))
         XCTAssertFalse(NotifyWire.isAck(payload(["v": 1, "ok": 1])))
         XCTAssertFalse(NotifyWire.isAck(payload(["v": 1, "ok": false])))
+    }
+
+    // MARK: 0.9.0 – Folgeaktion „Live-Voicemail stoppen“ (G30 erweitert)
+
+    func testStopVoicemailOnlyWithDeclineOnCall() {
+        let call = NotifyWire.callIdentifier
+        XCTAssertEqual(NotifyWire.parseCommand(payload(["v": 1, "act": call, "action": "Ablehnen", "then": "stopVoicemail"])),
+                       .act(id: call, action: "Ablehnen", stopVoicemail: true))
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "act": call, "action": "Annehmen", "then": "stopVoicemail"])),
+                     "nie nach Annehmen")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "act": "abc", "action": "Ablehnen", "then": "stopVoicemail"])),
+                     "nur am Anruf")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "act": call, "action": "Ablehnen", "then": "keep"])),
+                     "unbekannter Wert")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "act": call, "action": "Ablehnen", "then": true])), "Typ")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "act": call, "action": "Ablehnen", "more": 1])),
+                     "anderer Zusatzschlüssel")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "apps": [], "calls": true])), "Filter ohne badges")
+    }
+
+    /// Gemessen 22.10.: Klingeln → Ablehnen → „Live-Voicemail stoppen“ + „Annehmen“ → leer.
+    func testFollowUpGate() {
+        let id = NotifyWire.callIdentifier
+        let t0 = Date(timeIntervalSince1970: 1_000)
+        let p = (id: id, at: t0)
+        let ringing = ["Annehmen", "Ablehnen"]
+        let screening = ["Annehmen", "Live-Voicemail stoppen"]
+        XCTAssertNil(NotifyWire.followUp(pending: nil, id: id, actions: screening, now: t0), "ohne eigenes Ablehnen nie")
+        XCTAssertNil(NotifyWire.followUp(pending: (id: "anderes", at: t0), id: id, actions: screening, now: t0),
+                     "nur dasselbe Banner")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: ringing, now: t0 + 0.1), .wait,
+                       "Ablehnen noch da → warten")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: nil, now: t0 + 0.1), .wait, "Banner gerade leer")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: screening, now: t0 + 0.2), .press)
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: screening + ["Ablehnen"], now: t0 + 0.2), .wait,
+                       "neuer Anruf klingelt schon wieder → nicht drücken")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: screening, now: t0 + 2.5), .expire, "Frist")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: screening, now: t0 - 1), .expire, "Uhr zurück")
+        XCTAssertEqual(NotifyWire.followUp(pending: p, id: id, actions: ["Stop Live Voicemail", "Accept"], now: t0 + 1),
+                       .press, "englisch")
+    }
+
+    func testScreeningAndCallActions() {
+        let screening = NotifyWire.Note(id: NotifyWire.callIdentifier, kind: .call, app: "Telefon", bundle: nil,
+                                        title: "Erika Muster", subtitle: "", body: "",
+                                        actions: ["Annehmen", "Live-Voicemail stoppen"])
+        XCTAssertTrue(NotifyWire.isScreening(screening))
+        XCTAssertFalse(NotifyWire.isOngoing(screening))
+        XCTAssertTrue(NotifyWire.callActions.contains("Live-Voicemail stoppen"))
+        XCTAssertFalse(NotifyWire.callActions.contains("Live-Voicemail"), "Apples eigener Mailbox-Knopf bleibt weg")
+        XCTAssertFalse(NotifyWire.callActions.contains("Mit Nachricht ablehnen"))
+    }
+
+    /// Gemessen 22.10., 15:27: Eine stehengebliebene Kalender-Erinnerung hielt Apples Fenster samt Anruf sichtbar.
+    func testMayHideWindowDuringCall() {
+        let call = NotifyWire.callIdentifier
+        XCTAssertTrue(NotifyWire.mayHideWindow(ids: ["a"], shown: ["a"], everShown: ["a"]))
+        XCTAssertFalse(NotifyWire.mayHideWindow(ids: ["a", "b"], shown: ["a"], everShown: ["a", "b"]),
+                       "ohne Anruf nur, was gerade gezeigt wird")
+        XCTAssertTrue(NotifyWire.mayHideWindow(ids: [call, "erinnerung"], shown: [call], everShown: [call, "erinnerung"]),
+                      "Anruf: früher gezeigter Hinweis darf mit")
+        XCTAssertFalse(NotifyWire.mayHideWindow(ids: [call, "fremd"], shown: [call], everShown: [call]),
+                       "nie gezeigter (nicht ausgewählter) Hinweis hält das Fenster")
+        XCTAssertFalse(NotifyWire.mayHideWindow(ids: [call, "erinnerung"], shown: [], everShown: [call, "erinnerung"]),
+                       "Anruf nicht (mehr) in Gnotchi → alles zurück")
+        XCTAssertFalse(NotifyWire.mayHideWindow(ids: [], shown: [call], everShown: []))
+    }
+
+    // MARK: 0.9.0 – Ungelesen-Zahlen (G33)
+
+    func testBadgeCountTreatsLabelAsUntrusted() {
+        XCTAssertEqual(NotifyWire.badgeCount("5"), 5)
+        XCTAssertEqual(NotifyWire.badgeCount(" 12 "), 12)
+        XCTAssertEqual(NotifyWire.badgeCount("9999"), 9999)
+        XCTAssertEqual(NotifyWire.badgeCount("123456789012345678901234567890"), NotifyWire.maxBadgeCount, "kein Überlauf")
+        XCTAssertEqual(NotifyWire.badgeCount("•"), 1, "Punkt = 1")
+        XCTAssertEqual(NotifyWire.badgeCount("Neu: Erika"), 1, "Text nie übernehmen")
+        XCTAssertEqual(NotifyWire.badgeCount("٣"), 1, "nur ASCII-Ziffern")
+        XCTAssertEqual(NotifyWire.badgeCount("-3"), 1)
+        XCTAssertNil(NotifyWire.badgeCount(""))
+        XCTAssertNil(NotifyWire.badgeCount("0"))
+        XCTAssertNil(NotifyWire.badgeCount("000"))
+    }
+
+    func testBadgesRoundTripAndSchema() {
+        let list = [NotifyWire.Badge(bundle: "com.apple.mail", count: 5), NotifyWire.Badge(bundle: "net.whatsapp.WhatsApp", count: 1)]
+        XCTAssertEqual(NotifyWire.parseHelperMessage(payload(NotifyWire.encode(.badges(list)))), .badges(list))
+        XCTAssertEqual(NotifyWire.parseHelperMessage(payload(["v": 1, "badges": []])), .badges([]))
+        let bad: [(Any, String)] = [
+            ([["bundle": "com.a", "count": 0]], "0"),
+            ([["bundle": "com.a", "count": 10_000]], "zu groß"),
+            ([["bundle": "com.a", "count": 1.5]], "keine ganze Zahl"),
+            ([["bundle": "com.a", "count": true]], "Wahrheitswert"),
+            ([["bundle": "com.a", "count": "3"]], "Text"),
+            ([["bundle": "bad id", "count": 3]], "Kennung"),
+            ([["bundle": "com.a", "count": 3, "text": "Erika"]], "Zusatzschlüssel"),
+            ([["bundle": "com.a", "count": 3], ["bundle": "com.a", "count": 4]], "doppelt"),
+            (Array(repeating: ["bundle": "com.a", "count": 1], count: NotifyWire.maxBadges + 1), "zu viele"),
+            ("com.a", "kein Feld"),
+        ]
+        for (value, why) in bad {
+            XCTAssertNil(NotifyWire.parseHelperMessage(payload(["v": 1, "badges": value])), why)
+        }
     }
 }

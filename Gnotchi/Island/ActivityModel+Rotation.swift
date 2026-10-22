@@ -91,8 +91,10 @@ extension ActivityModel {
 
     /// Symbole der Leiste: wie die Rotation, aber Musik auch pausiert (dort will man sie weiterspielen; die
     /// kleine Insel blendet pausierte Musik nach 5 s aus – gemessen 21.10.: Musik-Symbol fehlte).
+    /// Musik nur, solange sie sichtbar ist (spielt / < 5 s Pause) – auch groß und im Band (Michael 22.10.: alte Titel
+    /// „würden irritieren“). Vorher reichte ein zuletzt gespielter Titel.
     var chipItems: [LiveActivity] {
-        Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.info != nil,
+        Self.rotationItems(event: upcomingEvent != nil, timer: timer != nil, media: media.isVisible,
                            headphones: headphones != nil, updates: allUpdates.map(\.app))
     }
 
@@ -103,8 +105,8 @@ extension ActivityModel {
 
     var bigContent: BigContent {
         // „Wiedergabe immer groß“: Player als Grundlage, solange Musik da ist (Alarm, Spiegel, Timer-Auswahl gehen vor).
-        let current: LiveActivity? = playerFirst && media.info != nil ? .media : bigActivity
-        return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.info != nil,
+        let current: LiveActivity? = playerFirst && media.isVisible ? .media : bigActivity
+        return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.isVisible,
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
                                weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
                                idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
