@@ -194,7 +194,7 @@ final class IslandViewRenderTests: XCTestCase {
     }
 
     // 0.3.0 Qotti-Kontingent
-    private static let quota = QottiLink.Snapshot(claude: .init(percent: 42, resetAt: nil, state: .ok),
+    static let quota = QottiLink.Snapshot(claude: .init(percent: 42, resetAt: nil, state: .ok),
                                                   codex: .init(percent: 17, resetAt: nil, state: .ok))
     func testRenderNotchExpandedQuota() throws {
         try render(notchScreen, .expanded, name: "notch-expanded-quota", quota: Self.quota)
@@ -465,6 +465,11 @@ extension IslandViewRenderTests {
                                text: "Erfundene Antwort, zwei Zeilen lang, damit man sieht, wie sie gekürzt wird."),
             ClaudeWire.Message(session: "s2", event: .permission, project: "Zweites", tool: "Bash", detail: "git push origin main"),
         ])
+    }
+    func testRenderPillBandClaudeQuota() throws {
+        try render(pillScreen, .band, name: "pill-band-claude-quota", withMedia: false,
+                   quota: Self.quota,
+                   claude: [ClaudeWire.Message(session: "s1", event: .stop, project: "Beispielprojekt", text: "fertig")])
     }
     func testRenderNotchBandShelfUnread() throws {
         try render(notchScreen, .band, name: "notch-band-shelf-unread", shelfFiles: ["a.pdf", "b.pdf"], unread: Self.sampleUnread)

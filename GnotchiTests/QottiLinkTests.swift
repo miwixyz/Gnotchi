@@ -81,7 +81,7 @@ final class QottiLinkTests: XCTestCase {
     func testLine() {
         XCTAssertEqual(QottiLink.line(.init(claude: .init(percent: 42, resetAt: nil, state: .ok),
                                             codex: .init(percent: 17, resetAt: nil, state: .ok))),
-                       "Claude 42 % · GPT 17 %")
+                       "Claude 42 % · Codex 17 %")
         XCTAssertEqual(QottiLink.line(.init(claude: .init(percent: 100, resetAt: nil, state: .throttled), codex: nil)),
                        "Claude gedrosselt")
         XCTAssertNil(QottiLink.line(nil))
@@ -93,7 +93,7 @@ final class QottiLinkTests: XCTestCase {
         let n = QottiLink.notice(name: "Claude", p, .percent80, now: now)
         XCTAssertEqual(n.title, "Claude 82 %")
         XCTAssertEqual(n.subtitle, "zurück in 1 Std. 5 Min.")
-        XCTAssertEqual(QottiLink.notice(name: "GPT", p, .throttled, now: now).title, "GPT gedrosselt")
+        XCTAssertEqual(QottiLink.notice(name: "Codex", p, .throttled, now: now).title, "Codex gedrosselt")
     }
 
     func testPanelFrameGrowsPerLine() throws {

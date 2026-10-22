@@ -39,6 +39,8 @@ struct BandView<Cover: View>: View {
     /// Claude-Code-Sitzung, die arbeitet oder wartet (0.9.0 Code & KI).
     var claude: ClaudeSession?
     var onOpenClaude: () -> Void = {}
+    /// Qotti-Kontingent (0.9.0, Michael 22.10.: „auch im Band“, bei den Claude-Sitzungen) – dezent links.
+    var quota: String?
     @ViewBuilder let cover: () -> Cover
 
     var body: some View {
@@ -65,6 +67,10 @@ struct BandView<Cover: View>: View {
                         ShelfMini(items: shelfItems, link: shelfLink, onOpen: onOpenShelf).fixedSize()
                     }
                     if !unread.isEmpty { UnreadMini(badges: unread).fixedSize() }
+                    if let quota {
+                        Text(verbatim: quota).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                            .lineLimit(1).fixedSize()
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 if let notchWidth { Color.clear.frame(width: notchWidth) }

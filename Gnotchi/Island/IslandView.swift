@@ -102,6 +102,7 @@ struct IslandView: View {
                      // Auch fertige Sitzungen (Sichttest 22.10.: Band war nach „fertig“ leer, Michael nutzt das Band).
                      claude: activity.claudeOrdered.first,
                      onOpenClaude: { if let s = activity.claudeOrdered.first { ClaudeLink.open(s) } },
+                     quota: activity.quotaLine,
                      cover: { cover(18, radius: 4) })
         case .wide:
             if let info = model.info {

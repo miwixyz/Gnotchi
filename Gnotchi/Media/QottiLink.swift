@@ -132,14 +132,14 @@ final class QottiLink: NotchPart {
         }
     }
 
-    /// Zeile der großen Insel: „Claude 42 % · GPT 17 %“ (nur 5 h, wie Qottis Menüleiste).
+    /// Zeile der großen Insel: „Claude 42 % · Codex 17 %“ (nur 5 h, wie Qottis Menüleiste; „Codex“ wie Qotti seit 21.10.).
     nonisolated static func line(_ s: Snapshot?) -> String? {
         guard let s, !s.isEmpty else { return nil }
         func part(_ name: String, _ p: Provider?) -> String? {
             guard let p else { return nil }
             return p.state == .throttled ? "\(name) gedrosselt" : "\(name) \(p.percent) %"
         }
-        return [part("Claude", s.claude), part("GPT", s.codex)].compactMap { $0 }.joined(separator: " · ")
+        return [part("Claude", s.claude), part("Codex", s.codex)].compactMap { $0 }.joined(separator: " · ")
     }
 
     // MARK: Betrieb
@@ -184,7 +184,7 @@ final class QottiLink: NotchPart {
         lastApplied = Date()
         if activity.quota == nil { Self.log.notice("Qotti-Kontingent empfangen") }
         activity.setQuota(s)
-        for (key, name, p) in [("claude", "Claude", s.claude), ("codex", "GPT", s.codex)] {
+        for (key, name, p) in [("claude", "Claude", s.claude), ("codex", "Codex", s.codex)] {
             let (a, level) = Self.evaluate(alarms[key] ?? Alarm(), p)
             alarms[key] = a
             if let level, let p { activity.post(Self.notice(name: name, p, level)) }
