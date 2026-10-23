@@ -795,6 +795,9 @@ nur aus Klicks (G29, G30).
 - **Protokoll:** nur Zahlen, nie Namen/Pfade (Bildschirmfotos zeigen oft Privates). **Netz:** keins.
 - **Restrisiko (hingenommen):** Ein Prozess legt eine präparierte Datei mit dem Merkmal ab → sie liegt als Verweis in der
   Ablage und wird nur auf Michaels Ziehen weitergereicht, wie eine hineingezogene (G32).
+- **Prüfung 0.10.0 (23.10.):** `rafter-secure-design` vor dem Code (Spezifikation), `rafter-code-review` des Diffs
+  ohne Befund; `rafter run` Scan `73d18132` auf `c90a8fe`: keine Befunde. Sichttest mit echten CleanShot-Fotos
+  (iCloud) und Schreibtisch, Rausziehen kopiert (Ziel meldet 1, Original bleibt).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
