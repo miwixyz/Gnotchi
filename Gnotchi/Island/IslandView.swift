@@ -79,7 +79,7 @@ struct IslandView: View {
                            onOpen: { activity.openNote() }, onAction: { activity.performNoteAction($0) })
             }
         case .shelfDrop:
-            ShelfDropZone(count: activity.shelfItems.count, topInset: state.layout.notch?.height ?? 0) { activity.shelf?.drop($0) }
+            ShelfDropZone(count: activity.shelfItems.count, topInset: state.layout.notch?.height ?? 0) { activity.shelf?.dropDragged() }
         case .call:
             if let c = activity.call {
                 CallIsland(call: c, armed: activity.callArmed, topInset: state.layout.notch?.height ?? 0,

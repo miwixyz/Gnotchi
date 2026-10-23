@@ -74,7 +74,7 @@ Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fensterti
 
 Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
 
-Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Sie öffnet nichts, sie löscht nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen.
+Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Ausnahme sind Fotos aus der Fotos-App: Die legt sie als Kopie in einen eigenen Ordner und löscht genau diese Kopie wieder, wenn du das Foto entfernst. Sie öffnet nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen.
 
 Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt. Es hört
 nichts mit und nimmt nichts auf.

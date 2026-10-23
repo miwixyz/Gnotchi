@@ -60,7 +60,8 @@ Freigabe nicht und fragt nie danach.
   App; ohne Musik auch als Summe in der kleinen Insel. Nur Ziffern, nie Text. Ab Werk aus.
 - **Dateiablage (0.8):** Datei zur Notch ziehen → „Hier ablegen“ → später woanders herausziehen. Reihe unter der
   großen Insel bzw. direkt im Band; volle Ablage mit Im Finder zeigen, Teilen, AirDrop und ZIP (optional AES-256 mit
-  Passwort). Verweise statt Kopien, ohne Freigabe.
+  Passwort). Verweise statt Kopien, ohne Freigabe. Ab 0.9.1 auch Fotos direkt aus der Fotos-App (als Kopie, die
+  beim Entfernen gelöscht wird).
 - **Ruhe-Insel (0.8):** Läuft nichts, bleibt die kleine Insel bei Wetter/Ablage mit Temperatur bzw. Anzahl.
 - **Wetter (0.7):** Wetter-Symbol in der großen Insel → Temperatur, Zustand, 8 Stunden, 7 Tage, Feuchte, Wind,
   UV, Druck, Sonnenauf-/-untergang auf einem Himmel-Farbverlauf. Ort in den Einstellungen suchen, °C/°F. Daten:
@@ -192,7 +193,8 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   Code, eine Datei oder das Netz. Die Kamera läuft nur, solange der Spiegel sichtbar ist
   ([G27](docs/SECURE-DESIGN.md)).
 - **Dateiablage:** gespeichert werden nur Lesezeichen (Ort der Datei) in `~/Library/Application Support/Gnotchi/ablage.json`
-  (nur für dich lesbar). Nichts wird geöffnet oder ausgeführt, entfernen löscht nie etwas. ZIP im Programm
+  (nur für dich lesbar). Nichts wird geöffnet oder ausgeführt, entfernen löscht nie etwas – außer Gnotchis eigener
+  Kopie eines Fotos aus der Fotos-App (`Ablage-Kopien/`, nur für dich lesbar, ab 0.9.1). ZIP im Programm
   (libarchive), Passwort nie gespeichert ([G32](docs/SECURE-DESIGN.md)).
 - **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die

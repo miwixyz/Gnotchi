@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.9.1] — 2026-10-23
+
+### Behoben
+- **Fotos aus der Fotos-App lassen sich in die Ablage ziehen.** Bisher öffnete sich die Ablage, nahm das Foto aber nicht an und meldete fälschlich „Schon in der Ablage“. Die Fotos-App gibt beim Ziehen nur eine Vorschau als Datei mit, das Original schreibt sie erst auf Anfrage. Gnotchi fragt jetzt danach und legt das Foto in voller Größe als Kopie in einen eigenen Ordner (nur für dich lesbar). Entfernst du das Foto aus der Ablage, löscht Gnotchi diese Kopie. Dateien aus dem Finder bleiben wie bisher, wo sie sind.
+- Der Hinweis nach dem Ablegen stimmt jetzt: „Schon in der Ablage“ nur, wenn wirklich alles schon drin war, sonst „Nicht abgelegt“.
+
+### Intern
+- Dateiversprechen (`NSFilePromiseReceiver`) nach `~/Library/Application Support/Gnotchi/Ablage-Kopien/<UUID>/`, Ordner 0700, Kopie geprüft (direkt im eigenen Ordner, kein Link). Gelöscht wird nur dort, verwaiste Ordner beim Start (SECURE-DESIGN G32). Eine rausgezogene Kopie löscht Gnotchi erst beim nächsten Start, weil die Ziel-App sie vielleicht noch liest. 530 Tests.
+
 ## [0.9.0] — 2026-10-22
 
 Das Wichtigste: Claude Code erscheint jetzt in der Notch. Dazu lehnst du Anrufe ab, ohne danach Apples Fenster wegklicken zu müssen, und siehst, wie viel ungelesen ist.

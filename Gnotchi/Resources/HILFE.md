@@ -222,7 +222,9 @@ Space und ziehst sie dort wieder heraus.
   Entfernen. Unten für alle: Teilen, AirDrop, ZIP, ZIP mit Passwort, Leeren.
 - **ZIP** landet als „Ablage.zip“ in deinem Downloads-Ordner und auch in der Ablage. **Mit Passwort** ist es mit
   AES-256 verschlüsselt; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick auf dem Mac.
-- Entfernen und Leeren löschen nie eine Datei. Höchstens 50 Einträge.
+- **Fotos aus der Fotos-App** (und andere Apps, die ihre Datei erst beim Ablegen schreiben) landen als **Kopie** in
+  Gnotchis eigenem Ordner. Entfernen oder Leeren löscht diese Kopie, nie dein Foto in der Mediathek.
+- Bei allen anderen Dateien löschen Entfernen und Leeren nie etwas. Höchstens 50 Einträge.
 
 ## Wetter
 
@@ -301,8 +303,9 @@ nicht wirkt.
   Anfang der Antwort, über einen eigenen Weg, auf dem beide Seiten die Signatur prüfen. Nie deine Eingabe, nie den
   Verlauf, nie Dateiinhalte. Nichts davon wird gespeichert oder protokolliert.
 - Für die Ungelesen-Zahlen liest das Hilfsprogramm nur die Zahl am Dock-Symbol der ausgewählten Apps, nie deren Text.
-- Die Dateiablage speichert nur, wo die Dateien liegen (nur für dich lesbar), nie ihren Inhalt. ZIP-Passwörter
-  werden nicht gespeichert.
+- Die Dateiablage speichert nur, wo die Dateien liegen (nur für dich lesbar), nie ihren Inhalt. Ausnahme: Fotos aus
+  der Fotos-App liegen als Kopie in Gnotchis Ordner (nur für dich lesbar), bis du sie aus der Ablage entfernst.
+  ZIP-Passwörter werden nicht gespeichert.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen, und – wenn du das Wetter einschaltest – zu
   Open-Meteo.com. Dorthin geht nur der gewählte Ort, gerundet auf etwa einen Kilometer; Open-Meteo speichert laut
   eigenen Angaben IP-Adresse und Koordinaten bis zu 90 Tage in seinen Serverprotokollen und gibt sie nicht weiter.

@@ -68,6 +68,166 @@ final class ShelfTests: XCTestCase {
         XCTAssertEqual(ShelfStore.cleanName("Böse\u{202E}datei.txt"), "Bösedatei.txt")
     }
 
+    // MARK: Kopien aus Dateiversprechen (0.9.1)
+
+    /// Simuliert, was eine App beim Einlösen tut: Datei in den von uns vergebenen UUID-Ordner schreiben.
+    private func promisedCopy(_ store: ShelfStore, _ name: String = "IMG_0001.jpeg") throws -> (URL, URL) {
+        let folder = try XCTUnwrap(store.newCopyFolder())
+        let url = folder.appendingPathComponent(name)
+        FileManager.default.createFile(atPath: url.path, contents: Data("Foto".utf8))
+        return (folder, url)
+    }
+
+    func testCopyFolderOnlyDirectUUIDChild() {
+        let copies = dir.appendingPathComponent("Ablage-Kopien")
+        let id = UUID().uuidString
+        XCTAssertEqual(ShelfStore.copyFolder(of: copies.appendingPathComponent("\(id)/a.jpg"), in: copies)?.lastPathComponent, id)
+        XCTAssertNil(ShelfStore.copyFolder(of: copies.appendingPathComponent("kein-uuid/a.jpg"), in: copies))
+        XCTAssertNil(ShelfStore.copyFolder(of: copies.appendingPathComponent("\(id)/tiefer/a.jpg"), in: copies))
+        XCTAssertNil(ShelfStore.copyFolder(of: copies.appendingPathComponent("a.jpg"), in: copies))
+        XCTAssertNil(ShelfStore.copyFolder(of: copies.appendingPathComponent("\(id)/../../a.jpg"), in: copies), "kein Ausbruch")
+        XCTAssertNil(ShelfStore.copyFolder(of: dir.appendingPathComponent("\(id)/a.jpg"), in: copies))
+    }
+
+    func testCopyFolderIsPrivateAndCopyValidated() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, url) = try promisedCopy(store)
+        let attrs = try FileManager.default.attributesOfItem(atPath: folder.path)
+        XCTAssertEqual((attrs[.posixPermissions] as? NSNumber)?.intValue, 0o700)
+        XCTAssertTrue(store.isValidCopy(url, in: folder))
+        let other = file("woanders.jpg")
+        XCTAssertFalse(store.isValidCopy(other, in: folder), "Datei außerhalb des eigenen Ordners")
+        let link = folder.appendingPathComponent("link.jpg")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: other)
+        XCTAssertFalse(store.isValidCopy(link, in: folder), "Link wird abgelehnt")
+        let (secondFolder, _) = try promisedCopy(store)
+        XCTAssertFalse(store.isValidCopy(url, in: secondFolder), "falscher UUID-Ordner")
+    }
+
+    func testRemoveDeletesOwnCopyNeverReferencedFile() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, copy) = try promisedCopy(store)
+        let original = file("original.txt")
+        store.release(folder)
+        XCTAssertEqual(store.add([copy, original]), 2)
+        store.remove(store.items[0].id)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path), "eigene Kopie samt Ordner weg")
+        store.remove(store.items[0].id)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: original.path), "Verweis: Datei bleibt")
+    }
+
+    func testCopyMovedOutStaysWhenRemoved() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, copy) = try promisedCopy(store)
+        store.release(folder)
+        XCTAssertEqual(store.add([copy]), 1)
+        let outside = dir.appendingPathComponent("Schreibtisch.jpeg")
+        try FileManager.default.moveItem(at: copy, to: outside)   // Finder hat beim Rausziehen verschoben
+        store.clear()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: outside.path), "draußen liegt sie dem Nutzer")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path), "leerer Ordner aufgeräumt")
+    }
+
+    /// Review 23.10.: Browser-Upload/Mail lesen die rausgezogene Kopie womöglich erst später.
+    func testDraggedOutCopySurvivesUntilNextStart() throws {
+        let storeDir = dir.appendingPathComponent("store")
+        let store = ShelfStore(directory: storeDir)
+        let (folder, copy) = try promisedCopy(store)
+        store.release(folder)
+        XCTAssertEqual(store.add([copy]), 1)
+        store.removeAfterDrag(store.items[0].id)
+        XCTAssertTrue(store.items.isEmpty)
+        store.cleanCopies()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: copy.path), "in dieser Sitzung bleibt sie")
+        _ = ShelfStore(directory: storeDir)                    // nächster Start
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path), "beim Start aufgeräumt")
+    }
+
+    /// Review 23.10.: kaputte `ablage.json` darf nicht alle Kopien löschen.
+    func testBrokenStoreFileDeletesNothing() throws {
+        let storeDir = dir.appendingPathComponent("store")
+        let store = ShelfStore(directory: storeDir)
+        let (folder, copy) = try promisedCopy(store)
+        store.release(folder)
+        XCTAssertEqual(store.add([copy]), 1)
+        try Data("kaputt".utf8).write(to: storeDir.appendingPathComponent("ablage.json"))
+        _ = ShelfStore(directory: storeDir)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: copy.path))
+    }
+
+    /// Review 23.10.: ist der Kopien-Ordner ein Link, wird im Ziel nichts gelöscht.
+    func testLinkedCopiesFolderIsNotCleaned() throws {
+        let storeDir = dir.appendingPathComponent("store")
+        try FileManager.default.createDirectory(at: storeDir, withIntermediateDirectories: true)
+        let target = dir.appendingPathComponent("fremd")
+        let victim = target.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: victim, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: storeDir.appendingPathComponent("Ablage-Kopien"), withDestinationURL: target)
+        ShelfStore(directory: storeDir).cleanCopies()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: victim.path))
+    }
+
+    func testCleanCopiesKeepsPendingAndUsedRemovesOrphans() throws {
+        let storeDir = dir.appendingPathComponent("store")
+        let store = ShelfStore(directory: storeDir)
+        let (busy, _) = try promisedCopy(store)
+        let (used, usedCopy) = try promisedCopy(store)
+        let (orphan, _) = try promisedCopy(store)
+        store.release(used)
+        store.release(orphan)
+        XCTAssertEqual(store.add([usedCopy]), 1)
+        let foreign = storeDir.appendingPathComponent("Ablage-Kopien/nicht-von-uns")
+        try FileManager.default.createDirectory(at: foreign, withIntermediateDirectories: true)
+        store.cleanCopies()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: busy.path), "App schreibt noch")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: used.path), "Eintrag zeigt darauf")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: orphan.path), "verwaist")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: foreign.path), "nur UUID-Ordner werden angefasst")
+    }
+
+    func testDropTitleTellsTheTruth() {
+        XCTAssertEqual(ShelfLink.dropTitle(added: 2, offered: 2, already: 0, failed: 0, full: false), "2 abgelegt")
+        XCTAssertEqual(ShelfLink.dropTitle(added: 0, offered: 1, already: 1, failed: 0, full: false), "Schon in der Ablage")
+        XCTAssertEqual(ShelfLink.dropTitle(added: 0, offered: 0, already: 0, failed: 1, full: false), "Nicht abgelegt",
+                       "23.10.: verworfenes Foto meldete „Schon in der Ablage“")
+        XCTAssertEqual(ShelfLink.dropTitle(added: 0, offered: 1, already: 0, failed: 0, full: false), "Nicht abgelegt")
+        XCTAssertEqual(ShelfLink.dropTitle(added: 0, offered: 1, already: 0, failed: 0, full: true), "Ablage voll")
+    }
+
+    func testPromiseBatchEndsOnceAndCountsMissing() {
+        var results: [([URL], Int)] = []
+        let batch = PromiseBatch(failed: 1) { results.append(($0, $1)) }
+        var released = false
+        batch.onFinish = { released = true }
+        batch.expect(3)
+        batch.check()
+        XCTAssertTrue(results.isEmpty)
+        batch.arrived(URL(fileURLWithPath: "/tmp/a"))
+        batch.arrived(nil)
+        batch.finish()                                   // Zeitlimit, eine fehlt noch
+        batch.arrived(URL(fileURLWithPath: "/tmp/spaet"))
+        batch.finish()
+        XCTAssertEqual(results.count, 1, "genau einmal")
+        XCTAssertEqual(results.first?.0.map(\.lastPathComponent), ["a"])
+        XCTAssertEqual(results.first?.1, 3, "übersprungen + Fehler + fehlend")
+        XCTAssertTrue(released)
+    }
+
+    /// Absturz Sichttest 23.10.: macOS ruft den Rückruf auf einer Hintergrund-Warteschlange auf.
+    func testPromiseReaderRunsOffMainThread() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, copy) = try promisedCopy(store)
+        let done = expectation(description: "Kopie angekommen")
+        var got: [URL] = []
+        let batch = PromiseBatch { urls, _ in got = urls; done.fulfill() }
+        batch.expect(1)
+        let reader = ShelfLink.promiseReader(batch: batch, store: store, folder: folder)
+        let queue = OperationQueue()
+        queue.addOperation { reader(copy, nil) }
+        wait(for: [done], timeout: 5)
+        XCTAssertEqual(got.map(\.lastPathComponent), [copy.lastPathComponent])
+    }
+
     // MARK: Ziehen erkennen (G1: ohne Ereignis-Beobachter)
 
     func testDragStateOnlyWithPressedButtonNewCountAndFiles() {

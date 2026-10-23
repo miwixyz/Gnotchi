@@ -41,7 +41,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G29 | – (neu, 0.6.0) | Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert |
 | G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
 | G31 | – (neu, 0.7.0) | Wetter: zwei feste Adressen, nur der gewählte Ort geht raus, Antwort als Fremddaten |
-| G32 | – (neu, 0.8.0) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess |
+| G32 | – (neu, 0.8.0; ergänzt 0.9.1) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess; Dateiversprechen als eigene Kopie |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -709,6 +709,24 @@ nur aus Klicks (G29, G30).
 - **Protokoll:** nur Zahlen. **Berechtigungen:** keine neue.
 - **Restrisiko (hingenommen):** Eine App kann beim Ziehen eine präparierte Datei (z. B. `.app`) anbieten – sie liegt
   dann als Verweis in der Ablage und wird nur weitergereicht, nie gestartet.
+- **Ergänzung 0.9.1 (23.10., specs/2026-10-23-gnotchi-0.9.1-fotos-ablage.md): Dateiversprechen → eigene Kopie.**
+  Gemessen 23.10.: Fotos bietet beim Ziehen Versprechen + `public.file-url`, der Verweis zeigt aber auf eine Vorschau
+  in der Mediathek (`resources/derivatives/…`); Gnotchi verwarf sie still („0 abgelegt“). Jetzt: Element mit
+  Versprechen → `NSFilePromiseReceiver` schreibt nach `Ablage-Kopien/<UUID>/` (je Versprechen frischer Ordner 0700 über
+  `prepareDirectory`), angenommen nur, wenn das Ergebnis **direkt** in diesem Ordner liegt, kein Link ist und uns
+  gehört. Höchstens so viele Versprechen wie Plätze frei, Zeitlimit 120 s. **Löschen** nur UUID-Ordner direkt im
+  Kopien-Ordner, auf die kein Eintrag mehr zeigt (Prüfung zum Löschzeitpunkt am aufgelösten Lesezeichen → eine
+  rausgeschobene Kopie liegt draußen und bleibt); beim Start und nach Entfernen/Leeren. Verweise (Finder) unverändert:
+  nie gelöscht. Keine neue Berechtigung, Protokoll nur Zahlen. Größe ungedeckelt (eigene App des Nutzers, Videos) –
+  hingenommen. Sichttest 23.10.: Foto → „1 abgelegt“ (Original 5 MB statt Vorschau), Entfernen → „1 Kopien gelöscht“,
+  Ordner leer; erster Lauf stürzte ab (Rückruf erbte die Hauptthread-Bindung, Swift-6-Laufzeitprüfung) → Rückruf
+  außerhalb gebaut, Test vom Hintergrund aus.
+  **Review 0.9.1 (`rafter-code-review`, 23.10.):** kein Weg gefunden, außerhalb von `Ablage-Kopien/` oder die Datei
+  hinter einem Verweis zu löschen. Behoben: (1, mittel) Rausziehen löschte die Kopie sofort, auch wenn die Ziel-App
+  (Browser-Upload, Mail) sie erst später liest → Eintrag weg, Kopie erst beim nächsten Start; (2) Aufräumen nur, wenn
+  Gnotchi- und Kopien-Ordner echte eigene Ordner sind (`lstat`, kein Link); (3) `ablage.json` unvollständig gelesen →
+  nichts aufräumen; (5) Aufräumen beim Start auch bei ausgeschalteter Ablage. Gegenprobe: ohne (2)/(3) zwei Tests rot.
+  Hingenommen: (4) schreibt eine App nach dem 120-s-Zeitlimit noch, liegt die Datei bis zum nächsten Aufräumen.
 
 ### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
 - **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine

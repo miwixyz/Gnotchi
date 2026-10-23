@@ -2,11 +2,12 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Ablagefeld, solange irgendwo Dateien gezogen werden (0.8.0, G32). Nimmt nur Datei-URLs an.
+/// Ablagefeld, solange irgendwo Dateien gezogen werden (0.8.0, G32). Das Lesen der Zieh-Zwischenablage
+/// (Verweise und Dateiversprechen, 0.9.1) macht `ShelfLink.dropDragged`.
 struct ShelfDropZone: View {
     let count: Int
     let topInset: CGFloat
-    let onDrop: ([URL]) -> Void
+    let onDrop: () -> Void
     @State private var targeted = false
 
     var body: some View {
@@ -28,26 +29,11 @@ struct ShelfDropZone: View {
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.white.opacity(targeted ? 0.12 : 0.04))))
         .padding(EdgeInsets(top: topInset + 8, leading: 10, bottom: 8, trailing: 10))
         .contentShape(Rectangle())
-        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
-            Self.load(providers, then: onDrop)
+        .onDrop(of: [.fileURL], isTargeted: $targeted) { _ in
+            onDrop()
             return true
         }
         .accessibilityLabel(Text(verbatim: "Ablage: hier ablegen"))
-    }
-
-    /// Nur `public.file-url`; alles andere wird ignoriert.
-    static func load(_ providers: [NSItemProvider], then done: @escaping ([URL]) -> Void) {
-        let group = DispatchGroup()
-        let lock = NSLock()
-        var urls: [URL] = []
-        for p in providers where p.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-            group.enter()
-            _ = p.loadObject(ofClass: URL.self) { url, _ in
-                if let url, url.isFileURL { lock.lock(); urls.append(url); lock.unlock() }
-                group.leave()
-            }
-        }
-        group.notify(queue: .main) { done(urls) }
     }
 }
 
