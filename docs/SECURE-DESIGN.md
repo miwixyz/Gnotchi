@@ -748,7 +748,7 @@ nur aus Klicks (G29, G30).
   abgelegt; Gegenprobe ohne Prüfung: Test rot); (6) Ablage inzwischen aus → nichts mehr ablegen. Hingenommen:
   (4) eine ObjC-Ausnahme aus `namesOfPromisedFilesDropped` würde Gnotchi beenden (in 5 Messungen nie geworfen);
   (5) der Aufruf fragt die liefernde App synchron – so ist Apples Schnittstelle. Sichttest nach den Fixes: Gmail ✓,
-  Fotos ✓ (Gmail damit 5/5).
+  Fotos ✓ (Gmail damit 5/5). `rafter run` Scan `8288d9ea` auf `84fd1c9`: keine Befunde.
 
 ### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
 - **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine
