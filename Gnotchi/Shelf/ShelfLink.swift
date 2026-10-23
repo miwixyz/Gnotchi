@@ -123,6 +123,20 @@ final class ShelfLink: NotchPart {
                             subtitle: full ? "Höchstens \(ShelfStore.maxItems)" : "\(store.items.count) in der Ablage"))
     }
 
+    /// Bildschirmfotos (0.10.0, G36) – gleicher Weg wie Ziehen, eigene Meldung. Ablage voll → sichtbar, nicht still.
+    func addScreenshots(_ urls: [URL]) {
+        let n = store.add(urls)
+        publish()
+        Self.log.notice("\(n, privacy: .public) Bildschirmfotos abgelegt (\(urls.count, privacy: .public) gemeldet)")
+        if n > 0 {
+            activity.post(.init(symbol: "camera.viewfinder", title: n == 1 ? "Bildschirmfoto abgelegt" : "\(n) Bildschirmfotos abgelegt",
+                                subtitle: "\(store.items.count) in der Ablage"))
+        } else if store.items.count >= ShelfStore.maxItems {
+            activity.post(.init(symbol: "exclamationmark.triangle.fill", title: "Ablage voll",
+                                subtitle: "Bildschirmfoto nicht abgelegt"))
+        }
+    }
+
     /// Protokoll 22.10.: „0 abgelegt“ hieß „lag schon drin“. 23.10.: ein verworfenes Foto meldete ebenfalls
     /// „Schon in der Ablage“ – das stimmt nur, wenn wirklich alles schon drin war.
     nonisolated static func dropTitle(added: Int, offered: Int, already: Int, failed: Int, full: Bool) -> String {

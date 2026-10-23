@@ -118,6 +118,8 @@ final class AppModel {
             NotchFeature(part: WeatherLink(activity: activity, prefs: prefs)) { $0.weather },
             // 0.8.0 (G32): Ziehen erkennen ohne Freigabe, Verweise statt Kopien.
             NotchFeature(part: ShelfLink(activity: activity, prefs: prefs)) { $0.shelf },
+            // 0.10.0 (G36): Bildschirmfotos per Spotlight-Abfrage, NACH der Ablage gestartet (braucht activity.shelf).
+            NotchFeature(part: ScreenshotWatcher(activity: activity)) { $0.shelf && $0.shelfScreenshots },
             // 0.9.0 Code & KI (G34/G35): Hooks in ~/.claude/settings.json nur bei eingeschaltetem Schalter.
             NotchFeature(part: ClaudeLink(activity: activity, prefs: prefs)) { $0.claudeCode },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])

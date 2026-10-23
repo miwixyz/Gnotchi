@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.10.0] — 2026-10-23
+
+### Neu
+- **Bildschirmfotos landen von selbst in der Ablage.** Einschalten unter Einstellungen → Ablage → „Bildschirmfotos automatisch ablegen“ (ab Werk aus). Jedes neue Bildschirmfoto erscheint als Kachel an der Notch, und du ziehst es von dort direkt in einen Chat, eine Mail oder ein Dokument, ohne es erst im Finder zu suchen. Das klappt mit macOS (⇧⌘3/4/5) und mit CleanShot, auch wenn CleanShot in iCloud Drive speichert. Ein Foto bleibt, bis du es herausziehst oder entfernst. Bildschirmvideos kommen nicht in die Ablage. Liegen die Fotos auf dem Schreibtisch, fragt macOS beim Einschalten einmal nach dem Zugriff. Fotos aus iCloud Drive brauchen manchmal bis zu einer Minute, bis Gnotchi sie sieht.
+
+### Geändert
+- **Rausziehen aus der Ablage kopiert immer.** Bisher konnte der Finder eine Datei dabei verschieben, ein Bildschirmfoto verschwand so aus seinem Ordner. Jetzt bleibt das Original, wo es war.
+
+### Intern
+- Spotlight-Live-Abfrage auf `kMDItemIsScreenCapture` (setzen macOS und CleanShot), Bereiche Benutzerordner **und iCloud Drive ausdrücklich** – für Apps deckt der Benutzerordner iCloud nicht ab (gemessen). Nur Dateien ab dem Einschalten, nur Bilder, keine App-internen Kopien unter `~/Library/` (CleanShot legt jedes Foto zusätzlich in seinen Verlauf), Kopien eines schon übernommenen Fotos (gleicher Erstellzeitpunkt + Größe) nicht erneut. Die Freigabe-Rückfrage für den Schreibtisch läuft im Hintergrund, auf dem Hauptthread fror Gnotchi bis zur Antwort ein. Protokoll nur mit Zahlen und Gründen, nie Namen oder Pfade. SECURE-DESIGN G36. 543 Tests.
+
 ## [0.9.2] — 2026-10-23
 
 ### Behoben

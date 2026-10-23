@@ -160,6 +160,14 @@ extension SettingsView {
                 .onChange(of: prefs.shelf) { model.applyNotchSetting() }
             toggleRow("Nach dem Rausziehen entfernen", isOn: $prefs.shelfRemoveOnDrag)
                 .disabled(!prefs.shelf)
+            toggleRow("Bildschirmfotos automatisch ablegen", isOn: $prefs.shelfScreenshots)
+                .disabled(!prefs.shelf)
+                .onChange(of: prefs.shelfScreenshots) { model.applyNotchSetting() }
+            if prefs.shelf && prefs.shelfScreenshots {
+                note("Neue Bildschirmfotos (macOS und CleanShot) landen von selbst hier. Liegen sie auf dem Schreibtisch, "
+                     + "fragt macOS einmal nach dem Zugriff – ohne Erlauben bleiben sie draußen.",
+                     symbol: "camera.viewfinder", color: FamilyTheme.textSecondary)
+            }
             note("Zieh eine Datei zur Notch, um sie abzulegen, und später woanders wieder heraus. Die Ablage merkt sich "
                  + "nur, wo die Datei liegt – entfernen löscht nie etwas.", symbol: "info.circle", color: FamilyTheme.textSecondary)
         }

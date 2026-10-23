@@ -1,4 +1,5 @@
 import AppKit
+import OSLog
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -238,10 +239,16 @@ struct DragSource: NSViewRepresentable {
         override func menu(for event: NSEvent) -> NSMenu? { makeMenu(self) }
 
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
-            context == .outsideApplication ? [.copy, .move, .generic] : []
+            // Nur kopieren (Michael 23.10.): mit `.move` verschob der Finder ein Bildschirmfoto aus iCloud/Screenshots
+            // auf den Schreibtisch (Ziel meldete 16 = verschieben). Das Original bleibt jetzt, wo es war.
+            context == .outsideApplication ? [.copy] : []
         }
 
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
+            // Messpunkt (23.10.): was das Ziel meldet (1 = kopiert, 16 = verschoben) – nur die Zahl, nie Name/Pfad.
+            // Achtung: Bei gleichnamiger Datei am Ziel meldet der Finder „kopiert“ und legt nichts an (dupFNErr, gemessen).
+            Logger(subsystem: "dev.mwlr.gnotchi", category: "ablage")
+                .notice("Rausgezogen, Ziel meldet Übernahme \(operation.rawValue, privacy: .public)")
             onEnded(operation != [])
         }
     }

@@ -222,6 +222,11 @@ Space und ziehst sie dort wieder heraus.
   Entfernen. Unten für alle: Teilen, AirDrop, ZIP, ZIP mit Passwort, Leeren.
 - **ZIP** landet als „Ablage.zip“ in deinem Downloads-Ordner und auch in der Ablage. **Mit Passwort** ist es mit
   AES-256 verschlüsselt; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick auf dem Mac.
+- **Bildschirmfotos automatisch (ab 0.10):** Einstellungen → Ablage → „Bildschirmfotos automatisch ablegen“. Jedes neue
+  Bildschirmfoto von macOS oder CleanShot erscheint von selbst in der Ablage und bleibt dort, bis du es herausziehst.
+  Videos nicht. Fotos aus iCloud Drive brauchen manchmal bis zu einer Minute. Liegen sie auf dem Schreibtisch, fragt
+  macOS einmal nach dem Zugriff; ohne „Erlauben“ bleiben sie draußen.
+- **Rausziehen kopiert** (ab 0.10): Das Original bleibt, wo es war, auch wenn du in den Finder ziehst.
 - **Fotos aus der Fotos-App, Anhänge aus Outlook und aus Gmail im Browser** (und andere Apps, die ihre Datei erst
   beim Ablegen schreiben) landen als **Kopie** in Gnotchis eigenem Ordner. Entfernen oder Leeren löscht diese Kopie,
   nie dein Foto in der Mediathek oder den Anhang in der Mail.
@@ -265,7 +270,8 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 ## Berechtigungen
 
 Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Auch
-die Dateiablage braucht keine Freigabe.
+die Dateiablage braucht keine Freigabe. Ausnahme: Wer „Bildschirmfotos automatisch ablegen“ einschaltet und Fotos auf
+dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibtisch.
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
 „Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock.
 „Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.

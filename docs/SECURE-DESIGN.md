@@ -42,6 +42,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
 | G31 | – (neu, 0.7.0) | Wetter: zwei feste Adressen, nur der gewählte Ort geht raus, Antwort als Fremddaten |
 | G32 | – (neu, 0.8.0; ergänzt 0.9.1, 0.9.2) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess; Dateiversprechen als eigene Kopie |
+| G36 | – (neu, 0.10.0) | Bildschirmfotos in die Ablage: Spotlight-Merkmal, nur Verweis, kein Bildinhalt, ab Werk aus |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -776,6 +777,24 @@ nur aus Klicks (G29, G30).
   byte-gleich). Beenden von Gnotchi lässt sie stehen (Hook endet dann still).
 - **Prüfung 0.9.0 (22.10.):** `rafter-code-review` beider Stufen (Rest Mitteilungen: 3 Funde, Code & KI: 2 Funde,
   alle behoben); `rafter run` Scan `86131b95` auf `b35371d`: keine Befunde.
+
+### G36 – Bildschirmfotos automatisch in die Ablage: Spotlight-Merkmal, nur Verweis (neu, 2026-10-23, 0.10.0)
+- Spezifikation + Messungen: `specs/2026-10-23-gnotchi-0.10.0-bildschirmfotos.md`. Schalter **ab Werk aus**, nur bei
+  eingeschalteter Ablage.
+- **Erkennung:** `NSMetadataQuery` (Benutzerordner + iCloud Drive ausdrücklich – für Apps deckt der
+  Benutzerordner-Bereich iCloud nicht ab, gemessen; keine externen Laufwerke) auf `kMDItemIsScreenCapture == 1`, nur
+  Dateien erstellt ab dem Einschalten. Das Merkmal setzen macOS und CleanShot – aber jeder Prozess des Nutzers kann es
+  setzen, also gilt ein Treffer als **fremde Datei**: Filter (reguläre Datei, kein Link, `UTType.image`, im
+  Benutzerordner, nicht Papierkorb, nicht Gnotchis Kopien-Ordner, nicht App-intern unter `~/Library/` außer iCloud;
+  Kopie eines schon übernommenen Fotos = gleicher Erstellzeitpunkt + Größe → nicht erneut), dann `ShelfStore.add` wie beim Ziehen (G32: nur
+  Verweis, nie öffnen/ausführen). Gelesen werden nur Metadaten und Dateieigenschaften, **kein Bildinhalt**.
+- **Mengen:** ≤ 10 pro Spotlight-Meldung, Ablage ≤ 50; jedes Foto pro Sitzung nur einmal. Voll → Meldung, nicht still.
+- **Freigabe:** keine neue Berechtigung im Bundle. Spotlight verschweigt Treffer in TCC-geschützten Ordnern (Schreibtisch)
+  ohne Freigabe (gemessen). Beim Einschalten einmal die Namensliste des macOS-Bildschirmfoto-Ordners lesen (verworfen)
+  löst die macOS-Rückfrage aus – **im Hintergrund**, auf dem Hauptthread fror Gnotchi bis zur Antwort ein (gemessen).
+- **Protokoll:** nur Zahlen, nie Namen/Pfade (Bildschirmfotos zeigen oft Privates). **Netz:** keins.
+- **Restrisiko (hingenommen):** Ein Prozess legt eine präparierte Datei mit dem Merkmal ab → sie liegt als Verweis in der
+  Ablage und wird nur auf Michaels Ziehen weitergereicht, wie eine hineingezogene (G32).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

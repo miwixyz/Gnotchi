@@ -53,6 +53,7 @@ final class Preferences {
         /// 0.8.0 Dateiablage (G32): Schalter, nach dem Rausziehen entfernen.
         static let shelf = "shelf"
         static let shelfRemoveOnDrag = "shelfRemoveOnDrag"
+        static let shelfScreenshots = "shelfScreenshots"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -143,6 +144,8 @@ final class Preferences {
     /// Dateiablage (0.8.0). Ab Werk an: keine Freigabe, kein Netz (G32).
     var shelf: Bool { didSet { defaults.set(shelf, forKey: Key.shelf) } }
     var shelfRemoveOnDrag: Bool { didSet { defaults.set(shelfRemoveOnDrag, forKey: Key.shelfRemoveOnDrag) } }
+    /// 0.10.0 (G36): Bildschirmfotos automatisch ablegen. Ab Werk aus (Michael 23.10.).
+    var shelfScreenshots: Bool { didSet { defaults.set(shelfScreenshots, forKey: Key.shelfScreenshots) } }
     var weatherUnit: Weather.Unit { didSet { defaults.set(weatherUnit.rawValue, forKey: Key.weatherUnit) } }
     /// Gewählter Ort; nur über die Ortssuche gesetzt. Gespeichert nur Name, Region, Land, gerundete Koordinaten.
     var weatherPlace: Weather.Place? {
@@ -183,6 +186,7 @@ final class Preferences {
         weather = defaults.object(forKey: Key.weather) as? Bool ?? false
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true
         shelfRemoveOnDrag = defaults.object(forKey: Key.shelfRemoveOnDrag) as? Bool ?? true
+        shelfScreenshots = defaults.object(forKey: Key.shelfScreenshots) as? Bool ?? false
         weatherUnit = (defaults.string(forKey: Key.weatherUnit)).flatMap(Weather.Unit.init(rawValue:)) ?? .celsius
         weatherPlace = Self.validPlace(defaults.object(forKey: Key.weatherPlace))
     }

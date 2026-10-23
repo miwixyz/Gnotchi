@@ -62,6 +62,10 @@ Freigabe nicht und fragt nie danach.
   großen Insel bzw. direkt im Band; volle Ablage mit Im Finder zeigen, Teilen, AirDrop und ZIP (optional AES-256 mit
   Passwort). Verweise statt Kopien, ohne Freigabe. Ab 0.9.1 auch Fotos direkt aus der Fotos-App, ab 0.9.2
   Anhänge aus Outlook und aus Gmail im Browser (jeweils als Kopie, die beim Entfernen gelöscht wird).
+  Ab 0.10 kopiert das Rausziehen immer (das Original bleibt).
+- **Bildschirmfotos in die Ablage (0.10):** Jedes neue Bildschirmfoto von macOS oder CleanShot (auch in iCloud Drive)
+  landet von selbst in der Ablage und lässt sich gleich in Chat, Mail oder Dokument ziehen. Ab Werk aus; Fotos auf dem
+  Schreibtisch brauchen einmal macOS' Zugriffsfreigabe, iCloud-Fotos erscheinen bis zu einer Minute verzögert.
 - **Ruhe-Insel (0.8):** Läuft nichts, bleibt die kleine Insel bei Wetter/Ablage mit Temperatur bzw. Anzahl.
 - **Wetter (0.7):** Wetter-Symbol in der großen Insel → Temperatur, Zustand, 8 Stunden, 7 Tage, Feuchte, Wind,
   UV, Druck, Sonnenauf-/-untergang auf einem Himmel-Farbverlauf. Ort in den Einstellungen suchen, °C/°F. Daten:
@@ -197,6 +201,9 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   Kopie eines Fotos oder Mail-Anhangs, den die liefernde App erst beim Ablegen schreibt (`Ablage-Kopien/`, nur für
   dich lesbar, ab 0.9.1/0.9.2). ZIP im Programm
   (libarchive), Passwort nie gespeichert ([G32](docs/SECURE-DESIGN.md)).
+- **Bildschirmfotos (ab 0.10, ab Werk aus):** Gnotchi fragt Spotlight nur nach dem Merkmal „Bildschirmfoto“, liest
+  nie den Bildinhalt und legt nur einen Verweis ab; im Protokoll stehen nur Zahlen, nie Dateinamen
+  ([G36](docs/SECURE-DESIGN.md)).
 - **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird

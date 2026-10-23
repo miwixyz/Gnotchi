@@ -61,6 +61,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Arbeitet Claude Code für dich, siehst du es in der Notch. Ist die Antwort fertig, klappt sie kurz auf. Wartet Claude auf deine Erlaubnis, wird der Punkt gelb. Ein Klick bringt dich zurück zur Sitzung.
 - Hinter einem Symbol in der großen Insel steckt das Wetter für deinen Ort, von jetzt bis zum Ende der Woche.
 - Zieh eine Datei zur Notch, und sie wartet dort. Dann wechselst du in Ruhe die App oder den Bildschirm und ziehst sie am Ziel wieder heraus. Auf Wunsch packt Gnotchi alles in ein ZIP, auch mit Passwort.
+- Machst du ein Bildschirmfoto, wartet es kurz darauf an der Notch, auch das aus CleanShot. Von dort ziehst du es in den Chat oder die Mail und musst es nicht erst auf dem Schreibtisch suchen. Das schaltest du in den Einstellungen ein.
 - Läuft gerade nichts, zeigt die kleine Insel die Temperatur oder wie viele Dateien warten.
 
 ## Wie von Apple
@@ -74,7 +75,7 @@ Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fensterti
 
 Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
 
-Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Ausnahme sind Fotos aus der Fotos-App und Anhänge aus Outlook oder Gmail: Die legt sie als Kopie in einen eigenen Ordner und löscht genau diese Kopie wieder, wenn du den Eintrag entfernst. Sie öffnet nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen.
+Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Ausnahme sind Fotos aus der Fotos-App und Anhänge aus Outlook oder Gmail: Die legt sie als Kopie in einen eigenen Ordner und löscht genau diese Kopie wieder, wenn du den Eintrag entfernst. Sie öffnet nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen. Bei Bildschirmfotos schaut Gnotchi nur nach, ob eine neue Datei eines ist, und merkt sich, wo sie liegt. Das Bild selbst öffnet es nicht.
 
 Für den Hinweis „Auf anderem Gerät“ fragt Gnotchi nur ab, ob eine App gerade Ton ausgibt. Es hört
 nichts mit und nimmt nichts auf.
@@ -104,7 +105,7 @@ kann für Musik kommen, falls macOS den normalen Zugriff auf die Wiedergabe sper
 
 ## So bekommst du Gnotchi
 
-Version 0.9.0 gibt es als signierte, von Apple notarisierte App unter
+Version 0.10.0 gibt es als signierte, von Apple notarisierte App unter
 [GitHub-Releases](https://github.com/miwixyz/Gnotchi/releases/latest). Danach aktualisiert sich
 Gnotchi selbst, wenn du es erlaubst. Eine Website unter gnotchi.mwlr.dev ist geplant.
 
