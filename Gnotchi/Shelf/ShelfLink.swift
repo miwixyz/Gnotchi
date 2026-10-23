@@ -89,9 +89,17 @@ final class ShelfLink: NotchPart {
     /// Loslassen auf der Insel (0.9.1): liest die Zieh-Zwischenablage. Element mit Dateiversprechen (Fotos) → die App
     /// schreibt eine Kopie in einen eigenen Ordner (ihr Datei-Verweis zeigt nur auf eine Vorschau, gemessen 23.10.);
     /// sonst Datei-Verweis wie bisher.
-    func dropDragged() {
-        let objects = NSPasteboard(name: .drag).readObjects(forClasses: [NSFilePromiseReceiver.self, NSURL.self],
-                                                            options: [.urlReadingFileURLsOnly: true]) ?? []
+    func dropDragged(_ info: NSDraggingInfo) {
+        let pb = info.draggingPasteboard
+        let items = pb.pasteboardItems ?? []
+        // 0.9.2: alte Versprechen (Chromium/Gmail, Outlook) nur über `NSDraggingInfo` – `NSFilePromiseReceiver` wirft dort.
+        if items.contains(where: { Self.isLegacyPromise($0.types) }) {
+            let urls = items.filter { !Self.isPromise($0.types) }
+                .compactMap { $0.string(forType: .fileURL).flatMap(URL.init(string:)).flatMap { ($0 as NSURL).filePathURL } }
+            return receiveLegacy(info, urls: urls)
+        }
+        let objects = pb.readObjects(forClasses: [NSFilePromiseReceiver.self, NSURL.self],
+                                     options: [.urlReadingFileURLsOnly: true]) ?? []
         // Finder liefert oft Referenz-URLs (`/.file/id=…`) → Pfad-URL.
         let urls = objects.compactMap { ($0 as? NSURL)?.filePathURL }
         let free = max(0, ShelfStore.maxItems - store.items.count - urls.count)
@@ -122,6 +130,67 @@ final class ShelfLink: NotchPart {
         if full { return "Ablage voll" }
         if offered > 0 && already == offered && failed == 0 { return "Schon in der Ablage" }
         return "Nicht abgelegt"
+    }
+
+    // MARK: Alte Dateiversprechen (0.9.2)
+
+    nonisolated static let promiseMetaData = NSPasteboard.PasteboardType("com.apple.NSFilePromiseItemMetaData")
+    nonisolated static let promiseTypes: [NSPasteboard.PasteboardType] =
+        NSFilePromiseReceiver.readableDraggedTypes.map { NSPasteboard.PasteboardType($0) }
+        + [NSPasteboard.PasteboardType("com.apple.pasteboard.promised-file-url")]
+
+    nonisolated static func isPromise(_ types: [NSPasteboard.PasteboardType]) -> Bool {
+        types.contains(where: promiseTypes.contains)
+    }
+
+    /// Versprechen ohne `NSFilePromiseItemMetaData` – so bieten Chromium (Gmail) und Outlook Anhänge an (gemessen 23.10.).
+    /// Fotos trägt die Metadaten und bleibt beim `NSFilePromiseReceiver`.
+    nonisolated static func isLegacyPromise(_ types: [NSPasteboard.PasteboardType]) -> Bool {
+        isPromise(types) && !types.contains(promiseMetaData)
+    }
+
+    /// Alte Form: AppKit nennt der liefernden App den Zielordner, die App schreibt die Datei(en) selbst – Chromium lädt
+    /// erst herunter. Abgelegt wird, sobald alle genannten Dateien im eigenen UUID-Ordner liegen (≤ 120 s); eine noch
+    /// wachsende Download-Datei gilt dann schon als da (hingenommen, G32).
+    private func receiveLegacy(_ info: NSDraggingInfo, urls: [URL]) {
+        guard store.items.count + urls.count < ShelfStore.maxItems, let folder = store.newCopyFolder() else {
+            return drop(urls, failed: 1)
+        }
+        // Gemessen 23.10.: Outlook und Gmail in Helium (4 von 4) liefern über diesen Weg. Ein früherer Gmail-Versuch
+        // nannte nichts (Ursache offen) → dann sofort „Nicht abgelegt“, Zahl im Protokoll.
+        let expected = info.namesOfPromisedFilesDropped(atDestination: folder)?.count ?? 0
+        Self.log.notice("Altes Versprechen: AppKit-Weg nennt \(expected, privacy: .public) Datei(en)")
+        let store = store
+        guard expected > 0 else {
+            store.release(folder)
+            return drop(urls, failed: 1)
+        }
+        // Review 23.10.: nie mehr annehmen als Plätze frei sind; Überzähliges sofort löschen (sonst unsichtbare Kopien).
+        let wanted = min(expected, ShelfStore.maxItems - store.items.count - urls.count)
+        Task { @MainActor [weak self] in
+            var copies: [URL] = []
+            for _ in 0..<480 {
+                guard let found = Self.arrivedCopies(in: folder, store: store) else { break }   // Flut → abbrechen
+                copies = found
+                if copies.count >= wanted { break }
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+            store.release(folder)
+            let taken = Array(copies.prefix(wanted))
+            for extra in copies.dropFirst(wanted) { try? FileManager.default.removeItem(at: extra) }
+            // Ablage inzwischen ausgeschaltet → nichts mehr ablegen (Review 23.10.).
+            guard let self, self.watcher != nil else { return store.cleanCopies() }
+            self.drop(urls + taken, failed: max(0, expected - taken.count))
+        }
+    }
+
+    /// Sichtbare Dateien direkt im Ordner, die die Prüfung bestehen (kein Link, uns gehörend). Versteckte
+    /// Zwischendateien (`.…`) zählen nicht. nil = mehr als `2 × maxItems` Einträge (Flut, Review 23.10.).
+    static func arrivedCopies(in folder: URL, store: ShelfStore) -> [URL]? {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        guard names.count <= 2 * ShelfStore.maxItems else { return nil }
+        return names.filter { !$0.hasPrefix(".") }.sorted()
+            .map { folder.appendingPathComponent($0) }.filter { store.isValidCopy($0, in: folder) }
     }
 
     /// Rückruf für `receivePromisedFiles` – läuft auf `promiseQueue`, nie auf dem Hauptthread. Außerhalb des

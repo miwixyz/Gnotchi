@@ -41,7 +41,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G29 | – (neu, 0.6.0) | Mitteilungs-Weg: beidseitig geprüft, nur ausgewählte Apps, nie protokolliert |
 | G30 | – (neu, 0.6.0) | Knöpfe und Anrufe: nur echter Klick, nur gemeldete Aktion, nur dieses Banner |
 | G31 | – (neu, 0.7.0) | Wetter: zwei feste Adressen, nur der gewählte Ort geht raus, Antwort als Fremddaten |
-| G32 | – (neu, 0.8.0; ergänzt 0.9.1) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess; Dateiversprechen als eigene Kopie |
+| G32 | – (neu, 0.8.0; ergänzt 0.9.1, 0.9.2) | Dateiablage: Verweise, nichts ausführen, Ziehen ohne Beobachter, ZIP im Prozess; Dateiversprechen als eigene Kopie |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -728,6 +728,27 @@ nur aus Klicks (G29, G30).
   nichts aufräumen; (5) Aufräumen beim Start auch bei ausgeschalteter Ablage. Gegenprobe: ohne (2)/(3) zwei Tests rot.
   Hingenommen: (4) schreibt eine App nach dem 120-s-Zeitlimit noch, liegt die Datei bis zum nächsten Aufräumen.
   `rafter run` Scan `b3d950a6` auf `fa2ebce`: keine Befunde.
+- **Ergänzung 0.9.2 (23.10.): alte Dateiversprechen (Outlook, Gmail in Chromium/Helium).** Gemessen
+  (`tools/drag-types.swift`): beide bieten nur `promised-file-url` + `promised-file-content-type`, ohne
+  `public.file-url` und ohne `NSFilePromiseItemMetaData` → Ablage ging nicht auf. Mit SwiftUI-`onDrop` +
+  `NSFilePromiseReceiver` warf AppKit bei Chromium `NSInternalInconsistencyException` (`NSFilePromiseReceiver.m:351`),
+  macOS brach den Ziehvorgang ab, danach blieb das Ablagefeld offen. Jetzt: Erkennung zählt Versprechen-Typen mit;
+  Ablagefläche ist eine AppKit-Ansicht (`registerForDraggedTypes`), damit `NSDraggingInfo` da ist. Versprechen ohne
+  Metadaten → `namesOfPromisedFilesDropped(atDestination:)` in einen frischen UUID-Ordner (0700); angenommen nur, was
+  danach als sichtbare Datei direkt darin liegt, kein Link ist und uns gehört (`arrivedCopies` → `isValidCopy`),
+  Abfrage alle 250 ms bis 120 s. Löschen/Aufräumen unverändert (nur UUID-Ordner im Kopien-Ordner). Eine
+  Download-Datei, die Chromium noch füllt, gilt schon als da – hingenommen (wird erst beim Rausziehen gelesen).
+  Gemessen: Outlook ✓, Gmail 4/4 ✓ (ein früherer Versuch nannte 0 Dateien, Ursache offen → jetzt sofort „Nicht
+  abgelegt“), Fotos ✓, Feld schließt jedes Mal. Messpunkt: „Ziehen an/aus“ mit Tastenzustand AppKit/System (nur
+  Zahlen). Ein Carbon-Notweg (`PasteboardSetPasteLocation`) wurde gebaut, griff in keinem Versuch und ist wieder raus.
+  **Review 0.9.2 (`rafter-code-review`, 23.10.):** kein Weg, außerhalb von `Ablage-Kopien/` zu löschen oder zu
+  schreiben (Namen der App werden nie zu Pfaden). Behoben: (1, mittel) Flut – höchstens so viele Kopien wie Plätze
+  frei, > 2 × 50 Einträge im Ordner → Abbruch; (2) Überzähliges sofort gelöscht statt unsichtbar liegen zu lassen;
+  (3) eigene Kopie nach dem Lesezeichen erneut geprüft (Tausch gegen Link zwischen Prüfung und Lesezeichen → nicht
+  abgelegt; Gegenprobe ohne Prüfung: Test rot); (6) Ablage inzwischen aus → nichts mehr ablegen. Hingenommen:
+  (4) eine ObjC-Ausnahme aus `namesOfPromisedFilesDropped` würde Gnotchi beenden (in 5 Messungen nie geworfen);
+  (5) der Aufruf fragt die liefernde App synchron – so ist Apples Schnittstelle. Sichttest nach den Fixes: Gmail ✓,
+  Fotos ✓ (Gmail damit 5/5).
 
 ### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
 - **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine

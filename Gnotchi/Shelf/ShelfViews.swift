@@ -3,11 +3,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Ablagefeld, solange irgendwo Dateien gezogen werden (0.8.0, G32). Das Lesen der Zieh-Zwischenablage
-/// (Verweise und Dateiversprechen, 0.9.1) macht `ShelfLink.dropDragged`.
+/// (Verweise und Dateiversprechen, 0.9.1/0.9.2) macht `ShelfLink.dropDragged`.
 struct ShelfDropZone: View {
     let count: Int
     let topInset: CGFloat
-    let onDrop: () -> Void
+    let onDrop: (NSDraggingInfo) -> Void
     @State private var targeted = false
 
     var body: some View {
@@ -29,11 +29,46 @@ struct ShelfDropZone: View {
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.white.opacity(targeted ? 0.12 : 0.04))))
         .padding(EdgeInsets(top: topInset + 8, leading: 10, bottom: 8, trailing: 10))
         .contentShape(Rectangle())
-        .onDrop(of: [.fileURL], isTargeted: $targeted) { _ in
-            onDrop()
+        .overlay(ShelfDropTarget(targeted: $targeted, onDrop: onDrop))
+        .accessibilityLabel(Text(verbatim: "Ablage: hier ablegen"))
+    }
+}
+
+/// AppKit-Ablagefläche (0.9.2). SwiftUI-`onDrop` reicht kein `NSDraggingInfo` durch – ohne das lassen sich alte
+/// Dateiversprechen (Gmail in Helium/Chromium, Outlook) nicht einlösen; `NSFilePromiseReceiver` brach bei ihnen mit
+/// einer Ausnahme ab und macOS den ganzen Ziehvorgang (gemessen 23.10.).
+struct ShelfDropTarget: NSViewRepresentable {
+    @Binding var targeted: Bool
+    let onDrop: (NSDraggingInfo) -> Void
+
+    func makeNSView(context: Context) -> DropView {
+        let view = DropView()
+        view.registerForDraggedTypes(DragWatcher.fileTypes)
+        return view
+    }
+
+    func updateNSView(_ view: DropView, context: Context) {
+        view.onDrop = onDrop
+        view.onTarget = { inside in if targeted != inside { targeted = inside } }
+    }
+
+    final class DropView: NSView {
+        var onDrop: ((NSDraggingInfo) -> Void)?
+        var onTarget: ((Bool) -> Void)?
+
+        override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+            onTarget?(true)
+            return .copy
+        }
+
+        override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation { .copy }
+        override func draggingExited(_ sender: (any NSDraggingInfo)?) { onTarget?(false) }
+        override func draggingEnded(_ sender: any NSDraggingInfo) { onTarget?(false) }
+
+        override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+            onDrop?(sender)
             return true
         }
-        .accessibilityLabel(Text(verbatim: "Ablage: hier ablegen"))
     }
 }
 

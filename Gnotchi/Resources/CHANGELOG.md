@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.9.2] — 2026-10-23
+
+### Behoben
+- **Anhänge aus Outlook und aus Gmail im Browser lassen sich in die Ablage ziehen.** Bisher ging die Ablage dabei gar nicht erst auf. Beide Programme geben den Anhang beim Ziehen nicht als fertige Datei mit, sondern schreiben ihn erst, wenn das Ziel danach fragt. Gnotchi fragt jetzt danach. Wie bei Fotos landet der Anhang als Kopie in Gnotchis eigenem Ordner und verschwindet mit dem Eintrag wieder. Getestet mit Gmail in Helium, einem Browser auf Chromium-Basis; in Chrome, Edge und Brave sollte es genauso gehen, geprüft ist es dort nicht.
+- Das Feld „Hier ablegen“ konnte nach einem abgebrochenen Ziehen offen stehen bleiben. Der Abbruch passiert nicht mehr.
+
+### Intern
+- Ablagefläche als AppKit-Ansicht statt SwiftUI-`onDrop`, damit `NSDraggingInfo` zur Verfügung steht. Versprechen ohne `NSFilePromiseItemMetaData` (Outlook, Chromium) über `namesOfPromisedFilesDropped(atDestination:)` in einen frischen UUID-Ordner, angenommen wird nur, was danach geprüft darin liegt (≤ 120 s). `NSFilePromiseReceiver` bleibt für Fotos; bei Chromium hatte er eine Ausnahme geworfen und macOS den Ziehvorgang abgebrochen. Höchstens so viele Kopien wie Plätze frei, Überzähliges wird gelöscht; eigene Kopie nach dem Lesezeichen erneut geprüft. Protokoll beim Wechsel „Ziehen an/aus“ mit Tastenzustand (nur Zahlen). 534 Tests.
+
 ## [0.9.1] — 2026-10-23
 
 ### Behoben

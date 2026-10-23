@@ -213,6 +213,59 @@ final class ShelfTests: XCTestCase {
         XCTAssertTrue(released)
     }
 
+    /// Gemessen 23.10. (`tools/drag-types.swift`), Typen ohne `dyn.*`: Outlook und Gmail in Helium bieten nur ein
+    /// Versprechen an; ein Link ohne Datei öffnet die Ablage nicht.
+    func testDragOffersFilesForReferencesAndPromises() {
+        typealias Kind = NSPasteboard.PasteboardType
+        let finder: [Kind] = [.fileURL, Kind("com.apple.finder.node")]
+        let outlook: [Kind] = [Kind("com.apple.pasteboard.promised-file-content-type"), Kind("com.apple.pasteboard.promised-file-url")]
+        let gmail: [Kind] = [Kind("org.chromium.chromium-initiated-drag"), Kind("public.url"), Kind("public.url-name"),
+                          Kind("com.apple.pasteboard.promised-file-url"), Kind("com.apple.pasteboard.promised-file-content-type"),
+                          Kind("public.html"), Kind("public.utf8-plain-text")]
+        let link: [Kind] = [Kind("public.url"), Kind("public.url-name"), Kind("public.utf8-plain-text")]
+        XCTAssertTrue(DragWatcher.offersFiles(finder))
+        XCTAssertTrue(DragWatcher.offersFiles(outlook))
+        XCTAssertTrue(DragWatcher.offersFiles(gmail))
+        XCTAssertFalse(DragWatcher.offersFiles(link))
+        XCTAssertFalse(DragWatcher.offersFiles([]))
+        // 0.9.2: Fotos (mit Metadaten) → NSFilePromiseReceiver; Outlook/Gmail (ohne) → alter Weg über NSDraggingInfo.
+        let photos: [Kind] = [ShelfLink.promiseMetaData, Kind("com.apple.pasteboard.promised-file-name"),
+                           Kind("com.apple.pasteboard.promised-file-content-type"), Kind("public.jpeg"), .fileURL]
+        XCTAssertFalse(ShelfLink.isLegacyPromise(photos))
+        XCTAssertTrue(ShelfLink.isLegacyPromise(outlook))
+        XCTAssertTrue(ShelfLink.isLegacyPromise(gmail))
+        XCTAssertFalse(ShelfLink.isLegacyPromise(finder))
+        XCTAssertFalse(ShelfLink.isPromise(finder))
+    }
+
+    func testArrivedCopiesSkipHiddenAndLinks() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, copy) = try promisedCopy(store, "Anhang.pdf")
+        FileManager.default.createFile(atPath: folder.appendingPathComponent(".zwischen.tmp").path, contents: Data())
+        try FileManager.default.createSymbolicLink(at: folder.appendingPathComponent("link.pdf"), withDestinationURL: file("x.pdf"))
+        XCTAssertEqual(ShelfLink.arrivedCopies(in: folder, store: store)?.map(\.lastPathComponent), [copy.lastPathComponent])
+    }
+
+    /// Review 23.10.: eine App könnte tausende Dateien schreiben → abbrechen statt Hauptthread lahmlegen.
+    func testArrivedCopiesRefusesFlood() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let folder = try XCTUnwrap(store.newCopyFolder())
+        for i in 0...(2 * ShelfStore.maxItems) {
+            FileManager.default.createFile(atPath: folder.appendingPathComponent("f\(i).pdf").path, contents: Data())
+        }
+        XCTAssertNil(ShelfLink.arrivedCopies(in: folder, store: store))
+    }
+
+    /// Review 23.10.: eine eigene Kopie, die nach der Prüfung gegen einen Link getauscht wurde, wird nicht abgelegt.
+    func testCopySwappedForLinkIsNotAdded() throws {
+        let store = ShelfStore(directory: dir.appendingPathComponent("store"))
+        let (folder, copy) = try promisedCopy(store)
+        XCTAssertTrue(store.isValidCopy(copy, in: folder))
+        try FileManager.default.removeItem(at: copy)
+        try FileManager.default.createSymbolicLink(at: copy, withDestinationURL: file("geheim.txt"))
+        XCTAssertEqual(store.add([copy]), 0)
+    }
+
     /// Absturz Sichttest 23.10.: macOS ruft den Rückruf auf einer Hintergrund-Warteschlange auf.
     func testPromiseReaderRunsOffMainThread() throws {
         let store = ShelfStore(directory: dir.appendingPathComponent("store"))

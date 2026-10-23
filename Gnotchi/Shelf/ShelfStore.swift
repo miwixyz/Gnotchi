@@ -52,7 +52,14 @@ final class ShelfStore {
             guard FileManager.default.fileExists(atPath: path), !contains(url),
                   let mark = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil),
                   mark.count <= Self.maxBookmark else { continue }
-            items.append(Item(id: UUID(), bookmark: mark, name: Self.cleanName(url.lastPathComponent)))
+            let item = Item(id: UUID(), bookmark: mark, name: Self.cleanName(url.lastPathComponent))
+            // Eigene Kopie: nach dem Lesezeichen erneut prüfen – tauscht die App sie zwischen Prüfung und Lesezeichen
+            // gegen einen Link, zeigte der Eintrag sonst nach draußen (Review 23.10.).
+            if let copies, let own = Self.copyFolder(of: url, in: copies) {
+                guard let target = resolve(item), Self.copyFolder(of: target, in: copies) == own,
+                      isValidCopy(target, in: own) else { continue }
+            }
+            items.append(item)
             added += 1
         }
         if added > 0 { save() }
