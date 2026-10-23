@@ -727,6 +727,7 @@ nur aus Klicks (G29, G30).
   Gnotchi- und Kopien-Ordner echte eigene Ordner sind (`lstat`, kein Link); (3) `ablage.json` unvollständig gelesen →
   nichts aufräumen; (5) Aufräumen beim Start auch bei ausgeschalteter Ablage. Gegenprobe: ohne (2)/(3) zwei Tests rot.
   Hingenommen: (4) schreibt eine App nach dem 120-s-Zeitlimit noch, liegt die Datei bis zum nächsten Aufräumen.
+  `rafter run` Scan `b3d950a6` auf `fa2ebce`: keine Befunde.
 
 ### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
 - **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine
