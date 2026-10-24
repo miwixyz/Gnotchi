@@ -890,6 +890,11 @@ nur aus Klicks (G29, G30).
 - Nach erfolgreichem Import **Exportdatei in den Papierkorb** (`NSWorkspace.recycle`) mit Meldung „Datei liegt im
   Papierkorb – Papierkorb leeren, sie enthält Klartext“.
 - Protokoll: nur Zahlen.
+- **Prüfung 0.11.0 (24.10.):** `rafter-secure-design` vor dem Code (Spezifikation), `rafter-code-review` des Diffs
+  (ein Restrisiko, G37 eingetragen), `rafter secrets .` ohne Fund; `rafter run` Scan `998d43dc` auf `c80fea2`: keine
+  Befunde. Ausgeliefertes ZIP (Build 133) geprüft: App nur Apple Events, Kamera und `keychain-access-groups` =
+  `LTKJ6Z2VYB.dev.mwlr.gnotchi`, Profil eingebettet; Hilfsprogramm ohne Berechtigungen. Sichttest mit Michael
+  (Spec, Abschnitt „Sichttest 24.10.“).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
