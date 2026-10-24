@@ -1,4 +1,4 @@
-.PHONY: docs gen lock build test render lint hooks dev install release release-dry-run clean
+.PHONY: docs gen lock build test render lint hooks dev install profile release release-dry-run clean
 
 APP = Gnotchi
 CONFIG ?= Debug
@@ -69,6 +69,20 @@ hooks:
 # die Automation-Freigabe über Builds hinweg hält.
 dev:
 	@bash scripts/dev-signed.sh
+
+# Einmal je Mac (ab 0.11.0, G38): Xcode legt beim Developer-ID-Export das Profil
+# „Mac Team Direct Provisioning Profile: dev.mwlr.gnotchi“ an. dev/install betten es danach ein
+# (scripts/profile.sh). Archiv und Export landen im gitignorierten build-profile/ und werden nicht benutzt.
+profile: gen
+	@mkdir -p build-profile
+	xcodebuild -project $(APP).xcodeproj -scheme $(APP) -configuration Release \
+		-derivedDataPath build-profile -archivePath build-profile/$(APP).xcarchive \
+		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates archive >build-profile/archive.log 2>&1 \
+		|| { grep -E 'error:' build-profile/archive.log | sort -u | head -8; exit 1; }
+	xcodebuild -exportArchive -archivePath build-profile/$(APP).xcarchive -exportPath build-profile/export \
+		-exportOptionsPlist scripts/exportOptions-developer-id.plist -allowProvisioningUpdates >build-profile/export.log 2>&1 \
+		|| { grep -E 'error' build-profile/export.log | sort -u | head -8; exit 1; }
+	@. scripts/profile.sh && p=$$(gnotchi_profile_path) && echo "✓ Profil: $$p"
 
 # lint zuerst: Ein Release mit Linter-Verstoß geht gar nicht erst los.
 release: lint

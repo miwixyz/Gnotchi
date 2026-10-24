@@ -13,7 +13,7 @@ struct SettingsView: View {
     @AppStorage("settingsTab") private var tab: Tab = .general
 
     enum Tab: String, CaseIterable, Identifiable {
-        case general, playback, activities, notify, weather, shelf
+        case general, playback, activities, notify, weather, shelf, clipboard
         var id: Self { self }
 
         var title: String {
@@ -24,6 +24,7 @@ struct SettingsView: View {
             case .notify: "Mitteilungen"
             case .weather: "Wetter"
             case .shelf: "Ablage"
+            case .clipboard: "Zwischenablage"
             }
         }
 
@@ -35,6 +36,7 @@ struct SettingsView: View {
             case .notify: "bell.badge"
             case .weather: "cloud.sun"
             case .shelf: "tray.full"
+            case .clipboard: "doc.on.clipboard"
             }
         }
     }
@@ -50,11 +52,12 @@ struct SettingsView: View {
                 case .notify: notifyCard
                 case .weather: weatherTab
                 case .shelf: shelfTab
+                case .clipboard: clipboardTab
                 }
             }
             .padding(FamilyTheme.Space.l)
         }
-        .frame(width: 440)
+        .frame(width: 540)   // 0.11.0: sieben Reiter (vorher 440 bei sechs)
         .font(FamilyTheme.font(.body))
         .foregroundStyle(FamilyTheme.textPrimary)
         .tint(FamilyTheme.accent)
@@ -75,7 +78,7 @@ struct SettingsView: View {
                         Image(systemName: t.symbol).font(.system(size: 17, weight: .medium)).frame(height: 20)
                         Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1)
                     }
-                    .frame(width: 70, height: 48)
+                    .frame(width: 74, height: 48)
                     .foregroundStyle(tab == t ? FamilyTheme.accent : FamilyTheme.textSecondary)
                     .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
                         .fill(tab == t ? FamilyTheme.accent.opacity(0.14) : .clear))

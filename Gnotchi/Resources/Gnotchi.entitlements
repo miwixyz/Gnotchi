@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Genau ZWEI Berechtigungen (docs/SECURE-DESIGN.md G12, ab 0.5.0 G27):
+	<!-- Genau DREI Berechtigungen (docs/SECURE-DESIGN.md G12, ab 0.5.0 G27, ab 0.11.0 G38):
 	     1. Apple Events senden. Unter der Hardened Runtime darf eine App ohne sie keine
 	     AppleScript-Befehle an andere Apps schicken; Gnotchi braucht das nur für den
 	     Rückfall auf Spotify und Musik (G7), wenn macOS den Medien-Adapter sperrt.
@@ -11,6 +11,11 @@
 	     2. Kamera (0.5.0, G27): nur für den Spiegel in der Insel, nur solange er sichtbar ist.
 	     Das Bild geht direkt in eine Vorschau-Ebene, nie in eigenen Code, nie auf die Platte.
 	     Ob Gnotchi die Kamera nutzen darf, entscheidet der Nutzer im macOS-Dialog.
+
+	     3. Schlüsselbund-Gruppe (0.11.0, G38/G39): genau Gnotchis eigene Gruppe. Nur damit darf
+	     Gnotchi den Schutzklassen-Schlüsselbund nutzen (Schlüssel für den verschlüsselten
+	     Zwischenablage-Verlauf, Tresor mit Touch ID). Die Berechtigung verlangt ein eingebettetes
+	     Provisioning-Profil (Apple TN3137); das Hilfsprogramm und der Adapter bekommen sie NICHT.
 
 	     Bewusst NICHT:
 	     - keine App Sandbox: /usr/bin/perl als Kindprozess (G2) und der Zugriff auf
@@ -24,5 +29,9 @@
 	<true/>
 	<key>com.apple.security.device.camera</key>
 	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)dev.mwlr.gnotchi</string>
+	</array>
 </dict>
 </plist>

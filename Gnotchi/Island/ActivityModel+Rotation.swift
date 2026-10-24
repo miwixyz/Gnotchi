@@ -62,17 +62,19 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf, none
+        case media, event, timer, timerPicker, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf,
+             clipboard, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
                                        mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
-                                       weather: Bool = false, shelf: Bool = false,
+                                       weather: Bool = false, shelf: Bool = false, clipboard: Bool = false,
                                        idle: BigContent = .none) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
         if weather { return .weather }
         if shelf { return .shelf }
+        if clipboard { return .clipboard }
         if timerPicker { return .timerPicker }
         return switch current {
         case .event?: .event
@@ -114,6 +116,7 @@ extension ActivityModel {
         return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.isVisible,
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
                                weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
+                               clipboard: clipboardActive && clipboard != nil,
                                idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
     }
 
@@ -125,7 +128,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive || weatherActive || shelfActive { return nil }
+        if mirrorActive || timerPickerActive || weatherActive || shelfActive || clipboardActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -146,6 +149,7 @@ extension ActivityModel {
         timerPickerActive = false
         weatherActive = false
         shelfActive = false
+        clipboardActive = false
         // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
         if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
@@ -157,6 +161,7 @@ extension ActivityModel {
         timerPickerActive = false
         weatherActive = false
         shelfActive = false
+        clipboardActive = false
     }
 
     /// Wetter groß (0.7.0): nur mit einer Vorhersage.
@@ -166,6 +171,7 @@ extension ActivityModel {
         mirrorActive = false
         timerPickerActive = false
         shelfActive = false
+        clipboardActive = false
     }
 
     /// Kachelreihe der Ablage unter der großen Sache (Michael 22.10.: „schneller zugänglich“) – nicht, wenn die Ablage
@@ -176,10 +182,21 @@ extension ActivityModel {
     func selectShelf() {
         guard !shelfItems.isEmpty else { return }
         shelfActive = true
+        clipboardActive = false
         weatherActive = false
         mirrorActive = false
         timerPickerActive = false
         shelf?.prune()
+    }
+
+    /// Zwischenablage groß (0.11.0): Schnellzugriff – Angeheftetes und die letzten Kopien.
+    func selectClipboard() {
+        guard clipboard != nil else { return }
+        clipboardActive = true
+        weatherActive = false
+        shelfActive = false
+        mirrorActive = false
+        timerPickerActive = false
     }
 
     /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
@@ -188,6 +205,7 @@ extension ActivityModel {
         if timerPickerActive { timerPickerActive = false }
         if weatherActive { weatherActive = false }
         if shelfActive { shelfActive = false }
+        if clipboardActive { clipboardActive = false }
         if overlayActivity != nil { overlayActivity = nil }
     }
 

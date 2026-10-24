@@ -232,6 +232,20 @@ Space und ziehst sie dort wieder heraus.
   nie dein Foto in der Mediathek oder den Anhang in der Mail.
 - Bei allen anderen Dateien löschen Entfernen und Leeren nie etwas. Höchstens 50 Einträge.
 
+## Zwischenablage
+
+Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt sich Gnotchi, was du kopierst: Text, formatierten Text, Links, Bilder und Dateien. Bei Dateien merkt es sich nur, wo sie liegen.
+
+- **Seitenansicht:** ⌃< öffnet sie, das Kürzel änderst du in den Einstellungen. Oben ist die Suche, darunter die Karten, unten die Reiter für Verlauf, Angeheftetes und deine Sammlungen. ↑/↓ wählen (bei „Unten“ auch ←/→), ↵ kopiert, **⇧↵ kopiert als reinen Text**, ⌘1–⌘9 holen die ersten neun, Esc schließt. Danach fügst du mit **⌘V** ein. Gnotchi fügt nie selbst ein.
+- **Reagiert das Kürzel nicht,** belegt es vermutlich eine andere App, zum Beispiel PastePal. Wähl dann ein anderes oder beende die andere App.
+- **In der Notch:** Das Zwischenablage-Symbol in der Leiste der großen Insel zeigt Angeheftetes und die letzten Kopien. Klick kopiert, ⇧-Klick als reinen Text, „Alle …“ öffnet die Seitenansicht.
+- **Ordnen:** Rechtsklick auf eine Karte → Anheften, Zu Sammlung, Titel, Löschen. Oder die Karte auf einen Reiter ziehen. Mit dem Plus unten legst du eine Sammlung oder einen Tresor an. Ein Eintrag kann in mehreren Sammlungen stecken. Karten kannst du auch direkt in andere Apps ziehen.
+- **Aufbewahrung:** Was in keiner Sammlung steckt, bleibt 30 Tage, höchstens 1 000 Einträge. Angeheftetes, Sammlungen und Tresor bleiben, bis du sie löschst.
+- **Tresor:** Für Passwörter, Schlüssel und Ähnliches. Du siehst nur den Titel. Zum Kopieren fragt Gnotchi nach Touch ID oder deinem Mac-Passwort, danach bleibt der Tresor fünf Minuten offen. Das orange Schloss oben in der Seitenansicht sperrt ihn sofort. Kopiertes aus dem Tresor verschwindet nach 60 Sekunden aus der Zwischenablage, wenn du bis dahin nichts anderes kopiert hast. Tresor-Einträge erscheinen nie in der Notch und lassen sich nicht herausziehen.
+- **Nie im Verlauf:** Kopien, die eine App als vertraulich kennzeichnet (etwa die Passwörter-App), und alles aus Apps unter „Nie aus diesen Apps“. „30 Min. pausieren“ hält das Mitlesen an.
+- **Aus PastePal:** Exportiere in PastePal (Einstellungen → Exportieren). Dann in Gnotchi „Aus PastePal importieren …“ wählen und je Sammlung entscheiden, ob sie in den Tresor kommt. Formatierungen kommen nicht mit, denn PastePal exportiert nur reinen Text. Die Exportdatei landet danach im Papierkorb. Leere ihn.
+- **Löschen:** „Verlauf löschen …“ entfernt alles außerhalb der Sammlungen. „Alles zurücksetzen …“ löscht auch Sammlungen, Tresor und die Schlüssel. Danach ist nichts mehr lesbar, auch nicht in Sicherungen.
+
 ## Wetter
 
 Einstellungen → **Wetter in der Notch** einschalten (ab Werk aus), dann unter „Stadt suchen“ deinen Ort eingeben,
@@ -275,6 +289,7 @@ dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibti
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
 „Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock.
 „Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.
+Auch die Zwischenablage braucht keine Freigabe. Für den Tresor fragt macOS nach Touch ID oder deinem Mac-Passwort.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.
 
 macOS fragt höchstens in diesen Fällen:
@@ -314,6 +329,7 @@ nicht wirkt.
   der Fotos-App und Mail-Anhänge aus Outlook oder Gmail liegen als Kopie in Gnotchis Ordner (nur für dich lesbar),
   bis du sie aus der Ablage entfernst.
   ZIP-Passwörter werden nicht gespeichert.
+- Der Zwischenablage-Verlauf liegt nur verschlüsselt auf deinem Mac, nur für dich lesbar. Der Schlüssel steckt im Schlüsselbund, und nur Gnotchi kommt an ihn. Er geht nirgendwohin, auch nicht in iCloud. Im Protokoll steht nie, was du kopiert hast.
 - Ins Internet geht Gnotchi nur, um nach Updates zu suchen, und – wenn du das Wetter einschaltest – zu
   Open-Meteo.com. Dorthin geht nur der gewählte Ort, gerundet auf etwa einen Kilometer; Open-Meteo speichert laut
   eigenen Angaben IP-Adresse und Koordinaten bis zu 90 Tage in seinen Serverprotokollen und gibt sie nicht weiter.

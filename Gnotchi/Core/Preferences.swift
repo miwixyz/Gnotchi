@@ -54,6 +54,12 @@ final class Preferences {
         static let shelf = "shelf"
         static let shelfRemoveOnDrag = "shelfRemoveOnDrag"
         static let shelfScreenshots = "shelfScreenshots"
+        /// 0.11.0 Zwischenablage (G37–G41): Schalter, ausgeschlossene Apps, Pause, Seitenansicht, Tastenkürzel.
+        static let clipboard = "clipboard"
+        static let clipboardExcluded = "clipboardExcluded"
+        static let clipboardPausedUntil = "clipboardPausedUntil"
+        static let clipboardPanelEdge = "clipboardPanelEdge"
+        static let clipboardPanelHotKey = "clipboardPanelHotKey"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -147,6 +153,55 @@ final class Preferences {
     /// 0.10.0 (G36): Bildschirmfotos automatisch ablegen. Ab Werk aus (Michael 23.10.).
     var shelfScreenshots: Bool { didSet { defaults.set(shelfScreenshots, forKey: Key.shelfScreenshots) } }
     var weatherUnit: Weather.Unit { didSet { defaults.set(weatherUnit.rawValue, forKey: Key.weatherUnit) } }
+    /// 0.11.0 Zwischenablage-Verlauf (G37). Ab Werk **aus**: liest mit, was der Nutzer kopiert (Michael 24.10.).
+    var clipboard: Bool { didSet { defaults.set(clipboard, forKey: Key.clipboard) } }
+    /// Apps, aus denen nie etwas in den Verlauf kommt (nur Kennungen, Regeln wie G25).
+    private(set) var clipboardExcluded: [String] {
+        didSet { defaults.set(clipboardExcluded, forKey: Key.clipboardExcluded) }
+    }
+    /// „30 Min. nicht mitlesen“ – bis zu diesem Zeitpunkt; nil = läuft.
+    var clipboardPausedUntil: Date? {
+        didSet { defaults.set(clipboardPausedUntil, forKey: Key.clipboardPausedUntil) }
+    }
+    var clipboardPanelEdge: PanelEdge { didSet { defaults.set(clipboardPanelEdge.rawValue, forKey: Key.clipboardPanelEdge) } }
+    /// Seitenansicht öffnen (Vorschlag Ctrl+<, Tastencode wird aufgenommen, nicht fest eingetragen – 24.10. gemessen).
+    var clipboardPanelHotKey: HotKey? {
+        didSet { defaults.set(clipboardPanelHotKey?.stored, forKey: Key.clipboardPanelHotKey) }
+    }
+
+    enum PanelEdge: String, CaseIterable { case right, left, bottom }
+
+    /// Tastenkürzel als Carbon-Tastencode + Carbon-Modifikatoren. Gespeichert als zwei Zahlen.
+    struct HotKey: Equatable {
+        let keyCode: UInt32
+        let modifiers: UInt32
+        var stored: [String: Int] { ["key": Int(keyCode), "mods": Int(modifiers)] }
+        init(keyCode: UInt32, modifiers: UInt32) {
+            self.keyCode = keyCode
+            self.modifiers = modifiers
+        }
+        /// Nur Tastencodes 0…127 und mindestens eine der vier Modifikator-Tasten (sonst würde jede Taste abgefangen).
+        init?(stored: Any?) {
+            guard let d = stored as? [String: Any], let key = d["key"] as? Int, let mods = d["mods"] as? Int,
+                  (0...127).contains(key), mods & Self.allowedModifiers != 0, mods & ~Self.allowedModifiers == 0 else {
+                return nil
+            }
+            self.init(keyCode: UInt32(key), modifiers: UInt32(mods))
+        }
+        /// cmdKey | shiftKey | optionKey | controlKey (Carbon).
+        static let allowedModifiers = 0x0100 | 0x0200 | 0x0800 | 0x1000
+    }
+
+    var isClipboardPaused: Bool { (clipboardPausedUntil ?? .distantPast) > Date() }
+
+    func isClipboardExcluded(_ bundleID: String) -> Bool { clipboardExcluded.contains(bundleID) }
+
+    func setClipboardExcluded(_ bundleID: String, _ excluded: Bool) {
+        var list = clipboardExcluded.filter { $0 != bundleID }
+        if excluded { list.append(bundleID) }
+        let valid = Self.validExcluded(list)
+        if valid != clipboardExcluded { clipboardExcluded = valid }
+    }
     /// Gewählter Ort; nur über die Ortssuche gesetzt. Gespeichert nur Name, Region, Land, gerundete Koordinaten.
     var weatherPlace: Weather.Place? {
         didSet {
@@ -189,6 +244,11 @@ final class Preferences {
         shelfScreenshots = defaults.object(forKey: Key.shelfScreenshots) as? Bool ?? false
         weatherUnit = (defaults.string(forKey: Key.weatherUnit)).flatMap(Weather.Unit.init(rawValue:)) ?? .celsius
         weatherPlace = Self.validPlace(defaults.object(forKey: Key.weatherPlace))
+        clipboard = defaults.object(forKey: Key.clipboard) as? Bool ?? false
+        clipboardExcluded = Self.validExcluded(defaults.object(forKey: Key.clipboardExcluded))
+        clipboardPausedUntil = defaults.object(forKey: Key.clipboardPausedUntil) as? Date
+        clipboardPanelEdge = defaults.string(forKey: Key.clipboardPanelEdge).flatMap(PanelEdge.init(rawValue:)) ?? .right
+        clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
     }
 
     /// Gespeicherter Ort nur mit gültigen Werten (per `defaults write` gesetzt → verworfen).

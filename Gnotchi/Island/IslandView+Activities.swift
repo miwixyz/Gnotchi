@@ -90,6 +90,9 @@ struct ChipRow: View {
     /// Ablage (0.8.0): nil = leer; sonst Anzahl und ob sie gerade groß gezeigt wird.
     var shelf: (Int, Bool)?
     var onShelf: () -> Void = {}
+    /// Zwischenablage (0.11.0): nil = aus; sonst ob groß gezeigt.
+    var clipboard: Bool?
+    var onClipboard: () -> Void = {}
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
     var onTimer: () -> Void = {}
@@ -128,6 +131,9 @@ struct ChipRow: View {
             }
             if let (count, shown) = shelf {
                 fixedButton("tray.full.fill", label: "Ablage, \(count)", selected: shown, action: onShelf)
+            }
+            if let clipboard {
+                fixedButton("doc.on.clipboard", label: "Zwischenablage", selected: clipboard, action: onClipboard)
             }
             if let mirror {
                 Button(action: onMirror) {

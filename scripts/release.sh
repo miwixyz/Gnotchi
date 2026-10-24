@@ -205,8 +205,9 @@ echo "${SIGN_INFO}" | grep -q "flags=.*runtime" \
 echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
     || fail "Falsches Team in der Signatur (erwartet LTKJ6Z2VYB)"
 # G12 maschinell (Seam-Muster E8, Code-Audit 09.10., S3): Positivliste statt „leer“.
-# - App: GENAU com.apple.security.automation.apple-events (AppleScript-Rückfall, G7) und
-#   com.apple.security.device.camera (Spiegel, ab 0.5.0, G27).
+# - App: GENAU com.apple.security.automation.apple-events (AppleScript-Rückfall, G7),
+#   com.apple.security.device.camera (Spiegel, ab 0.5.0, G27) und keychain-access-groups mit genau
+#   Gnotchis eigener Gruppe (Zwischenablage-Schlüssel, ab 0.11.0, G38).
 # - JEDER eingebettete Code-Teil, rekursiv (Sparkles XPC-Dienste, Updater.app, Autoupdate,
 #   Adapter-Framework, Test-Programm …): nur, was scripts/entitlement-gate.sh für ihn erlaubt –
 #   für alle derzeit nichts (Security-Review 18.10., B2: vorher nur die oberste Ebene geprüft).
@@ -216,7 +217,16 @@ echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
 #   bricht das Release ab.
 # Geparst mit Python/plistlib statt grep (ugrep-Lehre, siehe Appcast-Prüfung unten).
 . scripts/entitlement-gate.sh
-gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events com.apple.security.device.camera"
+gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events com.apple.security.device.camera keychain-access-groups"
+# 0.11.0 (G38): Schlüsselbund-Gruppe = GENAU Gnotchis eigene, und das Profil, das sie freigibt, ist eingebettet
+# (ohne Profil beendet amfid die App beim Start mit -413).
+KC_GROUPS="$(codesign -d --entitlements - --xml "${APP_PATH}" 2>/dev/null | python3 -c '
+import plistlib, sys
+print(" ".join(plistlib.loads(sys.stdin.buffer.read()).get("keychain-access-groups", [])))')"
+[ "${KC_GROUPS}" = "LTKJ6Z2VYB.dev.mwlr.gnotchi" ] \
+    || fail "Schlüsselbund-Gruppe unerwartet: '${KC_GROUPS}' (erwartet genau LTKJ6Z2VYB.dev.mwlr.gnotchi, G38)"
+[ -f "${APP_PATH}/Contents/embedded.provisionprofile" ] \
+    || fail "Kein eingebettetes Provisioning-Profil – die Schlüsselbund-Gruppe ließe die App beim Start scheitern"
 gate_entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.automation.apple-events" \
     || fail "Apple-Events-Berechtigung fehlt in der App — der Spotify/Musik-Rückfall (G7) ginge nicht"
 gate_entitlement_keys "${APP_PATH}" | grep -qx "com.apple.security.device.camera" \

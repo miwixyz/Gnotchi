@@ -2,6 +2,24 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.0] — 2026-10-24
+
+Das Wichtigste: Gnotchi merkt sich jetzt, was du kopierst. Mit Sammlungen, einem Tresor für Geheimes und Import aus PastePal.
+
+### Neu
+- **Verlauf der Zwischenablage.** Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Gnotchi merkt sich Text, formatierten Text, Links, Bilder und Dateien, Dateien nur als Verweis. Mit ⌃< öffnet sich am Bildschirmrand eine Seitenansicht mit Suche, das Kürzel ist frei wählbar. Ob die Ansicht rechts, links oder unten sitzt, stellst du ein. ↑ und ↓ wählen, ↵ kopiert, ⇧↵ kopiert als reinen Text, ⌘1 bis ⌘9 holen die ersten neun. Einfügen machst du danach selbst mit ⌘V. Gnotchi drückt keine Tasten für dich und braucht deshalb auch keine Bedienungshilfen.
+- **Zwischenablage in der Notch.** In der Leiste der großen Insel sitzt ein neues Symbol. Es zeigt Angeheftetes und die letzten Kopien als Kacheln. Ein Klick kopiert, ⇧-Klick kopiert als reinen Text, „Alle …“ öffnet die Seitenansicht.
+- **Sammlungen und Angeheftetes.** Per Rechtsklick heftest du einen Eintrag an, legst ihn in eine Sammlung oder gibst ihm einen Titel. Du kannst eine Karte auch auf einen Reiter unten ziehen. Ein Eintrag darf in mehreren Sammlungen stecken. Die Suche findet Titel und Inhalt. Angeheftetes und Sammlungen bleiben, der übrige Verlauf hält 30 Tage oder 1 000 Einträge.
+- **Tresor für Geheimes.** In einer Tresor-Sammlung stehen nur Titel und Punkte. Den Inhalt gibt es erst nach Touch ID oder deinem Mac-Passwort. Danach bleibt der Tresor fünf Minuten offen. Das Schloss oben sperrt ihn sofort, Bildschirmsperre und Ruhezustand ebenso. Was du aus dem Tresor kopierst, ist als vertraulich markiert, andere Verlaufs-Apps übernehmen es also nicht. Nach 60 Sekunden leert Gnotchi die Zwischenablage wieder, außer du hast inzwischen etwas anderes kopiert.
+- **Aus PastePal importieren.** Unter Einstellungen → Zwischenablage → „Aus PastePal importieren …“ übernimmt Gnotchi deine Sammlungen samt Einträgen. Für jede Sammlung entscheidest du, ob sie in den Tresor kommt. PastePal exportiert nur reinen Text, Formatierungen gehen dabei verloren. Danach liegt die Exportdatei im Papierkorb. Leere ihn, denn sie enthält alles im Klartext.
+- **Nie im Verlauf** landen Kopien, die eine App als vertraulich kennzeichnet (etwa die Passwörter-App), und alles aus Apps auf deiner Ausschlussliste. In den Einstellungen pausierst du das Mitlesen für 30 Minuten.
+
+### Behoben
+- **Gnotchi startete manchmal gar nicht.** 0.10.0 konnte direkt beim Start abstürzen. Die Insel ging los, während die App sich noch aufbaute. Jetzt startet sie einen Augenblick später.
+
+### Intern
+- Verlauf je Feld mit AES-256-GCM verschlüsselt, Datensatz-ID als zusätzliche authentifizierte Daten. Der Schlüssel liegt im Schutzklassen-Schlüsselbund in Gnotchis eigener Gruppe. Dafür trägt Gnotchi ab 0.11.0 ein eingebettetes Provisioning-Profil (einmal je Mac: `make profile`). Der Tresor-Schlüssel ist per `.userPresence` an Touch ID gebunden, die fünf Minuten misst Gnotchi selbst. Speicher: SwiftData in `~/Library/Application Support/Gnotchi/Zwischenablage` (0700), schon für den späteren iCloud-Abgleich aufgebaut. Feste Typenliste. HTML und RTF werden nie angezeigt oder geparst. Seitenansicht und Kacheln erscheinen nicht in Bildschirmfreigaben. Protokoll ohne Inhalte, Titel und Quell-Apps. Kürzel über `RegisterEventHotKey`, ohne Event-Tap. Der Tastencode wird aufgenommen, nicht fest eingetragen, denn „<“ hat auf deutschen ISO-Tastaturen den Code 50. SECURE-DESIGN G37–G41. 567 Tests.
+
 ## [0.10.0] — 2026-10-23
 
 ### Neu

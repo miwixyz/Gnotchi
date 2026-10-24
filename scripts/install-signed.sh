@@ -49,8 +49,12 @@ if [ -d "$HELPER" ]; then
     done
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HELPER"
 fi
+# Ab 0.11.0 (G38): Profil einbetten + Berechtigungen mit ausgeschriebener App-Kennung (scripts/profile.sh).
+. scripts/profile.sh
+gnotchi_embed_profile "$STAGE/Gnotchi.app"
+gnotchi_expanded_entitlements Gnotchi/Resources/Gnotchi.entitlements "$STAGE/Gnotchi.entitlements"
 codesign --force --options runtime --timestamp \
-    --entitlements Gnotchi/Resources/Gnotchi.entitlements --sign "$IDENTITY" "$STAGE/Gnotchi.app"
+    --entitlements "$STAGE/Gnotchi.entitlements" --sign "$IDENTITY" "$STAGE/Gnotchi.app"
 codesign --verify --deep --strict "$STAGE/Gnotchi.app"
 
 osascript -e 'quit app id "dev.mwlr.gnotchi"' || echo "  (Gnotchi lief nicht)"

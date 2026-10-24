@@ -122,6 +122,8 @@ final class AppModel {
             NotchFeature(part: ScreenshotWatcher(activity: activity)) { $0.shelf && $0.shelfScreenshots },
             // 0.9.0 Code & KI (G34/G35): Hooks in ~/.claude/settings.json nur bei eingeschaltetem Schalter.
             NotchFeature(part: ClaudeLink(activity: activity, prefs: prefs)) { $0.claudeCode },
+            // 0.11.0 Zwischenablage (G37–G41): ab Werk aus, liest nur bei Änderung, fügt nie selbst ein.
+            NotchFeature(part: ClipboardLink(activity: activity, prefs: prefs)) { $0.clipboard },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
@@ -135,8 +137,14 @@ final class AppModel {
         updater = Updater()
         updater?.onPendingChange = { [weak self] _ in self?.syncOwnUpdate() }
         Self.log.notice("Start")
+        #if DEBUG
+        ClipboardKeysProbe.runIfRequested()
+        #endif
         if !prefs.claudeCode { ClaudeLink.removeLeftoverHooks() }
-        applyNotchSetting()
+        // Einen Takt später, nicht im init: AppModel entsteht INNERHALB von SwiftUIs Aktualisierung der App (@State-
+        // Startwert). Startet die Insel hier, zeichnet sich ihr NSHostingView mitten darin → Absturz „precondition
+        // failure: setting value during update“ (24.10. im Debugger gemessen, traf auch das veröffentlichte 0.10.0).
+        DispatchQueue.main.async { [weak self] in self?.applyNotchSetting() }
         // Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
         terminateObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification, object: nil, queue: .main

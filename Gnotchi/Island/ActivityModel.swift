@@ -117,6 +117,9 @@ final class ActivityModel {
     var fileDragActive = false
     var shelfActive = false
     @ObservationIgnored weak var shelf: ShelfLink?
+    /// Zwischenablage (0.11.0, G37): läuft = Symbol in der Leiste; groß gezeigt = `clipboardActive`.
+    var clipboard: ClipboardLink?
+    var clipboardActive = false
 
     // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
 

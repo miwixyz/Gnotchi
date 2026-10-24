@@ -8,7 +8,7 @@ dieselbe Insel als Pille oben in der Mitte. Dazu zeigt sie dein Diktat in
 Kopfhörer verbindest, und in der großen Insel wählst du den Audio-Ausgang. Läuft mehreres
 gleichzeitig, etwa Musik, Kopfhörer und ein bereites Update, wechselt die kleine Insel zwischen ihnen.
 
-**Stand:** Version 0.4.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
+**Stand:** Version 0.11.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
 Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
 
 Voraussetzungen: macOS 27, Mac mit Apple-Chip. Kostenlos, Open Source (MIT).
@@ -41,6 +41,7 @@ Freigabe nicht und fragt nie danach.
   **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
+- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ kopiert als reinen Text. Einfügen mit ⌘V machst du selbst, Gnotchi braucht dafür keine Bedienungshilfen.
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
@@ -150,6 +151,8 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
 | **Kamera** | beim ersten Klick auf den Spiegel (0.5) | Nur der Spiegel. Das Bild geht direkt auf den Bildschirm, nie in eine Datei ([G27](docs/SECURE-DESIGN.md)) |
 | **Bedienungshilfen für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md)) |
+| **Touch ID bzw. Mac-Passwort** | beim Öffnen des Tresors in der Zwischenablage (0.11) | Gibt den Tresor-Schlüssel im Schlüsselbund für fünf Minuten frei ([G39](docs/SECURE-DESIGN.md)) |
+| **„Aus anderen Apps einfügen“** | nur, falls macOS beim Mitlesen der Zwischenablage nachfragt (0.11; auf macOS 27.0.1 fragte es nicht, gemessen 24.10.2026) | Verlauf der Zwischenablage ([G37](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
 Was Gnotchi **nicht** braucht: keine Bedienungshilfen (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon,
@@ -204,6 +207,7 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 - **Bildschirmfotos (ab 0.10, ab Werk aus):** Gnotchi fragt Spotlight nur nach dem Merkmal „Bildschirmfoto“, liest
   nie den Bildinhalt und legt nur einen Verweis ab; im Protokoll stehen nur Zahlen, nie Dateinamen
   ([G36](docs/SECURE-DESIGN.md)).
+- **Zwischenablage (ab 0.11, ab Werk aus):** Gnotchi liest die Zwischenablage nur, wenn sich ihr Zähler ändert, und nur eine feste Liste von Formaten. Vertraulich markierte Kopien und ausgeschlossene Apps bleiben draußen. Jedes Feld ist mit AES-256-GCM verschlüsselt, der Schlüssel liegt im Schutzklassen-Schlüsselbund in Gnotchis eigener Gruppe. Der Tresor-Schlüssel ist an Touch ID gebunden. HTML und RTF werden nie dargestellt. Kein Netz, keine Inhalte im Protokoll ([G37–G41](docs/SECURE-DESIGN.md)).
 - **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird
@@ -261,6 +265,7 @@ make test      # Tests (signiert, der Test-Host ist die App)
 make render    # nur die Insel-Bilder nach build/render/ (Sichtprüfung ohne App-Start)
 make lint      # Datenschutz-Gate + SwiftLint strikt (inkl. „keine Bedienungshilfen“, „Kindprozess nur im Adapter“)
 make hooks     # einmal je Klon: Datenschutz-Gate vor jedem Commit
+make profile   # einmal je Mac: Developer-ID-Profil anlegen lassen (Schlüsselbund-Gruppe ab 0.11)
 make dev       # Testversion mit Developer ID signiert unter /tmp starten (scripts/dev-signed.sh)
 make install   # signierte Testfassung nach /Applications
 make release   # notarisiertes ZIP, GitHub-Release, signierter Appcast

@@ -52,6 +52,8 @@ enum IslandGeometry {
     /// Ablage (0.8.0): Ablagefeld beim Ziehen und große Ablage (Kacheln + Knopfleiste).
     static let shelfDropSize = CGSize(width: 460, height: 84)
     static let shelfHeight: CGFloat = 160
+    /// Zwischenablage groß (0.11.0): eine Reihe Karten unter der Leiste.
+    static let clipboardHeight: CGFloat = 190
     /// Kachelreihe unter der großen Sache (Michael 22.10.: „Rack schneller zugänglich“ → immer unten, sobald etwas liegt).
     static let shelfStripHeight: CGFloat = 70
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt

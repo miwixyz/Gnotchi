@@ -8,6 +8,8 @@ release.env
 release.env.*
 build-dev/
 build-test/
+build-profile/
+spike/**/*.app/
 
 # Code-Abdeckung/LLVM-Messdateien (Code-Audit 09.10.)
 *.profraw

@@ -127,6 +127,7 @@ struct IslandView: View {
                             onWeather: { activity.selectWeather() },
                             shelf: activity.shelfItems.isEmpty ? nil : (activity.shelfItems.count, activity.shelfActive),
                             onShelf: { activity.selectShelf() },
+                            clipboard: activity.clipboard == nil ? nil : activity.clipboardActive, onClipboard: { activity.selectClipboard() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
                             pinned: activity.pinned, onPin: { activity.togglePin() }, unread: activity.unread)
@@ -573,11 +574,11 @@ extension IslandView {
             weatherBig(topInset: topInset)
         case .shelf:
             shelfBig(topInset: topInset)
+        case .clipboard: ClipboardBig.island(activity.clipboard, top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6)
         case .none:
             EmptyView()
         }
     }
-
 }
 
 // Große Wetter- und Ablage-Ansicht (0.7.0/0.8.0) – ausgelagert, damit der Struct-Rumpf unter 350 Zeilen bleibt.
@@ -629,8 +630,8 @@ extension IslandView {
             IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
                                       chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
                                       weather: activity.bigContent == .weather,
-                                      shelf: activity.bigContent == .shelf,
-                                      strip: activity.showsShelfStrip)?.size ?? state.layout.expanded.size
+                                      shelf: activity.bigContent == .shelf, strip: activity.showsShelfStrip,
+                                      clipboard: activity.bigContent == .clipboard)?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size

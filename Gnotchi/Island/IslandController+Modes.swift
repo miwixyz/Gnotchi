@@ -78,19 +78,20 @@ extension IslandController {
     /// nur „nur Mikrofon/Kamera“ in Hinweis-Größe; die Symbolleiste eine Zeile höher.
     nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool,
                                      mirror: Bool = false, weather: Bool = false, shelf: Bool = false,
-                                     strip: Bool = false) -> CGRect? {
-        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather || shelf,
+                                     strip: Bool = false, clipboard: Bool = false) -> CGRect? {
+        guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather || shelf || clipboard,
                                  updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2) else { return nil }
         if strip {   // Kachelreihe der Ablage unten dran (0.8.0)
             r.origin.y -= IslandGeometry.shelfStripHeight
             r.size.height += IslandGeometry.shelfStripHeight
         }
-        guard mirror || weather || shelf else { return r }
-        let tall = mirror ? IslandGeometry.mirrorHeight : (weather ? IslandGeometry.weatherHeight : IslandGeometry.shelfHeight)
+        guard mirror || weather || shelf || clipboard else { return r }
+        let tall = mirror ? IslandGeometry.mirrorHeight : (weather ? IslandGeometry.weatherHeight
+            : (clipboard ? IslandGeometry.clipboardHeight : IslandGeometry.shelfHeight))
         let extra = tall - IslandGeometry.expandedSize.height
         r.origin.y -= extra
         r.size.height += extra
-        if weather || shelf {   // breiter (Wetter: Lesbarkeit, Ablage: Kacheln + Knopfleiste), mittig um dieselbe Achse
+        if weather || shelf || clipboard {   // breiter (Wetter: Lesbarkeit, Ablage: Kacheln + Knopfleiste), mittig um dieselbe Achse
             let wider = IslandGeometry.weatherWidth - r.width
             r.origin.x -= wider / 2
             r.size.width += wider

@@ -207,6 +207,8 @@ final class IslandController {
             _ = activity.fileDragActive
             _ = activity.shelfItems.count
             _ = activity.shelfActive
+            _ = activity.clipboardActive
+            _ = activity.clipboard != nil
             _ = activity.hasIdleContent
             _ = activity.claudeActive
             _ = activity.showsShelfStrip
@@ -545,7 +547,7 @@ extension IslandController {
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
         return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
                              weather: activity.bigContent == .weather, shelf: activity.bigContent == .shelf,
-                             strip: activity.showsShelfStrip)
+                             strip: activity.showsShelfStrip, clipboard: activity.bigContent == .clipboard)
     }
 }
 

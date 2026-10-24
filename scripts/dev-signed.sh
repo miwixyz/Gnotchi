@@ -80,9 +80,14 @@ if [ -d "$HOOK" ]; then
     done
     codesign --force --options runtime --sign "$IDENTITY" "$HOOK"
 fi
-# 3. Die App zuletzt, als einzige mit Gnotchis Berechtigung (Apple Events).
+# 3. Die App zuletzt, als einzige mit Gnotchis Berechtigungen (Apple Events, Kamera, Schlüsselbund-Gruppe).
+# Ab 0.11.0 (G38): Profil einbetten + Berechtigungen mit ausgeschriebener App-Kennung (scripts/profile.sh).
+. scripts/profile.sh
+gnotchi_embed_profile "$APP"
+ENT="$DEST_DIR/Gnotchi.entitlements"
+gnotchi_expanded_entitlements Gnotchi/Resources/Gnotchi.entitlements "$ENT"
 codesign --force --options runtime \
-    --entitlements Gnotchi/Resources/Gnotchi.entitlements \
+    --entitlements "$ENT" \
     --sign "$IDENTITY" "$APP"
 codesign --verify --deep --strict "$APP"
 
