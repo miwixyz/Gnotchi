@@ -8,7 +8,7 @@ dieselbe Insel als Pille oben in der Mitte. Dazu zeigt sie dein Diktat in
 Kopfhörer verbindest, und in der großen Insel wählst du den Audio-Ausgang. Läuft mehreres
 gleichzeitig, etwa Musik, Kopfhörer und ein bereites Update, wechselt die kleine Insel zwischen ihnen.
 
-**Stand:** Version 0.11.0, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
+**Stand:** Version 0.11.1, [Download unter Releases](https://github.com/miwixyz/Gnotchi/releases/latest).
 Website gnotchi.mwlr.dev ist geplant. Kurzvorstellung: [docs/ONE-PAGER.md](docs/ONE-PAGER.md)
 
 Voraussetzungen: macOS 27, Mac mit Apple-Chip. Kostenlos, Open Source (MIT).

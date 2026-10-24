@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.1] — 2026-10-24
+
+### Behoben
+- **Im Band lag die Kontingent-Anzeige teilweise unter der Notch.** Das passierte, wenn links nur eine Claude-Sitzung stand und rechts nichts. Dann rutschte „Claude … · Codex …“ über die Mitte, und der Anfang verschwand hinter der Kamera. Jetzt bleibt alles links neben der Notch.
+
+### Intern
+- Rechte Hälfte des Bands immer als eigenes Element (`HStack` mit `Spacer`). Ein leeres `EmptyView` nahm trotz `.frame(maxWidth:)` keinen Platz, die Notch-Lücke saß dadurch nicht mehr über der Kamera. Neues Testbild `notch-band-claude-quota`. 568 Tests.
+
 ## [0.11.0] — 2026-10-24
 
 Das Wichtigste: Gnotchi merkt sich jetzt, was du kopierst. Mit Sammlungen, einem Tresor für Geheimes und Import aus PastePal.

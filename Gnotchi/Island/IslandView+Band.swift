@@ -76,7 +76,11 @@ struct BandView<Cover: View>: View {
                 if let notchWidth { Color.clear.frame(width: notchWidth) }
                 // Mit Notch zwei gleiche Hälften (die Lücke bleibt mittig über der Kamera). Ohne Notch nimmt rechts nur, was es
                 // braucht – sonst blieb die Mitte leer und der Titel wurde früh gekürzt (Michael 22.10., Bildschirmfoto).
-                right(at: ctx.date).frame(maxWidth: notchWidth == nil ? nil : .infinity, alignment: .trailing)
+                // In ein HStack mit Spacer gepackt: Ist rechts nichts (nur Claude links), wäre `right` ein EmptyView – der
+                // nimmt trotz .frame(maxWidth:) KEINEN Platz, die linke Hälfte wuchs über die Mitte und das Kontingent lag
+                // unter der Notch (24.10., Michael, Bildschirmfoto + notch-band-claude-quota.png).
+                HStack(spacing: 0) { Spacer(minLength: 0); right(at: ctx.date) }
+                    .frame(maxWidth: notchWidth == nil ? nil : .infinity, alignment: .trailing)
                     .fixedSize(horizontal: notchWidth == nil, vertical: false)
             }
             .padding(.horizontal, 12)

@@ -471,6 +471,13 @@ extension IslandViewRenderTests {
                    quota: Self.quota,
                    claude: [ClaudeWire.Message(session: "s1", event: .stop, project: "Beispielprojekt", text: "fertig")])
     }
+    /// 24.10. (Michael, Bildschirmfoto): Kontingent lag im Band teilweise unter der Notch – der Fall „nur Claude +
+    /// Kontingent“ war bisher nur als Pille gerendert.
+    func testRenderNotchBandClaudeQuota() throws {
+        try render(notchScreen, .band, name: "notch-band-claude-quota", withMedia: false,
+                   quota: Self.quota,
+                   claude: [ClaudeWire.Message(session: "s1", event: .stop, project: "MWs2ndBrain", text: "fertig")])
+    }
     func testRenderNotchBandShelfUnread() throws {
         try render(notchScreen, .band, name: "notch-band-shelf-unread", shelfFiles: ["a.pdf", "b.pdf"], unread: Self.sampleUnread)
     }
