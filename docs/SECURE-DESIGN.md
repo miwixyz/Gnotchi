@@ -895,6 +895,8 @@ nur aus Klicks (G29, G30).
   Befunde. Ausgeliefertes ZIP (Build 133) geprüft: App nur Apple Events, Kamera und `keychain-access-groups` =
   `LTKJ6Z2VYB.dev.mwlr.gnotchi`, Profil eingebettet; Hilfsprogramm ohne Berechtigungen. Sichttest mit Michael
   (Spec, Abschnitt „Sichttest 24.10.“).
+- **Prüfung 0.11.1 (24.10.):** nur Layout-Fix im Band (keine neue Sicherheitsfläche); `rafter run` Scan `a95aba02`:
+  keine Befunde. ZIP Build 136 am Artefakt geprüft (gleiche Berechtigungen, Profil eingebettet).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
