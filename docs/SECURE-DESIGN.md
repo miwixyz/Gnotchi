@@ -942,7 +942,8 @@ nur aus Klicks (G29, G30).
   an. `rafter secrets .` ohne Fund. Sichttest Michael: Doppelklick fügt ein (TextEdit, Terminal ohne Ausführen). **Tresor-Fund behoben:** Der
   Passwort-Dialog nahm der Seitenansicht den Fokus, sie schloss und verwarf ihren Zustand → das Einfügen nach der
   Freigabe ging verloren (Protokoll: kein Befehl beim Hilfsprogramm). Jetzt hängt es an `ClipboardLink`; nachgeprüft
-  12:57 (ein Doppelklick, „Einfügen“ im Protokoll). `rafter run` folgt nach dem Push.
+  12:57 (ein Doppelklick, „Einfügen“ im Protokoll). `rafter run` Scan `2eb095c6` auf `1e6dd31`: keine Befunde.
+  Ausgeliefertes ZIP (Build 139) geprüft: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
