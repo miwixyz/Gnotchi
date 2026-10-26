@@ -40,4 +40,18 @@ final class BandTests: XCTestCase {
         XCTAssertEqual(tall.band.maxY, 1440, "oben bündig")
         XCTAssertEqual(tall.compact.height, IslandGeometry.pillSize.height, "kleine Insel unverändert")
     }
+
+    /// 0.15.1, Bildschirmvideo 26.10. (MacBook-Notch): Klick aufs Ablage-Symbol im linken Bandflügel → volle Insel
+    /// ist schmaler als das Band, die Maus steht danach außerhalb → „raus“ → nach 300 ms zu. Voraussetzung messen
+    /// und die längere Frist für genau diesen Fall festhalten.
+    func testBandWingLiesOutsideExpandedIsland() throws {
+        let m = IslandGeometry.layout(for: IslandGeometry.ScreenMetrics(
+            frame: CGRect(x: 0, y: 0, width: 1470, height: 956), safeTop: 32, auxLeftWidth: 645.5, auxRightWidth: 645.5))
+        let wing = CGPoint(x: m.band.minX + 20, y: m.band.midY)
+        XCTAssertTrue(m.band.contains(wing))
+        XCTAssertFalse(m.expanded.contains(wing), "Bandflügel liegt außerhalb der vollen Insel")
+        XCTAssertGreaterThanOrEqual(IslandController.collapseDelay(shrankAwayFromPointer: true), .milliseconds(1000))
+        XCTAssertEqual(IslandController.collapseDelay(shrankAwayFromPointer: false), .milliseconds(300),
+                       "normales Zuklappen unverändert")
+    }
 }

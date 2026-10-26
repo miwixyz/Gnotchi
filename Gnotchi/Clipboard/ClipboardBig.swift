@@ -39,7 +39,9 @@ struct ClipboardBig: View {
     }
 
     private var allButton: some View {
-        Button { link.panel.open() } label: {
+        // Ausdrücklich die Seitenansicht: ohne Ziel käme bei „Zuerst aus der Notch“ das Herunterklappen – eine Ebene
+        // UNTER der offenen Insel (mainMenu + 2 vs. + 3), Michael 26.10.: „öffnet im Hintergrund“.
+        Button { link.panel.open(link.panelEdge) } label: {
             VStack(spacing: 4) {
                 Image(systemName: "sidebar.right").font(.system(size: 16, weight: .semibold))
                 Text("Alle …").font(.system(size: 11, weight: .medium))
@@ -82,7 +84,7 @@ struct ClipboardBig: View {
     }
 
     @ViewBuilder private func content(_ entry: ClipEntry, payload: ClipPayload?, title: String?) -> some View {
-        if entry.kind == .image, let payload, let image = ClipThumbnails.image(for: entry, payload: payload) {
+        if let payload, let image = ClipThumbnails.image(for: entry, payload: payload) {
             Color.clear.overlay { Image(nsImage: image).resizable().scaledToFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 6))
         } else if entry.kind == .link, title == nil, let plain = payload?.plain {

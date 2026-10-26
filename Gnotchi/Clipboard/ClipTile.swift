@@ -48,7 +48,7 @@ struct ClipTile: View {
             }
             .foregroundStyle(color.isLight ? Color.black : Color.white)
             .padding(9)
-        } else if let payload, entry.kind == .image, let image = ClipThumbnails.image(for: entry, payload: payload) {
+        } else if let payload, let image = ClipThumbnails.image(for: entry, payload: payload) {
             ZStack(alignment: .bottomLeading) {
                 Image(nsImage: image).resizable().scaledToFill()
                     .frame(width: Self.size.width, height: Self.size.height).clipped()

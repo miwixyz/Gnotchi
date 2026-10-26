@@ -133,6 +133,9 @@ enum ClipThumbnails {
     private static let cache = NSCache<NSUUID, NSImage>()
 
     static func image(for entry: ClipEntry, payload: ClipPayload) -> NSImage? {
+        // Auch Datei-Einträge mit mitkopiertem Bild (0.15.1, gemessen 26.10.: CleanShot/Clop legt public.file-url +
+        // public.png in die Zwischenablage). Angezeigt wird nur das gespeicherte Bild, die Datei wird nie gelesen (G40).
+        guard entry.kind == .image || entry.kind == .file else { return nil }
         if let hit = cache.object(forKey: entry.id as NSUUID) { return hit }
         guard let data = payload.formats.first(where: { ClipboardCapture.imageTypes.contains($0.type) })?.data,
               let source = CGImageSourceCreateWithData(data as CFData, nil),

@@ -893,6 +893,10 @@ nur aus Klicks (G29, G30).
   Befunde. ZIP Build 145: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen, Testhilfen
   (`attachForRendering`, `debugSecretSeconds`) nicht im Release-Programm. Sichttest Mac mini (Pille) ✓; an der
   MacBook-Notch noch nicht live angesehen.
+- **Ergänzt 0.15.1 (Bild bei Datei-Einträgen):** Oberflächen-Check: keine neue Fläche. Datei-Einträge zeigen das
+  **mitgespeicherte** Bildformat (G37-Typen, derselbe `CGImageSourceCreateThumbnailAtIndex`-Weg mit Höchstgröße);
+  die verwiesene Datei wird **nicht** gelesen, kein neuer Dateizugriff, kein Netz. Prüfung nur nach Art
+  (`.image`/`.file`) – Text mit Bild bleibt Text. Sichttest MacBook-Notch 26.10. ✓ (auch 0.14/0.15 dort jetzt gesehen).
 
 ### G41 – PastePal-Import: strikt, begrenzt, danach Papierkorb (neu, 2026-10-24, 0.11.0)
 - Datei nur über `NSOpenPanel` (Michaels Auswahl), nie automatisch gesucht. Größe ≤ 50 MB vor dem Lesen.

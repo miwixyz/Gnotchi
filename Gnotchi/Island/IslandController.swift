@@ -37,6 +37,9 @@ final class IslandController {
     private var expandTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
     /// Je Bildschirm: Ist die Maus gerade über der Insel? Gilt nach Ablauf der Verzögerung.
     private var pointerInside: [CGDirectDisplayID: Bool] = [:]
+    /// Je Bildschirm: Aus dem Band aufgeklappt, Maus steht danach außerhalb der (schmaleren) Insel. Das erste „raus“
+    /// kommt dann vom Verkleinern, nicht von der Maus – einmal länger warten (0.15.1, Bildschirmvideo 26.10.).
+    private var shrankAwayFromPointer: Set<CGDirectDisplayID> = []
     /// Aufklapp-Verzögerung in Sekunden, bei jedem Überfahren neu gelesen (Einstellung wirkt sofort).
     private let expandDelay: @MainActor () -> TimeInterval
     /// Öffnet ein App-Fenster (Einstellungen, Hilfe) über AppModel – das Panel hat kein eigenes `openWindow`.
@@ -386,6 +389,7 @@ final class IslandController {
         // Messpunkt (0.8.0): jedes Hinein/Hinaus mit Form – nur Debug-Stufe, nicht dauerhaft gespeichert.
         Self.hoverLog.debug("Überfahren \(inside ? "rein" : "raus", privacy: .public) – Form \(String(describing: self.panels[displayID]?.state.mode), privacy: .public)")
         guard !menuOpen.contains(displayID), let entry = panels[displayID], entry.state.mode != .hidden else { return }
+        let shrank = shrankAwayFromPointer.remove(displayID) != nil && !inside
         pointerInside[displayID] = inside
         // Maus über einer Insel: Takt der Rotation steht (0.4.0).
         activity.setRotationPaused(pointerInside.values.contains(true))
@@ -409,7 +413,7 @@ final class IslandController {
         // Angeheftet (Stecknadel): bleibt offen, auch wenn die Maus weggeht.
         guard !activity.pinned else { return }
         collapseTasks[displayID] = Task { [weak self] in
-            try? await Task.sleep(for: Self.collapseDelay)
+            try? await Task.sleep(for: Self.collapseDelay(shrankAwayFromPointer: shrank))
             // Zieht man den Fortschrittsbalken über den Inselrand hinaus, nicht mitten im Ziehen zuklappen
             // (das Ende des Ziehens und damit das Spulen ginge verloren) – erst nach dem Loslassen.
             while !Task.isCancelled, NSEvent.pressedMouseButtons != 0 {
@@ -464,10 +468,19 @@ extension IslandController {
         e.state.mode = target
     }
 
+    /// Zeit, um nach dem Aufklappen aus dem Band vom Bandflügel in die Insel zu fahren.
+    static let collapseDelayAfterBandShrink: Duration = .milliseconds(1500)
+    static func collapseDelay(shrankAwayFromPointer: Bool) -> Duration {
+        shrankAwayFromPointer ? collapseDelayAfterBandShrink : collapseDelay
+    }
+
     /// Klick auf das Band: zur vollen Insel (Leiste mit Timer, Spiegel, Stecknadel).
     func expandFromBand(_ displayID: CGDirectDisplayID) {
         guard let e = panels[displayID], e.state.mode == .band else { return }
-        if let f = frame(.expanded, e.state.layout) { e.panel.setFrame(f, display: true) }
+        if let f = frame(.expanded, e.state.layout) {
+            if !f.contains(NSEvent.mouseLocation) { shrankAwayFromPointer.insert(displayID) }
+            e.panel.setFrame(f, display: true)
+        }
         e.state.mode = .expanded
     }
 

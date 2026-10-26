@@ -58,8 +58,14 @@ struct ClipPreview: View {
                 }
             case .file:
                 VStack(alignment: .leading, spacing: 6) {
-                    Image(systemName: "doc").font(.system(size: 24))
+                    if let image = ClipThumbnails.image(for: entry, payload: payload) {
+                        Image(nsImage: image).resizable().scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: 8)).frame(maxWidth: .infinity)
+                    } else {
+                        Image(systemName: "doc").font(.system(size: 24))
+                    }
                     Text(verbatim: payload.plain).font(.system(size: 12, design: .monospaced)).textSelection(.enabled)
+                        .lineLimit(1).truncationMode(.middle)
                 }
             case .link, .text, .richText:
                 ScrollView {

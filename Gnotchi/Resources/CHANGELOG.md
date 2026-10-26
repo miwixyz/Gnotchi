@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.1] — 2026-10-26
+
+Drei Korrekturen, gefunden an der echten MacBook-Notch.
+
+### Behoben
+- **„Alle …“ öffnet vorne.** Der Knopf in der großen Insel öffnete die Zwischenablage hinter der Insel, sichtbar erst, wenn die Maus wegging. Jetzt öffnet er direkt die Seitenansicht am Rand.
+- **Bilder statt Datei-Symbol.** Kopierst du ein Bildschirmfoto als Datei (etwa aus CleanShot), zeigen Karte, Insel und Vorschau jetzt das Bild. Die Vorschau nennt darunter den Pfad. Das gilt für alles, was ab jetzt kopiert wird. Ältere Einträge zeigen das Bild nur, wenn es damals mitgespeichert wurde.
+- **Band klappt nicht mehr sofort zu.** Ein Klick auf die Ablage im linken Teil des Bands öffnete die große Insel, die schloss sich aber gleich wieder: Sie ist schmaler als das Band, und die Maus stand danach neben ihr. Jetzt bleibt sie kurz offen, bis du hineinfährst.
+
+### Intern
+- `ClipThumbnails.image` nimmt jetzt auch Datei-Einträge mit gespeichertem Bild an (`public.file-url` + `public.png`, gemessen an Clop). Gelesen wird nur das gespeicherte Bild, nie die Datei (G40). Text mit Bild bleibt eine Textkarte (getestet).
+- `IslandController`: Schrumpft die Insel beim Aufklappen aus dem Band unter der Maus weg, wartet das erste Zuklappen 1,5 s statt 300 ms.
+
 ## [0.15.0] — 2026-10-26
 
 Musik auf dem Schreibtisch, und eine Vorschau für die Zwischenablage.
