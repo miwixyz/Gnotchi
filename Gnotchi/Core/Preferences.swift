@@ -61,6 +61,8 @@ final class Preferences {
         static let clipboardPanelEdge = "clipboardPanelEdge"
         static let clipboardPanelHotKey = "clipboardPanelHotKey"
         /// 0.13.0 Geheimnisse (G43): Schalter, „an seit“, wie viele gespeicherte Geheimnisse schon angeboten wurden.
+        /// 0.14.0: Kürzel klappt zuerst aus der Notch herunter, nochmal → große Ansicht am Rand.
+        static let clipboardNotchFirst = "clipboardNotchFirst"
         static let clipboardSecrets = "clipboardSecrets"
         static let clipboardSecretsSince = "clipboardSecretsSince"
         static let clipboardSecretsOffered = "clipboardSecretsOffered"
@@ -185,7 +187,11 @@ final class Preferences {
     /// Anzahl gespeicherter Geheimnisse beim letzten „Später“/Verschieben – das Angebot kommt erst bei mehr wieder.
     var clipboardSecretsOffered: Int { didSet { defaults.set(clipboardSecretsOffered, forKey: Key.clipboardSecretsOffered) } }
 
-    enum PanelEdge: String, CaseIterable { case right, left, bottom }
+    /// Wo die große Ansicht sitzt. `notch` (0.14.0) ist nur intern die heruntergeklappte Stufe – gespeichert wird
+    /// nur rechts/links/unten; ob zuerst aus der Notch, entscheidet `clipboardNotchFirst` (Michael 26.10.).
+    enum PanelEdge: String, CaseIterable { case right, left, bottom, notch }
+    /// 0.14.0: ⌃< klappt zuerst aus der Notch herunter; nochmal ⌃< oder „Mehr“ → große Ansicht am Rand. Ab Werk an.
+    var clipboardNotchFirst: Bool { didSet { defaults.set(clipboardNotchFirst, forKey: Key.clipboardNotchFirst) } }
 
     /// Tastenkürzel als Carbon-Tastencode + Carbon-Modifikatoren. Gespeichert als zwei Zahlen.
     struct HotKey: Equatable {
@@ -263,7 +269,9 @@ final class Preferences {
         clipboard = defaults.object(forKey: Key.clipboard) as? Bool ?? false
         clipboardExcluded = Self.validExcluded(defaults.object(forKey: Key.clipboardExcluded))
         clipboardPausedUntil = defaults.object(forKey: Key.clipboardPausedUntil) as? Date
-        clipboardPanelEdge = defaults.string(forKey: Key.clipboardPanelEdge).flatMap(PanelEdge.init(rawValue:)) ?? .right
+        clipboardPanelEdge = defaults.string(forKey: Key.clipboardPanelEdge).flatMap(PanelEdge.init(rawValue:))
+            .flatMap { $0 == .notch ? nil : $0 } ?? .right
+        clipboardNotchFirst = defaults.object(forKey: Key.clipboardNotchFirst) as? Bool ?? true
         clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
         clipboardSecrets = defaults.object(forKey: Key.clipboardSecrets) as? Bool ?? true
         clipboardSecretsOffered = max(0, defaults.integer(forKey: Key.clipboardSecretsOffered))

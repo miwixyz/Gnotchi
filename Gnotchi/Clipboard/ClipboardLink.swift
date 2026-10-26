@@ -55,6 +55,11 @@ final class ClipboardLink: NotchPart {
         self.pasteboard = pasteboard
     }
 
+    #if DEBUG
+    /// Nur für Testbilder: einen Speicher im Arbeitsspeicher einsetzen – nie die echte Verlaufsdatei.
+    func attachForRendering(_ store: ClipboardStore) { self.store = store }
+    #endif
+
     // MARK: - NotchPart
 
     func start() {
@@ -302,7 +307,8 @@ final class ClipboardLink: NotchPart {
 
     // MARK: - Pause, Löschen
 
-    var panelEdge: Preferences.PanelEdge { prefs.clipboardPanelEdge }
+    var panelEdge: Preferences.PanelEdge { prefs.clipboardPanelEdge == .notch ? .right : prefs.clipboardPanelEdge }
+    var notchFirst: Bool { prefs.clipboardNotchFirst }
     var isPaused: Bool { prefs.isClipboardPaused }
 
     func pause() { prefs.clipboardPausedUntil = Date().addingTimeInterval(Self.pauseDuration) }

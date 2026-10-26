@@ -26,13 +26,19 @@ extension SettingsView {
                     HotKeyRecorder(hotKey: $prefs.clipboardPanelHotKey)
                         .onChange(of: prefs.clipboardPanelHotKey) { model.applyNotchSetting() }
                 }
-                row("Seitenansicht am Rand") {
+                toggleRow("Zuerst aus der Notch", isOn: $prefs.clipboardNotchFirst)
+                note(prefs.clipboardNotchFirst
+                     ? "Das Kürzel klappt die Zwischenablage aus der Notch herunter. Nochmal drücken oder „Mehr“ öffnet die "
+                       + "große Ansicht am Rand, ein drittes Mal schließt."
+                     : "Das Kürzel öffnet direkt die große Ansicht am Rand.",
+                     symbol: "rectangle.topthird.inset.filled", color: FamilyTheme.textSecondary)
+                row("Große Ansicht") {
                     Picker("", selection: $prefs.clipboardPanelEdge) {
                         Text("Rechts").tag(Preferences.PanelEdge.right)
                         Text("Links").tag(Preferences.PanelEdge.left)
                         Text("Unten").tag(Preferences.PanelEdge.bottom)
                     }
-                    .labelsHidden().pickerStyle(.segmented).frame(width: 200)
+                    .labelsHidden().pickerStyle(.segmented).frame(width: 220)
                 }
                 row("Mitlesen") {
                     if prefs.isClipboardPaused {

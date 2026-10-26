@@ -46,7 +46,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Hat eine meiner anderen Apps ein Update bereit (Tippi, Kalli, Qotti, Seam), steht es in der
   Notch, bis es installiert ist. Ein Klick, und das Update-Fenster ist offen. Dafür braucht jede
   App eine neue Version. Kalli kommt zuerst.
-- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber. Ein Doppelklick in der Liste fügt den Eintrag gleich in deine App ein.
+- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber. Ein Doppelklick in der Liste fügt den Eintrag gleich in deine App ein. Die Liste klappt direkt aus der Notch herunter, und ein kopierter Farbcode erscheint dort als Farbfläche.
 - Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex
   bei 80 und bei 95 Prozent steht. Im Band steht der Stand dauerhaft.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.

@@ -20,21 +20,52 @@ final class ClipboardPanelController {
     init(link: ClipboardLink) { self.link = link }
 
     var isOpen: Bool { panel?.isVisible == true }
+    /// Welche Stufe gerade offen ist (nil = zu).
+    private(set) var openEdge: Preferences.PanelEdge?
 
+    /// Kürzel stufenweise (Michael 26.10.): zu → aus der Notch → große Ansicht am Rand → zu.
+    /// Ohne „Zuerst aus der Notch“: zu ↔ große Ansicht.
     func toggle() {
-        if isOpen { close() } else { open() }
+        switch openEdge {
+        case nil: open()
+        case .notch?: expand()
+        default: close()
+        }
     }
 
-    func open() {
+    /// Vom Herunterklappen in die große Ansicht – Suche und gewählte Sammlung kommen mit.
+    func expand() {
+        guard let link, let state else { return }
+        let query = state.query
+        let collectionID = state.collectionID
+        close()
+        open(link.panelEdge, query: query, collectionID: collectionID)
+    }
+
+    func open(_ requested: Preferences.PanelEdge? = nil, query: String = "", collectionID: UUID? = nil) {
         guard let link, link.store != nil else { return }
-        let edge = link.panelEdge
+        let edge = requested ?? (link.notchFirst ? .notch : link.panelEdge)
         let screen = NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? NSScreen.main
-        guard let area = screen?.visibleFrame else { return }
-        let frame = Self.frame(edge: edge, in: area)
+        guard let screen else { return }
+        let frame: CGRect
+        var topInset: CGFloat = 0
+        if edge == .notch {
+            (frame, topInset) = Self.dropFrame(IslandGeometry.metrics(of: screen))
+        } else {
+            frame = Self.frame(edge: edge, in: screen.visibleFrame)
+        }
         let p = panel ?? makePanel()
         panel = p
+        // Herunterklappen über der Menüleiste, eine Ebene unter der Insel (mainMenu + 3) – beide schwarz an der Notch.
+        p.level = edge == .notch ? NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 2) : .statusBar
+        p.hasShadow = edge != .notch
         let state = ClipboardPanelState(link: link, edge: edge) { [weak self] in self?.close() }
+        state.topInset = topInset
+        state.collectionID = collectionID
+        state.query = query
+        if edge == .notch { state.onExpand = { [weak self] in self?.expand() } }
         self.state = state
+        openEdge = edge
         p.contentView = NSHostingView(rootView: ClipboardPanelView(state: state))
         p.setFrame(frame, display: true)
         p.orderFrontRegardless()
@@ -48,6 +79,7 @@ final class ClipboardPanelController {
         panel?.orderOut(nil)
         panel?.contentView = nil   // Ansicht mit entschlüsselten Vorschauen freigeben
         state = nil
+        openEdge = nil
     }
 
     /// Tasten VOR dem Suchfeld abfangen (24.10. gemessen: im Suchfeld kamen ↑/↓/↵ nie bei der Liste an).
@@ -76,9 +108,23 @@ final class ClipboardPanelController {
                           height: area.height - 2 * inset)
         case .left:
             return CGRect(x: area.minX + inset, y: area.minY + inset, width: sideWidth, height: area.height - 2 * inset)
-        case .bottom:
+        case .bottom, .notch:
             return CGRect(x: area.minX + inset, y: area.minY + inset, width: area.width - 2 * inset, height: bottomHeight)
         }
+    }
+
+    nonisolated static let dropSize = CGSize(width: 680, height: 230)
+
+    /// Herunterklappen (0.14.0): oben bündig am Bildschirmrand, mittig unter der Notch bzw. Pille, um die Höhe der
+    /// Notch/Menüleiste länger (der Inhalt beginnt darunter). Schmale Bildschirme: Breite gekürzt.
+    nonisolated static func dropFrame(_ m: IslandGeometry.ScreenMetrics) -> (frame: CGRect, topInset: CGFloat) {
+        let layout = IslandGeometry.layout(for: m)
+        let topInset = layout.notch?.height ?? max(m.menuBarHeight, IslandGeometry.pillSize.height)
+        let midX = layout.notch?.midX ?? m.frame.midX
+        let width = min(dropSize.width, m.frame.width - 16)
+        let height = dropSize.height + topInset
+        let x = min(max(midX - width / 2, m.frame.minX + 8), m.frame.maxX - 8 - width)
+        return (CGRect(x: x, y: m.frame.maxY - height, width: width, height: height), topInset)
     }
 
     private func makePanel() -> KeyPanel {
@@ -94,7 +140,12 @@ final class ClipboardPanelController {
         p.onEscape = { [weak self] in self?.close() }
         resignObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: p,
                                                                 queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.close() }
+            // Kommt verspätet (Warteschlange). Ist das Fenster inzwischen wieder Schlüsselfenster – etwa nach
+            // „Mehr“ – gehört der Fokusverlust zur alten Stufe: nicht schließen.
+            MainActor.assumeIsolated {
+                guard let self, self.panel?.isKeyWindow != true else { return }
+                self.close()
+            }
         }
         return p
     }
@@ -121,6 +172,25 @@ final class ClipboardPanelState {
     var collectionID: UUID? { didSet { selection = 0 } }
     var selection = 0
     var message: String?
+    /// Herunterklappen: Höhe der Notch bzw. Menüleiste über dem Inhalt (0 an den Rändern).
+    var topInset: CGFloat = 0
+    /// Herunterklappen: „Mehr“ → große Ansicht am Rand (nil an den Rändern).
+    @ObservationIgnored var onExpand: (() -> Void)?
+    @ObservationIgnored private var mouseWasInside = false
+    @ObservationIgnored private var leaveTask: Task<Void, Never>?
+
+    /// Herunterklappen: Maus raus schließt – aber nur, wenn sie vorher drin war (sonst ginge es nach dem Öffnen per
+    /// Tastatur sofort zu) und nicht, solange ein Menü offen ist.
+    func hover(_ inside: Bool) {
+        leaveTask?.cancel()
+        if inside { mouseWasInside = true; return }
+        guard mouseWasInside else { return }
+        leaveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled, let self, RunLoop.main.currentMode != .eventTracking else { return }
+            self.onClose()
+        }
+    }
 
     init(link: ClipboardLink, edge: Preferences.PanelEdge, onClose: @escaping () -> Void) {
         self.link = link
@@ -141,8 +211,8 @@ final class ClipboardPanelState {
         switch keyCode {
         case 125: move(1)                                        // ↓
         case 126: move(-1)                                       // ↑
-        case 124 where edge == .bottom: move(1)                  // →
-        case 123 where edge == .bottom: move(-1)                 // ←
+        case 124 where edge == .bottom || edge == .notch: move(1)    // →
+        case 123 where edge == .bottom || edge == .notch: move(-1)   // ←
         case 36, 76: pick(at: selection, plain: shift)           // ↵, Enter (Ziffernblock)
         case 53: onClose()                                       // Esc
         default:
@@ -194,14 +264,18 @@ final class ClipboardPanelState {
 
 struct ClipboardPanelView: View {
     @Bindable var state: ClipboardPanelState
-    @FocusState private var searchFocused: Bool
+    @FocusState var searchFocused: Bool
 
-    private var link: ClipboardLink { state.link }
-    private var edge: Preferences.PanelEdge { state.edge }
-    private var store: ClipboardStore? { state.store }
+    var link: ClipboardLink { state.link }
+    var edge: Preferences.PanelEdge { state.edge }
+    var store: ClipboardStore? { state.store }
     private var collection: ClipCollection? { state.collection }
 
     var body: some View {
+        if edge == .notch { dropBody } else { sideBody }
+    }
+
+    private var sideBody: some View {
         VStack(spacing: 10) {
             header
             if link.secretsToOffer > 0 { secretOffer(link.secretsToOffer) }
@@ -228,7 +302,7 @@ struct ClipboardPanelView: View {
         .onAppear { searchFocused = true }
     }
 
-    private var header: some View {
+    var header: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
             TextField("Suchen", text: $state.query)
@@ -356,7 +430,7 @@ struct ClipboardPanelView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    @ViewBuilder private func menu(for entry: ClipEntry) -> some View {
+    @ViewBuilder func menu(for entry: ClipEntry) -> some View {
         if entry.isVault {
             if link.canPaste { Button("Einfügen (Touch ID)") { state.pick(entry, plain: true) } }
             Button("Kopieren (Touch ID)") { state.pick(entry, plain: true, paste: false) }
@@ -408,7 +482,7 @@ struct ClipboardPanelView: View {
         (entry.collections ?? []).contains(where: \.isPinned)
     }
 
-    private func drop(_ ids: [String], on collection: ClipCollection) -> Bool {
+    func drop(_ ids: [String], on collection: ClipCollection) -> Bool {
         guard let store else { return false }
         let all = store.entries() + store.collections().flatMap { $0.entries ?? [] }
         var moved = false
@@ -446,204 +520,17 @@ struct ClipboardPanelView: View {
         try? store?.setTitle(entry, title)
     }
 
-    private func newCollection(vault: Bool) {
+    func newCollection(vault: Bool) {
         guard let name = ClipboardPrompts.text(title: vault ? "Neuer Tresor" : "Neue Sammlung", message: "", value: ""),
               !name.isEmpty else { return }
         _ = try? store?.createCollection(name: name, color: vault ? .red : .blue,
                                          symbol: vault ? "lock.fill" : "folder", isVault: vault)
     }
 
-    private func deleteCollection(_ c: ClipCollection) {
+    func deleteCollection(_ c: ClipCollection) {
         let note = c.isVault ? "Die Einträge im Tresor werden mit gelöscht." : "Die Einträge bleiben im Verlauf."
         guard ClipboardPrompts.confirm(title: "„\(c.name)“ löschen?", message: note) else { return }
         if state.collectionID == c.id { state.collectionID = nil }
         try? store?.deleteCollection(c)
-    }
-}
-
-// MARK: - Karte
-
-struct ClipCard: View {
-    let link: ClipboardLink
-    let entry: ClipEntry
-    let number: Int?
-    let selected: Bool
-    let compactWidth: Bool
-
-    var body: some View {
-        let store = link.store
-        let payload = store?.payload(entry)
-        let secret = store?.secretKind(entry)
-        let title = store?.title(entry) ?? secret
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                if secret != nil {
-                    Image(systemName: "key.fill").font(.system(size: 11)).foregroundStyle(.orange)
-                } else if let source = entry.sourceBundleID {
-                    AppSymbol(bundleID: source, size: 16)
-                } else {
-                    Image(systemName: entry.isVault ? "lock.fill" : "doc.on.clipboard").font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                if let title { Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1) }
-                Spacer(minLength: 0)
-                Text(entry.lastUsedAt, format: .relative(presentation: .named))
-                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
-                if let number { Text(verbatim: "⌘\(number)").font(.system(size: 10)).foregroundStyle(.tertiary) }
-            }
-            preview(payload)
-            if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
-        }
-        .padding(10)
-        .frame(width: compactWidth ? 220 : nil, alignment: .leading)
-        .frame(maxWidth: compactWidth ? 220 : .infinity, minHeight: 54, maxHeight: compactWidth ? .infinity : 180,
-               alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.white.opacity(selected ? 0.16 : 0.07)))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color.accentColor.opacity(selected ? 0.9 : 0), lineWidth: 1.5))
-        .contentShape(RoundedRectangle(cornerRadius: 12))
-        .modifier(DragOut(entry: entry, payload: payload, concealed: store?.isConcealed(entry) ?? true))
-    }
-
-    @ViewBuilder private func preview(_ payload: ClipPayload?) -> some View {
-        if link.store?.isConcealed(entry) ?? true {
-            Text(verbatim: "••••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(.secondary)
-        } else if let payload {
-            switch entry.kind {
-            case .image:
-                if let image = ClipThumbnails.image(for: entry, payload: payload) {
-                    Image(nsImage: image).resizable().scaledToFit()
-                        .frame(maxHeight: 120).clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-            case .file:
-                Label(payload.plain, systemImage: "doc").font(.system(size: 12)).lineLimit(2)
-            case .link:
-                Label(payload.plain, systemImage: "link").font(.system(size: 12)).lineLimit(2)
-                    .foregroundStyle(.blue)
-            case .text, .richText:
-                Text(verbatim: String(payload.plain.prefix(400)))
-                    .font(.system(size: 12)).lineLimit(compactWidth ? 8 : 5)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-    }
-}
-
-/// Rausziehen in andere Apps (G40): gespeicherte Formate, nie Tresor-Einträge. Innerhalb der Ansicht trägt der Zug
-/// die Kennung (für das Ablegen auf einem Sammlungs-Reiter).
-private struct DragOut: ViewModifier {
-    let entry: ClipEntry
-    let payload: ClipPayload?
-    /// Tresor oder erkanntes Geheimnis (G43): nie Inhalt nach außen.
-    let concealed: Bool
-
-    func body(content: Content) -> some View {
-        if entry.isVault || payload == nil {
-            content
-        } else if concealed {
-            // Erkanntes Geheimnis: nur die Kennung, nur im eigenen Prozess – zum Ablegen auf dem Tresor-Reiter.
-            content.onDrag {
-                let provider = NSItemProvider()
-                provider.registerObject(entry.id.uuidString as NSString, visibility: .ownProcess)
-                return provider
-            }
-        } else {
-            content.onDrag {
-                let provider = NSItemProvider()
-                provider.registerObject(entry.id.uuidString as NSString, visibility: .ownProcess)
-                for format in payload?.formats ?? [] where format.type != ClipboardCapture.UTI.fileURL {
-                    let data = format.data
-                    provider.registerDataRepresentation(forTypeIdentifier: format.type, visibility: .all) { done in
-                        done(data, nil)
-                        return nil
-                    }
-                }
-                if let file = payload?.formats.first(where: { $0.type == ClipboardCapture.UTI.fileURL }),
-                   let url = String(bytes: file.data, encoding: .utf8).flatMap(URL.init(string:)), url.isFileURL,
-                   FileManager.default.fileExists(atPath: url.path) {
-                    provider.registerObject(url as NSURL, visibility: .all)
-                }
-                return provider
-            }
-        }
-    }
-}
-
-/// Vorschaubilder nur verkleinert, im Speicher, nur aus den erlaubten Bildformaten (G40).
-@MainActor
-enum ClipThumbnails {
-    private static let cache = NSCache<NSUUID, NSImage>()
-
-    static func image(for entry: ClipEntry, payload: ClipPayload) -> NSImage? {
-        if let hit = cache.object(forKey: entry.id as NSUUID) { return hit }
-        guard let data = payload.formats.first(where: { ClipboardCapture.imageTypes.contains($0.type) })?.data,
-              let source = CGImageSourceCreateWithData(data as CFData, nil),
-              let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceThumbnailMaxPixelSize: 480,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-              ] as CFDictionary) else { return nil }
-        let image = NSImage(cgImage: cg, size: NSSize(width: cg.width / 2, height: cg.height / 2))
-        cache.setObject(image, forKey: entry.id as NSUUID)
-        return image
-    }
-}
-
-/// Kleine Rückfragen (Titel, Name, Bestätigung) als Systemdialog.
-@MainActor
-enum ClipboardPrompts {
-    static func text(title: String, message: String, value: String) -> String? {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
-        field.stringValue = value
-        alert.accessoryView = field
-        alert.addButton(withTitle: "OK")
-        alert.addButton(withTitle: "Abbrechen")
-        alert.window.initialFirstResponder = field
-        NSApp.activate()
-        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
-        return field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    static func confirm(title: String, message: String) -> Bool {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.addButton(withTitle: "Löschen")
-        alert.addButton(withTitle: "Abbrechen")
-        NSApp.activate()
-        return alert.runModal() == .alertFirstButtonReturn
-    }
-}
-
-extension ClipColor {
-    var swiftUI: Color {
-        switch self {
-        case .red: .red
-        case .orange: .orange
-        case .yellow: .yellow
-        case .green: .green
-        case .teal: .teal
-        case .blue: .blue
-        case .indigo: .indigo
-        case .purple: .purple
-        case .pink: .pink
-        case .gray: .gray
-        }
-    }
-}
-
-/// Restzeit eines erkannten Geheimnisses (G43), alle 15 s neu gezeichnet. Gelöscht wird im `ClipboardLink`, nicht hier.
-private struct SecretCountdown: View {
-    let expiry: Date
-
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 15)) { context in
-            let minutes = max(0, Int((expiry.timeIntervalSince(context.date) / 60).rounded(.up)))
-            Text(minutes <= 1 ? "Wird gleich gelöscht" : "Noch \(minutes) Min., dann gelöscht")
-                .font(.system(size: 10)).foregroundStyle(.orange)
-        }
     }
 }

@@ -882,6 +882,12 @@ nur aus Klicks (G29, G30).
 - **Rausziehen:** schreibt die gespeicherten Formate ins Zieh-Pasteboard; Datei-Verweise nur, wenn die Datei noch
   existiert (wie G32). Tresor: nie (G39).
 - **„Als reiner Text“** schreibt nur `public.utf8-plain-text`.
+- **Ergänzt 0.14.0 (Kartenbild, Herunterklappen):** Oberflächen-Check (`rafter-secure-design`): keine neue Fläche –
+  kein Netz, keine Berechtigung, kein Prozess, keine Datenhaltung. Links: Domain/Pfad nur aus dem Text
+  (`URL.host()`), nichts geladen. Farbcode: Fremdtext ≤ 64 Zeichen, verankerte einfache Muster (`ColorCode`,
+  getestet). Datei-Karte: `NSWorkspace.icon(forFile:)` nur, wenn die Datei existiert (wie G32). Das Herunterklappen
+  ist dasselbe `KeyPanel` (`sharingType = .none`), Tresor/Geheimnis bleiben verdeckt, Ziehen bei Geheimnissen nur
+  prozessintern (G43), Stern/Papierkorb rufen dieselben Speicherfunktionen wie das Kontextmenü.
 
 ### G41 – PastePal-Import: strikt, begrenzt, danach Papierkorb (neu, 2026-10-24, 0.11.0)
 - Datei nur über `NSOpenPanel` (Michaels Auswahl), nie automatisch gesucht. Größe ≤ 50 MB vor dem Lesen.

@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.14.0] — 2026-10-26
+
+Die Zwischenablage klappt jetzt aus der Notch herunter, und jede Karte zeigt ihren Inhalt so, wie er ist.
+
+### Neu
+- **Aus der Notch.** ⌃< klappt die Zwischenablage direkt aus der Notch herunter, auf Bildschirmen ohne Notch aus der Pille oben. Oben stehen die Suche und deine Sammlungen als Knöpfe mit Name und Anzahl, darunter eine Reihe Karten, getrennt nach „Heute“, „Gestern“ und älteren Tagen. ←/→ wählt, Doppelklick oder ↵ fügt ein. Fährt die Maus hinaus, klappt die Ansicht wieder zu.
+- **Mehr Platz auf Wunsch.** Drückst du ⌃< nochmal oder klickst auf „Mehr“, öffnet sich die große Ansicht am Rand, mit derselben Suche und Sammlung. Ein drittes Mal schließt. Wer lieber gleich am Rand startet, schaltet unter Einstellungen → Zwischenablage „Zuerst aus der Notch“ aus.
+- **Karten je Inhalt.** Ein kopierter Farbcode wie `#E50914` oder `rgb(…)` erscheint als Farbfläche mit Hex-Wert. Bilder füllen die Karte, Links zeigen die Domain groß und den Pfad klein, Dateien ihr Symbol. Schlüssel und Tresor-Einträge bleiben verdeckt. Auch die große Ansicht zeigt Farbfelder und Domains.
+- **Stern und Papierkorb.** Fährst du über eine Karte, kannst du sie direkt anheften oder löschen.
+
+### Gut zu wissen
+- Links lädt Gnotchi nicht. Es gibt keine Vorschaubilder von Webseiten, die Domain steht nur als Text da.
+- Eine Vorschau per Leertaste kommt in einer späteren Version.
+
+### Intern
+- `ColorCode` (nur ganze Kopie, höchstens 64 Zeichen, verankerte einfache Muster), `ClipDays` (Tagestrenner, getestet über die Zeitumstellung), `ClipTile`. Das Herunterklappen ist ein eigenes, nicht aktivierendes Fenster eine Ebene unter der Insel, oben bündig mit Notch bzw. Menüleiste, nicht in Bildschirmfreigaben. Die verspätete Fokusverlust-Meldung schließt beim Wechsel zur großen Ansicht nicht mehr das neue Fenster. Testbilder mit erfundenen Einträgen (`ClipboardRenderTests`). Keine neue Berechtigung, kein Netz.
+
 ## [0.13.0] — 2026-10-26
 
 Kopierte Schlüssel stehen nicht mehr lesbar im Verlauf.
