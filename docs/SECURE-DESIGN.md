@@ -1014,6 +1014,10 @@ nur aus Klicks (G29, G30).
 - **Klick aufs Cover:** `NSRunningApplication.runningApplications(withBundleIdentifier:).first?.activate()` – holt
   nur eine **schon laufende** App nach vorne, startet nie etwas. Die Kennung stammt aus dem Medienstrom
   (Fremddaten); ein falscher Wert kann damit höchstens eine laufende App mit dieser Kennung aktivieren.
+- **Prüfung 0.15.0 (26.10.):** `rafter secrets .` ohne Fund, `rafter run` Scan `1ce84483` auf `6015fe5`: keine
+  Befunde. ZIP Build 148: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen, keine Testhilfen im
+  Release-Programm. An der App gemessen: Fenster auf Ebene Schreibtisch-Symbole + 1. Sichttest Michael ✓
+  (Vorschau, Verschieben bis Dock-Höhe, Knöpfe unten).
 - **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).
