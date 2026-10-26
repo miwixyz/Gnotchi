@@ -96,7 +96,7 @@ Von Claude Code erfährt Gnotchi nur, in welchem Projekt gerade gearbeitet wird,
 und wie die Antwort anfängt. Deine Eingaben und deine Dateien sieht es nicht. Erlauben oder ablehnen
 kann Gnotchi nichts, das bleibt bei dir in der Sitzung.
 
-Den Verlauf der Zwischenablage speichert Gnotchi nur verschlüsselt, und den Schlüssel bekommt keine andere App. Kopien aus Passwort-Apps landen gar nicht erst darin. Den Tresor öffnet nur dein Finger oder dein Passwort. Der Verlauf bleibt auf deinem Mac.
+Den Verlauf der Zwischenablage speichert Gnotchi nur verschlüsselt, und den Schlüssel bekommt keine andere App. Kopien aus Passwort-Apps landen gar nicht erst darin. Kopierst du einen API-Schlüssel, zeigt Gnotchi ihn nur als Punkte und löscht ihn nach fünf Minuten wieder. Den Tresor öffnet nur dein Finger oder dein Passwort. Der Verlauf bleibt auf deinem Mac.
 
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 

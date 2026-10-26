@@ -11,7 +11,8 @@ extension SettingsView {
                 .onChange(of: prefs.clipboard) { model.applyNotchSetting() }
             if !prefs.clipboard {
                 note("Gnotchi merkt sich, was du kopierst – verschlüsselt, 30 Tage, höchstens 1 000 Einträge; Angeheftetes "
-                     + "und Sammlungen bleiben. Kopien aus Passwort-Apps nie. Einfügen machst du selbst mit ⌘V.",
+                     + "und Sammlungen bleiben. Kopien aus Passwort-Apps nie. Doppelklick fügt ein, wenn „Mitteilungen in der Notch“ an "
+                     + "ist, sonst kopiert er und du drückst ⌘V.",
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
             } else {
                 if let problem = link?.startProblem {
@@ -40,6 +41,15 @@ extension SettingsView {
                         Button("30 Min. pausieren") { link?.pause() }
                     }
                 }
+                // 0.13.0 (G43): ab Werk an.
+                toggleRow("Schlüssel und Tokens erkennen", isOn: $prefs.clipboardSecrets)
+                    .onChange(of: prefs.clipboardSecrets) { model.applyNotchSetting() }
+                note(prefs.clipboardSecrets
+                     ? "API-Schlüssel, Tokens und private Schlüssel erscheinen nur als ••••, gehen nicht in die Notch und sind "
+                       + "5 Minuten nach der letzten Nutzung weg – samt Zwischenablage. In Sammlungen wird nichts gelöscht."
+                     : "Aus: Kopierte Schlüssel landen lesbar im Verlauf und bleiben bis zu 30 Tage.",
+                     symbol: prefs.clipboardSecrets ? "key" : "exclamationmark.triangle",
+                     color: prefs.clipboardSecrets ? FamilyTheme.textSecondary : .orange)
                 note("Reagiert das Kürzel nicht, belegt es eine andere App (z. B. PastePal) – dann ein anderes wählen.",
                      symbol: "keyboard", color: FamilyTheme.textSecondary)
             }

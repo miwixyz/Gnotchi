@@ -60,6 +60,10 @@ final class Preferences {
         static let clipboardPausedUntil = "clipboardPausedUntil"
         static let clipboardPanelEdge = "clipboardPanelEdge"
         static let clipboardPanelHotKey = "clipboardPanelHotKey"
+        /// 0.13.0 Geheimnisse (G43): Schalter, „an seit“, wie viele gespeicherte Geheimnisse schon angeboten wurden.
+        static let clipboardSecrets = "clipboardSecrets"
+        static let clipboardSecretsSince = "clipboardSecretsSince"
+        static let clipboardSecretsOffered = "clipboardSecretsOffered"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -169,6 +173,18 @@ final class Preferences {
         didSet { defaults.set(clipboardPanelHotKey?.stored, forKey: Key.clipboardPanelHotKey) }
     }
 
+    /// 0.13.0 (G43): Schlüssel und Tokens erkennen, verdecken, lose nach 5 Min. löschen. Ab Werk **an** – speichert
+    /// nur weniger, gibt nichts preis (Michael 26.10.). Einschalten setzt „an seit“ neu (Altbestand: volle 5 Min.).
+    var clipboardSecrets: Bool {
+        didSet {
+            defaults.set(clipboardSecrets, forKey: Key.clipboardSecrets)
+            if clipboardSecrets != oldValue { clipboardSecretsSince = clipboardSecrets ? Date() : nil }
+        }
+    }
+    var clipboardSecretsSince: Date? { didSet { defaults.set(clipboardSecretsSince, forKey: Key.clipboardSecretsSince) } }
+    /// Anzahl gespeicherter Geheimnisse beim letzten „Später“/Verschieben – das Angebot kommt erst bei mehr wieder.
+    var clipboardSecretsOffered: Int { didSet { defaults.set(clipboardSecretsOffered, forKey: Key.clipboardSecretsOffered) } }
+
     enum PanelEdge: String, CaseIterable { case right, left, bottom }
 
     /// Tastenkürzel als Carbon-Tastencode + Carbon-Modifikatoren. Gespeichert als zwei Zahlen.
@@ -249,6 +265,13 @@ final class Preferences {
         clipboardPausedUntil = defaults.object(forKey: Key.clipboardPausedUntil) as? Date
         clipboardPanelEdge = defaults.string(forKey: Key.clipboardPanelEdge).flatMap(PanelEdge.init(rawValue:)) ?? .right
         clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
+        clipboardSecrets = defaults.object(forKey: Key.clipboardSecrets) as? Bool ?? true
+        clipboardSecretsOffered = max(0, defaults.integer(forKey: Key.clipboardSecretsOffered))
+        // Erster Start mit 0.13.0 (oder Wert fehlt): ab jetzt zählen, nie rückwirkend sofort löschen.
+        let since = defaults.object(forKey: Key.clipboardSecretsSince) as? Date
+        clipboardSecretsSince = clipboardSecrets ? min(since ?? Date(), Date()) : nil
+        // didSet läuft in init nicht – sonst bekäme jeder Neustart wieder volle 5 Minuten.
+        defaults.set(clipboardSecretsSince, forKey: Key.clipboardSecretsSince)
     }
 
     /// Gespeicherter Ort nur mit gültigen Werten (per `defaults write` gesetzt → verworfen).

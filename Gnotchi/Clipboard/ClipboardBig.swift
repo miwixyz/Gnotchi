@@ -12,8 +12,9 @@ struct ClipboardBig: View {
 
     private var items: [ClipEntry] {
         guard let store = link.store else { return [] }
-        let pinned = store.pinned.map { store.entries(in: $0) } ?? []
-        let recent = store.entries().filter { e in !pinned.contains { $0.id == e.id } }
+        // Erkannte Geheimnisse nie in der Notch (G43), wie Tresor-Einträge.
+        let pinned = (store.pinned.map { store.entries(in: $0) } ?? []).filter { !store.isConcealed($0) }
+        let recent = store.entries().filter { e in !store.isConcealed(e) && !pinned.contains { $0.id == e.id } }
         return Array((pinned + recent).prefix(Self.limit))
     }
 

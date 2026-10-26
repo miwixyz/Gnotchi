@@ -204,6 +204,7 @@ struct ClipboardPanelView: View {
     var body: some View {
         VStack(spacing: 10) {
             header
+            if link.secretsToOffer > 0 { secretOffer(link.secretsToOffer) }
             title
             if state.entries.isEmpty {
                 Spacer()
@@ -246,6 +247,28 @@ struct ClipboardPanelView: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.white.opacity(0.08)))
+    }
+
+    /// Einmaliges Angebot (G43): offen gespeicherte Schlüssel in den Tresor. Nur Anzahl, nie Inhalt oder Art.
+    private func secretOffer(_ count: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(count == 1 ? "In deinen Sammlungen liegt 1 Schlüssel offen."
+                             : "In deinen Sammlungen liegen \(count) Schlüssel offen.", systemImage: "key.fill")
+                .font(.system(size: 12, weight: .semibold))
+            HStack(spacing: 8) {
+                Button("Alle in den Tresor") {
+                    link.moveSavedSecretsToVault { moved in
+                        state.message = moved.map { String(localized: "\($0) in den Tresor verschoben.") }
+                            ?? String(localized: "Tresor nicht entsperrt.")
+                    }
+                }
+                Button("Später") { link.dismissSecretOffer() }
+            }
+            .font(.system(size: 11)).buttonStyle(.borderless)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.orange.opacity(0.15)))
     }
 
     /// Name der offenen Sammlung als Überschrift (Michael, 26.10.: Symbole allein schwer erkennbar, Namen in den
@@ -337,6 +360,11 @@ struct ClipboardPanelView: View {
         if entry.isVault {
             if link.canPaste { Button("Einfügen (Touch ID)") { state.pick(entry, plain: true) } }
             Button("Kopieren (Touch ID)") { state.pick(entry, plain: true, paste: false) }
+        } else if store?.secretKind(entry) != nil {
+            // Erkanntes Geheimnis (G43): kein Anheften, keine normale Sammlung – nur Tresor oder weg.
+            if link.canPaste { Button("Einfügen") { state.pick(entry, plain: true) } }
+            Button("Kopieren") { state.pick(entry, plain: true, paste: false) }
+            vaultMenu(for: entry)
         } else {
             if link.canPaste { Button("Einfügen") { state.pick(entry, plain: false) } }
             Button("Kopieren") { state.pick(entry, plain: false, paste: false) }
@@ -347,11 +375,7 @@ struct ClipboardPanelView: View {
                     Button(c.name) { try? store?.add(entry, to: c) }
                 }
             }
-            Menu("In Tresor") {
-                ForEach((store?.collections() ?? []).filter(\.isVault), id: \.id) { c in
-                    Button(c.name) { moveToVault(entry, c) }
-                }
-            }
+            vaultMenu(for: entry)
         }
         Button("Titel …") { askTitle(entry) }
         if let collection, !entry.isVault {
@@ -359,6 +383,23 @@ struct ClipboardPanelView: View {
         }
         Divider()
         Button("Löschen", role: .destructive) { store?.delete(entry) }
+    }
+
+    /// „In Tresor“: vorhandene Tresore, sonst einen anlegen (G43: erkannte Geheimnisse gehören dorthin).
+    @ViewBuilder private func vaultMenu(for entry: ClipEntry) -> some View {
+        let vaults = (store?.collections() ?? []).filter(\.isVault)
+        if vaults.isEmpty {
+            Button("In neuen Tresor verschieben …") {
+                if let vault = try? store?.createCollection(name: String(localized: "Tresor"), color: .red,
+                                                             symbol: "lock.fill", isVault: true) {
+                    moveToVault(entry, vault)
+                }
+            }
+        } else {
+            Menu("In Tresor") {
+                ForEach(vaults, id: \.id) { c in Button(c.name) { moveToVault(entry, c) } }
+            }
+        }
     }
 
     // MARK: Aktionen
@@ -375,8 +416,10 @@ struct ClipboardPanelView: View {
             guard let entry = all.first(where: { $0.id.uuidString == id }) else { continue }
             if collection.isVault {
                 moveToVault(entry, collection)
-            } else {
+            } else if store.secretKind(entry) == nil {
                 try? store.add(entry, to: collection)
+            } else {
+                continue   // Geheimnis nur in den Tresor (G43)
             }
             moved = true
         }
@@ -385,7 +428,7 @@ struct ClipboardPanelView: View {
 
     private func moveToVault(_ entry: ClipEntry, _ collection: ClipCollection) {
         guard !entry.isVault else { return }
-        let suggested = store?.title(entry) ?? VaultTitles.suggest(store?.payload(entry)?.plain ?? "")
+        let suggested = store?.title(entry) ?? store?.secretKind(entry) ?? VaultTitles.suggest(store?.payload(entry)?.plain ?? "")
         guard let title = ClipboardPrompts.text(title: "Titel im Tresor", message: "Ohne Titel findest du den Eintrag nicht wieder.",
                                                 value: suggested), !title.isEmpty else { return }
         link.unlockVault { key in
@@ -430,10 +473,13 @@ struct ClipCard: View {
     var body: some View {
         let store = link.store
         let payload = store?.payload(entry)
-        let title = store?.title(entry)
+        let secret = store?.secretKind(entry)
+        let title = store?.title(entry) ?? secret
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                if let source = entry.sourceBundleID {
+                if secret != nil {
+                    Image(systemName: "key.fill").font(.system(size: 11)).foregroundStyle(.orange)
+                } else if let source = entry.sourceBundleID {
                     AppSymbol(bundleID: source, size: 16)
                 } else {
                     Image(systemName: entry.isVault ? "lock.fill" : "doc.on.clipboard").font(.system(size: 11))
@@ -446,6 +492,7 @@ struct ClipCard: View {
                 if let number { Text(verbatim: "⌘\(number)").font(.system(size: 10)).foregroundStyle(.tertiary) }
             }
             preview(payload)
+            if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
         }
         .padding(10)
         .frame(width: compactWidth ? 220 : nil, alignment: .leading)
@@ -455,11 +502,11 @@ struct ClipCard: View {
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
             .stroke(Color.accentColor.opacity(selected ? 0.9 : 0), lineWidth: 1.5))
         .contentShape(RoundedRectangle(cornerRadius: 12))
-        .modifier(DragOut(entry: entry, payload: payload))
+        .modifier(DragOut(entry: entry, payload: payload, concealed: store?.isConcealed(entry) ?? true))
     }
 
     @ViewBuilder private func preview(_ payload: ClipPayload?) -> some View {
-        if entry.isVault {
+        if link.store?.isConcealed(entry) ?? true {
             Text(verbatim: "••••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(.secondary)
         } else if let payload {
             switch entry.kind {
@@ -487,10 +534,19 @@ struct ClipCard: View {
 private struct DragOut: ViewModifier {
     let entry: ClipEntry
     let payload: ClipPayload?
+    /// Tresor oder erkanntes Geheimnis (G43): nie Inhalt nach außen.
+    let concealed: Bool
 
     func body(content: Content) -> some View {
         if entry.isVault || payload == nil {
             content
+        } else if concealed {
+            // Erkanntes Geheimnis: nur die Kennung, nur im eigenen Prozess – zum Ablegen auf dem Tresor-Reiter.
+            content.onDrag {
+                let provider = NSItemProvider()
+                provider.registerObject(entry.id.uuidString as NSString, visibility: .ownProcess)
+                return provider
+            }
         } else {
             content.onDrag {
                 let provider = NSItemProvider()
@@ -575,6 +631,19 @@ extension ClipColor {
         case .purple: .purple
         case .pink: .pink
         case .gray: .gray
+        }
+    }
+}
+
+/// Restzeit eines erkannten Geheimnisses (G43), alle 15 s neu gezeichnet. Gelöscht wird im `ClipboardLink`, nicht hier.
+private struct SecretCountdown: View {
+    let expiry: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 15)) { context in
+            let minutes = max(0, Int((expiry.timeIntervalSince(context.date) / 60).rounded(.up)))
+            Text(minutes <= 1 ? "Wird gleich gelöscht" : "Noch \(minutes) Min., dann gelöscht")
+                .font(.system(size: 10)).foregroundStyle(.orange)
         }
     }
 }

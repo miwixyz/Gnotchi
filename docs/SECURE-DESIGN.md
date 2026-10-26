@@ -49,6 +49,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G40 | – (neu, 0.11.0) | Anzeige und Rausgabe: nur reiner Text bzw. Vorschaubild, nichts rendern oder laden, nicht in Bildschirmfreigabe |
 | G41 | – (neu, 0.11.0) | PastePal-Import: nur per Auswahl, strikt dekodiert, Grenzen, Werte nie sichtbar, danach Papierkorb |
 | G42 | – (neu, 0.12.0) | Einfügen: Hilfsprogramm drückt nur ⌘V, ohne Inhalt, nur nach Doppelklick/↵, ohne Hilfsprogramm nur kopieren |
+| G43 | – (neu, 0.13.0) | Geheimnisse erkennen: feste Muster, ganze Kopie, verdeckt, lose Einträge nach 5 Min. weg, Sammlungen nie automatisch |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -944,6 +945,47 @@ nur aus Klicks (G29, G30).
   Freigabe ging verloren (Protokoll: kein Befehl beim Hilfsprogramm). Jetzt hängt es an `ClipboardLink`; nachgeprüft
   12:57 (ein Doppelklick, „Einfügen“ im Protokoll). `rafter run` Scan `2eb095c6` auf `1e6dd31`: keine Befunde.
   Ausgeliefertes ZIP (Build 139) geprüft: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen.
+
+### G43 – Geheimnisse erkennen: verdeckt, kurz, nie Gespeichertes löschen (neu, 2026-10-26, 0.13.0)
+- **Anlass und Entscheidungen:** `specs/2026-10-26-gnotchi-0.13.0-geheimnisse.md` (Michael per `/grill-me`). Lücke:
+  Schlüssel aus Terminal, Textdatei oder Web-Konsole tragen kein `ConcealedType` (G37) und lagen offen im
+  30-Tage-Verlauf.
+- **Einordnung:** Zugangsdaten. Aufbewahrung so kurz wie vertretbar: **5 Minuten nach der letzten Nutzung**
+  (Kopieren/Einfügen aus Gnotchi zählt als Nutzung). Für Altbestand und nach dem Wiedereinschalten zählt frühestens
+  der Zeitpunkt des Einschaltens (`clipboardSecretsSince`), damit nichts ohne Vorwarnung sofort verschwindet.
+- **Erkennung (`SecretDetector`, rein, getestet):** nur feste Muster mit eindeutiger Vorsilbe/Struktur, verankert
+  `^…$`, angewandt auf die **ganze** Kopie nach Trimmen von Leerraum. Eingebettete Schlüssel in längerem Text bleiben
+  normal (Fehlalarm würde einen bewusst kopierten Text verdecken und löschen). Keine Entropie-Schätzung. Nur reiner
+  Text, höchstens 8 KB (PEM-Schlüssel bis RSA-4096 passen). Muster ohne verschachtelte Quantoren (kein ReDoS), Test
+  mit langen Eingaben. Ergebnis wird **nicht gespeichert**, sondern aus dem entschlüsselten Inhalt im Arbeitsspeicher
+  berechnet: kein neues Datenbankfeld, keine Migration, nichts Zusätzliches für den späteren iCloud-Abgleich.
+- **Löschen – Umfang hart begrenzt:** automatisch gelöscht werden **nur** Einträge, die (a) erkannt sind, (b) in
+  keiner Sammlung stecken (auch nicht „Angeheftet“), (c) nicht im Tresor liegen, (d) abgelaufen sind. Bewusst
+  Gespeichertes wird nie automatisch gelöscht, nur verdeckt und einmal zum Verschieben in den Tresor angeboten.
+  Missbrauchsfall: Eine fremde App legt eine passende Zeichenkette in die Zwischenablage → Gnotchi verdeckt diesen
+  einen neuen Eintrag und löscht ihn nach 5 Min. Damit lässt sich nichts anderes löschen.
+- **Gelöscht heißt:** Datensatz aus SwiftData und aus den Speicher-Caches (`payloads`, `titles`). Restrisiko,
+  bewusst getragen: SQLite kann freie Seiten bis zum nächsten Aufräumen behalten. Der Inhalt darin ist mit dem
+  Hauptschlüssel AES-GCM-verschlüsselt (G38), also nicht lesbarer als jeder andere gelöschte Eintrag.
+- **System-Zwischenablage leeren:** nur, wenn ihr `changeCount` noch derselbe ist wie bei der erkannten bzw. von
+  Gnotchi geschriebenen Kopie (gleiches Muster wie beim Tresor, G39). Hat Michael inzwischen etwas anderes kopiert,
+  bleibt es. Kopien eines erkannten Geheimnisses aus Gnotchi sind als vertraulich markiert (`ConcealedType`).
+- **Anzeige:** Wert nie sichtbar (`••••••`), nur Art + Restzeit. Nicht in den Notch-Kacheln, nicht herausziehbar
+  (Ziehen nur prozessintern auf den Tresor-Reiter), Suche nur über die Art. Einfügen ohne Touch ID (Michael: der
+  Eintrag lebt 5 Min., dieselbe Person käme per ⌘V ohnehin an die Zwischenablage).
+- **Protokoll:** nur Zahlen („2 Geheimnisse abgelaufen“), nie Art, Quell-App oder Inhalt. Die Art verrät, welcher
+  Dienst benutzt wird.
+- **Schalter:** ab Werk an (speichert nur weniger, gibt nichts preis). Aus → Verhalten wie 0.12.0, Hinweis in den
+  Einstellungen.
+- **Wird ein gespeichertes Geheimnis wieder lose** (aus Sammlung genommen, Lösen, Sammlung gelöscht), startet die
+  Frist neu. Sonst wäre ein seit Wochen gespeicherter Schlüssel nach dem Herausnehmen binnen 5 s weg gewesen
+  (Fund beim Review 26.10., Test `testLeavingCollectionRestartsLifetime`, Gegenprobe rot ohne Fix).
+- **Gemessen an der App (26.10., Testfassung):** echter Lauf 5 Min. → „1 Geheimnis(se) abgelaufen“ nach 5:03;
+  mit Mess-Schalter `debugSecretSeconds` (nur DEBUG) 20 s → Eintrag weg nach 22 s, Zwischenablage 40 → 0 Zeichen.
+  Gegenprobe Lösch-Umfang: ohne `isLoose` in `secretExpiry` → `testPruneScopeIsLooseDetectedOnly` rot.
+- **STRIDE:** *T* Zwischenablage als Fremdeingabe → nur Regex über begrenzte Länge, nichts ausgeführt. *I* Art im
+  Protokoll → ausgeschlossen. *D* große Kopie → 8-KB-Grenze vor der Regex. *E* Löschen fremder/gespeicherter Daten
+  durch präparierte Kopie → Umfang (a)–(d). *R/S* nicht berührt (keine neue Grenze, kein neuer Prozess).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

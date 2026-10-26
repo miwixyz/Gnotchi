@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.0] — 2026-10-26
+
+Kopierte Schlüssel stehen nicht mehr lesbar im Verlauf.
+
+### Neu
+- **Schlüssel und Tokens erkennen.** Kopierst du einen API-Schlüssel, ein Token oder einen privaten Schlüssel, erkennt Gnotchi das an der Form, etwa an der Vorsilbe des Anbieters. Rund 40 Dienste sind dabei, darunter OpenAI, Anthropic, GitHub, Cloudflare, Stripe, ElevenLabs und Rafter. In der Seitenansicht steht dann nur `••••••` mit der Art und der Restzeit. Der Eintrag erscheint nicht in der Notch und lässt sich nicht herausziehen. 5 Minuten nach der letzten Nutzung ist er weg. Liegt er dann noch in der Zwischenablage, leert Gnotchi sie auch. Doppelklick fügt weiter ein. Behalten willst du ihn? Rechtsklick → In Tresor.
+- Erkannt wird nur, wenn die ganze Kopie der Schlüssel ist. Ein Schlüssel mitten in einem längeren Text bleibt ein normaler Eintrag. Schlüssel ohne feste Vorsilbe (etwa Hostinger, Mistral, ältere von Cloudflare) erkennt Gnotchi nicht.
+- **In Sammlungen löscht Gnotchi nichts.** Liegen dort schon Schlüssel, erscheinen sie verdeckt, und die Seitenansicht bietet einmal an, sie in den Tresor zu verschieben.
+- Ab Werk an. Abschalten unter Einstellungen → Zwischenablage → „Schlüssel und Tokens erkennen“.
+
+### Behoben
+- Der Hinweis in den Einstellungen sagte noch „Einfügen machst du selbst mit ⌘V“. Seit 0.12.0 fügt ein Doppelklick ein.
+
+### Intern
+- `SecretDetector` mit 41 festen, verankerten Mustern (gitleaks-Standardkonfiguration, MIT, plus Anbieter-Doku). Keine Entropie-Schätzung. Nur reiner Text bis 8 KB. Die Art wird aus dem entschlüsselten Inhalt im Arbeitsspeicher berechnet, nicht gespeichert, also kein neues Datenbankfeld. Automatisch gelöscht werden nur lose, erkannte, abgelaufene Einträge. Verlässt ein gespeichertes Geheimnis eine Sammlung, beginnt die Frist neu. Protokoll nur mit Zahlen. SECURE-DESIGN G43. 584 Tests.
+
 ## [0.12.0] — 2026-10-26
 
 Gnotchi fügt jetzt selbst ein: Doppelklick in der Seitenansicht, und der Eintrag steht in deiner App.

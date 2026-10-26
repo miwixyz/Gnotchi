@@ -6,7 +6,8 @@ import os
 
 /// Zwischenablage-Verlauf (0.11.0, docs/SECURE-DESIGN.md G37–G41). Läuft nur, solange der Schalter an ist (ab Werk
 /// aus). Liest `NSPasteboard.general` erst, wenn sich `changeCount` geändert hat; schreibt nur auf Michaels Klick.
-/// Fügt nie selbst ein (kein ⌘V, keine Bedienungshilfen – G1). Protokoll ohne Inhalt, Titel oder Quell-App.
+/// Drückt selbst nie ⌘V – Einfügen nur über das Hilfsprogramm (G42), Gnotchi bleibt ohne Bedienungshilfen (G1).
+/// Erkannte Geheimnisse: verdeckt, lose nach 5 Min. weg (G43). Protokoll ohne Inhalt, Titel oder Quell-App.
 @MainActor
 @Observable
 final class ClipboardLink: NotchPart {
@@ -33,8 +34,11 @@ final class ClipboardLink: NotchPart {
         #endif
         return 5 * 60
     }
-    @ObservationIgnored private var vaultCopyChange: Int?
-    @ObservationIgnored private var vaultClearTask: Task<Void, Never>?
+    /// Eigene bzw. erkannte vertrauliche Kopie in der Zwischenablage (Tresor G39, Geheimnis G43): `changeCount`,
+    /// bei dem sie geleert wird – nur wenn bis dahin nichts anderes kopiert wurde.
+    @ObservationIgnored private var sensitiveChange: Int?
+    @ObservationIgnored private var sensitiveClearTask: Task<Void, Never>?
+    @ObservationIgnored private var ticks = 0
     @ObservationIgnored private var lockObservers: [NSObjectProtocol] = []
     @ObservationIgnored lazy var panel = ClipboardPanelController(link: self)
 
@@ -73,7 +77,11 @@ final class ClipboardLink: NotchPart {
         registerHotKey()
         observeLock()
         activity.clipboard = self
+        store?.secretsSince = prefs.clipboardSecretsSince
         store?.prune()
+        pruneSecrets()
+        // Nur Zahlen (G43): wie viele Geheimnisse offen in Sammlungen liegen, wie viele schon angeboten wurden.
+        Self.log.notice("Geheimnisse in Sammlungen: \(self.store?.savedSecrets().count ?? 0, privacy: .public), angeboten: \(self.prefs.clipboardSecretsOffered, privacy: .public)")
         Self.log.notice("Zwischenablage an")
     }
 
@@ -85,7 +93,7 @@ final class ClipboardLink: NotchPart {
         registeredHotKey = nil
         lockObservers.forEach { NotificationCenter.default.removeObserver($0); NSWorkspace.shared.notificationCenter.removeObserver($0) }
         lockObservers.removeAll()
-        clearVaultCopyIfUntouched()
+        clearSensitiveCopyIfUntouched()
         lockVault()
         panel.close()
         if activity.clipboard === self { activity.clipboard = nil }
@@ -95,17 +103,24 @@ final class ClipboardLink: NotchPart {
     }
 
     func recheck() {
-        guard store != nil, registeredHotKey != prefs.clipboardPanelHotKey else { return }
+        guard let store else { return }
+        if store.secretsSince != prefs.clipboardSecretsSince {
+            store.secretsSince = prefs.clipboardSecretsSince
+            pruneSecrets()
+        }
+        guard registeredHotKey != prefs.clipboardPanelHotKey else { return }
         registerHotKey()
     }
 
     // MARK: - Mitlesen (G37)
 
     private func tick() {
+        ticks += 1
+        if ticks % 10 == 0 { pruneSecrets() }   // alle 5 s
         let change = pasteboard.changeCount
         guard change != lastChange else { return }
         lastChange = change
-        if let own = vaultCopyChange, own != change { vaultCopyChange = nil; vaultClearTask?.cancel() }
+        if let own = sensitiveChange, own != change { sensitiveChange = nil; sensitiveClearTask?.cancel() }
         guard !prefs.isClipboardPaused, let store else { return }
         let types = (pasteboard.types ?? []).map(\.rawValue)
         let source = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
@@ -117,7 +132,9 @@ final class ClipboardLink: NotchPart {
             Self.log.debug("nicht übernommen: \(reason.rawValue, privacy: .public)")
         case .take(let payload, let kind):
             do {
-                try store.add(payload, kind: kind, source: source)
+                let entry = try store.add(payload, kind: kind, source: source)
+                // Erkanntes Geheimnis (G43): System-Zwischenablage zum Ablauf leeren, wenn bis dahin unverändert.
+                if store.secretKind(entry) != nil { scheduleSensitiveClear(change, after: ClipboardStore.secretLifetime) }
             } catch {
                 Self.log.error("Speichern fehlgeschlagen: \(String(describing: error), privacy: .public)")
             }
@@ -147,8 +164,10 @@ final class ClipboardLink: NotchPart {
     /// Eintrag in die Zwischenablage legen. `plain` = nur reiner Text (⇧).
     func copy(_ entry: ClipEntry, plain: Bool) {
         guard let store, !entry.isVault, let payload = store.payload(entry) else { return }
-        write(payload, plain: plain, concealed: false)
+        let secret = store.secretKind(entry) != nil
+        write(payload, plain: plain, concealed: secret)
         store.touch(entry)
+        if secret { scheduleSensitiveClear(pasteboard.changeCount, after: ClipboardStore.secretLifetime) }
     }
 
     /// Tresor-Eintrag: Touch ID (bzw. 5 Min. Wiederverwendung), vertraulich markiert, nach 60 s geleert (G39).
@@ -157,8 +176,7 @@ final class ClipboardLink: NotchPart {
             guard let self, let key, let store = self.store,
                   let payload = try? store.openVault(entry, vaultKey: key) else { return done(false) }
             self.write(payload, plain: true, concealed: true)
-            self.vaultCopyChange = self.pasteboard.changeCount
-            self.scheduleVaultClear()
+            self.scheduleSensitiveClear(self.pasteboard.changeCount, after: Self.vaultClearDelay)
             done(true)
         }
     }
@@ -221,24 +239,65 @@ final class ClipboardLink: NotchPart {
         lastChange = pasteboard.changeCount   // die eigene Kopie nicht noch einmal aufnehmen
     }
 
-    private func scheduleVaultClear() {
-        vaultClearTask?.cancel()
-        vaultClearTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(Self.vaultClearDelay))
+    private func scheduleSensitiveClear(_ change: Int, after delay: TimeInterval) {
+        sensitiveClearTask?.cancel()
+        sensitiveChange = change
+        sensitiveClearTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled else { return }
-            self?.clearVaultCopyIfUntouched()
+            self?.clearSensitiveCopyIfUntouched()
         }
     }
 
-    /// Nur leeren, wenn noch die eigene Tresor-Kopie drinliegt – hat Michael inzwischen etwas anderes kopiert, bleibt das.
-    func clearVaultCopyIfUntouched() {
-        vaultClearTask?.cancel()
-        vaultClearTask = nil
-        guard let own = vaultCopyChange else { return }
-        vaultCopyChange = nil
+    /// Nur leeren, wenn noch die vertrauliche Kopie drinliegt – hat Michael inzwischen etwas anderes kopiert, bleibt das.
+    func clearSensitiveCopyIfUntouched() {
+        sensitiveClearTask?.cancel()
+        sensitiveClearTask = nil
+        guard let own = sensitiveChange else { return }
+        sensitiveChange = nil
         guard pasteboard.changeCount == own else { return }
         pasteboard.clearContents()
         lastChange = pasteboard.changeCount
+    }
+
+    // MARK: - Gespeicherte Geheimnisse (G43): einmal anbieten, nie automatisch löschen
+
+    /// Anzahl offen gespeicherter Geheimnisse, wenn mehr als beim letzten Angebot – sonst 0 (kein Hinweis).
+    var secretsToOffer: Int {
+        _ = store?.revision
+        guard let count = store?.savedSecrets().count, count > prefs.clipboardSecretsOffered else { return 0 }
+        return count
+    }
+
+    /// „Später“: bis neue dazukommen nicht wieder fragen. Die Einträge bleiben verdeckt.
+    func dismissSecretOffer() { prefs.clipboardSecretsOffered = store?.savedSecrets().count ?? 0 }
+
+    /// „Alle in den Tresor“: erster Tresor (sonst neuer „Tresor“), einmal Touch ID, Titel = erkannte Art.
+    func moveSavedSecretsToVault(done: @escaping @MainActor (Int?) -> Void) {
+        guard let store else { return done(nil) }
+        let list = store.savedSecrets()
+        guard !list.isEmpty else { return done(0) }
+        unlockVault { [weak self] key in
+            guard let self, let key, let store = self.store else { return done(nil) }
+            let vault = store.collections().first(where: \.isVault)
+                ?? (try? store.createCollection(name: String(localized: "Tresor"), color: .red, symbol: "lock.fill",
+                                                isVault: true))
+            guard let vault else { return done(nil) }
+            var moved = 0
+            for entry in list {
+                let title = store.title(entry) ?? store.secretKind(entry) ?? String(localized: "Schlüssel")
+                if (try? store.moveToVault(entry, collection: vault, title: title, vaultKey: key)) != nil { moved += 1 }
+            }
+            self.prefs.clipboardSecretsOffered = store.savedSecrets().count
+            Self.log.notice("\(moved, privacy: .public) gespeicherte Geheimnisse in den Tresor verschoben")
+            done(moved)
+        }
+    }
+
+    /// Abgelaufene lose Geheimnisse löschen (G43). Protokoll nur mit Zahl.
+    private func pruneSecrets() {
+        guard let removed = store?.pruneSecrets(), removed > 0 else { return }
+        Self.log.notice("\(removed, privacy: .public) Geheimnis(se) abgelaufen und gelöscht")
     }
 
     // MARK: - Pause, Löschen

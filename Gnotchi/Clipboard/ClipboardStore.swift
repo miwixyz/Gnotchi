@@ -22,6 +22,18 @@ final class ClipboardStore {
     @ObservationIgnored private let key: SymmetricKey
     @ObservationIgnored private var payloads: [UUID: ClipPayload] = [:]
     @ObservationIgnored private var titles: [UUID: String] = [:]
+    /// 0.13.0 (G43): erkannte Art je Eintrag, nur im Speicher, immer zusammen mit `payloads` gefüllt und geleert.
+    @ObservationIgnored private var secretKinds: [UUID: String] = [:]
+    /// Erkennung an seit … (nil = aus). Für Altbestand zählt die Restzeit frühestens ab hier (G43).
+    var secretsSince: Date? { didSet { revision += 1 } }
+    static var secretLifetime: TimeInterval {
+        #if DEBUG
+        // Mess-Schalter nur in der Testfassung (wie debugVaultOpenSeconds):
+        // `defaults write dev.mwlr.gnotchi debugSecretSeconds 20`
+        if let seconds = UserDefaults.standard.object(forKey: "debugSecretSeconds") as? Double { return seconds }
+        #endif
+        return 5 * 60
+    }
     @ObservationIgnored private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "zwischenablage")
 
     /// `directory == nil` → nur im Speicher (Tests).
@@ -71,9 +83,10 @@ final class ClipboardStore {
             .sorted { $0.lastUsedAt > $1.lastUsedAt }
     }
 
-    /// Suche: Titel immer, Inhalt nur außerhalb des Tresors (G39).
+    /// Suche: Titel immer, Inhalt nur außerhalb des Tresors (G39). Erkannte Geheimnisse nur über die Art (G43).
     private func matches(_ entry: ClipEntry, _ needle: String) -> Bool {
         if let title = titles[entry.id], title.localizedStandardContains(needle) { return true }
+        if let kind = secretKind(entry) { return kind.localizedStandardContains(needle) }
         guard !entry.isVault, let plain = payloads[entry.id]?.plain else { return false }
         return plain.localizedStandardContains(needle)
     }
@@ -120,7 +133,7 @@ final class ClipboardStore {
         entry.byteCount = payload.formats.reduce(0) { $0 + $1.data.count }
         entry.sealedPayload = try ClipCrypto.sealPayload(payload, key: key, id: entry.id)
         context.insert(entry)
-        payloads[entry.id] = payload
+        remember(payload, for: entry.id)
         prune(now: now)
         try save()
         return entry
@@ -175,7 +188,7 @@ final class ClipboardStore {
         entry.sealedPayload = try ClipCrypto.sealPayload(payload, key: key, id: entry.id)
         entry.collections = [collection]
         context.insert(entry)
-        payloads[entry.id] = payload
+        remember(payload, for: entry.id)
         return entry
     }
 
@@ -199,6 +212,7 @@ final class ClipboardStore {
         context.rollback()
         payloads.removeAll()
         titles.removeAll()
+        secretKinds.removeAll()
         loadCaches()
         revision += 1
     }
@@ -225,8 +239,7 @@ final class ClipboardStore {
     }
 
     func delete(_ entry: ClipEntry) {
-        payloads[entry.id] = nil
-        titles[entry.id] = nil
+        forget(entry.id)
         context.delete(entry)
         try? save()
     }
@@ -234,8 +247,7 @@ final class ClipboardStore {
     /// „Verlauf löschen“: alle Einträge außerhalb von Sammlungen. Sammlungen und Tresor bleiben.
     func clearHistory() throws {
         for entry in try context.fetch(FetchDescriptor<ClipEntry>()) where entry.isLoose && !entry.isVault {
-            payloads[entry.id] = nil
-            titles[entry.id] = nil
+            forget(entry.id)
             context.delete(entry)
         }
         try save()
@@ -247,6 +259,7 @@ final class ClipboardStore {
         try context.delete(model: ClipCollection.self)
         payloads.removeAll()
         titles.removeAll()
+        secretKinds.removeAll()
         try save()
     }
 
@@ -256,10 +269,67 @@ final class ClipboardStore {
         let loose = all.filter { $0.isLoose && !$0.isVault }.sorted { $0.lastUsedAt > $1.lastUsedAt }
         for (index, entry) in loose.enumerated()
         where index >= Self.maxLoose || now.timeIntervalSince(entry.lastUsedAt) > Self.maxAge {
-            payloads[entry.id] = nil
-            titles[entry.id] = nil
+            forget(entry.id)
             context.delete(entry)
         }
+    }
+
+    // MARK: - Geheimnisse (0.13.0, G43)
+
+    /// Erkannte Art („GitHub-Token“), nil = kein Geheimnis, Tresor-Eintrag oder Erkennung aus.
+    func secretKind(_ entry: ClipEntry) -> String? {
+        guard secretsSince != nil, !entry.isVault else { return nil }
+        return secretKinds[entry.id]
+    }
+
+    /// Wert nie zeigen, nicht in die Notch, nicht herausziehen: Tresor oder erkanntes Geheimnis.
+    func isConcealed(_ entry: ClipEntry) -> Bool { entry.isVault || secretKind(entry) != nil }
+
+    /// Ablauf eines erkannten Geheimnisses – nur für lose Einträge (Sammlungen werden nie automatisch gelöscht).
+    func secretExpiry(_ entry: ClipEntry) -> Date? {
+        guard let since = secretsSince, entry.isLoose, secretKind(entry) != nil else { return nil }
+        return max(entry.lastUsedAt, since).addingTimeInterval(Self.secretLifetime)
+    }
+
+    /// Bewusst gespeicherte Geheimnisse (in Sammlungen/Angeheftet, nicht im Tresor) – für das einmalige Angebot.
+    func savedSecrets() -> [ClipEntry] {
+        guard secretsSince != nil, let all = try? context.fetch(FetchDescriptor<ClipEntry>()) else { return [] }
+        return all.filter { !$0.isLoose && secretKind($0) != nil }
+    }
+
+    /// Abgelaufene lose Geheimnisse löschen. Umfang hart begrenzt (G43 a–d). Gibt die Anzahl zurück (Protokoll: nur
+    /// Zahlen).
+    @discardableResult
+    func pruneSecrets(now: Date = Date()) -> Int {
+        guard secretsSince != nil, !secretKinds.isEmpty,
+              let all = try? context.fetch(FetchDescriptor<ClipEntry>()) else { return 0 }
+        var removed = 0
+        for entry in all where !entry.isVault && entry.isLoose {
+            guard let expiry = secretExpiry(entry), expiry <= now else { continue }
+            forget(entry.id)
+            context.delete(entry)
+            removed += 1
+        }
+        if removed > 0 { try? save() }
+        return removed
+    }
+
+    /// Gespeichertes Geheimnis wird wieder lose (aus Sammlung genommen, Sammlung gelöscht): volle 5 Minuten ab jetzt,
+    /// nicht sofort weg, weil es vielleicht seit Wochen in der Sammlung lag (G43).
+    private func restartSecretLifetime(_ entry: ClipEntry, now: Date = Date()) {
+        guard secretKind(entry) != nil else { return }
+        entry.lastUsedAt = max(entry.lastUsedAt, now)
+    }
+
+    private func remember(_ payload: ClipPayload, for id: UUID) {
+        payloads[id] = payload
+        secretKinds[id] = SecretDetector.kind(of: payload)
+    }
+
+    private func forget(_ id: UUID) {
+        payloads[id] = nil
+        titles[id] = nil
+        secretKinds[id] = nil
     }
 
     // MARK: - Sammlungen
@@ -278,6 +348,7 @@ final class ClipboardStore {
         guard !collection.isPinned else { return }
         // Tresor-Einträge gibt es nur in ihrer Tresor-Sammlung – mit ihr verschwinden sie.
         for entry in collection.entries ?? [] where entry.isVault { delete(entry) }
+        for entry in collection.entries ?? [] { restartSecretLifetime(entry) }
         context.delete(collection)
         try save()
     }
@@ -305,6 +376,7 @@ final class ClipboardStore {
     func remove(_ entry: ClipEntry, from collection: ClipCollection) throws {
         entry.collections = (entry.collections ?? []).filter { $0.id != collection.id }
         if entry.isVault { delete(entry); return }
+        restartSecretLifetime(entry)
         try save()
     }
 
@@ -324,6 +396,7 @@ final class ClipboardStore {
         entry.isVault = true
         entry.fingerprint = nil
         payloads[entry.id] = nil
+        secretKinds[entry.id] = nil
         try setTitleUnsaved(entry, title)
         entry.collections = [collection]
         try save()
@@ -348,7 +421,7 @@ final class ClipboardStore {
             }
             guard !entry.isVault, let sealed = entry.sealedPayload else { continue }
             if let payload = try? ClipCrypto.openPayload(sealed, key: key, id: entry.id) {
-                payloads[entry.id] = payload
+                remember(payload, for: entry.id)
             } else {
                 broken += 1
             }
