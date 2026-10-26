@@ -48,6 +48,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G39 | – (neu, 0.11.0) | Tresor: Schlüssel an Touch ID/Passwort gebunden, nie in Notch/Suche/Ziehen, Kopie vertraulich markiert, 60-s-Leeren |
 | G40 | – (neu, 0.11.0) | Anzeige und Rausgabe: nur reiner Text bzw. Vorschaubild, nichts rendern oder laden, nicht in Bildschirmfreigabe |
 | G41 | – (neu, 0.11.0) | PastePal-Import: nur per Auswahl, strikt dekodiert, Grenzen, Werte nie sichtbar, danach Papierkorb |
+| G42 | – (neu, 0.12.0) | Einfügen: Hilfsprogramm drückt nur ⌘V, ohne Inhalt, nur nach Doppelklick/↵, ohne Hilfsprogramm nur kopieren |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -609,6 +610,7 @@ nur aus Klicks (G29, G30).
   Prozesses (verstecken/zurück) und `AXPerformAction` an einem gemeldeten Banner bzw. dessen Anruf-Knopf. Kein
   `AXValue` setzen (kein Tippen), keine Event-Taps, keine künstlichen Eingaben, keine Prozesse, kein AppleScript,
   kein Netz. Maschinell: Lint-Regeln `keine_eingaben_im_helfer` und `kindprozess_nur_im_adapter` (gilt auch hier).
+  **Einzige Ausnahme ab 0.12.0:** genau ⌘V auf Gnotchis Befehl `paste` (G42, nur `PasteKey.swift`).
 - **Fail-open:** Ein Fenster wird nur versteckt, wenn **alle** seine Banner gerade in Gnotchi zu sehen sind
   (sonst verschwände eine nicht ausgewählte Mitteilung mit). Ohne Banner, bei geöffneter Mitteilungszentrale, beim
   Beenden (auch SIGTERM/SIGINT/SIGHUP) → alles zurück. Ohne Verbindung zu Gnotchi wird nichts versteckt.
@@ -897,6 +899,50 @@ nur aus Klicks (G29, G30).
   (Spec, Abschnitt „Sichttest 24.10.“).
 - **Prüfung 0.11.1 (24.10.):** nur Layout-Fix im Band (keine neue Sicherheitsfläche); `rafter run` Scan `a95aba02`:
   keine Befunde. ZIP Build 136 am Artefakt geprüft (gleiche Berechtigungen, Profil eingebettet).
+
+### G42 – Einfügen: nur ⌘V, nur nach Doppelklick/↵, über das Hilfsprogramm (neu, 2026-10-26, 0.12.0)
+- **Anlass:** Michael, 26.10.: Doppelklick in der Seitenansicht soll sofort einfügen, „ohne Umweg über ⌘V“. Das
+  hebt die Entscheidung vom 24.10. („nur kopieren“) auf. Michaels Wahl: Weg über „Gnotchi Mitteilungen“ (hat die
+  Freigabe schon), **nicht** Gnotchi selbst freigeben (G1 bleibt) und **kein** zweites Hilfsprogramm.
+- **Datenfluss:** Doppelklick/↵/⌘1–9 in der Seitenansicht → Gnotchi legt den Eintrag in die Zwischenablage (wie
+  bisher, Tresor mit Touch ID, G39) → Seitenansicht schließt → Gnotchi schickt `{"v":1,"paste":true}` über
+  `notify.sock` (G29) → Hilfsprogramm drückt einmal ⌘V an die vordere App.
+- **Befehl ohne Inhalt:** Der Befehl trägt **nichts** außer „einfügen“ – keinen Text, keine Taste, kein Ziel. Das
+  Hilfsprogramm kann darüber nur genau ⌘V drücken (Tastencode 9 + ⌘, fest im Code), nichts anderes tippen. Der
+  Inhalt geht nur über die Zwischenablage, wie bei Michaels eigenem ⌘V. Schema strikt: genau `v` + `paste` = `true`.
+- **Nur echter Klick (wie G30):** Gnotchi schickt `paste` nur aus Doppelklick, ↵ oder ⌘1–9 in der Seitenansicht,
+  nie zeitgesteuert, nie aus der Notch-Kachel. Einfacher Klick markiert nur noch.
+- **Hilfsprogramm prüft vor dem Drücken:** Freigabe erteilt; vordere App ist **nicht** Gnotchi und nicht das
+  Hilfsprogramm; höchstens ein ⌘V je 0,3 s (sonst verworfen). Protokoll: nur „Einfügen“ bzw. Grund fürs Verwerfen,
+  nie Inhalt, nie App-Name.
+- **Ohne Hilfsprogramm = nur kopieren:** „Mitteilungen“ aus, Hilfsprogramm nicht verbunden oder ohne Freigabe →
+  Gnotchi kopiert wie bisher, die Fußzeile sagt „danach ⌘V“. Kein eigener Start des Hilfsprogramms fürs Einfügen.
+- **Lint:** `keine_eingaben_im_helfer` bleibt; ausgenommen ist **nur** `GnotchiMitteilungen/PasteKey.swift` (eine
+  Funktion, fester Tastencode). Gnotchi selbst bleibt unter `keine_bedienungshilfen` (G1).
+- **STRIDE an der neuen Grenze:**
+  - *S:* fremder Prozess gibt sich als Gnotchi aus und lässt einfügen → Hilfsprogramm prüft Gnotchi vor dem
+    ersten Befehl (G29, unverändert). Der Perl-Adapter (G2) ist `/usr/bin/perl` mit eigener Signatur → abgewiesen.
+  - *T:* Befehl manipuliert, um anderes zu tippen → Befehl hat kein Feld dafür; zusätzliche Schlüssel → ungültig.
+  - *R:* Protokoll „Einfügen“ mit Zeit, ohne Inhalt (G8).
+  - *I:* Einfügen in die falsche App (z. B. Passwort in einen Chat) → Ziel ist die App, die vor dem Öffnen der
+    Seitenansicht vorn war (Seitenansicht aktiviert Gnotchi nicht); dasselbe wie Michaels ⌘V. Restrisiko, siehe unten.
+  - *D:* Befehlsflut → 0,3-s-Sperre im Hilfsprogramm, Socket ohnehin ≤ 10 Nachrichten/s (G29).
+  - *E:* Gnotchi bekommt indirekt „Tippen“ → nur ⌘V, nur mit vorher gesetzter Zwischenablage. **Restrisiko,
+    bewusst getragen:** Ein Angreifer mit Code in Gnotchi könnte Text in die Zwischenablage legen und ⌘V auslösen,
+    z. B. in ein Terminal. Wer Code in Gnotchi ausführt, hat aber schon Nutzerrechte (Dateien, Startobjekte) –
+    der Zugewinn ist klein, und zsh fügt Text ohne Ausführen ein (Bracketed Paste).
+- **Restrisiken:** (1) Tastencode 9 ist „V“ auf QWERTZ/QWERTY; bei Dvorak ohne „⌘-QWERTY“ träfe ⌘V eine andere
+  Taste – nicht gemessen, bei Bedarf über `UCKeyTranslate`. (2) Steht beim Doppelklick eine andere App vorn als
+  erwartet (Mission Control, Touch-ID-Dialog beim Tresor), landet ⌘V dort – gemessen wird es im Sichttest.
+- **Zu messen vor dem Release:** ⌘V landet nach dem Schließen der Seitenansicht in der vorherigen App (TextEdit,
+  Safari-Adressleiste, Terminal); Tresor nach Touch ID; ohne Mitteilungen → nur Kopieren + Fußzeile.
+- **Prüfung (26.10.):** `rafter-code-review` des Diffs ohne Befund – `paste` wird erst nach der Serverprüfung
+  verarbeitet (`GnotchiConnection`: `connect` prüft, danach `readIncoming`), Schema strikt (Tests
+  `testPasteRejectsAnythingElse`), Protokoll ohne Inhalt. Lint-Gegenprobe: `CGEvent(` in `main.swift` → Regel schlägt
+  an. `rafter secrets .` ohne Fund. Sichttest Michael: Doppelklick fügt ein (TextEdit, Terminal ohne Ausführen). **Tresor-Fund behoben:** Der
+  Passwort-Dialog nahm der Seitenansicht den Fokus, sie schloss und verwarf ihren Zustand → das Einfügen nach der
+  Freigabe ging verloren (Protokoll: kein Befehl beim Hilfsprogramm). Jetzt hängt es an `ClipboardLink`; nachgeprüft
+  12:57 (ein Doppelklick, „Einfügen“ im Protokoll). `rafter run` folgt nach dem Push.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

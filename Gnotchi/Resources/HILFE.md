@@ -236,7 +236,8 @@ Space und ziehst sie dort wieder heraus.
 
 Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt sich Gnotchi, was du kopierst: Text, formatierten Text, Links, Bilder und Dateien. Bei Dateien merkt es sich nur, wo sie liegen.
 
-- **Seitenansicht:** ⌃< öffnet sie, das Kürzel änderst du in den Einstellungen. Oben ist die Suche, darunter die Karten, unten die Reiter für Verlauf, Angeheftetes und deine Sammlungen. ↑/↓ wählen (bei „Unten“ auch ←/→), ↵ kopiert, **⇧↵ kopiert als reinen Text**, ⌘1–⌘9 holen die ersten neun, Esc schließt. Danach fügst du mit **⌘V** ein. Gnotchi fügt nie selbst ein.
+- **Seitenansicht:** ⌃< öffnet sie, das Kürzel änderst du in den Einstellungen. Oben sind die Suche und der Name der offenen Sammlung, darunter die Karten, unten die Reiter für Verlauf, Angeheftetes und deine Sammlungen. ↑/↓ wählen (bei „Unten“ auch ←/→), ein Klick markiert, Esc schließt.
+- **Einfügen (ab 0.12):** **Doppelklick**, ↵ oder ⌘1–⌘9 fügen den Eintrag direkt in die App ein, in der du gerade arbeitest. **Mit ⇧ als reinen Text.** Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“. Deshalb geht das nur, wenn „Mitteilungen in der Notch“ an ist und das Hilfsprogramm die Bedienungshilfen-Freigabe hat. Sonst kopiert Gnotchi nur, und du fügst mit **⌘V** selbst ein. Die Zeile unten in der Seitenansicht sagt dir, was gerade gilt. Nur kopieren: Rechtsklick → Kopieren.
 - **Reagiert das Kürzel nicht,** belegt es vermutlich eine andere App, zum Beispiel PastePal. Wähl dann ein anderes oder beende die andere App.
 - **In der Notch:** Das Zwischenablage-Symbol in der Leiste der großen Insel zeigt Angeheftetes und die letzten Kopien. Klick kopiert, ⇧-Klick als reinen Text, „Alle …“ öffnet die Seitenansicht.
 - **Ordnen:** Rechtsklick auf eine Karte → Anheften, Zu Sammlung, Titel, Löschen. Oder die Karte auf einen Reiter ziehen. Mit dem Plus unten legst du eine Sammlung oder einen Tresor an. Ein Eintrag kann in mehreren Sammlungen stecken. Karten kannst du auch direkt in andere Apps ziehen.
@@ -287,7 +288,8 @@ Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikro
 die Dateiablage braucht keine Freigabe. Ausnahme: Wer „Bildschirmfotos automatisch ablegen“ einschaltet und Fotos auf
 dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibtisch.
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
-„Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock.
+„Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock
+und drückt beim Einfügen aus der Zwischenablage ⌘V, sonst keine Taste.
 „Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.
 Auch die Zwischenablage braucht keine Freigabe. Für den Tresor fragt macOS nach Touch ID oder deinem Mac-Passwort.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.

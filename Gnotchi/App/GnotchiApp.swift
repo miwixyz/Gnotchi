@@ -122,7 +122,7 @@ final class AppModel {
             NotchFeature(part: ScreenshotWatcher(activity: activity)) { $0.shelf && $0.shelfScreenshots },
             // 0.9.0 Code & KI (G34/G35): Hooks in ~/.claude/settings.json nur bei eingeschaltetem Schalter.
             NotchFeature(part: ClaudeLink(activity: activity, prefs: prefs)) { $0.claudeCode },
-            // 0.11.0 Zwischenablage (G37–G41): ab Werk aus, liest nur bei Änderung, fügt nie selbst ein.
+            // 0.11.0 Zwischenablage (G37–G41): ab Werk aus, liest nur bei Änderung. Einfügen nur übers Hilfsprogramm (G42).
             NotchFeature(part: ClipboardLink(activity: activity, prefs: prefs)) { $0.clipboard },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }

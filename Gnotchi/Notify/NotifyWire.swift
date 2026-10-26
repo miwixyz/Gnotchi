@@ -64,6 +64,8 @@ enum NotifyWire {
         /// `stopVoicemail` (0.9.0, G30 erweitert): nur mit „Ablehnen“ am Anruf. Das Hilfsprogramm drückt danach im selben
         /// Banner einmal „Live-Voicemail stoppen“ – Apples Fenster ist weg, der Anrufer landet auf der Mailbox.
         case act(id: String, action: String, stopVoicemail: Bool = false)
+        /// Zwischenablage einfügen (0.12.0, G42): Das Hilfsprogramm drückt einmal ⌘V. Ohne Inhalt, ohne Taste, ohne Ziel.
+        case paste
     }
 
     // MARK: Aktionen (G30)
@@ -253,6 +255,7 @@ enum NotifyWire {
         case .release(let id): ["v": 1, "release": id]
         case .act(let id, let action, let stop):
             stop ? ["v": 1, "act": id, "action": action, "then": "stopVoicemail"] : ["v": 1, "act": id, "action": action]
+        case .paste: ["v": 1, "paste": true]
         }
     }
 
@@ -272,6 +275,11 @@ enum NotifyWire {
             return .release(id)
         }
         if obj["act"] != nil { return parseAct(obj) }
+        // G42: genau `v` + `paste` = echter Wahrheitswert true, sonst nichts.
+        if let raw = obj["paste"] {
+            guard obj.count == 2, bool(raw) == true else { return nil }
+            return .paste
+        }
         return nil
     }
 

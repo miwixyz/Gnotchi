@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.0] — 2026-10-26
+
+Gnotchi fügt jetzt selbst ein: Doppelklick in der Seitenansicht, und der Eintrag steht in deiner App.
+
+### Neu
+- **Einfügen per Doppelklick.** In der Seitenansicht der Zwischenablage fügen Doppelklick, ↵ und ⌘1 bis ⌘9 den Eintrag direkt in die App ein, in der du gerade arbeitest. ⇧ dazu fügt reinen Text ein. Das klappt auch mit dem Tresor, nach Touch ID oder deinem Mac-Passwort. Ein einfacher Klick markiert nur noch. „Nur kopieren“ steht im Rechtsklick-Menü.
+- **Name der Sammlung oben.** Über den Karten steht jetzt, welche Sammlung offen ist. Unten bleiben die Reiter als Symbole.
+
+### Gut zu wissen
+- Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“, das die Bedienungshilfen-Freigabe schon hat. Gnotchi selbst bekommt weiter keine. Deshalb geht Einfügen nur, wenn „Mitteilungen in der Notch“ an ist. Sonst kopiert Gnotchi wie bisher, und du drückst ⌘V selbst. Die Zeile unten in der Seitenansicht zeigt, was gerade gilt.
+- Die Kacheln in der Notch kopieren weiterhin nur.
+
+### Intern
+- Neuer Befehl `{"v":1,"paste":true}` über den beidseitig geprüften Socket `notify.sock`. Er trägt keinen Inhalt, keine Taste und kein Ziel. Das Hilfsprogramm drückt darauf genau ⌘V (`PasteKey.swift`, Tastencode 9, nur ⌘), höchstens einmal je 0,3 s, nicht wenn Gnotchi vorn ist, nur mit Freigabe. Die Lint-Regel `keine_eingaben_im_helfer` nimmt nur diese Datei aus. Beim Tresor hängt das Einfügen an `ClipboardLink`, nicht an der Seitenansicht. Die schließt sich, sobald der Passwort-Dialog den Fokus nimmt, und vorher ging das Einfügen dabei verloren. SECURE-DESIGN G42. 570 Tests.
+
 ## [0.11.1] — 2026-10-24
 
 ### Behoben

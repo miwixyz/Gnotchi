@@ -126,7 +126,25 @@ final class ClipboardLink: NotchPart {
 
     // MARK: - Kopieren (nur auf Klick)
 
-    /// Eintrag in die Zwischenablage legen. `plain` = nur reiner Text (⇧). Danach drückt Michael selbst ⌘V.
+    /// Einfügen möglich (0.12.0, G42): nur über das verbundene Hilfsprogramm „Gnotchi Mitteilungen“ mit Freigabe.
+    /// Sonst bleibt es beim Kopieren, Michael drückt selbst ⌘V.
+    var canPaste: Bool { activity.notifyTrust == true }
+
+    /// Hilfsprogramm drückt einmal ⌘V (G42). Nur aus Doppelklick/↵/⌘1–9 in der Seitenansicht, nach dem Schließen –
+    /// kurz warten, bis die vorherige App wieder Tastatureingaben bekommt.
+    func pasteAfterClose() {
+        guard canPaste else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.pasteDelay) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.canPaste else { return }
+                self.activity.notifyCommand(.paste)
+            }
+        }
+    }
+
+    nonisolated static let pasteDelay: TimeInterval = 0.12
+
+    /// Eintrag in die Zwischenablage legen. `plain` = nur reiner Text (⇧).
     func copy(_ entry: ClipEntry, plain: Bool) {
         guard let store, !entry.isVault, let payload = store.payload(entry) else { return }
         write(payload, plain: plain, concealed: false)

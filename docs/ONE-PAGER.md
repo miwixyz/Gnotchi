@@ -46,7 +46,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Hat eine meiner anderen Apps ein Update bereit (Tippi, Kalli, Qotti, Seam), steht es in der
   Notch, bis es installiert ist. Ein Klick, und das Update-Fenster ist offen. Dafür braucht jede
   App eine neue Version. Kalli kommt zuerst.
-- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber.
+- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber. Ein Doppelklick in der Liste fügt den Eintrag gleich in deine App ein.
 - Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex
   bei 80 und bei 95 Prozent steht. Im Band steht der Stand dauerhaft.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
@@ -72,7 +72,7 @@ im Kontrollzentrum. In der Notch steht kein Logo und keine eigene Farbe.
 
 ## Datenschutz
 
-Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest ausschließlich Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Mitteilungstexte werden weder gespeichert noch protokolliert.
+Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Fügst du aus der Zwischenablage ein, drückt es ⌘V und sonst keine Taste. Mitteilungstexte werden weder gespeichert noch protokolliert.
 
 Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
 

@@ -41,7 +41,7 @@ Freigabe nicht und fragt nie danach.
   **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
-- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ kopiert als reinen Text. Einfügen mit ⌘V machst du selbst, Gnotchi braucht dafür keine Bedienungshilfen.
+- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne Bedienungshilfen. Ohne Hilfsprogramm wird nur kopiert.
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
@@ -150,7 +150,7 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **Automation für Spotify** | beim ersten Spulen in Spotify | Spotify spult per AppleScript. Über Spotify Connect springt die Zeit sonst zurück (gemessen 18.10.2026). |
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
 | **Kamera** | beim ersten Klick auf den Spiegel (0.5) | Nur der Spiegel. Das Bild geht direkt auf den Bildschirm, nie in eine Datei ([G27](docs/SECURE-DESIGN.md)) |
-| **Bedienungshilfen für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md)) |
+| **Bedienungshilfen für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Ab 0.12 drückt es auf deinen Doppelklick in der Zwischenablage ⌘V, keine andere Taste. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md), [G42](docs/SECURE-DESIGN.md)) |
 | **Touch ID bzw. Mac-Passwort** | beim Öffnen des Tresors in der Zwischenablage (0.11) | Gibt den Tresor-Schlüssel im Schlüsselbund für fünf Minuten frei ([G39](docs/SECURE-DESIGN.md)) |
 | **„Aus anderen Apps einfügen“** | nur, falls macOS beim Mitlesen der Zwischenablage nachfragt (0.11; auf macOS 27.0.1 fragte es nicht, gemessen 24.10.2026) | Verlauf der Zwischenablage ([G37](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
@@ -207,7 +207,7 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 - **Bildschirmfotos (ab 0.10, ab Werk aus):** Gnotchi fragt Spotlight nur nach dem Merkmal „Bildschirmfoto“, liest
   nie den Bildinhalt und legt nur einen Verweis ab; im Protokoll stehen nur Zahlen, nie Dateinamen
   ([G36](docs/SECURE-DESIGN.md)).
-- **Zwischenablage (ab 0.11, ab Werk aus):** Gnotchi liest die Zwischenablage nur, wenn sich ihr Zähler ändert, und nur eine feste Liste von Formaten. Vertraulich markierte Kopien und ausgeschlossene Apps bleiben draußen. Jedes Feld ist mit AES-256-GCM verschlüsselt, der Schlüssel liegt im Schutzklassen-Schlüsselbund in Gnotchis eigener Gruppe. Der Tresor-Schlüssel ist an Touch ID gebunden. HTML und RTF werden nie dargestellt. Kein Netz, keine Inhalte im Protokoll ([G37–G41](docs/SECURE-DESIGN.md)).
+- **Zwischenablage (ab 0.11, ab Werk aus):** Gnotchi liest die Zwischenablage nur, wenn sich ihr Zähler ändert, und nur eine feste Liste von Formaten. Vertraulich markierte Kopien und ausgeschlossene Apps bleiben draußen. Jedes Feld ist mit AES-256-GCM verschlüsselt, der Schlüssel liegt im Schutzklassen-Schlüsselbund in Gnotchis eigener Gruppe. Der Tresor-Schlüssel ist an Touch ID gebunden. HTML und RTF werden nie dargestellt. Kein Netz, keine Inhalte im Protokoll ([G37–G41](docs/SECURE-DESIGN.md)). Einfügen (ab 0.12): Gnotchi schickt dem geprüften Hilfsprogramm nur „einfügen“, ohne Inhalt; es drückt darauf genau ⌘V, sonst nichts ([G42](docs/SECURE-DESIGN.md)).
 - **Mitteilungen und Anrufe:** Das Hilfsprogramm liest nur Apples Mitteilungszentrale und gibt nur Mitteilungen
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird

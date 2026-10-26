@@ -81,6 +81,7 @@ final class HelperApp {
         case .shown(let id): watcher.markShown(id)
         case .release(let id): watcher.release(id)
         case .act(let id, let action, let stop): watcher.perform(id: id, action: action, stopVoicemail: stop)
+        case .paste: PasteKey.press(trusted: trusted)
         }
     }
 

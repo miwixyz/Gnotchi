@@ -13,7 +13,7 @@ settings:
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
     SWIFT_STRICT_CONCURRENCY: complete
-    MARKETING_VERSION: "0.11.1"
+    MARKETING_VERSION: "0.12.0"
     CURRENT_PROJECT_VERSION: "1"
     # Ab 0.11.0 (G38): Die Schlüsselbund-Gruppe verlangt Signieren mit Team und Profil schon beim Archivieren
     # (vorher ohne Team archiviert, erst der Export signierte). Wie TippAI.

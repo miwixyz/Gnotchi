@@ -115,6 +115,22 @@ final class NotifyWireTests: XCTestCase {
         XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "run": "/bin/sh"])), "unbekannter Befehl")
     }
 
+    // MARK: 0.12.0 – Einfügen (G42): nur „einfügen“, kein Inhalt, keine Taste
+
+    func testPasteRoundTrip() {
+        XCTAssertEqual(NotifyWire.parseCommand(payload(NotifyWire.encode(.paste))), .paste)
+        XCTAssertEqual(NotifyWire.encode(.paste).count, 2, "nur v + paste")
+    }
+
+    func testPasteRejectsAnythingElse() {
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "paste": false])), "false")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "paste": 1])), "Zahl statt Wahrheitswert")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "paste": "rm -rf ~"])), "Text")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "paste": true, "text": "x"])), "Zusatz: Text")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 1, "paste": true, "key": 36])), "Zusatz: Taste")
+        XCTAssertNil(NotifyWire.parseCommand(payload(["v": 2, "paste": true])), "falsche Version")
+    }
+
     func testAck() {
         XCTAssertTrue(NotifyWire.isAck(payload(["v": 1, "ok": true])))
         XCTAssertFalse(NotifyWire.isAck(payload(["v": 1, "ok": 1])))

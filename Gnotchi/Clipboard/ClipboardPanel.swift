@@ -164,14 +164,28 @@ final class ClipboardPanelState {
         pick(list[index], plain: plain)
     }
 
-    func pick(_ entry: ClipEntry, plain: Bool) {
+    /// Einfacher Klick: nur markieren (0.12.0, Michael 26.10.: wie Finder/PastePal).
+    func select(_ entry: ClipEntry) {
+        if let index = entries.firstIndex(where: { $0.id == entry.id }) { selection = index }
+    }
+
+    /// Kopieren, schließen und – wenn das Hilfsprogramm verbunden ist – einfügen (G42). `paste: false` = nur kopieren
+    /// (Kontextmenü).
+    func pick(_ entry: ClipEntry, plain: Bool, paste: Bool = true) {
         if entry.isVault {
+            // `link` fest halten, nicht über `self`: Der Touch-ID-/Passwort-Dialog nimmt der Seitenansicht den Fokus,
+            // sie schließt sich und ihr Zustand ist weg, bevor die Freigabe zurückkommt (Sichttest 26.10.: erst
+            // der zweite Doppelklick fügte ein, das Hilfsprogramm bekam beim ersten keinen Befehl).
+            let link = link
             link.copyVault(entry) { [weak self] ok in
-                if ok { self?.onClose() } else { self?.message = String(localized: "Tresor nicht entsperrt.") }
+                guard ok else { self?.message = String(localized: "Tresor nicht entsperrt."); return }
+                self?.onClose()
+                if paste { link.pasteAfterClose() }
             }
         } else {
             link.copy(entry, plain: plain)
             onClose()
+            if paste { link.pasteAfterClose() }
         }
     }
 }
@@ -190,6 +204,7 @@ struct ClipboardPanelView: View {
     var body: some View {
         VStack(spacing: 10) {
             header
+            title
             if state.entries.isEmpty {
                 Spacer()
                 Text(state.query.isEmpty ? "Noch nichts kopiert" : "Nichts gefunden")
@@ -202,7 +217,8 @@ struct ClipboardPanelView: View {
                 Text(message).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(2)
             }
             tabs
-            Text("↵ kopieren · ⇧↵ als reinen Text · ⌘1–9 · Esc schließt · danach ⌘V")
+            Text(link.canPaste ? "Doppelklick oder ↵ fügt ein · ⇧ als reinen Text · ⌘1–9 · Esc"
+                               : "↵ kopieren · ⇧↵ als reinen Text · ⌘1–9 · Esc schließt · danach ⌘V")
                 .font(.system(size: 10)).foregroundStyle(.tertiary).lineLimit(1)
         }
         .padding(12)
@@ -232,6 +248,23 @@ struct ClipboardPanelView: View {
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.white.opacity(0.08)))
     }
 
+    /// Name der offenen Sammlung als Überschrift (Michael, 26.10.: Symbole allein schwer erkennbar, Namen in den
+    /// Reitern zu breit – deshalb unten nur Symbole, oben der Name).
+    private var title: some View {
+        HStack(spacing: 6) {
+            Image(systemName: collection.map { $0.isVault ? "lock.fill" : $0.symbol } ?? "clock")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(collection?.color.swiftUI ?? .secondary)
+            Text(verbatim: collection?.name ?? String(localized: "Verlauf"))
+                .font(.system(size: 15, weight: .semibold))
+                .lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
     @ViewBuilder private var cards: some View {
         let list = state.entries
         ScrollViewReader { proxy in
@@ -244,7 +277,12 @@ struct ClipboardPanelView: View {
                         ClipCard(link: link, entry: entry, number: index < 9 ? index + 1 : nil,
                                  selected: index == state.selection, compactWidth: edge == .bottom)
                             .id(entry.id)
-                            .onTapGesture { state.pick(entry, plain: NSEvent.modifierFlags.contains(.shift)) }
+                            // Doppelklick fügt ein (G42), einfacher Klick markiert sofort (gleichzeitig, ohne
+                            // auf einen möglichen zweiten Klick zu warten).
+                            .onTapGesture(count: 2) {
+                                state.pick(entry, plain: NSEvent.modifierFlags.contains(.shift))
+                            }
+                            .simultaneousGesture(TapGesture().onEnded { state.select(entry) })
                             .contextMenu { menu(for: entry) }
                     }
                 }
@@ -297,10 +335,12 @@ struct ClipboardPanelView: View {
 
     @ViewBuilder private func menu(for entry: ClipEntry) -> some View {
         if entry.isVault {
-            Button("Kopieren (Touch ID)") { state.pick(entry, plain: true) }
+            if link.canPaste { Button("Einfügen (Touch ID)") { state.pick(entry, plain: true) } }
+            Button("Kopieren (Touch ID)") { state.pick(entry, plain: true, paste: false) }
         } else {
-            Button("Kopieren") { state.pick(entry, plain: false) }
-            Button("Als reinen Text kopieren") { state.pick(entry, plain: true) }
+            if link.canPaste { Button("Einfügen") { state.pick(entry, plain: false) } }
+            Button("Kopieren") { state.pick(entry, plain: false, paste: false) }
+            Button("Als reinen Text kopieren") { state.pick(entry, plain: true, paste: false) }
             Button(isPinned(entry) ? "Lösen" : "Anheften") { try? store?.togglePinned(entry) }
             Menu("Zu Sammlung") {
                 ForEach((store?.collections() ?? []).filter { !$0.isPinned && !$0.isVault }, id: \.id) { c in
