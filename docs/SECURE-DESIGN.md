@@ -888,6 +888,10 @@ nur aus Klicks (G29, G30).
   getestet). Datei-Karte: `NSWorkspace.icon(forFile:)` nur, wenn die Datei existiert (wie G32). Das Herunterklappen
   ist dasselbe `KeyPanel` (`sharingType = .none`), Tresor/Geheimnis bleiben verdeckt, Ziehen bei Geheimnissen nur
   prozessintern (G43), Stern/Papierkorb rufen dieselben Speicherfunktionen wie das Kontextmenü.
+  **Prüfung 0.14.0 (26.10.):** `rafter secrets .` ohne Fund, `rafter run` Scan `ecabf0ba` auf `b50d5d4`: keine
+  Befunde. ZIP Build 145: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen, Testhilfen
+  (`attachForRendering`, `debugSecretSeconds`) nicht im Release-Programm. Sichttest Mac mini (Pille) ✓; an der
+  MacBook-Notch noch nicht live angesehen.
 
 ### G41 – PastePal-Import: strikt, begrenzt, danach Papierkorb (neu, 2026-10-24, 0.11.0)
 - Datei nur über `NSOpenPanel` (Michaels Auswahl), nie automatisch gesucht. Größe ≤ 50 MB vor dem Lesen.
