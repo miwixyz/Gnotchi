@@ -4,16 +4,16 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.15.0</title>
-            <pubDate>Mon, 26 Oct 2026 18:14:39 +0100</pubDate>
+            <title>0.15.1</title>
+            <pubDate>Mon, 26 Oct 2026 21:45:03 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>148</sparkle:version>
-            <sparkle:shortVersionString>0.15.0</sparkle:shortVersionString>
+            <sparkle:version>151</sparkle:version>
+            <sparkle:shortVersionString>0.15.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.15.0/Gnotchi-0.15.0.zip" length="6626339" type="application/octet-stream" sparkle:edSignature="SNc6zBni1sEVJ7+WZlKgV3xPHmk/Zy23ebblEBoLFtoGk+PRAk8OM8jjhF64qRDzPaLSnpH8rF9SVjvp05AYAA=="></enclosure>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.15.1/Gnotchi-0.15.1.zip" length="6626228" type="application/octet-stream" sparkle:edSignature="EjjRq9z8raZyn3ub+Orn0vslKgXK8KwDNlDu/8KYls8HNhRd2L24s2ExP8eRacuydMpcZKYTYo6HKf5YJefjCw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: VUTezXVfrXHyu252dNhvZFhdnKCl1231hMDZ2oDS+B1WyEvLNlOL3YxOHJgySylNJKLNjGnhC3swLiD3XjfwCw==
+edSignature: HCQGtVnpARW3EIynPmscvRyrRS5haL1y9LndhFmw0+ETa4QN3KEe1QYWMfTnQOvUJsBcX1IXKpAlXcGrWWunBQ==
 length: 1103
 -->
