@@ -897,6 +897,8 @@ nur aus Klicks (G29, G30).
   **mitgespeicherte** Bildformat (G37-Typen, derselbe `CGImageSourceCreateThumbnailAtIndex`-Weg mit Höchstgröße);
   die verwiesene Datei wird **nicht** gelesen, kein neuer Dateizugriff, kein Netz. Prüfung nur nach Art
   (`.image`/`.file`) – Text mit Bild bleibt Text. Sichttest MacBook-Notch 26.10. ✓ (auch 0.14/0.15 dort jetzt gesehen).
+  **Prüfung 0.15.1 (26.10.):** `rafter run` Scan `2bec242f` auf `d8f5feb`: keine Befunde. ZIP Build 151: notarisiert,
+  Berechtigungen nur `automation.apple-events`, `device.camera`, `keychain-access-groups`.
 
 ### G41 – PastePal-Import: strikt, begrenzt, danach Papierkorb (neu, 2026-10-24, 0.11.0)
 - Datei nur über `NSOpenPanel` (Michaels Auswahl), nie automatisch gesucht. Größe ≤ 50 MB vor dem Lesen.
