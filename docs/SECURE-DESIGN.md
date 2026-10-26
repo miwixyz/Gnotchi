@@ -983,6 +983,10 @@ nur aus Klicks (G29, G30).
 - **Gemessen an der App (26.10., Testfassung):** echter Lauf 5 Min. → „1 Geheimnis(se) abgelaufen“ nach 5:03;
   mit Mess-Schalter `debugSecretSeconds` (nur DEBUG) 20 s → Eintrag weg nach 22 s, Zwischenablage 40 → 0 Zeichen.
   Gegenprobe Lösch-Umfang: ohne `isLoose` in `secretExpiry` → `testPruneScopeIsLooseDetectedOnly` rot.
+- **Prüfung 0.13.0 (26.10.):** `rafter-secure-design` vor dem Code, Review mit Fund (Frist beim Herausnehmen,
+  behoben), `rafter secrets .` ohne Fund, `rafter run` Scan `bc68a6c3` auf `24d6d39`: keine Befunde. Ausgeliefertes
+  ZIP (Build 142): notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen, `debugSecretSeconds` nicht im
+  Release-Programm. Sichttest Michael bestanden (inkl. Angebot „Alle in den Tresor“).
 - **STRIDE:** *T* Zwischenablage als Fremdeingabe → nur Regex über begrenzte Länge, nichts ausgeführt. *I* Art im
   Protokoll → ausgeschlossen. *D* große Kopie → 8-KB-Grenze vor der Regex. *E* Löschen fremder/gespeicherter Daten
   durch präparierte Kopie → Umfang (a)–(d). *R/S* nicht berührt (keine neue Grenze, kein neuer Prozess).
