@@ -49,6 +49,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G40 | – (neu, 0.11.0) | Anzeige und Rausgabe: nur reiner Text bzw. Vorschaubild, nichts rendern oder laden, nicht in Bildschirmfreigabe |
 | G41 | – (neu, 0.11.0) | PastePal-Import: nur per Auswahl, strikt dekodiert, Grenzen, Werte nie sichtbar, danach Papierkorb |
 | G42 | – (neu, 0.12.0) | Einfügen: Hilfsprogramm drückt nur ⌘V, ohne Inhalt, nur nach Doppelklick/↵, ohne Hilfsprogramm nur kopieren |
+| G44 | – (neu, 0.15.0) | Musik auf dem Schreibtisch: dieselben Fremddaten wie die Insel, nur Anzeige, Klick holt nur laufende App |
 | G43 | – (neu, 0.13.0) | Geheimnisse erkennen: feste Muster, ganze Kopie, verdeckt, lose Einträge nach 5 Min. weg, Sammlungen nie automatisch |
 
 ## Was Gnotchi ist und welche Macht es hat
@@ -1000,6 +1001,22 @@ nur aus Klicks (G29, G30).
 - **STRIDE:** *T* Zwischenablage als Fremdeingabe → nur Regex über begrenzte Länge, nichts ausgeführt. *I* Art im
   Protokoll → ausgeschlossen. *D* große Kopie → 8-KB-Grenze vor der Regex. *E* Löschen fremder/gespeicherter Daten
   durch präparierte Kopie → Umfang (a)–(d). *R/S* nicht berührt (keine neue Grenze, kein neuer Prozess).
+
+### G44 – Musik auf dem Schreibtisch (neu, 2026-10-26, 0.15.0)
+- **Was:** randloses Fenster auf Schreibtischhöhe (`desktopIconWindow + 1`), Hauptbildschirm, Ecke + Abstand per Ziehen,
+  bis zum unteren Bildschirmrand (Dock liegt darüber, wird nie verdeckt), nie unter die Menüleiste. Ab Werk aus, nur mit „Musik in der Notch“. Spec
+  `specs/2026-10-26-gnotchi-0.15.0-schreibtisch-vorschau.md`.
+- **Oberflächen-Check (`rafter-secure-design`):** keine neue Berechtigung, kein Netz, kein Prozess, keine
+  Datenhaltung. Titel/Interpret/Album/Cover sind dieselben Fremddaten wie in der Insel und laufen durch dieselben
+  Prüfungen (G4 Strom nicht vertrauenswürdig, G5 ohne Interpretation – `Text(verbatim:)`, G6 Cover begrenzt
+  dekodiert). Hörverlauf nie ins Protokoll (G8/G16); Testbild nur mit erfundenen Titeln.
+- **Steuerung** nur per Klick auf die Knöpfe (G13), derselbe Weg wie die Insel.
+- **Klick aufs Cover:** `NSRunningApplication.runningApplications(withBundleIdentifier:).first?.activate()` – holt
+  nur eine **schon laufende** App nach vorne, startet nie etwas. Die Kennung stammt aus dem Medienstrom
+  (Fremddaten); ein falscher Wert kann damit höchstens eine laufende App mit dieser Kennung aktivieren.
+- **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
+  (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
+  (G39/G43).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

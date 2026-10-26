@@ -82,6 +82,41 @@ extension SettingsView {
                      symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
             }
         }
+        if prefs.notchMedia {
+            card("Auf dem Schreibtisch") {
+                toggleRow("Cover und Titel auf dem Schreibtisch", isOn: $prefs.desktopMusic)
+                    .onChange(of: prefs.desktopMusic) { model.applyNotchSetting() }
+                if prefs.desktopMusic {
+                    row("Ecke") {
+                        // Ecke wählen = Sprung mit Standardabstand (gezogene Lage wird ersetzt).
+                        Picker("", selection: Binding(get: { prefs.desktopMusicCorner }, set: { corner in
+                            prefs.desktopMusicCorner = corner
+                            prefs.desktopMusicInset = Preferences.desktopMusicDefaultInset
+                            model.applyNotchSetting()
+                        })) {
+                            Text("Unten links").tag(Preferences.DesktopCorner.bottomLeft)
+                            Text("Unten rechts").tag(Preferences.DesktopCorner.bottomRight)
+                            Text("Oben links").tag(Preferences.DesktopCorner.topLeft)
+                            Text("Oben rechts").tag(Preferences.DesktopCorner.topRight)
+                        }
+                        .labelsHidden().frame(width: 160)
+                    }
+                    row("Größe") {
+                        Picker("", selection: $prefs.desktopMusicSize) {
+                            Text("Klein").tag(Preferences.DesktopSize.small)
+                            Text("Mittel").tag(Preferences.DesktopSize.medium)
+                            Text("Groß").tag(Preferences.DesktopSize.large)
+                        }
+                        .labelsHidden().pickerStyle(.segmented).frame(width: 200)
+                        .onChange(of: prefs.desktopMusicSize) { model.applyNotchSetting() }
+                    }
+                }
+                note("Liegt hinter allen Fenstern, nur auf dem Hauptbildschirm. Mit der Maus verschiebbar, "
+                     + "auch bündig in die Ecke. Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. "
+                     + "Drüberfahren zeigt die Knöpfe, Klick aufs Cover holt die App.",
+                     symbol: "photo.on.rectangle", color: FamilyTheme.textSecondary)
+            }
+        }
         card("Medienfilter") {
             // Zweispaltig: Mit allen installierten Wiedergabe-Apps würde das Fenster sonst höher als ein MacBook-Bildschirm.
             LazyVGrid(columns: [GridItem(.flexible(), spacing: FamilyTheme.Space.l), GridItem(.flexible())],

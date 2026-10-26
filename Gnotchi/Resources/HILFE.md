@@ -77,6 +77,10 @@ Spielt der Mac selbst, steht dort nur das Ausgabe-Symbol. Bei anderem Gerät und
 kleine Insel einen Lautsprecher statt des Pegels. Gnotchi fragt dafür nur ab, ob eine App gerade Ton
 ausgibt. Es hört nichts mit.
 
+## Musik auf dem Schreibtisch
+
+Ab 0.15 zeigt Gnotchi auf Wunsch Cover, Titel und Interpret auf dem Schreibtisch, hinter allen Fenstern. Einschalten unter Einstellungen → Wiedergabe → „Cover und Titel auf dem Schreibtisch“ (ab Werk aus), dort wählst du auch Ecke und Größe. Die Anzeige ist da, solange Musik spielt oder pausiert, und verschwindet nach 10 Minuten Pause. Fährst du darüber, erscheinen Zurück, Wiedergabe/Pause und Weiter. Ein Klick aufs Cover holt die App nach vorne, die gerade spielt. **Verschieben:** Zieh die Anzeige mit der Maus, wohin du willst, auch bündig in eine Ecke. Gnotchi merkt sich die Lage relativ zur nächsten Ecke, so bleibt sie auch beim Wechsel zwischen Bildschirmen dort. Die Ecken-Auswahl in den Einstellungen setzt sie mit Standardabstand zurück. Sie erscheint nur auf dem Hauptbildschirm und darf bis an den unteren Rand, neben das Dock. Das Dock liegt immer darüber.
+
 ## Ausgabe wählen
 
 Klick in der großen Insel oben rechts auf das Ausgabe-Symbol (bzw. auf den Gerätenamen). Es öffnet
@@ -237,6 +241,7 @@ Space und ziehst sie dort wieder heraus.
 Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt sich Gnotchi, was du kopierst: Text, formatierten Text, Links, Bilder und Dateien. Bei Dateien merkt es sich nur, wo sie liegen.
 
 - **Aus der Notch (ab 0.14, Voreinstellung):** ⌃< klappt die Zwischenablage direkt aus der Notch herunter, auf Bildschirmen ohne Notch aus der Pille oben. Oben die Suche, darunter deine Sammlungen als Knöpfe mit Name und Anzahl, dann eine Reihe Karten, getrennt nach „Heute“, „Gestern“ und älteren Tagen. Jede Karte zeigt ihren Inhalt passend: Farbcodes als Farbfläche, Bilder randlos, Links mit der Domain, Dateien mit ihrem Symbol. Fährst du über eine Karte, erscheinen Stern (anheften) und Papierkorb. ←/→ wählen, Doppelklick oder ↵ fügt ein, Esc oder Klick daneben schließt. Fährt die Maus hinaus, klappt die Ansicht wieder zu. „Alle …“ in der Notch öffnet sie ebenfalls. **Mehr Platz:** Drück das Kürzel nochmal oder klick auf „Mehr“ (Pfeile oben rechts), dann öffnet sich die große Ansicht am Rand, mit derselben Suche und Sammlung. Ein drittes Mal schließt. Lieber direkt am Rand? Einstellungen → Zwischenablage → „Zuerst aus der Notch“ ausschalten.
+- **Vorschau (ab 0.15):** Leertaste zeigt die markierte Karte groß: Text vollständig, Bild groß, Farbe mit HEX, RGB und HSL, Link als volle Adresse. Mit ←/→ blätterst du weiter, Leertaste oder Esc schließt. Steht im Suchfeld schon Text, tippt die Leertaste ein Leerzeichen.
 - **Große Ansicht am Rand:** Unter Einstellungen → Zwischenablage → „Große Ansicht“ wählst du Rechts, Links oder Unten. Das Kürzel änderst du dort ebenfalls. Oben sind die Suche und der Name der offenen Sammlung, darunter die Karten, unten die Reiter für Verlauf, Angeheftetes und deine Sammlungen. ↑/↓ wählen (bei „Unten“ auch ←/→), ein Klick markiert, Esc schließt.
 - **Einfügen (ab 0.12):** **Doppelklick**, ↵ oder ⌘1–⌘9 fügen den Eintrag direkt in die App ein, in der du gerade arbeitest. **Mit ⇧ als reinen Text.** Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“. Deshalb geht das nur, wenn „Mitteilungen in der Notch“ an ist und das Hilfsprogramm die Bedienungshilfen-Freigabe hat. Sonst kopiert Gnotchi nur, und du fügst mit **⌘V** selbst ein. Die Zeile unten in der Seitenansicht sagt dir, was gerade gilt. Nur kopieren: Rechtsklick → Kopieren.
 - **Reagiert das Kürzel nicht,** belegt es vermutlich eine andere App, zum Beispiel PastePal. Wähl dann ein anderes oder beende die andere App.

@@ -33,6 +33,9 @@ Freigabe nicht und fragt nie danach.
 
 - **Medien aus jeder Quelle**, die macOS als laufende Wiedergabe meldet: Spotify, Musik und
   Browser wie Safari, Edge oder Helium (auch Videos).
+- **Auf dem Schreibtisch (0.15, ab Werk aus):** Cover, Titel und Interpret hinter allen Fenstern, frei verschiebbar,
+  Knöpfe beim Drüberfahren, nach 10 Minuten Pause weg. Gleiche Daten wie die Insel, keine Freigabe
+  ([G44](docs/SECURE-DESIGN.md)).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
@@ -41,7 +44,7 @@ Freigabe nicht und fragt nie danach.
   **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
-- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne Bedienungshilfen. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren.
+- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne Bedienungshilfen. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren. **Ab 0.15** zeigt die Leertaste eine große Vorschau der markierten Karte.
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert

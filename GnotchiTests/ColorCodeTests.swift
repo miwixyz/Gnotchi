@@ -38,6 +38,15 @@ final class ColorCodeTests: XCTestCase {
         for s in samples { XCTAssertNil(ColorCode.parse(s), s) }
     }
 
+    /// Vorschau (0.15.0): HEX, RGB, HSL.
+    func testPreviewColorLines() throws {
+        let lines = ClipPreview.colorLines(try XCTUnwrap(ColorCode.parse("#E50914")))
+        XCTAssertEqual(lines.map(\.1), ["#E50914", "rgb(229, 9, 20)", "hsl(357, 92%, 47%)"])
+        let gray = ClipPreview.colorLines(try XCTUnwrap(ColorCode.parse("#808080")))
+        XCTAssertEqual(gray[2].1, "hsl(0, 0%, 50%)")
+        XCTAssertEqual(ClipPreview.colorLines(try XCTUnwrap(ColorCode.parse("rgba(0, 0, 0, 0.5)"))).last?.0, "Alpha")
+    }
+
     func testBrightness() {
         XCTAssertTrue(ColorCode.parse("#FFFFFF")?.isLight == true)
         XCTAssertTrue(ColorCode.parse("#FFEB3B")?.isLight == true)

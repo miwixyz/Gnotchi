@@ -63,7 +63,10 @@ final class ClipboardPanelController {
         state.topInset = topInset
         state.collectionID = collectionID
         state.query = query
-        if edge == .notch { state.onExpand = { [weak self] in self?.expand() } }
+        if edge == .notch {
+            state.onExpand = { [weak self] in self?.expand() }
+            state.onPreviewToggle = { [weak self] on in self?.growForPreview(on) }
+        }
         self.state = state
         openEdge = edge
         p.contentView = NSHostingView(rootView: ClipboardPanelView(state: state))
@@ -114,6 +117,17 @@ final class ClipboardPanelController {
     }
 
     nonisolated static let dropSize = CGSize(width: 680, height: 230)
+    nonisolated static let previewHeight: CGFloat = 220
+
+    /// Vorschau im Herunterklappen: oben bleibt bündig, das Fenster wächst nach unten.
+    private func growForPreview(_ on: Bool) {
+        guard let panel else { return }
+        var f = panel.frame
+        let delta = on ? Self.previewHeight : -Self.previewHeight
+        f.origin.y -= delta
+        f.size.height += delta
+        panel.setFrame(f, display: true, animate: false)
+    }
 
     /// Herunterklappen (0.14.0): oben bündig am Bildschirmrand, mittig unter der Notch bzw. Pille, um die Höhe der
     /// Notch/Menüleiste länger (der Inhalt beginnt darunter). Schmale Bildschirme: Breite gekürzt.
@@ -176,6 +190,21 @@ final class ClipboardPanelState {
     var topInset: CGFloat = 0
     /// Herunterklappen: „Mehr“ → große Ansicht am Rand (nil an den Rändern).
     @ObservationIgnored var onExpand: (() -> Void)?
+    /// Vorschau per Leertaste (0.15.0): Kennung des gezeigten Eintrags.
+    var previewID: UUID? {
+        didSet { if (previewID == nil) != (oldValue == nil) { onPreviewToggle?(previewID != nil) } }
+    }
+    /// Herunterklappen: Fenster für die Vorschau nach unten verlängern.
+    @ObservationIgnored var onPreviewToggle: ((Bool) -> Void)?
+    var previewEntry: ClipEntry? { previewID.flatMap { id in entries.first { $0.id == id } } }
+
+    func togglePreview() {
+        if previewID != nil {
+            previewID = nil
+        } else if entries.indices.contains(selection) {
+            previewID = entries[selection].id
+        }
+    }
     @ObservationIgnored private var mouseWasInside = false
     @ObservationIgnored private var leaveTask: Task<Void, Never>?
 
@@ -214,6 +243,8 @@ final class ClipboardPanelState {
         case 124 where edge == .bottom || edge == .notch: move(1)    // →
         case 123 where edge == .bottom || edge == .notch: move(-1)   // ←
         case 36, 76: pick(at: selection, plain: shift)           // ↵, Enter (Ziffernblock)
+        case 49 where query.isEmpty: togglePreview()             // Leertaste (im Suchfeld mit Text: Leerzeichen)
+        case 53 where previewID != nil: previewID = nil          // Esc: erst die Vorschau
         case 53: onClose()                                       // Esc
         default:
             guard flags.contains(.command), let c = characters, let n = Int(c), (1...9).contains(n) else { return false }
@@ -226,6 +257,7 @@ final class ClipboardPanelState {
         let count = entries.count
         guard count > 0 else { return }
         selection = min(max(selection + delta, 0), count - 1)
+        if previewID != nil { previewID = entries[selection].id }   // mit ←/→ durch die Vorschauen blättern
     }
 
     func pick(at index: Int, plain: Bool) {
@@ -237,6 +269,7 @@ final class ClipboardPanelState {
     /// Einfacher Klick: nur markieren (0.12.0, Michael 26.10.: wie Finder/PastePal).
     func select(_ entry: ClipEntry) {
         if let index = entries.firstIndex(where: { $0.id == entry.id }) { selection = index }
+        if previewID != nil { previewID = entry.id }
     }
 
     /// Kopieren, schließen und – wenn das Hilfsprogramm verbunden ist – einfügen (G42). `paste: false` = nur kopieren
@@ -280,7 +313,9 @@ struct ClipboardPanelView: View {
             header
             if link.secretsToOffer > 0 { secretOffer(link.secretsToOffer) }
             title
-            if state.entries.isEmpty {
+            if let entry = state.previewEntry {
+                ClipPreview(link: link, entry: entry) { state.previewID = nil }
+            } else if state.entries.isEmpty {
                 Spacer()
                 Text(state.query.isEmpty ? "Noch nichts kopiert" : "Nichts gefunden")
                     .font(.system(size: 13)).foregroundStyle(.secondary)
@@ -292,8 +327,8 @@ struct ClipboardPanelView: View {
                 Text(message).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(2)
             }
             tabs
-            Text(link.canPaste ? "Doppelklick oder ↵ fügt ein · ⇧ als reinen Text · ⌘1–9 · Esc"
-                               : "↵ kopieren · ⇧↵ als reinen Text · ⌘1–9 · Esc schließt · danach ⌘V")
+            Text(link.canPaste ? "Doppelklick oder ↵ fügt ein · ⇧ reiner Text · Leertaste: Vorschau · Esc"
+                               : "↵ kopieren · ⇧↵ reiner Text · Leertaste: Vorschau · Esc · danach ⌘V")
                 .font(.system(size: 10)).foregroundStyle(.tertiary).lineLimit(1)
         }
         .padding(12)

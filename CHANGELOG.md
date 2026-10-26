@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.0] — 2026-10-26
+
+Musik auf dem Schreibtisch, und eine Vorschau für die Zwischenablage.
+
+### Neu
+- **Musik auf dem Schreibtisch.** Gnotchi zeigt auf Wunsch Cover, Titel und Interpret auf dem Schreibtisch, hinter allen Fenstern. Einschalten unter Einstellungen → Wiedergabe → „Cover und Titel auf dem Schreibtisch“ (ab Werk aus), dort wählst du auch Ecke und Größe (Klein, Mittel, Groß). Die Anzeige ist da, solange Musik spielt oder pausiert, und geht nach 10 Minuten Pause weg. Fährst du darüber, erscheinen ganz unten Zurück, Pause und Weiter. Ein Klick aufs Cover holt die App nach vorne, die gerade spielt.
+- **Frei verschiebbar.** Zieh die Anzeige mit der Maus, wohin du willst, bündig in eine Ecke und bis auf Höhe des Docks. Gnotchi merkt sich die Lage relativ zur nächsten Ecke, so bleibt sie beim Wechsel zwischen Bildschirmen, wo sie hingehört.
+- **Vorschau per Leertaste.** In der Zwischenablage zeigt die Leertaste die markierte Karte groß: Text vollständig, Bild groß, Farbe mit HEX, RGB und HSL, Link als volle Adresse. ←/→ blättert weiter, Leertaste oder Esc schließt. Steht im Suchfeld schon Text, bleibt die Leertaste ein Leerzeichen.
+
+### Gut zu wissen
+- Die Schreibtisch-Anzeige erscheint nur auf dem Hauptbildschirm. Das Dock liegt immer darüber.
+- Der Klick aufs Cover startet nie eine App. Er holt nur eine, die schon läuft, nach vorne.
+
+### Intern
+- `DesktopMusicLink`: randloses Fenster eine Ebene über den Schreibtisch-Symbolen, dieselben Daten wie die Insel (G4–G6), keine Berechtigung, kein Netz. Lage als Ecke + Abstand gespeichert, Zurückholen in den erlaubten Bereich nach dem Ziehen. `ClipPreview` mit HSL-Umrechnung (getestet). SECURE-DESIGN G44.
+
 ## [0.14.0] — 2026-10-26
 
 Die Zwischenablage klappt jetzt aus der Notch herunter, und jede Karte zeigt ihren Inhalt so, wie er ist.

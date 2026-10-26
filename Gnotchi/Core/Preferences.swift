@@ -9,6 +9,13 @@ final class Preferences {
 
     enum Key {
         static let notchMedia = "notchMedia"
+        /// 0.15.0 Musik auf dem Schreibtisch: Schalter (ab Werk aus), Ecke, Größe.
+        static let desktopMusic = "desktopMusic"
+        static let desktopMusicCorner = "desktopMusicCorner"
+        static let desktopMusicSize = "desktopMusicSize"
+        /// Abstand des Covers zur gewählten Ecke (nach dem Ziehen), x/y in Punkten.
+        static let desktopMusicInsetX = "desktopMusicInsetX"
+        static let desktopMusicInsetY = "desktopMusicInsetY"
         static let expandDelay = "expandDelay"
         static let headphoneNotice = "headphoneNotice"
         static let micCamera = "micCamera"
@@ -81,6 +88,34 @@ final class Preferences {
     /// Musik in der Notch zeigen. Ab Werk an. Aus = weder Adapter noch Insel laufen
     /// (`AppModel.applyNotchSetting`).
     var notchMedia: Bool { didSet { defaults.set(notchMedia, forKey: Key.notchMedia) } }
+    /// 0.15.0: Cover + Titel hinter allen Fenstern auf dem Schreibtisch. Ab Werk **aus** (neue Bildschirmfläche).
+    var desktopMusic: Bool { didSet { defaults.set(desktopMusic, forKey: Key.desktopMusic) } }
+    var desktopMusicCorner: DesktopCorner {
+        didSet { defaults.set(desktopMusicCorner.rawValue, forKey: Key.desktopMusicCorner) }
+    }
+    var desktopMusicSize: DesktopSize { didSet { defaults.set(desktopMusicSize.rawValue, forKey: Key.desktopMusicSize) } }
+    /// Abstand des Covers zur Ecke – frei per Ziehen (Michael 26.10.: „ganz in die rechte untere Ecke“). Lage relativ zur
+    /// nächsten Ecke, damit sie beim Bildschirmwechsel in derselben Ecke bleibt.
+    var desktopMusicInset: CGSize {
+        didSet {
+            defaults.set(Double(desktopMusicInset.width), forKey: Key.desktopMusicInsetX)
+            defaults.set(Double(desktopMusicInset.height), forKey: Key.desktopMusicInsetY)
+        }
+    }
+    static let desktopMusicDefaultInset = CGSize(width: 24, height: 24)
+
+    enum DesktopCorner: String, CaseIterable { case bottomLeft, bottomRight, topLeft, topRight }
+    /// Covergröße in Punkten.
+    enum DesktopSize: String, CaseIterable {
+        case small, medium, large
+        var cover: CGFloat {
+            switch self {
+            case .small: 120
+            case .medium: 180
+            case .large: 260
+            }
+        }
+    }
 
     /// Wie lange die Maus über der kleinen Insel bleiben muss, bevor sie aufgeht (Michael, 18.10.:
     /// „damit das Überfahren nicht zu schnell auslöst und stört“). Wirkt sofort, ohne Neustart.
@@ -238,6 +273,13 @@ final class Preferences {
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),
         // nicht „aus“.
         notchMedia = defaults.object(forKey: Key.notchMedia) as? Bool ?? true
+        desktopMusic = defaults.object(forKey: Key.desktopMusic) as? Bool ?? false
+        desktopMusicCorner = defaults.string(forKey: Key.desktopMusicCorner).flatMap(DesktopCorner.init(rawValue:))
+            ?? .bottomLeft
+        desktopMusicSize = defaults.string(forKey: Key.desktopMusicSize).flatMap(DesktopSize.init(rawValue:)) ?? .medium
+        let insetX = defaults.object(forKey: Key.desktopMusicInsetX) as? Double
+        let insetY = defaults.object(forKey: Key.desktopMusicInsetY) as? Double
+        desktopMusicInset = CGSize(width: max(0, min(insetX ?? 24, 4000)), height: max(0, min(insetY ?? 24, 4000)))
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true

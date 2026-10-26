@@ -22,13 +22,17 @@ extension ClipboardPanelView {
             }
             pills
             row
+            if let entry = state.previewEntry {
+                ClipPreview(link: link, entry: entry) { state.previewID = nil }
+                    .frame(height: ClipboardPanelController.previewHeight - 8)
+            }
             if link.secretsToOffer > 0 {
                 compactSecretOffer(link.secretsToOffer)
             } else if let message = state.message {
                 Text(message).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
             } else {
-                Text(link.canPaste ? "Doppelklick oder ↵ fügt ein · ⇧ reiner Text · ←/→ · Kürzel nochmal: mehr · Esc"
-                                   : "↵ kopieren · ⇧↵ reiner Text · ←/→ · Kürzel nochmal: mehr · Esc · danach ⌘V")
+                Text(link.canPaste ? "Doppelklick oder ↵ fügt ein · Leertaste: Vorschau · Kürzel nochmal: mehr · Esc"
+                                   : "↵ kopieren · Leertaste: Vorschau · Kürzel nochmal: mehr · Esc · danach ⌘V")
                     .font(.system(size: 10)).foregroundStyle(.tertiary).lineLimit(1)
             }
         }
