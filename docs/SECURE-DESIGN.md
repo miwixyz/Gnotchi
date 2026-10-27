@@ -815,6 +815,9 @@ nur aus Klicks (G29, G30).
   Spezifikation `specs/2026-10-27-gnotchi-0.16.0-ruhige-insel.md`. Ebenda: ruhige Insel (nur Optik) und Messpunkt
   `FocusProbe` (liest nur die Meldung „App wurde aktiv“ von macOS, protokolliert nur ja/nein für Gnotchi/Hilfsprogramm,
   keine App-Namen, speichert nichts).
+  **Prüfung 0.16.0 (27.10.):** `rafter run` Scan `7f1889a2` auf `4a06235`: keine Befunde. ZIP Build 154: notarisiert
+  (`spctl`: Notarized Developer ID), Berechtigungs-Positivliste von `release.sh` bestanden. Sichttest am Mac mini
+  (Ablauf in der echten App, Fokus mit `tools/app-activations`).
 
 ### G37 – Zwischenablage mitlesen: ab Werk aus, nur bei Änderung, feste Typenliste (neu, 2026-10-24, 0.11.0)
 - Spezifikation: `specs/2026-10-24-gnotchi-0.11.0-zwischenablage.md`. Schalter im Reiter „Zwischenablage“, **ab Werk
