@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.16.0] — 2026-10-27
+
+Eine ruhigere Insel ohne Notch und eine Ablage, die sich selbst aufräumt.
+
+### Neu
+- **Ruhige Insel ohne Notch.** Auf Bildschirmen ohne Notch war die Insel immer schwarz, auch wenn sie nur Wetter oder Ungelesen-Zahlen zeigte. Auf einer hellen Menüleiste fiel sie dann auf. Jetzt sieht sie in diesem Fall aus wie die Menüleiste, mit Glas und passender Schrift. Sobald etwas läuft (Musik, Timer, Termin, Anruf, Diktat, Mitteilung, Mikrofon oder Kamera), wird sie wieder schwarz. Abschalten unter Einstellungen → Allgemein → Aussehen → „Ruhige Insel ohne Notch“ (ab Werk an). Mit Notch bleibt die Insel schwarz.
+- **Bildschirmfotos verschwinden wieder aus der Ablage.** Automatisch abgelegte Bildschirmfotos bleiben nur noch eine wählbare Zeit in der Ablage: 5, 15, 30 oder 60 Minuten oder immer (ab Werk 30). Die Datei selbst bleibt liegen, nur der Eintrag in Gnotchi geht. Einstellen unter Einstellungen → Ablage → „Bildschirmfotos behalten“. Dateien, die du selbst hineinziehst, laufen nie ab.
+
+### Gut zu wissen
+- Bildschirmfotos, die schon vor dem Update in der Ablage lagen, laufen nicht ab. Entferne sie bei Bedarf von Hand.
+
+### Intern
+- Messpunkt Fokus: Wechselt die vordere App, während eine Mitteilung oder ein Anruf zu sehen ist, steht im Protokoll (Kategorie `fokus`), ob Gnotchi oder sein Hilfsprogramm das war. Nur ja oder nein, keine App-Namen. Gemessen am 27.10.: Eine Mitteilung nahm keiner App den Fokus.
+- `ablage.json` merkt sich bei automatisch abgelegten Bildschirmfotos den Zeitpunkt (`shot`, Schema weiter `v: 1`, ältere Versionen übergehen das Feld). Beim Lesen geprüft: nur eine endliche Zahl nach 2020.
+
 ## [0.15.1] — 2026-10-26
 
 Drei Korrekturen, gefunden an der echten MacBook-Notch.

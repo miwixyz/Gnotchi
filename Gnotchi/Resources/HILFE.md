@@ -4,7 +4,9 @@
 
 Gnotchi macht aus der Notch deines MacBook eine kleine Insel für Musik und Videos. Du siehst, was
 gerade läuft, und steuerst es, ohne die App zu suchen. Auf Bildschirmen ohne Notch erscheint
-dieselbe Insel als schwarze Pille oben in der Mitte. Jeder Bildschirm hat seine eigene.
+dieselbe Insel als Pille oben in der Mitte. Jeder Bildschirm hat seine eigene. Zeigt die Pille nur Wetter, Ablage oder
+Ungelesen-Zahlen, sieht sie aus wie die Menüleiste. Sobald etwas läuft, wird sie schwarz (ab 0.16, abschaltbar unter
+Einstellungen → Allgemein → Aussehen → „Ruhige Insel ohne Notch“).
 
 Gnotchi zeigt alles, was macOS als laufende Wiedergabe meldet: Spotify, Musik und Browser wie
 Safari, Edge oder Helium, auch Videos.
@@ -227,7 +229,9 @@ Space und ziehst sie dort wieder heraus.
 - **ZIP** landet als „Ablage.zip“ in deinem Downloads-Ordner und auch in der Ablage. **Mit Passwort** ist es mit
   AES-256 verschlüsselt; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick auf dem Mac.
 - **Bildschirmfotos automatisch (ab 0.10):** Einstellungen → Ablage → „Bildschirmfotos automatisch ablegen“. Jedes neue
-  Bildschirmfoto von macOS oder CleanShot erscheint von selbst in der Ablage und bleibt dort, bis du es herausziehst.
+  Bildschirmfoto von macOS oder CleanShot erscheint von selbst in der Ablage. **Ab 0.16** bleibt es dort nur eine
+  wählbare Zeit (Einstellungen → Ablage → „Bildschirmfotos behalten“: 5, 15, 30, 60 Min. oder immer, ab Werk 30). Danach
+  verschwindet nur der Eintrag, die Datei bleibt liegen. Was du selbst hineinziehst, bleibt, bis du es entfernst.
   Videos nicht. Fotos aus iCloud Drive brauchen manchmal bis zu einer Minute. Liegen sie auf dem Schreibtisch, fragt
   macOS einmal nach dem Zugriff; ohne „Erlauben“ bleiben sie draußen.
 - **Rausziehen kopiert** (ab 0.10): Das Original bleibt, wo es war, auch wenn du in den Finder ziehst.
@@ -271,6 +275,7 @@ dein Standort.
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
 - **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen**, **Termine aus Kalli anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
+- **Ruhige Insel ohne Notch** (Allgemein → Aussehen): ab Werk an. Ohne Notch sieht die Pille aus wie die Menüleiste, solange nichts läuft.
 - **Aufklappen als:** Insel (ab Werk) oder Band.
 - **Wiedergabe-Knöpfe in der kleinen Insel**, **Wiedergabe immer groß:** ab Werk aus (siehe „Große Insel“).
 - **Spiegel in der Notch**, **Timer-Ablauf bis Klick anzeigen:** ab Werk an. **Timer-Ton:** ab Werk „Glass“, oder „Kein Ton“.

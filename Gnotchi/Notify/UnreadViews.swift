@@ -50,11 +50,12 @@ struct UnreadDot: View {
         HStack(spacing: 3) {
             Circle().fill(Color.red.opacity(0.9)).frame(width: 5, height: 5)
             Text(verbatim: UnreadMini.short(total)).font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.85)).monospacedDigit()
+                .foregroundStyle(.primary.opacity(0.85)).monospacedDigit()
         }
+        // `.primary` statt Weiß: in der (dunklen) Insel unverändert weiß, in der ruhigen Insel (0.16.0) Menüleisten-Schrift.
         .padding(.horizontal, 6).frame(minHeight: 16)
-        .background(Capsule().fill(.white.opacity(0.12)))
-        .overlay(Capsule().strokeBorder(.white.opacity(0.18), lineWidth: 0.5))
+        .background(Capsule().fill(.primary.opacity(0.12)))
+        .overlay(Capsule().strokeBorder(.primary.opacity(0.18), lineWidth: 0.5))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: "\(total) ungelesen"))
     }

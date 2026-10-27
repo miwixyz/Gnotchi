@@ -20,13 +20,12 @@ final class IslandState {
     init(layout: IslandGeometry.Layout) { self.layout = layout }
 }
 
-/// Die Insel. Tiefschwarz, oben bündig, unten weich gerundet – soll aussehen wie ein Teil
-/// von macOS (Michael, 18.10.: „seamless wie macOS“). Bewusst Systemschrift (SF Pro) statt
-/// Familien-Design; kein Rand, kein Schatten, kein Glas.
+/// Die Insel. Tiefschwarz, oben bündig, unten weich gerundet – „seamless wie macOS“ (Michael 18.10.): Systemschrift (SF Pro), kein Rand, kein Schatten; Glas nur angeheftet und als ruhige Insel (0.16.0).
 /// Titel/Interpret kommen von beliebigen Websites → nur `Text(verbatim:)` (SECURE-DESIGN G5).
 struct IslandView: View {
     @Environment(NowPlayingModel.self) private var model
     @Environment(ActivityModel.self) private var activity
+    @Environment(\.colorScheme) private var systemScheme   // System, nicht die erzwungene Insel-Dunkelheit (0.16.0)
     let state: IslandState
     let onHover: (Bool) -> Void
     /// Klick auf das Ausgabe-Symbol oben rechts (groß): IslandController zeigt die Geräteliste.
@@ -43,9 +42,9 @@ struct IslandView: View {
             ZStack(alignment: .top) {
                 let shape = UnevenRoundedRectangle(bottomLeadingRadius: corner, bottomTrailingRadius: corner,
                                                    style: .continuous)
-                if activity.pinned && state.mode == .expanded {
-                    // Angeheftet: durchscheinendes Glas statt Schwarz (Michael 21.10.: „weniger Deckung“).
-                    shape.fill(.black.opacity(0.35)).familyGlass(in: shape)
+                if quiet || (activity.pinned && state.mode == .expanded) {
+                    // Angeheftet: durchscheinendes Glas statt Schwarz (Michael 21.10.: „weniger Deckung“). Ruhige Insel (0.16.0): klares Glas.
+                    shape.fill(.black.opacity(quiet ? 0 : 0.35)).familyGlass(in: shape)
                 } else {
                     shape.fill(.black)
                 }
@@ -63,10 +62,11 @@ struct IslandView: View {
         .animation(.snappy(duration: 0.32), value: state.mode)
         // Titelwechsel weich überblenden (Spezifikation „Bewegung“).
         .animation(.smooth, value: model.info?.title)
-        .environment(\.colorScheme, .dark)
+        .environment(\.colorScheme, quiet ? systemScheme : .dark)
     }
 
     private var pill: Bool { state.layout.notch == nil }
+    private var quiet: Bool { pill && state.mode == .compact && activity.showsQuietIsland }   // 0.16.0, ActivityModel+Quiet
 
     @ViewBuilder private var content: some View {
         switch state.mode {

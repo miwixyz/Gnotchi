@@ -79,6 +79,8 @@ final class AppModel {
     /// Beobachter-Token der Beenden-Meldung. Lebt so lange wie die App; aufgehoben statt `_ =`,
     /// damit klar ist, dass die Anmeldung gewollt bestehen bleibt.
     @ObservationIgnored private var terminateObserver: NSObjectProtocol?
+    /// Messpunkt Fokus bei Mitteilungen (0.16.0), nur Protokoll.
+    @ObservationIgnored private var focusProbe: FocusProbe?
 
     /// Im Testlauf startet die App als Test-Host. Dann weder Sparkle noch der Medien-Adapter
     /// (er startete perl, der Rückfall schickte Apple Events): Die Tests prüfen reine Logik.
@@ -143,6 +145,8 @@ final class AppModel {
         ClipboardKeysProbe.runIfRequested()
         #endif
         if !prefs.claudeCode { ClaudeLink.removeLeftoverHooks() }
+        focusProbe = FocusProbe { [activity] in activity.currentNote != nil || activity.call != nil }
+        focusProbe?.start()
         // Einen Takt später, nicht im init: AppModel entsteht INNERHALB von SwiftUIs Aktualisierung der App (@State-
         // Startwert). Startet die Insel hier, zeichnet sich ihr NSHostingView mitten darin → Absturz „precondition
         // failure: setting value during update“ (24.10. im Debugger gemessen, traf auch das veröffentlichte 0.10.0).
@@ -164,6 +168,7 @@ final class AppModel {
         activity.timerAlarmEnabled = prefs.timerAlarm
         activity.playerFirst = prefs.playerFirst
         activity.compactControls = prefs.compactControls
+        activity.quietIsland = prefs.quietIsland
         activity.compactUnread = prefs.compactUnread
         activity.bandStyle = prefs.bandStyle
         if !prefs.playerFirst { activity.overlayActivity = nil }

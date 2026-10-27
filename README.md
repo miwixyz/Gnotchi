@@ -70,7 +70,11 @@ Freigabe nicht und fragt nie danach.
 - **Bildschirmfotos in die Ablage (0.10):** Jedes neue Bildschirmfoto von macOS oder CleanShot (auch in iCloud Drive)
   landet von selbst in der Ablage und lässt sich gleich in Chat, Mail oder Dokument ziehen. Ab Werk aus; Fotos auf dem
   Schreibtisch brauchen einmal macOS' Zugriffsfreigabe, iCloud-Fotos erscheinen bis zu einer Minute verzögert.
+  **Ab 0.16** verschwinden sie nach 5, 15, 30 oder 60 Minuten wieder aus der Ablage (oder nie, ab Werk 30); die Datei
+  bleibt liegen.
 - **Ruhe-Insel (0.8):** Läuft nichts, bleibt die kleine Insel bei Wetter/Ablage mit Temperatur bzw. Anzahl.
+  **Ab 0.16** sieht sie ohne Notch dann aus wie die Menüleiste (Glas statt Schwarz) und wird erst bei Musik, Timer,
+  Termin, Anruf, Diktat, Mitteilung, Mikrofon oder Kamera schwarz. Abschaltbar, ab Werk an.
 - **Wetter (0.7):** Wetter-Symbol in der großen Insel → Temperatur, Zustand, 8 Stunden, 7 Tage, Feuchte, Wind,
   UV, Druck, Sonnenauf-/-untergang auf einem Himmel-Farbverlauf. Ort in den Einstellungen suchen, °C/°F. Daten:
   [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0). Ab Werk aus.

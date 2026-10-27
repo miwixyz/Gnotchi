@@ -14,6 +14,8 @@ final class ShelfStore {
         let bookmark: Data
         /// Angezeigter Name (Dateiname, bereinigt) – nur Anzeige.
         let name: String
+        /// Automatisch abgelegtes Bildschirmfoto (0.16.0): wann. Nur solche Einträge laufen ab; nil = selbst abgelegt.
+        var screenshotAt: Date?
     }
 
     nonisolated static let maxItems = 50
@@ -44,15 +46,17 @@ final class ShelfStore {
 
     /// Nur existierende Datei-URLs; Doppelte (gleicher aufgelöster Pfad) und alles über 50 fallen weg.
     /// Liefert die Zahl der neu abgelegten.
+    /// `screenshotAt`: nur für automatisch abgelegte Bildschirmfotos (0.16.0, laufen ab).
     @discardableResult
-    func add(_ urls: [URL]) -> Int {
+    func add(_ urls: [URL], screenshotAt: Date? = nil) -> Int {
         var added = 0
         for url in urls where url.isFileURL && items.count < Self.maxItems {
             let path = url.standardizedFileURL.resolvingSymlinksInPath().path
             guard FileManager.default.fileExists(atPath: path), !contains(url),
                   let mark = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil),
                   mark.count <= Self.maxBookmark else { continue }
-            let item = Item(id: UUID(), bookmark: mark, name: Self.cleanName(url.lastPathComponent))
+            let item = Item(id: UUID(), bookmark: mark, name: Self.cleanName(url.lastPathComponent),
+                            screenshotAt: screenshotAt)
             // Eigene Kopie: nach dem Lesezeichen erneut prüfen – tauscht die App sie zwischen Prüfung und Lesezeichen
             // gegen einen Link, zeigte der Eintrag sonst nach draußen (Review 23.10.).
             if let copies, let own = Self.copyFolder(of: url, in: copies) {
@@ -77,6 +81,24 @@ final class ShelfStore {
         items.removeAll { $0.id == id }
         save()
         cleanCopies()
+    }
+
+    /// Bildschirmfotos nach `minutes` aus der Ablage nehmen (0.16.0, Michael 27.10.: „nur aus der Gnotchi-Ablage“) –
+    /// nur der Verweis geht, die Datei bleibt. `minutes` ≤ 0 = behalten. Liefert die Zahl der entfernten.
+    @discardableResult
+    func removeExpiredScreenshots(minutes: Int, now: Date = Date()) -> Int {
+        let gone = Self.expiredScreenshots(items, minutes: minutes, now: now)
+        guard !gone.isEmpty else { return 0 }
+        items.removeAll { gone.contains($0.id) }
+        save()
+        cleanCopies()
+        return gone.count
+    }
+
+    nonisolated static func expiredScreenshots(_ items: [Item], minutes: Int, now: Date) -> Set<UUID> {
+        guard minutes > 0 else { return [] }
+        let limit = now.addingTimeInterval(-Double(minutes) * 60)
+        return Set(items.filter { $0.screenshotAt.map { $0 <= limit } ?? false }.map(\.id))
     }
 
     func clear() {
@@ -182,7 +204,11 @@ final class ShelfStore {
         guard let file, PeerSocketServer<String>.prepareDirectory(file.deletingLastPathComponent()) else {
             return Self.log.error("Ablage nicht gespeichert (Ordner)")
         }
-        let list = items.map { ["id": $0.id.uuidString, "bookmark": $0.bookmark.base64EncodedString(), "name": $0.name] }
+        let list = items.map { item -> [String: Any] in
+            var d: [String: Any] = ["id": item.id.uuidString, "bookmark": item.bookmark.base64EncodedString(), "name": item.name]
+            if let at = item.screenshotAt { d["shot"] = at.timeIntervalSince1970 }
+            return d
+        }
         guard let data = try? JSONSerialization.data(withJSONObject: ["v": 1, "items": list]) else { return }
         do {
             try data.write(to: file, options: [.atomic])
@@ -200,8 +226,15 @@ final class ShelfStore {
             guard let idText = d["id"] as? String, let id = UUID(uuidString: idText),
                   let b64 = d["bookmark"] as? String, let mark = Data(base64Encoded: b64), !mark.isEmpty,
                   mark.count <= maxBookmark, let name = d["name"] as? String else { return nil }
-            return Item(id: id, bookmark: mark, name: cleanName(name))
+            return Item(id: id, bookmark: mark, name: cleanName(name), screenshotAt: shotDate(d["shot"]))
         }
+    }
+
+    /// Optionaler Zeitpunkt (0.16.0): nur eine endliche Zahl nach 2020; alles andere → nil (Eintrag bleibt, läuft nicht ab).
+    nonisolated static func shotDate(_ v: Any?) -> Date? {
+        guard let n = v as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(), n.doubleValue.isFinite,
+              n.doubleValue > 1_577_836_800 else { return nil }
+        return Date(timeIntervalSince1970: n.doubleValue)
     }
 
     nonisolated static func cleanName(_ s: String) -> String {

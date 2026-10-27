@@ -52,6 +52,9 @@ final class ShelfLink: NotchPart {
     @ObservationIgnored private let prefs: Preferences
     @ObservationIgnored private let store: ShelfStore
     @ObservationIgnored private var watcher: DragWatcher?
+    /// Nimmt abgelaufene Bildschirmfotos aus der Ablage (0.16.0), solange die Ablage läuft.
+    @ObservationIgnored private var expiryTask: Task<Void, Never>?
+    nonisolated static let expiryInterval: Duration = .seconds(30)
     @ObservationIgnored private let promiseQueue: OperationQueue = {
         let q = OperationQueue()
         q.qualityOfService = .userInitiated
@@ -73,9 +76,18 @@ final class ShelfLink: NotchPart {
         w.start()
         watcher = w
         prune()
+        expiryTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.expiryInterval)
+                guard !Task.isCancelled else { return }
+                self?.expireScreenshots()
+            }
+        }
     }
 
     func stop() {
+        expiryTask?.cancel()
+        expiryTask = nil
         watcher?.stop()
         watcher = nil
         activity.fileDragActive = false
@@ -125,7 +137,7 @@ final class ShelfLink: NotchPart {
 
     /// Bildschirmfotos (0.10.0, G36) – gleicher Weg wie Ziehen, eigene Meldung. Ablage voll → sichtbar, nicht still.
     func addScreenshots(_ urls: [URL]) {
-        let n = store.add(urls)
+        let n = store.add(urls, screenshotAt: Date())
         publish()
         Self.log.notice("\(n, privacy: .public) Bildschirmfotos abgelegt (\(urls.count, privacy: .public) gemeldet)")
         if n > 0 {
@@ -254,7 +266,16 @@ final class ShelfLink: NotchPart {
         publish()
     }
 
+    /// 0.16.0: nur der Verweis geht, die Datei bleibt. Protokoll nur die Zahl.
+    func expireScreenshots(now: Date = Date()) {
+        let n = store.removeExpiredScreenshots(minutes: prefs.shelfScreenshotMinutes, now: now)
+        guard n > 0 else { return }
+        Self.log.notice("\(n, privacy: .public) Bildschirmfotos abgelaufen (aus der Ablage genommen)")
+        publish()
+    }
+
     func prune() {
+        store.removeExpiredScreenshots(minutes: prefs.shelfScreenshotMinutes)
         store.prune()
         publish()
     }

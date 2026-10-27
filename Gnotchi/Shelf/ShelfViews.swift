@@ -283,7 +283,8 @@ struct IdleCompact: View {
             }
             if unread > 0 { UnreadDot(total: unread) }
         }
-        .foregroundStyle(.white)
+        // `.primary`: in der dunklen Insel weiß, in der ruhigen Insel (0.16.0) wie die Menüleiste.
+        .foregroundStyle(.primary)
         .padding(.horizontal, pill ? 12 : 10)
         .frame(height: height)
         .accessibilityElement(children: .ignore)

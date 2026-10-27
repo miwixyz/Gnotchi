@@ -60,4 +60,17 @@ final class PreferencesTests: XCTestCase {
             XCTAssertEqual(Preferences(defaults: defaults).expandDelay, 0.6, "\(bad)")
         }
     }
+
+    /// 0.16.0: Bildschirmfotos behalten – nur Werte aus der Auswahl, ab Werk 30 Min.; ruhige Insel ab Werk an.
+    func testScreenshotMinutesAndQuietIslandDefaults() {
+        let fresh = Preferences(defaults: defaults)
+        XCTAssertEqual(fresh.shelfScreenshotMinutes, 30)
+        XCTAssertTrue(fresh.quietIsland)
+        for bad: Any in [7, -1, 30.5, true, "15"] {
+            defaults.set(bad, forKey: Preferences.Key.shelfScreenshotMinutes)
+            XCTAssertEqual(Preferences(defaults: defaults).shelfScreenshotMinutes, 30, "\(bad)")
+        }
+        defaults.set(0, forKey: Preferences.Key.shelfScreenshotMinutes)
+        XCTAssertEqual(Preferences(defaults: defaults).shelfScreenshotMinutes, 0, "„immer“ bleibt erhalten")
+    }
 }

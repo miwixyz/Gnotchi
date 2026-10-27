@@ -61,6 +61,10 @@ final class Preferences {
         static let shelf = "shelf"
         static let shelfRemoveOnDrag = "shelfRemoveOnDrag"
         static let shelfScreenshots = "shelfScreenshots"
+        /// 0.16.0: Bildschirmfotos nach so vielen Minuten aus der Ablage nehmen (0 = behalten).
+        static let shelfScreenshotMinutes = "shelfScreenshotMinutes"
+        /// 0.16.0: ruhige Insel ohne Notch.
+        static let quietIsland = "quietIsland"
         /// 0.11.0 Zwischenablage (G37–G41): Schalter, ausgeschlossene Apps, Pause, Seitenansicht, Tastenkürzel.
         static let clipboard = "clipboard"
         static let clipboardExcluded = "clipboardExcluded"
@@ -82,6 +86,10 @@ final class Preferences {
     /// Auswahl „Aufklappen nach“ in Sekunden (Sofort, 0,3 s, 0,6 s, 1 s).
     nonisolated static let expandDelayChoices: [TimeInterval] = [0, 0.3, 0.6, 1.0]
     nonisolated static let defaultExpandDelay: TimeInterval = 0.6
+
+    /// Auswahl „Bildschirmfotos behalten“ in Minuten; 0 = bis man sie selbst entfernt (0.16.0).
+    nonisolated static let screenshotMinuteChoices = [5, 15, 30, 60, 0]
+    nonisolated static let defaultScreenshotMinutes = 30
 
     private let defaults: UserDefaults
 
@@ -193,6 +201,12 @@ final class Preferences {
     var shelfRemoveOnDrag: Bool { didSet { defaults.set(shelfRemoveOnDrag, forKey: Key.shelfRemoveOnDrag) } }
     /// 0.10.0 (G36): Bildschirmfotos automatisch ablegen. Ab Werk aus (Michael 23.10.).
     var shelfScreenshots: Bool { didSet { defaults.set(shelfScreenshots, forKey: Key.shelfScreenshots) } }
+    /// 0.16.0 (Michael 27.10.): automatisch abgelegte Bildschirmfotos nach so vielen Minuten nur aus der Ablage
+    /// nehmen – die Datei bleibt. 0 = behalten.
+    var shelfScreenshotMinutes: Int { didSet { defaults.set(shelfScreenshotMinutes, forKey: Key.shelfScreenshotMinutes) } }
+    /// 0.16.0 (Michael 27.10.): ohne Hardware-Notch und ohne Live-Aktivität sieht die Insel aus wie die Menüleiste
+    /// statt schwarz. Ab Werk an.
+    var quietIsland: Bool { didSet { defaults.set(quietIsland, forKey: Key.quietIsland) } }
     var weatherUnit: Weather.Unit { didSet { defaults.set(weatherUnit.rawValue, forKey: Key.weatherUnit) } }
     /// 0.11.0 Zwischenablage-Verlauf (G37). Ab Werk **aus**: liest mit, was der Nutzer kopiert (Michael 24.10.).
     var clipboard: Bool { didSet { defaults.set(clipboard, forKey: Key.clipboard) } }
@@ -274,8 +288,7 @@ final class Preferences {
         // nicht „aus“.
         notchMedia = defaults.object(forKey: Key.notchMedia) as? Bool ?? true
         desktopMusic = defaults.object(forKey: Key.desktopMusic) as? Bool ?? false
-        desktopMusicCorner = defaults.string(forKey: Key.desktopMusicCorner).flatMap(DesktopCorner.init(rawValue:))
-            ?? .bottomLeft
+        desktopMusicCorner = defaults.string(forKey: Key.desktopMusicCorner).flatMap(DesktopCorner.init(rawValue:)) ?? .bottomLeft
         desktopMusicSize = defaults.string(forKey: Key.desktopMusicSize).flatMap(DesktopSize.init(rawValue:)) ?? .medium
         let insetX = defaults.object(forKey: Key.desktopMusicInsetX) as? Double
         let insetY = defaults.object(forKey: Key.desktopMusicInsetY) as? Double
@@ -306,6 +319,8 @@ final class Preferences {
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true
         shelfRemoveOnDrag = defaults.object(forKey: Key.shelfRemoveOnDrag) as? Bool ?? true
         shelfScreenshots = defaults.object(forKey: Key.shelfScreenshots) as? Bool ?? false
+        shelfScreenshotMinutes = Self.validScreenshotMinutes(defaults.object(forKey: Key.shelfScreenshotMinutes))
+        quietIsland = defaults.object(forKey: Key.quietIsland) as? Bool ?? true
         weatherUnit = (defaults.string(forKey: Key.weatherUnit)).flatMap(Weather.Unit.init(rawValue:)) ?? .celsius
         weatherPlace = Self.validPlace(defaults.object(forKey: Key.weatherPlace))
         clipboard = defaults.object(forKey: Key.clipboard) as? Bool ?? false
@@ -387,5 +402,11 @@ final class Preferences {
         guard let n = stored as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return defaultExpandDelay }
         let v = n.doubleValue
         return expandDelayChoices.first { abs($0 - v) < 0.001 } ?? defaultExpandDelay
+    }
+
+    /// Nur Werte aus der Auswahl; alles andere → ab Werk (30 Min.).
+    nonisolated static func validScreenshotMinutes(_ stored: Any?) -> Int {
+        guard let n = stored as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return defaultScreenshotMinutes }
+        return screenshotMinuteChoices.first { $0 == n.intValue && Double($0) == n.doubleValue } ?? defaultScreenshotMinutes
     }
 }

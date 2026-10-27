@@ -808,6 +808,14 @@ nur aus Klicks (G29, G30).
   ohne Befund; `rafter run` Scan `73d18132` auf `c90a8fe`: keine Befunde. Sichttest mit echten CleanShot-Fotos
   (iCloud) und Schreibtisch, Rausziehen kopiert (Ziel meldet 1, Original bleibt).
 
+- **0.16.0 (27.10.): Bildschirmfotos laufen ab.** `ablage.json` speichert je automatisch abgelegtem Foto den Zeitpunkt
+  (`shot`); beim Lesen nur eine endliche Zahl nach 2020 (`ShelfStore.shotDate`), sonst nil = läuft nie ab. Nach der
+  gewählten Zeit (5/15/30/60 Min., ab Werk 30, 0 = nie) fällt **nur der Verweis** weg (G32: die Datei wird nie gelöscht);
+  Prüfung beim Start und alle 30 s. Selbst abgelegte Einträge haben keinen Zeitpunkt. Protokoll nur die Zahl.
+  Spezifikation `specs/2026-10-27-gnotchi-0.16.0-ruhige-insel.md`. Ebenda: ruhige Insel (nur Optik) und Messpunkt
+  `FocusProbe` (liest nur die Meldung „App wurde aktiv“ von macOS, protokolliert nur ja/nein für Gnotchi/Hilfsprogramm,
+  keine App-Namen, speichert nichts).
+
 ### G37 – Zwischenablage mitlesen: ab Werk aus, nur bei Änderung, feste Typenliste (neu, 2026-10-24, 0.11.0)
 - Spezifikation: `specs/2026-10-24-gnotchi-0.11.0-zwischenablage.md`. Schalter im Reiter „Zwischenablage“, **ab Werk
   aus**. Aus → `NSPasteboard.general` wird **nie** gelesen, auch nicht `types` (Abnahme per Mess-Fassung).

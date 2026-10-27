@@ -87,6 +87,8 @@ final class ActivityModel {
     var playerFirst = false
     /// Einstellung „Wiedergabe-Knöpfe in der kleinen Insel“: Pause/Wiedergabe und Weiter dauerhaft (statt Pegel).
     var compactControls = false
+    /// 0.16.0: ohne Hardware-Notch und ohne Live-Aktivität Menüleisten-Optik statt Schwarz (Preferences.quietIsland).
+    var quietIsland = true
     /// Ungelesen-Zähler in der kleinen Insel (0.9.0, Michael 22.10.: ein-/ausschaltbar). Band und groß zeigen die Zahlen
     /// unabhängig davon.
     var compactUnread = true
