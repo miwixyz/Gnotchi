@@ -344,15 +344,7 @@ struct IslandView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .trailing, spacing: 0) {
                     Spacer(minLength: 0)
-                    HStack(spacing: 16) {
-                        button("backward.fill", label: "Zurück") { model.previous() }
-                        // Beschriftung nennt, was der Knopf JETZT tut (VoiceOver).
-                        button(info.isPlaying ? "pause.fill" : "play.fill",
-                               label: info.isPlaying ? "Pause" : "Wiedergabe") { model.playPause() }
-                        button("forward.fill", label: "Weiter") { model.next() }
-                    }
-                    // Ohne Animation-Transaktion springt das Symbol; `.replace` braucht sie zum Überblenden.
-                    .animation(.snappy, value: info.isPlaying)
+                    PlayerButtons(model: model, isPlaying: info.isPlaying)   // 0.17.0: mit Shuffle
                 }
                 .frame(height: 56)
             }
@@ -433,17 +425,6 @@ struct IslandView: View {
             // Leere Kopfzeile: Sonst rutschte der Titel nach oben unter den Wiedergabeweg.
             Color.clear.frame(height: 16)
         }
-    }
-
-    private func button(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-                .frame(width: 22, height: 22)
-                .contentShape(Rectangle())
-                .contentTransition(.symbolEffect(.replace))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: label))
     }
 }
 

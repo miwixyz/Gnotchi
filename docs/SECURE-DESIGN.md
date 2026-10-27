@@ -1035,6 +1035,22 @@ nur aus Klicks (G29, G30).
   Befunde. ZIP Build 148: notarisiert, Profil eingebettet, Hilfsprogramm ohne Berechtigungen, keine Testhilfen im
   Release-Programm. An der App gemessen: Fenster auf Ebene Schreibtisch-Symbole + 1. Sichttest Michael ✓
   (Vorschau, Verschieben bis Dock-Höhe, Knöpfe unten).
+- **Ab 0.17.0: Plattenspieler** (Spec `specs/2026-10-27-gnotchi-0.17.0-plattenspieler.md`). Zwei Fenster: Farbverlauf
+  auf `desktopWindow + 1` (unter den Schreibtisch-Symbolen, nimmt keine Klicks), Plattenspieler wie die Karte auf
+  `desktopIconWindow + 1` (Ebenen gemessen mit `tools/desktop-layers.swift`). Bildschirm per Display-UUID gemerkt
+  (`desktopMusicScreen`, nur Anzeige-Kennung, keine Inhalte), fehlt er → Hauptbildschirm. Neue Schalter in
+  UserDefaults: `desktopMusicStyle`, `desktopMusicScreen`, `desktopMusicNeon`, `desktopMusicTonearm` (G14: nur
+  Schalter). Coverfarben aus dem schon begrenzt dekodierten Cover (G6), nur im Speicher. Tonarm-Griff löst nur
+  Start/Pause aus, derselbe Weg wie der Knopf (G13). Bilder: KI-Fotos ohne KI-Plakette – ausdrückliche einmalige
+  Ausnahme von Michael (27.10.), Rohmaterial und Prompts außerhalb des Repos. Schrift Neonderthaw (SIL OFL 1.1),
+  Lizenz in THIRD-PARTY-LICENSES. Keine neue Berechtigung, kein Netz, kein Prozess.
+- **Ab 0.17.0: Shuffle** (G7-Regeln): neue **Schreibaktion** per AppleScript (`set shuffling` bzw. `set shuffle enabled
+  to not …`), Skript konstant im Code, nur `com.spotify.client`/`com.apple.Music`, nur an laufende Apps, 3-s-Zeitgrenze,
+  höchstens ein Befehl, nur auf Klick (G13). Lesen des Stands ohne Klick nur, wenn macOS die Steuerung schon erlaubt hat
+  (`AEDeterminePermissionToAutomateTarget(…, askUserIfNeeded: false)` – zeigt nie einen Dialog). Antwort als
+  AppleScript-Liste mit genau einem Wahrheitswert, alles andere verworfen (Test). Protokoll nur Bundle-ID und
+  Fehlernummer (G8). **Favorit verworfen:** Musik ignoriert `set favorited` bei Apple-Music-Titeln, Spotify `starred`
+  nur lesbar; ein späterer Weg über das Hilfsprogramm bekommt eine eigene Prüfung.
 - **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).

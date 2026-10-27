@@ -12,6 +12,8 @@ final class NowPlayingModel {
     static let completeWait: Duration = .milliseconds(300)
 
     private(set) var info: NowPlayingInfo?
+    /// Shuffle der Quelle (0.17.0); nil = unbekannt oder nicht steuerbar.
+    private(set) var extras = AppleScriptSource.ExtraState()
     private(set) var artwork: NSImage?
     private(set) var isVisible = false
     /// nil = Adapter läuft oder startet; sonst Grund für den Hinweis in den Einstellungen.
@@ -191,7 +193,9 @@ final class NowPlayingModel {
     private func apply(_ new: NowPlayingInfo?) {
         let wasPlaying = info?.isPlaying ?? false
         let changed = Self.isTrackChange(old: info, new: new)
+        if new?.title != info?.title || new?.appBundleID != info?.appBundleID { extras = .init() }
         info = new
+        refreshExtrasIfAllowed()
         pausedSince = Self.nextPausedSince(hasInfo: new != nil, isPlaying: new?.isPlaying ?? false,
                                            wasPlaying: wasPlaying, current: pausedSince, now: Date())
         updateArtwork(new)
@@ -355,6 +359,41 @@ final class NowPlayingModel {
             try? await Task.sleep(for: .seconds(max(0, left)))
             guard !Task.isCancelled else { return }
             self?.updateVisibility()
+        }
+    }
+}
+
+// MARK: - Shuffle (0.17.0)
+
+extension NowPlayingModel {
+    /// Shuffle nur bei Spotify und Musik (gemessen per sdef 27.10.).
+    var canShuffle: Bool { AppleScriptSource.supported.contains(info?.appBundleID ?? "") }
+    /// Sofort umgeschaltet anzeigen, nach 0,5 s bei der App nachlesen: Musik übernimmt die Änderung verzögert, das Lesen
+    /// direkt im selben Skript lieferte noch den alten Wert (Messpunkt 27.10.: Shuffle „false“, 0,1 s später „true“).
+    func toggleShuffle() {
+        extras.shuffle = !(extras.shuffle ?? false)
+        sendExtra(.toggleShuffle, confirm: true)
+    }
+
+    /// Beim Titelwechsel den Zustand lesen – nur wenn die Steuerung schon erlaubt ist (kein ungefragter Dialog).
+    fileprivate func refreshExtrasIfAllowed() {
+        guard let id = info?.appBundleID, fallback.mayRead(id) else { return }
+        sendExtra(.read)
+    }
+
+    private func sendExtra(_ extra: AppleScriptSource.Extra, confirm: Bool = false) {
+        guard let id = info?.appBundleID else { return }
+        fallback.sendExtra(extra, bundleID: id) { [weak self] state in
+            guard let self, self.info?.appBundleID == id else { return }
+            // Nach einem Klick zählt nicht die sofortige (veraltete) Antwort, sondern die Nachfrage.
+            if confirm {
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(500))
+                    self?.sendExtra(.read)
+                }
+            } else if let state {
+                self.extras = state
+            }
         }
     }
 }

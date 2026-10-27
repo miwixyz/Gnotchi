@@ -1,8 +1,8 @@
 # Drittanbieter-Lizenzen
 
-Gnotchi liefert drei Komponenten mit, die nicht von Michael Wildenauer stammen: das
-Update-Framework Sparkle, die Schrift Plus Jakarta Sans und den Medien-Adapter
-mediaremote-adapter. Ihre Lizenzen verlangen, dass Urheberhinweis und Lizenztext der
+Gnotchi liefert vier Komponenten mit, die nicht von Michael Wildenauer stammen: das
+Update-Framework Sparkle, die Schriften Plus Jakarta Sans und Neonderthaw (ab 0.17.0) und
+den Medien-Adapter mediaremote-adapter. Ihre Lizenzen verlangen, dass Urheberhinweis und Lizenztext der
 Auslieferung beigefügt werden. Dafür gibt es diese Datei. Sie liegt im App-Bundle und ist
 in Gnotchi unter „Hilfe …“ → „Fremdcode“ erreichbar.
 
@@ -174,6 +174,20 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+```
+
+---
+
+## Neonderthaw (Schrift, ab 0.17.0)
+
+Quelle: https://github.com/googlefonts/neonderthaw, bezogen über Google Fonts. Mitgeliefert als
+`Neonderthaw-Regular.ttf` (Version 1.010), unverändert. Lizenz: SIL Open Font License 1.1 – Wortlaut siehe
+Abschnitt „Plus Jakarta Sans“ unten (identischer Lizenztext).
+
+```
+Copyright 2014-2021 The Neonderthaw Project Authors (https://github.com/googlefonts/neonderthaw)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
 ```
 
 ---

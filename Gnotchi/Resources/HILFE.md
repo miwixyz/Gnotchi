@@ -55,6 +55,8 @@ Start von Gnotchi etwas abgespielt hat.
 ## Steuern und Spulen
 
 In der großen Insel stehen rechts die Tasten **Zurück**, **Wiedergabe/Pause** und **Weiter**.
+Bei Spotify und Musik steht davor **Shuffle** (ab 0.17): hell hinterlegt mit Punkt darunter heißt an, gedimmt heißt aus.
+Der erste Klick kann die Frage von macOS auslösen, ob Gnotchi die App steuern darf.
 
 Darunter liegt der Fortschrittsbalken mit der gespielten Zeit links und der Gesamtzeit rechts.
 Klick an eine Stelle oder zieh den Punkt, gespult wird beim Loslassen. In Spotify klappt das auch,
@@ -82,6 +84,12 @@ ausgibt. Es hört nichts mit.
 ## Musik auf dem Schreibtisch
 
 Ab 0.15 zeigt Gnotchi auf Wunsch Cover, Titel und Interpret auf dem Schreibtisch, hinter allen Fenstern. Einschalten unter Einstellungen → Wiedergabe → „Cover und Titel auf dem Schreibtisch“ (ab Werk aus), dort wählst du auch Ecke und Größe. Die Anzeige ist da, solange Musik spielt oder pausiert, und verschwindet nach 10 Minuten Pause. Fährst du darüber, erscheinen Zurück, Wiedergabe/Pause und Weiter. Ein Klick aufs Cover holt die App nach vorne, die gerade spielt. **Verschieben:** Zieh die Anzeige mit der Maus, wohin du willst, auch bündig in eine Ecke. Gnotchi merkt sich die Lage relativ zur nächsten Ecke, so bleibt sie auch beim Wechsel zwischen Bildschirmen dort. Die Ecken-Auswahl in den Einstellungen setzt sie mit Standardabstand zurück. Sie erscheint nur auf dem Hauptbildschirm und darf bis an den unteren Rand, neben das Dock. Das Dock liegt immer darüber.
+
+**Plattenspieler (ab 0.17):** Unter Einstellungen → Wiedergabe → „Darstellung“ wählst du statt der Karte den Plattenspieler. Er steht mittig, etwa ein Drittel des Bildschirms groß, links daneben die Hülle, darunter Titel und Interpret. Die Platte dreht sich, solange Musik läuft. Der Tonarm fährt beim Start auf die Platte, wandert im Lauf des Titels nach innen und geht bei Pause in die Ablage. Dahinter liegt ein Farbverlauf aus den Farben des Covers, unter deinen Schreibtisch-Symbolen, die bleiben klickbar. Fährst du über den Plattenspieler, erscheinen Shuffle, Zurück, Wiedergabe/Pause und Weiter. Ein Klick auf die Hülle holt die App nach vorne. Weitere Schalter:
+- **Bildschirm:** auf welchem Bildschirm er steht, ab Werk der Hauptbildschirm. Ist der gewählte nicht angeschlossen, steht er auf dem Hauptbildschirm.
+- **Neonschrift „Now Playing“:** leuchtender Schriftzug in der Coverfarbe über dem Plattenspieler, ab Werk an.
+- **Tonarm bedienen:** Den Tonarm anfassen startet oder hält die Musik an. Ab Werk aus.
+Ecke, Größe und Verschieben gelten nur für die Karte.
 
 ## Ausgabe wählen
 

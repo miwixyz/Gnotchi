@@ -36,6 +36,12 @@ Freigabe nicht und fragt nie danach.
 - **Auf dem Schreibtisch (0.15, ab Werk aus):** Cover, Titel und Interpret hinter allen Fenstern, frei verschiebbar,
   Knöpfe beim Drüberfahren, nach 10 Minuten Pause weg. Gleiche Daten wie die Insel, keine Freigabe
   ([G44](docs/SECURE-DESIGN.md)).
+- **Plattenspieler (0.17, ab Werk aus):** dieselbe Anzeige als drehender Plattenspieler mittig auf einem wählbaren
+  Bildschirm, Tonarm wandert mit dem Titel, Farbverlauf aus dem Cover unter den Schreibtisch-Symbolen, optional
+  Neonschrift „Now Playing“ und Start/Pause per Tonarm. Gezeichnet aus KI-Fotos (Ebenen, gemessene Perspektive).
+- **Shuffle (0.17):** bei Spotify und Musik in der großen Insel und am Plattenspieler, per AppleScript nur auf Klick
+  ([G7](docs/SECURE-DESIGN.md)). Ein Favoriten-Herz fehlt noch (Musik ignoriert den Befehl bei Apple-Music-Titeln,
+  Spotify erlaubt ihn nicht).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
@@ -317,6 +323,7 @@ Bedrohungsmodell, Entscheidungen G1 bis G16 und offene Punkte vor dem ersten Rel
 |---|---|---|
 | [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0 | Updates | MIT |
 | [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans) | Schrift der Einstellungen | SIL OFL 1.1 |
+| [Neonderthaw](https://github.com/googlefonts/neonderthaw) 1.010 | Neonschrift am Plattenspieler (ab 0.17) | SIL OFL 1.1 |
 | [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), Commit `0e82bf1` | Wiedergabe-Daten | BSD-3-Clause |
 
 Lizenztexte: [THIRD-PARTY-LICENSES](Gnotchi/Resources/THIRD-PARTY-LICENSES.md), in der App unter

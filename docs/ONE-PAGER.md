@@ -26,6 +26,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Das funktioniert mit Spotify, Musik und mit Videos in Safari, Edge oder Helium. Egal, in
   welchem Fenster sie gerade liegen.
 - Wer mag, legt Cover und Titel zusätzlich auf den Schreibtisch, hinter alle Fenster, und schiebt sie mit der Maus in eine Ecke.
+- Oder es steht ein Plattenspieler auf dem Schreibtisch. Die Platte dreht sich, der Tonarm wandert mit dem Lied nach innen, und dahinter leuchtet der Bildschirm in den Farben des Covers. Auf Wunsch steht „Now Playing“ in Neon darüber.
 - Über dem Titel steht, welche App spielt. Läuft der Ton woanders, sagt die Insel es dir: „Auf
   anderem Gerät“ bei Spotify Connect, bei AirPlay oder Bluetooth der Name des Lautsprechers.
 - Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf

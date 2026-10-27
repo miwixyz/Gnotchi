@@ -95,6 +95,33 @@ extension SettingsView {
                 toggleRow("Cover und Titel auf dem Schreibtisch", isOn: $prefs.desktopMusic)
                     .onChange(of: prefs.desktopMusic) { model.applyNotchSetting() }
                 if prefs.desktopMusic {
+                    // 0.17.0 (Michael 27.10.): zweite Darstellung derselben Anzeige.
+                    row("Darstellung") {
+                        Picker("", selection: $prefs.desktopMusicStyle) {
+                            Text("Karte").tag(Preferences.DesktopStyle.card)
+                            Text("Plattenspieler").tag(Preferences.DesktopStyle.turntable)
+                        }
+                        .labelsHidden().pickerStyle(.segmented).fixedSize()
+                        .onChange(of: prefs.desktopMusicStyle) { model.applyNotchSetting() }
+                    }
+                }
+                if prefs.desktopMusic && prefs.desktopMusicStyle == .turntable {
+                    row("Bildschirm") {
+                        Picker("", selection: $prefs.desktopMusicScreen) {
+                            Text("Hauptbildschirm").tag("")
+                            ForEach(NSScreen.screens.dropFirst(), id: \.self) { screen in
+                                Text(verbatim: screen.localizedName).tag(DesktopMusicLink.uuid(of: screen))
+                            }
+                        }
+                        .labelsHidden().frame(width: 220)
+                        .onChange(of: prefs.desktopMusicScreen) { model.applyNotchSetting() }
+                    }
+                    toggleRow("Neonschrift „Now Playing“", isOn: $prefs.desktopMusicNeon)
+                        .onChange(of: prefs.desktopMusicNeon) { model.applyNotchSetting() }
+                    toggleRow("Tonarm bedienen (anfassen = Start/Pause)", isOn: $prefs.desktopMusicTonearm)
+                        .onChange(of: prefs.desktopMusicTonearm) { model.applyNotchSetting() }
+                }
+                if prefs.desktopMusic && prefs.desktopMusicStyle == .card {
                     row("Ecke") {
                         // Ecke wählen = Sprung mit Standardabstand (gezogene Lage wird ersetzt).
                         Picker("", selection: Binding(get: { prefs.desktopMusicCorner }, set: { corner in
@@ -119,9 +146,13 @@ extension SettingsView {
                         .onChange(of: prefs.desktopMusicSize) { model.applyNotchSetting() }
                     }
                 }
-                note("Liegt hinter allen Fenstern, nur auf dem Hauptbildschirm. Mit der Maus verschiebbar, "
-                     + "auch bündig in die Ecke. Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. "
-                     + "Drüberfahren zeigt die Knöpfe, Klick aufs Cover holt die App.",
+                note(prefs.desktopMusicStyle == .turntable
+                     ? "Plattenspieler mittig, dahinter ein Farbverlauf aus dem Cover, unter deinen Schreibtisch-Symbolen. "
+                       + "Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. Drüberfahren zeigt die "
+                       + "Knöpfe, Klick auf die Hülle holt die App."
+                     : "Liegt hinter allen Fenstern, nur auf dem Hauptbildschirm. Mit der Maus verschiebbar, "
+                       + "auch bündig in die Ecke. Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. "
+                       + "Drüberfahren zeigt die Knöpfe, Klick aufs Cover holt die App.",
                      symbol: "photo.on.rectangle", color: FamilyTheme.textSecondary)
             }
         }

@@ -13,6 +13,11 @@ final class Preferences {
         static let desktopMusic = "desktopMusic"
         static let desktopMusicCorner = "desktopMusicCorner"
         static let desktopMusicSize = "desktopMusicSize"
+        /// 0.17.0: Darstellung (Karte | Plattenspieler) und Bildschirm des Plattenspielers.
+        static let desktopMusicStyle = "desktopMusicStyle"
+        static let desktopMusicScreen = "desktopMusicScreen"
+        static let desktopMusicNeon = "desktopMusicNeon"
+        static let desktopMusicTonearm = "desktopMusicTonearm"
         /// Abstand des Covers zur gewählten Ecke (nach dem Ziehen), x/y in Punkten.
         static let desktopMusicInsetX = "desktopMusicInsetX"
         static let desktopMusicInsetY = "desktopMusicInsetY"
@@ -102,6 +107,14 @@ final class Preferences {
         didSet { defaults.set(desktopMusicCorner.rawValue, forKey: Key.desktopMusicCorner) }
     }
     var desktopMusicSize: DesktopSize { didSet { defaults.set(desktopMusicSize.rawValue, forKey: Key.desktopMusicSize) } }
+    /// 0.17.0 (Michael 27.10.): Darstellung, ab Werk Karte.
+    var desktopMusicStyle: DesktopStyle { didSet { defaults.set(desktopMusicStyle.rawValue, forKey: Key.desktopMusicStyle) } }
+    /// Bildschirm des Plattenspielers als UUID (CGDisplay, übersteht Neustarts); leer = Hauptbildschirm.
+    var desktopMusicScreen: String { didSet { defaults.set(desktopMusicScreen, forKey: Key.desktopMusicScreen) } }
+    /// Neonschrift „NOW PLAYING“ über dem Plattenspieler (Michael 27.10.: „optional“), ab Werk an.
+    var desktopMusicNeon: Bool { didSet { defaults.set(desktopMusicNeon, forKey: Key.desktopMusicNeon) } }
+    /// Tonarm anfassen = Start/Pause (Michael 27.10.: „als Option“), ab Werk aus – sonst pausiert ein Klick aus Versehen.
+    var desktopMusicTonearm: Bool { didSet { defaults.set(desktopMusicTonearm, forKey: Key.desktopMusicTonearm) } }
     /// Abstand des Covers zur Ecke – frei per Ziehen (Michael 26.10.: „ganz in die rechte untere Ecke“). Lage relativ zur
     /// nächsten Ecke, damit sie beim Bildschirmwechsel in derselben Ecke bleibt.
     var desktopMusicInset: CGSize {
@@ -113,6 +126,8 @@ final class Preferences {
     static let desktopMusicDefaultInset = CGSize(width: 24, height: 24)
 
     enum DesktopCorner: String, CaseIterable { case bottomLeft, bottomRight, topLeft, topRight }
+    /// 0.17.0: Karte in der Ecke (0.15.0) oder Plattenspieler mittig mit Farbverlauf.
+    enum DesktopStyle: String, CaseIterable { case card, turntable }
     /// Covergröße in Punkten.
     enum DesktopSize: String, CaseIterable {
         case small, medium, large
@@ -290,9 +305,9 @@ final class Preferences {
         desktopMusic = defaults.object(forKey: Key.desktopMusic) as? Bool ?? false
         desktopMusicCorner = defaults.string(forKey: Key.desktopMusicCorner).flatMap(DesktopCorner.init(rawValue:)) ?? .bottomLeft
         desktopMusicSize = defaults.string(forKey: Key.desktopMusicSize).flatMap(DesktopSize.init(rawValue:)) ?? .medium
-        let insetX = defaults.object(forKey: Key.desktopMusicInsetX) as? Double
-        let insetY = defaults.object(forKey: Key.desktopMusicInsetY) as? Double
-        desktopMusicInset = CGSize(width: max(0, min(insetX ?? 24, 4000)), height: max(0, min(insetY ?? 24, 4000)))
+        desktopMusicInset = Self.validInset(defaults)
+        (desktopMusicStyle, desktopMusicScreen) = (Self.validStyle(defaults), Self.validScreen(defaults))
+        (desktopMusicNeon, desktopMusicTonearm) = Self.turntableFlags(defaults)
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
@@ -402,6 +417,25 @@ final class Preferences {
         guard let n = stored as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return defaultExpandDelay }
         let v = n.doubleValue
         return expandDelayChoices.first { abs($0 - v) < 0.001 } ?? defaultExpandDelay
+    }
+
+    /// Neonschrift (ab Werk an) und Tonarm bedienen (ab Werk aus).
+    nonisolated static func turntableFlags(_ defaults: UserDefaults) -> (neon: Bool, tonearm: Bool) {
+        (defaults.object(forKey: Key.desktopMusicNeon) as? Bool ?? true, defaults.object(forKey: Key.desktopMusicTonearm) as? Bool ?? false)
+    }
+
+    nonisolated static func validScreen(_ defaults: UserDefaults) -> String {
+        String((defaults.string(forKey: Key.desktopMusicScreen) ?? "").prefix(64))
+    }
+
+    nonisolated static func validStyle(_ defaults: UserDefaults) -> DesktopStyle {
+        defaults.string(forKey: Key.desktopMusicStyle).flatMap(DesktopStyle.init(rawValue:)) ?? .card
+    }
+
+    nonisolated static func validInset(_ defaults: UserDefaults) -> CGSize {
+        let x = defaults.object(forKey: Key.desktopMusicInsetX) as? Double
+        let y = defaults.object(forKey: Key.desktopMusicInsetY) as? Double
+        return CGSize(width: max(0, min(x ?? 24, 4000)), height: max(0, min(y ?? 24, 4000)))
     }
 
     /// Nur Werte aus der Auswahl; alles andere → ab Werk (30 Min.).

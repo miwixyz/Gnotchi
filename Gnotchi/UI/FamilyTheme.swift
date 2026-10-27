@@ -169,14 +169,15 @@ enum FamilyTheme {
     /// Registriert die Schriftdatei aus dem App-Bundle. Gibt zurück, ob es geklappt hat —
     /// ohne Registrierung fällt SwiftUI still auf die Systemschrift zurück.
     @discardableResult
+    /// Plus Jakarta Sans (Familien-Design) und ab 0.17.0 Neonderthaw (Neonschrift am Plattenspieler, Michael 27.10.).
     static func registerFonts(bundle: Bundle = .main) -> Bool {
-        guard let url = bundle.url(forResource: "PlusJakartaSans-Variable", withExtension: "ttf") else {
-            return false
+        ["PlusJakartaSans-Variable", "Neonderthaw-Regular"].allSatisfy { name in
+            guard let url = bundle.url(forResource: name, withExtension: "ttf") else { return false }
+            var error: Unmanaged<CFError>?
+            let ok = CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
+            // „bereits registriert“ zählt als Erfolg.
+            return ok || (error?.takeRetainedValue()).map { CFErrorGetCode($0) == 105 } == true
         }
-        var error: Unmanaged<CFError>?
-        let ok = CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
-        // „bereits registriert“ zählt als Erfolg.
-        return ok || (error?.takeRetainedValue()).map { CFErrorGetCode($0) == 105 } == true
     }
 
     // Formen (Punkte)

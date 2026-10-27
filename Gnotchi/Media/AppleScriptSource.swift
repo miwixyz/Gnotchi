@@ -33,22 +33,22 @@ final class AppleScriptSource {
 
     /// Eigene serielle Queue: Die erste Abfrage wartet auf den Automation-Dialog von macOS
     /// und darf den Hauptthread nicht blockieren.
-    private let queue = DispatchQueue(label: "dev.mwlr.gnotchi.applescript", qos: .utility)
+    fileprivate let queue = DispatchQueue(label: "dev.mwlr.gnotchi.applescript", qos: .utility)
     private var timer: Timer?
     private var active: String?
     private var denied = Set<String>()
     /// Apps, deren Statusabfrage schon einmal ohne Fehler zurückkam (Automation erlaubt) – ab dann
     /// läuft die Abfrage mit 5-s-Zeitgrenze (Security-Review B7). Vorher wartet sie auf den Dialog.
-    private var consented = Set<String>()
+    fileprivate var consented = Set<String>()
     private var lastBlocked: [String] = []
     /// Eine Abfrage läuft noch (z. B. hängt am Dialog) – keine weiteren anstauen.
     private var polling = false
     /// Ein Befehl kam, während eine Abfrage lief: deren Antwort ist veraltet, danach erneut fragen.
     private var repollAfterFinish = false
     /// Höchstens ein Befehl auf der Queue; weitere Klicks werden verworfen, nicht angestaut.
-    private var commandRunning = false
+    fileprivate var commandRunning = false
     /// stop() macht Antworten laufender Abfragen und Befehle ungültig.
-    private var generation = 0
+    fileprivate var generation = 0
     private var lastInfo: NowPlayingInfo?
     /// Fehlernummern von `sendSeek`, die schon im Protokoll stehen – je Nummer einmal.
     private var loggedSeekErrors = Set<Int>()
@@ -304,5 +304,73 @@ final class AppleScriptSource {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return bundleID }
         // Wie die Kopfzeile der Insel: „.app“ weg, bereinigt, gekürzt (Security-Review B10).
         return AppIcons.cleanName(FileManager.default.displayName(atPath: url.path)) ?? bundleID
+    }
+}
+
+// MARK: - Shuffle (0.17.0, specs/2026-10-27-gnotchi-0.17.0-plattenspieler.md, Entscheidung 6)
+
+/// Spotify `shuffling`, Musik `shuffle enabled` (gemessen per `sdef` 27.10.). Gleiche Regeln wie Spulen: feste
+/// Bundle-IDs, 3-s-Zeitgrenze, ein Befehl gleichzeitig, Schreiben nur auf Klick (G13). Lesen nur, wenn die Steuerung
+/// schon erlaubt ist – sonst fragte macOS ungefragt.
+/// Favorit: verworfen für 0.17.0 (gemessen 27.10.): Musik nimmt `favorited` bei Apple-Music-Titeln („URL track“)
+/// ohne Fehler an und setzt es nicht, `loved` gibt es nicht mehr (−10001); Spotify `starred` nur lesbar.
+extension AppleScriptSource {
+    enum Extra: Equatable { case read, toggleShuffle }
+    struct ExtraState: Equatable, Sendable {
+        var shuffle: Bool?
+    }
+
+    /// Darf gelesen werden, ohne den Automation-Dialog auszulösen? macOS direkt fragen (`askUserIfNeeded: false` zeigt
+    /// nie einen Dialog). Vorher nur „in diesem Lauf schon erlaubt“ – nach einem Neustart war Shuffle dann „aus“, bis
+    /// der erste Klick antwortete (Michael 27.10.: „Klick aufs Herz aktiviert Shuffle?“).
+    func mayRead(_ bundleID: String) -> Bool {
+        consented.contains(bundleID) || Self.automationAllowed(bundleID)
+    }
+
+    nonisolated static func automationAllowed(_ bundleID: String) -> Bool {
+        guard supported.contains(bundleID) else { return false }
+        let target = NSAppleEventDescriptor(bundleIdentifier: bundleID)
+        guard let desc = target.aeDesc else { return false }
+        return AEDeterminePermissionToAutomateTarget(desc, typeWildCard, typeWildCard, false) == noErr
+    }
+
+    func sendExtra(_ extra: Extra, bundleID: String, done: @escaping @MainActor @Sendable (ExtraState?) -> Void) {
+        guard let id = Self.supported.first(where: { $0 == bundleID }) else { return done(nil) }
+        let source = Self.extraScript(extra, bundleID: id)
+        guard !source.isEmpty else { return done(nil) }
+        if extra != .read {
+            guard !commandRunning else { return }
+            commandRunning = true
+        }
+        let gen = generation
+        queue.async { [weak self] in
+            let (out, error) = Self.isRunning(id) ? Self.execute(source) : (nil, nil)
+            let state = out.flatMap(Self.extraState(from:))
+            Task { @MainActor in
+                guard let self, gen == self.generation else { return }
+                if extra != .read { self.commandRunning = false }
+                if error == nil, state != nil { self.consented.insert(id) }   // Klick hat die Erlaubnis geholt
+                if let error {   // G8: nur Bundle-ID und Fehlernummer
+                    Self.log.error("Shuffle per AppleScript fehlgeschlagen (\(error, privacy: .public)) für \(id, privacy: .public)")
+                }
+                done(state)
+            }
+        }
+    }
+
+    /// Leer für andere Apps. Antwort `{shuffle}` – direkt nach dem Umschalten oft noch der alte Wert (Musik übernimmt
+    /// verzögert), deshalb liest das Modell 0,5 s später nach.
+    nonisolated static func extraScript(_ extra: Extra, bundleID: String) -> String {
+        guard let id = supported.first(where: { $0 == bundleID }) else { return "" }
+        let shuffleProp = id == music ? "shuffle enabled" : "shuffling"
+        let action = extra == .toggleShuffle ? "set \(shuffleProp) to not \(shuffleProp)\n" : ""
+        let body = "\(action)return {\(shuffleProp)}"
+        return "if application id \"\(id)\" is running then\ntell application id \"\(id)\"\n\(timed(body))\nend tell\nend if"
+    }
+
+    nonisolated static func extraState(from d: NSAppleEventDescriptor) -> ExtraState? {
+        guard d.descriptorType == typeAEList, d.numberOfItems == 1, let item = d.atIndex(1),
+              [typeBoolean, typeTrue, typeFalse].contains(item.descriptorType) else { return nil }
+        return ExtraState(shuffle: item.booleanValue)
     }
 }

@@ -2,6 +2,27 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.0] — 2026-10-27
+
+Ein Plattenspieler auf dem Schreibtisch, und Shuffle in der Insel.
+
+### Neu
+- **Plattenspieler als Hintergrund.** Die Musik auf dem Schreibtisch gibt es jetzt auch als Plattenspieler: mittig, etwa ein Drittel des Bildschirms groß, links daneben die Hülle mit dem Cover, darunter Titel und Interpret. Die Platte dreht sich, solange Musik läuft. Der Tonarm fährt beim Start auf die Platte, wandert im Lauf des Titels langsam nach innen und geht beim Pausieren in die Ablage. Dahinter liegt ein Farbverlauf aus den Farben des Covers, der beim Titelwechsel weich überblendet. Er liegt unter deinen Schreibtisch-Symbolen, die bleiben sichtbar und klickbar. Einschalten unter Einstellungen → Wiedergabe → „Cover und Titel auf dem Schreibtisch“, dann „Darstellung: Plattenspieler“ (ab Werk bleibt es die Karte).
+- **Bildschirm wählbar.** Für den Plattenspieler wählst du, auf welchem Bildschirm er steht (ab Werk der Hauptbildschirm). Ist der gewählte Bildschirm nicht angeschlossen, nimmt Gnotchi den Hauptbildschirm, bis er wieder da ist.
+- **Neonschrift „Now Playing“.** Über dem Plattenspieler leuchtet auf Wunsch ein Neon-Schriftzug in der Farbe des Covers. Er zündet beim Start mit kurzem Flackern und brummt ab und zu leise nach. Abschalten unter Einstellungen → Wiedergabe → „Neonschrift „Now Playing““ (ab Werk an).
+- **Tonarm bedienen.** Auf Wunsch startest und hältst du die Musik, indem du den Tonarm anfasst. Einschalten unter Einstellungen → Wiedergabe → „Tonarm bedienen“ (ab Werk aus).
+- **Shuffle.** Bei Spotify und Musik steht in der großen Insel und unter dem Plattenspieler ein Shuffle-Knopf. Ist Shuffle an, ist der Knopf hell hinterlegt und hat einen Punkt darunter. Ist es aus, ist er gedimmt.
+
+### Gut zu wissen
+- Shuffle gibt es nur bei Spotify und Musik, nicht bei Videos im Browser. Der erste Klick kann die Frage von macOS auslösen, ob Gnotchi Spotify bzw. Musik steuern darf.
+- Ein Favoriten-Herz fehlt noch: Musik nimmt den Befehl bei Apple-Music-Titeln an, ändert aber nichts, und Spotify lässt sich von außen gar nicht so steuern. Es kommt in einer späteren Version auf anderem Weg.
+- Solange die Platte dreht, braucht Gnotchi etwa ein Zehntel eines Prozessorkerns (gemessen am Mac mini). Bei Pause steht alles still.
+
+### Intern
+- Plattenspieler aus KI-Fotos, in Ebenen zerlegt (Sockel, Platte, Glanz, Spindel, Tonarm, Schatten), Perspektive per gemessener Homografie (`TurntableGeometry`). Rohmaterial liegt nicht im Repo.
+- Schrift Neonderthaw (SIL OFL 1.1) mitgeliefert, Lizenz unter „Fremdcode“.
+- Shuffle per AppleScript, gleiche Regeln wie Spulen (G7): feste Kennungen, nur an laufende Apps, 3-s-Zeitgrenze, ein Befehl gleichzeitig, nur auf Klick. Den Stand liest Gnotchi nur, wenn macOS die Steuerung schon erlaubt hat (`AEDeterminePermissionToAutomateTarget` ohne Dialog).
+
 ## [0.16.0] — 2026-10-27
 
 Eine ruhigere Insel ohne Notch und eine Ablage, die sich selbst aufräumt.
