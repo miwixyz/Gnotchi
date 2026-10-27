@@ -1064,6 +1064,9 @@ nur aus Klicks (G29, G30).
 - **Prüfung 0.17.2 (27.10.):** Start/Stopp-Knopf statt Tonarm-Griff – gleiche Aktion wie der Knopf (G13), keine neue
   Fläche. `rafter run` Scan `dcf5be75` ohne Befund, ZIP Build 163 notarisiert, Berechtigungen unverändert. Sichttest
   Michael ✓ („passt“).
+- **Prüfung 0.17.3 (27.10.):** nur Größenwerte der Hülle und das Fensterlayout – keine Sicherheitsfläche (keine
+  Eingabe, kein Netz, keine Datei, keine Berechtigung), daher Oberflächen-Check statt `rafter run` (Kontingent).
+  ZIP Build 166 notarisiert, Berechtigungen unverändert.
 - **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).
