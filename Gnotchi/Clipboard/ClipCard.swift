@@ -1,3 +1,4 @@
+import os
 import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
@@ -131,21 +132,56 @@ struct DragOut: ViewModifier {
 @MainActor
 enum ClipThumbnails {
     private static let cache = NSCache<NSUUID, NSImage>()
+    private nonisolated static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "zwischenablage")
 
     static func image(for entry: ClipEntry, payload: ClipPayload) -> NSImage? {
         // Auch Datei-Einträge mit mitkopiertem Bild (0.15.1, gemessen 26.10.: CleanShot/Clop legt public.file-url +
         // public.png in die Zwischenablage). Angezeigt wird nur das gespeicherte Bild, die Datei wird nie gelesen (G40).
         guard entry.kind == .image || entry.kind == .file else { return nil }
         if let hit = cache.object(forKey: entry.id as NSUUID) { return hit }
-        guard let data = payload.formats.first(where: { ClipboardCapture.imageTypes.contains($0.type) })?.data,
-              let source = CGImageSourceCreateWithData(data as CFData, nil),
-              let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceThumbnailMaxPixelSize: 480,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-              ] as CFDictionary) else { return nil }
+        guard let data = imageData(payload), let cg = thumbnail(data) else { return nil }
+        return remember(cg, for: entry.id)
+    }
+
+    /// Vorab im Hintergrund verkleinern (gemessen 27.10.: Strg+< wartete vor allem aufs Entpacken der gespeicherten
+    /// Bildschirmfotos in voller Größe, auf dem Hauptthread). Nach dem Start alle, danach jedes neue Bild. Nur das
+    /// gespeicherte Bild, nie die Datei (G40); Ergebnis nur im Speicher.
+    static func prewarm(_ store: ClipboardStore, entries: [ClipEntry]? = nil) {
+        let jobs: [(UUID, Data)] = (entries ?? store.entries()).compactMap { e in
+            guard e.kind == .image || e.kind == .file, cache.object(forKey: e.id as NSUUID) == nil,
+                  let payload = store.payload(e), let data = imageData(payload) else { return nil }
+            return (e.id, data)
+        }
+        guard !jobs.isEmpty else { return }
+        Task.detached(priority: .utility) {
+            let start = Date()
+            for (id, data) in jobs {
+                guard let cg = thumbnail(data) else { continue }
+                await MainActor.run { _ = remember(cg, for: id) }
+            }
+            // G8: nur Anzahl und Dauer.
+            let ms = Int(Date().timeIntervalSince(start) * 1000)
+            log.notice("Vorschaubilder vorbereitet: \(jobs.count, privacy: .public) in \(ms, privacy: .public) ms")
+        }
+    }
+
+    private static func imageData(_ payload: ClipPayload) -> Data? {
+        payload.formats.first(where: { ClipboardCapture.imageTypes.contains($0.type) })?.data
+    }
+
+    private nonisolated static func thumbnail(_ data: Data) -> CGImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: 480,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+        ] as CFDictionary)
+    }
+
+    private static func remember(_ cg: CGImage, for id: UUID) -> NSImage {
+        if let hit = cache.object(forKey: id as NSUUID) { return hit }
         let image = NSImage(cgImage: cg, size: NSSize(width: cg.width / 2, height: cg.height / 2))
-        cache.setObject(image, forKey: entry.id as NSUUID)
+        cache.setObject(image, forKey: id as NSUUID)
         return image
     }
 }

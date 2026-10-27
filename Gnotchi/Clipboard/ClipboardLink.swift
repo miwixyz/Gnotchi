@@ -67,6 +67,7 @@ final class ClipboardLink: NotchPart {
         do {
             store = try ClipboardStore(directory: ClipboardStore.defaultDirectory, key: ClipboardKeys.mainKey())
             startProblem = nil
+            if let store { ClipThumbnails.prewarm(store) }
         } catch {
             startProblem = String(localized: "Verlauf konnte nicht geöffnet werden (\(String(describing: error))).")
             Self.log.error("Start fehlgeschlagen: \(String(describing: error), privacy: .public)")
@@ -138,6 +139,7 @@ final class ClipboardLink: NotchPart {
         case .take(let payload, let kind):
             do {
                 let entry = try store.add(payload, kind: kind, source: source)
+                ClipThumbnails.prewarm(store, entries: [entry])
                 // Erkanntes Geheimnis (G43): System-Zwischenablage zum Ablauf leeren, wenn bis dahin unverändert.
                 if store.secretKind(entry) != nil { scheduleSensitiveClear(change, after: ClipboardStore.secretLifetime) }
             } catch {

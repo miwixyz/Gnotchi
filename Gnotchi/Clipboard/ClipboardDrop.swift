@@ -106,18 +106,22 @@ extension ClipboardPanelView {
                 .font(.system(size: 13)).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: ClipTile.size.height + 18)
         } else {
-            let index = Dictionary(uniqueKeysWithValues: list.enumerated().map { ($1.id, $0) })
+            // Flach und lazy (gemessen 27.10., Strg+< verzögert): Vorher war nur die Tagesgruppe lazy, innerhalb
+            // eines Tages entstanden alle Kärtchen auf einmal – bei 310 Einträgen von zwei Tagen ~90 % der Wartezeit.
+            let labels = Dictionary(uniqueKeysWithValues: ClipDays.group(list).compactMap { g in
+                g.entries.first.map { ($0.id, g.label) }
+            })
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: 14) {
-                        ForEach(ClipDays.group(list)) { group in
+                    LazyHStack(alignment: .top, spacing: 8) {
+                        ForEach(Array(list.enumerated()), id: \.element.id) { i, entry in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(verbatim: group.label).font(.system(size: 10, weight: .semibold))
-                                    .foregroundStyle(.secondary)
-                                HStack(spacing: 8) {
-                                    ForEach(group.entries, id: \.id) { entry in tile(entry, at: index[entry.id] ?? 0) }
-                                }
+                                Text(verbatim: labels[entry.id] ?? " ").font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(.secondary).lineLimit(1).fixedSize()
+                                    .frame(width: ClipTile.size.width, alignment: .leading)
+                                tile(entry, at: i)
                             }
+                            .padding(.leading, i > 0 && labels[entry.id] != nil ? 6 : 0)   // Tagesabstand 14
                         }
                     }
                     .padding(.vertical, 2)

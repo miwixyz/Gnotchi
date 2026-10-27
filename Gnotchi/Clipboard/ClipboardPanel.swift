@@ -401,28 +401,31 @@ struct ClipboardPanelView: View {
         let list = state.entries
         ScrollViewReader { proxy in
             ScrollView(edge == .bottom ? .horizontal : .vertical) {
-                let layout = edge == .bottom
-                    ? AnyLayout(HStackLayout(alignment: .top, spacing: 10))
-                    : AnyLayout(VStackLayout(spacing: 8))
-                layout {
-                    ForEach(Array(list.enumerated()), id: \.element.id) { index, entry in
-                        ClipCard(link: link, entry: entry, number: index < 9 ? index + 1 : nil,
-                                 selected: index == state.selection, compactWidth: edge == .bottom)
-                            .id(entry.id)
-                            // Doppelklick fügt ein (G42), einfacher Klick markiert sofort (gleichzeitig, ohne
-                            // auf einen möglichen zweiten Klick zu warten).
-                            .onTapGesture(count: 2) {
-                                state.pick(entry, plain: NSEvent.modifierFlags.contains(.shift))
-                            }
-                            .simultaneousGesture(TapGesture().onEnded { state.select(entry) })
-                            .contextMenu { menu(for: entry) }
-                    }
+                // Lazy (27.10.): AnyLayout baute alle Karten auf einmal, samt Vorschaubildern.
+                if edge == .bottom {
+                    LazyHStack(alignment: .top, spacing: 10) { cardList(list) }.padding(2)
+                } else {
+                    LazyVStack(spacing: 8) { cardList(list) }.padding(2)
                 }
-                .padding(2)
             }
             .onChange(of: state.selection) {
                 if list.indices.contains(state.selection) { proxy.scrollTo(list[state.selection].id) }
             }
+        }
+    }
+
+    private func cardList(_ list: [ClipEntry]) -> some View {
+        ForEach(Array(list.enumerated()), id: \.element.id) { index, entry in
+            ClipCard(link: link, entry: entry, number: index < 9 ? index + 1 : nil,
+                     selected: index == state.selection, compactWidth: edge == .bottom)
+                .id(entry.id)
+                // Doppelklick fügt ein (G42), einfacher Klick markiert sofort (gleichzeitig, ohne
+                // auf einen möglichen zweiten Klick zu warten).
+                .onTapGesture(count: 2) {
+                    state.pick(entry, plain: NSEvent.modifierFlags.contains(.shift))
+                }
+                .simultaneousGesture(TapGesture().onEnded { state.select(entry) })
+                .contextMenu { menu(for: entry) }
         }
     }
 

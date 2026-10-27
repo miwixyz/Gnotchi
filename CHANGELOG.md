@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.1] — 2026-10-27
+
+Die Zwischenablage öffnet wieder sofort.
+
+### Behoben
+- **Strg+< öffnet ohne Wartezeit.** Mit vielen Einträgen dauerte es spürbar, bis die Zwischenablage aufging, aus der Notch wie am Rand. Gnotchi baute beim Öffnen alle Karten auf einmal und verkleinerte dabei jedes gespeicherte Bildschirmfoto neu. Jetzt entstehen nur die Karten, die du siehst, und die Vorschaubilder liegen schon bereit: Gnotchi bereitet sie nach dem Start und bei jedem neuen Bild im Hintergrund vor.
+
+### Intern
+- Gemessen an 350 Einträgen (92 mit Bild): vorher rund 90 % der Wartezeit im Aufbau der Kartenreihe, davon über die Hälfte im Entpacken der Bilder. Vorbereiten danach: 88 Vorschaubilder in knapp 2 s, im Hintergrund. Protokoll (`zwischenablage`) nennt nur Anzahl und Dauer.
+
 ## [0.17.0] — 2026-10-27
 
 Ein Plattenspieler auf dem Schreibtisch, und Shuffle in der Insel.
