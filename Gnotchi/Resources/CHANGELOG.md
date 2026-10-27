@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.3] — 2026-10-27
+
+Hülle und Platte im richtigen Verhältnis.
+
+### Behoben
+- **Größere Hülle am Plattenspieler.** Die Hülle neben dem Plattenspieler war ein Viertel kleiner als die Platte und wirkte wie eine Single. Jetzt ist sie knapp so groß wie die Platte. Der echte LP-Maßstab, etwas größer als die Platte, wirkte aufrecht neben der schräg gesehenen Platte zu wuchtig. Damit alles bei einem Drittel des Bildschirms bleibt, ist der Plattenspieler etwas kleiner geworden.
+
+### Intern
+- Plattenbreite im Bild aus der gemessenen Perspektive (0,565 Gerätebreiten), Hülle 0,52 (vorher 0,42). Test prüft das Verhältnis und dass die Hülle nie größer als eine echte LP wird.
+
 ## [0.17.2] — 2026-10-27
 
 Start und Stopp am Plattenspieler, so wie an einem echten.

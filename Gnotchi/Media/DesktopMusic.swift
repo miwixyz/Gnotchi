@@ -182,8 +182,8 @@ final class DesktopMusicLink: NotchPart {
     nonisolated static func turntableLayout(screen: CGRect, visible: CGRect, neon: Bool = false)
         -> (window: CGRect, deckWidth: CGFloat) {
         let width = min(screen.width / 3, visible.height * 1.6)
-        let deckWidth = width / 1.36
-        let height = deckWidth * TurntableArt.size.height / TurntableArt.size.width + deckWidth * 0.12 + 110
+        let deckWidth = width / TurntableView.rowWidthRatio
+        let height = deckWidth * TurntableView.rowHeightRatio + deckWidth * 0.12 + 110
             + (neon ? TurntableNeon.height(deckWidth: deckWidth) : 0)
         let p = turntablePad
         let frame = CGRect(x: visible.midX - width / 2 - p, y: visible.midY - height / 2 - p,

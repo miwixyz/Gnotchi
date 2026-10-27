@@ -65,6 +65,18 @@ final class TurntableTests: XCTestCase {
         XCTAssertLessThan(frame.height, visible.height, "passt auf den Bildschirm")
     }
 
+    /// Maßstab Hülle : Platte (Mittelweg, Michael 27.10.): nicht mehr Single-klein (vorher 74 %), nicht größer als eine
+    /// echte LP (31,4 : 30 cm). Plattenbreite aus der gemessenen Perspektive.
+    func testSleeveMatchesRecordScale() {
+        let xs = (0..<360).map { d -> CGFloat in
+            let a = Double(d) * .pi / 180
+            return TurntableGeometry.plane.apply(CGPoint(x: cos(a), y: sin(a))).x
+        }
+        let record = (xs.max()! - xs.min()!) / TurntableArt.size.width
+        XCTAssertEqual(TurntableView.sleeveRatio / record, 0.92, accuracy: 0.03)
+        XCTAssertLessThanOrEqual(TurntableView.sleeveRatio / record, 31.4 / 30)
+    }
+
     func testStyleAndScreenDefaults() {
         let suite = "gnotchi-test-\(UUID().uuidString)"
         let d = UserDefaults(suiteName: suite)!

@@ -159,6 +159,16 @@ struct TurntableView: View {
 
     private var scale: CGFloat { deckWidth / TurntableArt.size.width }
 
+    /// Hülle in Gerätebreiten (Michael 27.10.: „Maßstab passt gar nicht“). Platte im Bild 0,565 Gerätebreiten (aus
+    /// `TurntableGeometry.plane`). Vorher 0,42 (74 % der Platte); echter LP-Maßstab wäre 0,59 (31,4 : 30 cm) – wirkte
+    /// aufrecht neben der schräg gesehenen Platte zu groß. Michael wählte den Mittelweg: 92 % der Platte.
+    static let sleeveRatio: CGFloat = 0.52
+    static let sleeveOverlap: CGFloat = 0.06
+    static let sleeveLift: CGFloat = 0.015
+    /// Reihe Hülle + Gerät in Gerätebreiten (für das Fenster).
+    static let rowWidthRatio = 1 + sleeveRatio - sleeveOverlap
+    static let rowHeightRatio = max(TurntableArt.size.height / TurntableArt.size.width, sleeveRatio + sleeveLift)
+
     var body: some View {
         let info = media.info
         let playing = info?.isPlaying ?? false
@@ -166,7 +176,7 @@ struct TurntableView: View {
             if neon {
                 TurntableNeon(color: TurntableColors.palette(for: media.artwork).neon, lit: playing, deckWidth: deckWidth)
             }
-            HStack(alignment: .bottom, spacing: -deckWidth * 0.06) {
+            HStack(alignment: .bottom, spacing: -deckWidth * Self.sleeveOverlap) {
                 sleeve.zIndex(0)
                 deck(playing: playing).zIndex(1)
             }
@@ -212,7 +222,7 @@ struct TurntableView: View {
     }
 
     private var sleeve: some View {
-        let side = deckWidth * 0.42
+        let side = deckWidth * Self.sleeveRatio
         return cover
             .frame(width: side, height: side)
             .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
@@ -220,7 +230,7 @@ struct TurntableView: View {
                                     endPoint: .bottomTrailing))
             .rotation3DEffect(.degrees(22), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
             .shadow(color: .black.opacity(0.5), radius: 18, x: 8, y: 14)
-            .padding(.bottom, deckWidth * 0.015)   // steht auf Höhe der Füße
+            .padding(.bottom, deckWidth * Self.sleeveLift)   // steht auf Höhe der Füße
             .onTapGesture { DesktopMusicView.bringToFront(media.info?.appBundleID) }
     }
 
