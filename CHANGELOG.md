@@ -2,7 +2,9 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.17.4] — 2026-10-27
+
+Der Tonarm steht wieder ganz auf dem Plattenspieler.
 
 ### Behoben
 - **Tonarm ragt wieder über den Plattenspieler hinaus.** Lager und Gegengewicht waren an der Oberkante des Geräts abgeschnitten. Die Farbtönung des Raums bleibt trotzdem auf Gerät und Arm, die Luft daneben wird nicht gefärbt.

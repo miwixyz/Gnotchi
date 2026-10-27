@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.4] — 2026-10-27
+
+Der Tonarm steht wieder ganz auf dem Plattenspieler.
+
+### Behoben
+- **Tonarm ragt wieder über den Plattenspieler hinaus.** Lager und Gegengewicht waren an der Oberkante des Geräts abgeschnitten. Die Farbtönung des Raums bleibt trotzdem auf Gerät und Arm, die Luft daneben wird nicht gefärbt.
+
+### Intern
+- Die Maske begrenzt nur noch die Tönung (`TurntableView.deck`), nicht mehr alle Ebenen. Maskenform: `layers(at:shadows: false)`, also Gerät, Platte und Arm ohne die weichen Armschatten. Seit dem Tönungs-Fix von 0.17.0 schnitt die Maske alles außerhalb der Gerätefläche ab. Vorher/Nachher per `testRenderTurntable`.
+
 ## [0.17.3] — 2026-10-27
 
 Hülle und Platte im richtigen Verhältnis.
