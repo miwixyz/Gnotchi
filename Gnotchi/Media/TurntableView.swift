@@ -242,18 +242,16 @@ struct TurntableView: View {
             contactShadow
             TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !moving)) { ctx in
                 layers(at: ctx.date)
-            }
-            // Umgebungslicht: Studiofoto im farbigen Raum – leicht in die Raumfarbe getaucht, nur auf dem Gerät.
-            .overlay {
-                tint.blendMode(.softLight).opacity(0.6).animation(.easeInOut(duration: 1.2), value: tint)
-                    .allowsHitTesting(false)
-            }
-            .mask {
-                // Nur die Gerätefläche: Arm-Ebenen haben weiche Ränder, dort färbte die Tönung Luft rötlich (Testbild 27.10.).
-                ZStack(alignment: .topLeading) {
-                    deckArt(TurntableArt.base)
-                }
-                .frame(width: deckWidth, height: TurntableArt.size.height * scale, alignment: .topLeading)
+                    // Umgebungslicht: Studiofoto im farbigen Raum – leicht in die Raumfarbe getaucht, nur auf Gerät und Arm.
+                    .overlay {
+                        tint.blendMode(.softLight).opacity(0.6).animation(.easeInOut(duration: 1.2), value: tint)
+                            .allowsHitTesting(false)
+                            // Maske nur für die Tönung, nie für das Bild: Mit der Maske auf allen Ebenen war der Arm an
+                            // der Geräte-Oberkante abgeschnitten (Michael 27.10.: „Der Arm hinten ist abgeschnitten“).
+                            // Ohne Armschatten in der Form, sonst färbt die Tönung deren weiche Ränder in der Luft
+                            // rötlich (Testbild 27.10.).
+                            .mask { layers(at: ctx.date, shadows: false) }
+                    }
             }
         }
         .frame(width: deckWidth, height: TurntableArt.size.height * scale, alignment: .topLeading)
@@ -287,7 +285,8 @@ struct TurntableView: View {
     }
 
     /// Alle beweglichen Ebenen für einen Zeitpunkt: Platte dreht, Arm schwenkt bzw. wandert mit dem Titel.
-    func layers(at t: Date) -> some View {   // intern: Testbild ohne Tönung (TurntableTests)
+    /// `shadows: false` = Form für die Tönungsmaske: Gerät und Arm, ohne die weichen Armschatten.
+    func layers(at t: Date, shadows: Bool = true) -> some View {   // intern: Testbild ohne Tönung (TurntableTests)
         let s = Double(scale)
         let toDeck = Homography.scale(s) * TurntableGeometry.circle
         let n = TurntableGeometry.circleSize
@@ -322,12 +321,14 @@ struct TurntableView: View {
             }
             // Ablage-Arm (Pausenfoto) dreht beim Schwenk mit und blendet aus; Spiel-Arm (Lager + Rohr) blendet ein.
             if f < 1 {
-                deckArt(TurntableArt.armRestShadow).projectionEffect(restSwing.projection).opacity(1 - f)
+                if shadows { deckArt(TurntableArt.armRestShadow).projectionEffect(restSwing.projection).opacity(1 - f) }
                 deckArt(TurntableArt.armRest).projectionEffect(restSwing.projection).opacity(1 - f)
             }
             if f > 0 {
-                deckArt(TurntableArt.armBearingShadow).opacity(f)
-                deckArt(TurntableArt.armTubeShadow).projectionEffect(tubeShadow.projection).opacity(f)
+                if shadows {
+                    deckArt(TurntableArt.armBearingShadow).opacity(f)
+                    deckArt(TurntableArt.armTubeShadow).projectionEffect(tubeShadow.projection).opacity(f)
+                }
                 deckArt(TurntableArt.armBearing).opacity(f)
                 deckArt(TurntableArt.armTube).projectionEffect(tube.projection).opacity(f)
             }
