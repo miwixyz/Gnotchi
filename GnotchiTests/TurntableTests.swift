@@ -171,7 +171,7 @@ final class TurntableTests: XCTestCase {
         XCTAssertFalse(path.contains(CGPoint(x: 170, y: 640)), "Sockel darüber")
     }
 
-    /// Messpunkt (27.10.): nur die beweglichen Ebenen, ohne Tönung und Maske – ist das Cover auf der Platte?
+    /// Messpunkt (27.10.): nur die beweglichen Ebenen – ist das Cover auf der Platte?
     func testRenderLayersOnly() throws {
         let model = NowPlayingModel()
         let artwork = NSImage(size: NSSize(width: 300, height: 300), flipped: false) { rect in
@@ -189,13 +189,29 @@ final class TurntableTests: XCTestCase {
     }
 
     func testRenderTurntable() throws {
-        let model = NowPlayingModel()
         let artwork = NSImage(size: NSSize(width: 300, height: 300), flipped: false) { rect in
             NSGradient(colors: [.systemOrange, .systemPink])?.draw(in: rect, angle: -60)
             NSColor.white.setFill()
             NSBezierPath(ovalIn: rect.insetBy(dx: 90, dy: 90)).fill()
             return true
         }
+        try renderTurntable(artwork: artwork, file: "gnotchi-island-turntable.png")
+    }
+
+    /// Helles, fast farbloses Cover (wie Hoobastank „The Reason“) – Michael 27.10.: „Wieso ist der Plattenspieler so ausgegraut?“
+    func testRenderTurntableWhiteCover() throws {
+        let artwork = NSImage(size: NSSize(width: 300, height: 300), flipped: false) { rect in
+            NSColor(white: 0.93, alpha: 1).setFill()
+            rect.fill()
+            NSColor(white: 0.7, alpha: 1).setFill()
+            NSBezierPath(ovalIn: rect.insetBy(dx: 100, dy: 100)).fill()
+            return true
+        }
+        try renderTurntable(artwork: artwork, file: "gnotchi-island-turntable-weiss.png")
+    }
+
+    private func renderTurntable(artwork: NSImage, file: String) throws {
+        let model = NowPlayingModel()
         model.setPreviewState(info: NowPlayingInfo(title: "Erfundener Titel", artist: "Muster-Band", album: "Testalbum",
                                                    appBundleID: nil, isPlaying: true, duration: 200, elapsedAtStamp: 10,
                                                    stamp: Date(), rate: 0, contentID: nil, artworkBase64: nil),
@@ -210,6 +226,6 @@ final class TurntableTests: XCTestCase {
         let cg = try XCTUnwrap(renderer.cgImage)
         guard let dir = ProcessInfo.processInfo.environment["GNOTCHI_RENDER_DIR"], !dir.isEmpty else { return }
         let png = try XCTUnwrap(NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]))
-        try png.write(to: URL(fileURLWithPath: dir).appendingPathComponent("gnotchi-island-turntable.png"))
+        try png.write(to: URL(fileURLWithPath: dir).appendingPathComponent(file))
     }
 }

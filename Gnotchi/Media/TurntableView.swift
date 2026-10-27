@@ -67,16 +67,15 @@ struct TurntableSpin: Equatable {
 /// damit weiße Schrift lesbar bleibt. Ohne Cover ein ruhiges Dunkelgrau.
 enum TurntableColors {
     struct RGB: Equatable { var r, g, b: Double }
-    /// 3 × 3 Farbinseln für den Verlauf (Zeile für Zeile von oben), Lichtschein hinter dem Gerät, Umgebungslicht.
+    /// 3 × 3 Farbinseln für den Verlauf (Zeile für Zeile von oben), Lichtschein hinter dem Gerät.
     struct Palette: Equatable {
         var mesh: [Color]
         var glow: Color
-        var tint: Color
         /// Farbe der Neonschrift: kräftigste Coverfarbe in voller Helligkeit.
         var neon: Color
     }
     static let fallback = Palette(mesh: [0.24, 0.22, 0.2, 0.17, 0.15, 0.13, 0.08, 0.07, 0.06].map { Color(white: $0) },
-                                  glow: Color(white: 0.4), tint: Color(white: 0.5),
+                                  glow: Color(white: 0.4),
                                   neon: Color(red: 1, green: 0.25, blue: 0.6))
     /// Helligkeit je Zeile: oben Raum, unten „Boden“ – Michael 27.10.: „interessanterer Verlauf“.
     static let rowLevels = [0.55, 0.4, 0.17]
@@ -108,11 +107,9 @@ enum TurntableColors {
         guard samples.count == 9 else { return fallback }
         let mesh = samples.enumerated().map { shade($0.element, rowLevels[$0.offset / 3]) }
         let vivid = samples.max { saturation($0) < saturation($1) } ?? samples[4]
-        let mean = RGB(r: samples.map(\.r).reduce(0, +) / 9, g: samples.map(\.g).reduce(0, +) / 9,
-                       b: samples.map(\.b).reduce(0, +) / 9)
         // Graue Cover: klassisches Neon-Pink statt fahlem Grau.
         let neon = saturation(vivid) < 0.25 ? fallback.neon : brightest(vivid)
-        return Palette(mesh: mesh, glow: shade(vivid, 0.85), tint: shade(mean, 0.75), neon: neon)
+        return Palette(mesh: mesh, glow: shade(vivid, 0.85), neon: neon)
     }
 
     nonisolated static func saturation(_ c: RGB) -> Double {
@@ -235,30 +232,22 @@ struct TurntableView: View {
     }
 
     private func deck(playing: Bool) -> some View {
-        let tint = TurntableColors.palette(for: media.artwork).tint
         let now = Date()
         let moving = spin.moving(at: now) || arm.moving(at: now) || playing
         return ZStack(alignment: .topLeading) {
             contactShadow
             TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !moving)) { ctx in
                 layers(at: ctx.date)
-                    // Umgebungslicht: Studiofoto im farbigen Raum – leicht in die Raumfarbe getaucht, nur auf Gerät und Arm.
-                    .overlay {
-                        tint.blendMode(.softLight).opacity(0.6).animation(.easeInOut(duration: 1.2), value: tint)
-                            .allowsHitTesting(false)
-                            // Maske nur für die Tönung, nie für das Bild: Mit der Maske auf allen Ebenen war der Arm an
-                            // der Geräte-Oberkante abgeschnitten (Michael 27.10.: „Der Arm hinten ist abgeschnitten“).
-                            // Ohne Armschatten in der Form, sonst färbt die Tönung deren weiche Ränder in der Luft
-                            // rötlich (Testbild 27.10.).
-                            .mask { layers(at: ctx.date, shadows: false) }
-                    }
+                // Keine Tönung mehr (0.17.5): `softLight` wirkte im echten Fenster nie als Licht, sondern lag als deckender
+                // Schleier in der Coverfarbe auf dem Gerät – seit 0.17.0, ImageRenderer-Testbilder zeigten es nicht.
+                // Messpunkt 27.10. am Schreibtisch: ohne Tönung klar (Michael: „jetzt passt es“).
             }
         }
         .frame(width: deckWidth, height: TurntableArt.size.height * scale, alignment: .topLeading)
         .shadow(color: .black.opacity(0.28), radius: 6, y: 4)
         // Start/Stopp-Knopf des Fotos (Michael 27.10.: „Wie wäre es mit dem Start/Stopp Knopf als realistischen“).
         // Ersetzt den Tonarm-Griff: Der wanderte beim Spielen mit, Klicks kamen dort nie an (Messpunkt 27.10.:
-        // fünfmal „berührt“, kein Klick). Der Knopf steht fest, oberste Schicht über Tönung und Arm.
+        // fünfmal „berührt“, kein Klick). Der Knopf steht fest, oberste Schicht über dem Arm.
         .overlay(alignment: .topLeading) {
             if tonearm { startStopButton }
         }
@@ -285,8 +274,7 @@ struct TurntableView: View {
     }
 
     /// Alle beweglichen Ebenen für einen Zeitpunkt: Platte dreht, Arm schwenkt bzw. wandert mit dem Titel.
-    /// `shadows: false` = Form für die Tönungsmaske: Gerät und Arm, ohne die weichen Armschatten.
-    func layers(at t: Date, shadows: Bool = true) -> some View {   // intern: Testbild ohne Tönung (TurntableTests)
+    func layers(at t: Date) -> some View {   // intern: Testbild (TurntableTests)
         let s = Double(scale)
         let toDeck = Homography.scale(s) * TurntableGeometry.circle
         let n = TurntableGeometry.circleSize
@@ -321,14 +309,12 @@ struct TurntableView: View {
             }
             // Ablage-Arm (Pausenfoto) dreht beim Schwenk mit und blendet aus; Spiel-Arm (Lager + Rohr) blendet ein.
             if f < 1 {
-                if shadows { deckArt(TurntableArt.armRestShadow).projectionEffect(restSwing.projection).opacity(1 - f) }
+                deckArt(TurntableArt.armRestShadow).projectionEffect(restSwing.projection).opacity(1 - f)
                 deckArt(TurntableArt.armRest).projectionEffect(restSwing.projection).opacity(1 - f)
             }
             if f > 0 {
-                if shadows {
-                    deckArt(TurntableArt.armBearingShadow).opacity(f)
-                    deckArt(TurntableArt.armTubeShadow).projectionEffect(tubeShadow.projection).opacity(f)
-                }
+                deckArt(TurntableArt.armBearingShadow).opacity(f)
+                deckArt(TurntableArt.armTubeShadow).projectionEffect(tubeShadow.projection).opacity(f)
                 deckArt(TurntableArt.armBearing).opacity(f)
                 deckArt(TurntableArt.armTube).projectionEffect(tube.projection).opacity(f)
             }

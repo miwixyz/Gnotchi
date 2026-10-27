@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.5] — 2026-10-27
+
+Der Plattenspieler ist wieder klar statt milchig.
+
+### Behoben
+- **Kein grauer Schleier mehr auf dem Plattenspieler.** Das Gerät war blass, die Platte grau statt schwarz, je nach Cover mit grauem oder olivem Stich. Ursache war die Farbtönung des Raums: Sie sollte das Gerät nur leicht in die Coverfarbe tauchen, lag im echten Fenster aber als deckende Schicht darüber. Die Tönung ist entfernt. Farbverlauf, Lichtschein und Neonschrift nehmen die Coverfarbe weiter auf.
+
+### Intern
+- `TurntableView.deck` ohne Tönungs-Overlay, `layers(at:)` ohne den Parameter `shadows` (gab es nur für die Tönungsmaske). Die Testbilder (`ImageRenderer`) zeigten die Mischart `softLight` korrekt, das echte Fenster nicht, wahrscheinlich schon seit 0.17.0. Gefunden per Messschalter am Schreibtisch: ohne Tönung klar. Neues Testbild mit hellem Cover (`testRenderTurntableWhiteCover`).
+
 ## [0.17.4] — 2026-10-27
 
 Der Tonarm steht wieder ganz auf dem Plattenspieler.
