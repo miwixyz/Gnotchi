@@ -146,6 +146,19 @@ final class TurntableTests: XCTestCase {
         XCTAssertFalse(back.moving(at: t0.addingTimeInterval(5)))
     }
 
+    /// Start/Stopp-Knopf (0.17.2): Fläche liegt auf dem Knopf im Sockelbild, nicht daneben.
+    func testStartStopButtonCoversButtonInPhoto() {
+        let corners = TurntableArt.startStop
+        XCTAssertEqual(corners.count, 4)
+        for p in corners {
+            XCTAssertTrue((0...TurntableArt.size.width).contains(p.x) && (0...TurntableArt.size.height).contains(p.y))
+        }
+        let path = TurntableStartStopShape(corners: corners).path(in: .zero)
+        XCTAssertTrue(path.contains(CGPoint(x: 170, y: 725)), "Knopfmitte")
+        XCTAssertFalse(path.contains(CGPoint(x: 340, y: 760)), "33er-Knopf daneben")
+        XCTAssertFalse(path.contains(CGPoint(x: 170, y: 640)), "Sockel darüber")
+    }
+
     /// Messpunkt (27.10.): nur die beweglichen Ebenen, ohne Tönung und Maske – ist das Cover auf der Platte?
     func testRenderLayersOnly() throws {
         let model = NowPlayingModel()

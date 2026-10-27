@@ -118,7 +118,7 @@ extension SettingsView {
                     }
                     toggleRow("Neonschrift „Now Playing“", isOn: $prefs.desktopMusicNeon)
                         .onChange(of: prefs.desktopMusicNeon) { model.applyNotchSetting() }
-                    toggleRow("Tonarm bedienen (anfassen = Start/Pause)", isOn: $prefs.desktopMusicTonearm)
+                    toggleRow("Start/Stopp-Knopf bedienen (unten links am Plattenspieler)", isOn: $prefs.desktopMusicTonearm)
                         .onChange(of: prefs.desktopMusicTonearm) { model.applyNotchSetting() }
                 }
                 if prefs.desktopMusic && prefs.desktopMusicStyle == .card {

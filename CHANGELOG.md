@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.2] — 2026-10-27
+
+Start und Stopp am Plattenspieler, so wie an einem echten.
+
+### Behoben
+- **Start/Stopp-Knopf statt Tonarm.** „Tonarm bedienen“ reagierte kaum: Starten ging, Stoppen nie. Jetzt bedienst du den Plattenspieler über den großen Start/Stopp-Knopf unten links am Gerät. Ein Klick hält die Musik an oder startet sie, der Knopf wird dabei kurz dunkler, und der Tonarm fährt von selbst. Der Schalter heißt jetzt Einstellungen → Wiedergabe → „Start/Stopp-Knopf bedienen“ (ab Werk aus, wer „Tonarm bedienen“ an hatte, hat ihn an).
+
+### Intern
+- Gemessen per Messpunkt: Die Farbtönung über dem Gerät fing jeden Klick ab; oben drauf gelegt kam beim Spielen trotzdem kein Klick an, weil der Griff zehnmal pro Sekunde mit dem Arm neu gesetzt wurde. Der Knopf steht fest, Test prüft seine Lage im Sockelbild.
+
 ## [0.17.1] — 2026-10-27
 
 Die Zwischenablage öffnet wieder sofort.

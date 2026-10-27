@@ -38,7 +38,7 @@ Freigabe nicht und fragt nie danach.
   ([G44](docs/SECURE-DESIGN.md)).
 - **Plattenspieler (0.17, ab Werk aus):** dieselbe Anzeige als drehender Plattenspieler mittig auf einem wählbaren
   Bildschirm, Tonarm wandert mit dem Titel, Farbverlauf aus dem Cover unter den Schreibtisch-Symbolen, optional
-  Neonschrift „Now Playing“ und Start/Pause per Tonarm. Gezeichnet aus KI-Fotos (Ebenen, gemessene Perspektive).
+  Neonschrift „Now Playing“ und Start/Pause über den Start/Stopp-Knopf am Gerät. Gezeichnet aus KI-Fotos (Ebenen, gemessene Perspektive).
 - **Shuffle (0.17):** bei Spotify und Musik in der großen Insel und am Plattenspieler, per AppleScript nur auf Klick
   ([G7](docs/SECURE-DESIGN.md)). Ein Favoriten-Herz fehlt noch (Musik ignoriert den Befehl bei Apple-Music-Titeln,
   Spotify erlaubt ihn nicht).

@@ -88,7 +88,7 @@ Ab 0.15 zeigt Gnotchi auf Wunsch Cover, Titel und Interpret auf dem Schreibtisch
 **Plattenspieler (ab 0.17):** Unter Einstellungen → Wiedergabe → „Darstellung“ wählst du statt der Karte den Plattenspieler. Er steht mittig, etwa ein Drittel des Bildschirms groß, links daneben die Hülle, darunter Titel und Interpret. Die Platte dreht sich, solange Musik läuft. Der Tonarm fährt beim Start auf die Platte, wandert im Lauf des Titels nach innen und geht bei Pause in die Ablage. Dahinter liegt ein Farbverlauf aus den Farben des Covers, unter deinen Schreibtisch-Symbolen, die bleiben klickbar. Fährst du über den Plattenspieler, erscheinen Shuffle, Zurück, Wiedergabe/Pause und Weiter. Ein Klick auf die Hülle holt die App nach vorne. Weitere Schalter:
 - **Bildschirm:** auf welchem Bildschirm er steht, ab Werk der Hauptbildschirm. Ist der gewählte nicht angeschlossen, steht er auf dem Hauptbildschirm.
 - **Neonschrift „Now Playing“:** leuchtender Schriftzug in der Coverfarbe über dem Plattenspieler, ab Werk an.
-- **Tonarm bedienen:** Den Tonarm anfassen startet oder hält die Musik an. Ab Werk aus.
+- **Start/Stopp-Knopf bedienen** (ab 0.17.2): Ein Klick auf den großen Knopf unten links am Plattenspieler startet oder hält die Musik an, der Tonarm fährt dann von selbst. Ab Werk aus.
 Ecke, Größe und Verschieben gelten nur für die Karte.
 
 ## Ausgabe wählen

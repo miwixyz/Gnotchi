@@ -13,6 +13,9 @@ enum TurntableArt {
     /// Achse: Kopf aus dem Foto, über dem Etikett.
     static let spindleOrigin = CGPoint(x: 824, y: 314)
     static let spindleSize = CGSize(width: 36, height: 40)
+    /// Start/Stopp-Knopf im Sockelbild (Pixel, gemessen 27.10.): schräges Viereck wegen der Perspektive,
+    /// oben links, oben rechts, unten rechts, unten links.
+    static let startStop = [CGPoint(x: 100, y: 675), CGPoint(x: 275, y: 675), CGPoint(x: 254, y: 774), CGPoint(x: 70, y: 774)]
     /// 33⅓ U/min in Grad pro Sekunde.
     static let degreesPerSecond = 33.333 / 60 * 360
 
@@ -148,7 +151,7 @@ struct TurntableView: View {
     let deckWidth: CGFloat
     /// Neonschrift „Now Playing“ darüber (Einstellung).
     var neon = false
-    /// Tonarm anfassen = Start/Pause (Einstellung, ab Werk aus).
+    /// Start/Stopp-Knopf am Sockel klickbar (Einstellung `desktopMusicTonearm`, ab Werk aus).
     var tonearm = false
     @State private var spin = TurntableSpin()
     @State private var arm = TurntableArmMotion()
@@ -231,7 +234,10 @@ struct TurntableView: View {
                 layers(at: ctx.date)
             }
             // Umgebungslicht: Studiofoto im farbigen Raum – leicht in die Raumfarbe getaucht, nur auf dem Gerät.
-            .overlay { tint.blendMode(.softLight).opacity(0.6).animation(.easeInOut(duration: 1.2), value: tint) }
+            .overlay {
+                tint.blendMode(.softLight).opacity(0.6).animation(.easeInOut(duration: 1.2), value: tint)
+                    .allowsHitTesting(false)
+            }
             .mask {
                 // Nur die Gerätefläche: Arm-Ebenen haben weiche Ränder, dort färbte die Tönung Luft rötlich (Testbild 27.10.).
                 ZStack(alignment: .topLeading) {
@@ -242,6 +248,32 @@ struct TurntableView: View {
         }
         .frame(width: deckWidth, height: TurntableArt.size.height * scale, alignment: .topLeading)
         .shadow(color: .black.opacity(0.28), radius: 6, y: 4)
+        // Start/Stopp-Knopf des Fotos (Michael 27.10.: „Wie wäre es mit dem Start/Stopp Knopf als realistischen“).
+        // Ersetzt den Tonarm-Griff: Der wanderte beim Spielen mit, Klicks kamen dort nie an (Messpunkt 27.10.:
+        // fünfmal „berührt“, kein Klick). Der Knopf steht fest, oberste Schicht über Tönung und Arm.
+        .overlay(alignment: .topLeading) {
+            if tonearm { startStopButton }
+        }
+    }
+
+    private var startStopButton: some View {
+        let shape = TurntableStartStopShape(corners: TurntableArt.startStop.map { CGPoint(x: $0.x * scale, y: $0.y * scale) })
+        return Button { media.playPause() } label: {
+            Color.clear.contentShape(shape)
+        }
+        .buttonStyle(TurntablePressStyle(shape: shape))
+        .frame(width: deckWidth, height: TurntableArt.size.height * scale)
+        .help("Start/Stopp")
+        .accessibilityLabel(Text(verbatim: media.info?.isPlaying == true ? "Stopp" : "Start"))
+    }
+
+    /// Armwinkel jetzt: Ablage → Platte nach Schwenk-Phase, auf der Platte nach Titelfortschritt plus Mitlauf.
+    private func tubeAngle(at t: Date) -> Double {
+        let f = arm.phase(at: t)
+        let target = arm.needleAngle(progress: Self.progress(media.info, at: t), at: t)
+        let rest = TurntableGeometry.restAngle
+        let wob = TurntableGeometry.wobble(plateAngle: spin.angle(at: t))
+        return rest + f * (target + wob.lateral - rest)
     }
 
     /// Alle beweglichen Ebenen für einen Zeitpunkt: Platte dreht, Arm schwenkt bzw. wandert mit dem Titel.
@@ -255,7 +287,7 @@ struct TurntableView: View {
         // Auf der Platte folgt der Arm ihrem Lauf (nur so weit er aufliegt: mal f).
         let plateAngle = spin.angle(at: t)
         let wob = TurntableGeometry.wobble(plateAngle: plateAngle)
-        let tubeAngle = rest + f * (target + wob.lateral - rest)
+        let tubeAngle = tubeAngle(at: t)
         let tube = Homography.scale(s) * TurntableGeometry.arm(tubeAngle) * Homography.scale(1 / s)
         // Welligkeit: nur der Schatten rückt näher/weiter, der Arm bleibt starr.
         let tubeShadow = Homography.scale(s) * TurntableGeometry.shadowOffset(wob.shadowShift * f)
@@ -282,15 +314,6 @@ struct TurntableView: View {
             if f < 1 {
                 deckArt(TurntableArt.armRestShadow).projectionEffect(restSwing.projection).opacity(1 - f)
                 deckArt(TurntableArt.armRest).projectionEffect(restSwing.projection).opacity(1 - f)
-            }
-            if tonearm {
-                // Griff am Tonkopf, folgt dem Arm: Klick oder kurzes Ziehen = Start/Pause (der Arm schwenkt dann selbst).
-                let head = TurntableGeometry.arm(tubeAngle).apply(TurntableGeometry.plane.apply(TurntableGeometry.needle))
-                Circle().fill(Color.white.opacity(0.001))
-                    .frame(width: 54, height: 54)
-                    .position(x: head.x * scale, y: head.y * scale)
-                    .gesture(DragGesture(minimumDistance: 0).onEnded { _ in media.playPause() })
-                    .help("Tonarm: anfassen zum Starten oder Anhalten")
             }
             if f > 0 {
                 deckArt(TurntableArt.armBearingShadow).opacity(f)
@@ -418,5 +441,26 @@ struct TurntableBackdrop: View {
         .onChange(of: media.artwork) { _, img in
             withAnimation(.easeInOut(duration: 1.5)) { palette = TurntableColors.palette(for: img) }
         }
+    }
+}
+
+/// Viereck aus vier Ecken (Start/Stopp-Knopf in Perspektive).
+struct TurntableStartStopShape: Shape {
+    let corners: [CGPoint]
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.addLines(corners)
+        p.closeSubpath()
+        return p
+    }
+}
+
+/// Gedrückt: Knopf kurz dunkler, wie eingedrückt.
+struct TurntablePressStyle: ButtonStyle {
+    let shape: TurntableStartStopShape
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .overlay(shape.fill(Color.black.opacity(configuration.isPressed ? 0.22 : 0)).allowsHitTesting(false))
+            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
     }
 }

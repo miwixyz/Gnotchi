@@ -113,7 +113,8 @@ final class Preferences {
     var desktopMusicScreen: String { didSet { defaults.set(desktopMusicScreen, forKey: Key.desktopMusicScreen) } }
     /// Neonschrift „NOW PLAYING“ über dem Plattenspieler (Michael 27.10.: „optional“), ab Werk an.
     var desktopMusicNeon: Bool { didSet { defaults.set(desktopMusicNeon, forKey: Key.desktopMusicNeon) } }
-    /// Tonarm anfassen = Start/Pause (Michael 27.10.: „als Option“), ab Werk aus – sonst pausiert ein Klick aus Versehen.
+    /// Start/Stopp-Knopf am Plattenspieler (0.17.2, vorher Tonarm anfassen; Schlüssel bleibt), ab Werk aus – sonst pausiert
+    /// ein Klick aus Versehen.
     var desktopMusicTonearm: Bool { didSet { defaults.set(desktopMusicTonearm, forKey: Key.desktopMusicTonearm) } }
     /// Abstand des Covers zur Ecke – frei per Ziehen (Michael 26.10.: „ganz in die rechte untere Ecke“). Lage relativ zur
     /// nächsten Ecke, damit sie beim Bildschirmwechsel in derselben Ecke bleibt.
@@ -419,7 +420,7 @@ final class Preferences {
         return expandDelayChoices.first { abs($0 - v) < 0.001 } ?? defaultExpandDelay
     }
 
-    /// Neonschrift (ab Werk an) und Tonarm bedienen (ab Werk aus).
+    /// Neonschrift (ab Werk an) und Start/Stopp-Knopf (ab Werk aus).
     nonisolated static func turntableFlags(_ defaults: UserDefaults) -> (neon: Bool, tonearm: Bool) {
         (defaults.object(forKey: Key.desktopMusicNeon) as? Bool ?? true, defaults.object(forKey: Key.desktopMusicTonearm) as? Bool ?? false)
     }

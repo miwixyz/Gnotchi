@@ -1046,7 +1046,7 @@ nur aus Klicks (G29, G30).
   `desktopIconWindow + 1` (Ebenen gemessen mit `tools/desktop-layers.swift`). Bildschirm per Display-UUID gemerkt
   (`desktopMusicScreen`, nur Anzeige-Kennung, keine Inhalte), fehlt er → Hauptbildschirm. Neue Schalter in
   UserDefaults: `desktopMusicStyle`, `desktopMusicScreen`, `desktopMusicNeon`, `desktopMusicTonearm` (G14: nur
-  Schalter). Coverfarben aus dem schon begrenzt dekodierten Cover (G6), nur im Speicher. Tonarm-Griff löst nur
+  Schalter). Coverfarben aus dem schon begrenzt dekodierten Cover (G6), nur im Speicher. Start/Stopp-Knopf (ab 0.17.2, vorher Tonarm-Griff) löst nur
   Start/Pause aus, derselbe Weg wie der Knopf (G13). Bilder: KI-Fotos ohne KI-Plakette – ausdrückliche einmalige
   Ausnahme von Michael (27.10.), Rohmaterial und Prompts außerhalb des Repos. Schrift Neonderthaw (SIL OFL 1.1),
   Lizenz in THIRD-PARTY-LICENSES. Keine neue Berechtigung, kein Netz, kein Prozess.
