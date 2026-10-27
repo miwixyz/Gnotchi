@@ -1061,6 +1061,9 @@ nur aus Klicks (G29, G30).
   keine Befunde. ZIP Build 157: notarisiert, App-Berechtigungen unverändert (`automation.apple-events`,
   `device.camera`, `keychain-access-groups`), 11 Plattenspieler-Dateien im Paket. Sichttest Michael ✓ (Plattenspieler,
   Tonarm, Neon, Shuffle in Musik; Shuffle in Spotify noch nicht live geprüft).
+- **Prüfung 0.17.2 (27.10.):** Start/Stopp-Knopf statt Tonarm-Griff – gleiche Aktion wie der Knopf (G13), keine neue
+  Fläche. `rafter run` Scan `dcf5be75` ohne Befund, ZIP Build 163 notarisiert, Berechtigungen unverändert. Sichttest
+  Michael ✓ („passt“).
 - **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).
