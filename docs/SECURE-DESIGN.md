@@ -893,7 +893,8 @@ nur aus Klicks (G29, G30).
   Öffnen auf dem Hauptthread, für alle Karten auf einmal (Strg+< wartete deshalb sekundenlang). Jetzt verkleinert
   `ClipThumbnails.prewarm` nach dem Start und je neuem Bild in einer Hintergrund-Aufgabe; Eingabe sind nur die schon
   entschlüsselten gespeicherten Bilddaten (nie Tresor, nie die Datei), Ergebnis nur im Speicher (`NSCache`). Listen
-  sind lazy. Protokoll nur Anzahl und Dauer (G8).
+  sind lazy. Protokoll nur Anzahl und Dauer (G8). **Prüfung 0.17.1:** `rafter run` Scan `01a729ec` ohne Befund,
+  ZIP Build 160 notarisiert, Berechtigungen unverändert. Sichttest Michael ✓ („Viel schneller“).
 - **Seitenansicht und Notch-Liste:** `sharingType = .none` → in Bildschirmfreigabe/-aufnahme (Teams, Zoom) nicht
   sichtbar. (Messung über Bedienungshilfen bleibt möglich.)
 - **Rausziehen:** schreibt die gespeicherten Formate ins Zieh-Pasteboard; Datei-Verweise nur, wenn die Datei noch
