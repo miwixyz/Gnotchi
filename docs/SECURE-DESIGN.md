@@ -1051,6 +1051,10 @@ nur aus Klicks (G29, G30).
   AppleScript-Liste mit genau einem Wahrheitswert, alles andere verworfen (Test). Protokoll nur Bundle-ID und
   Fehlernummer (G8). **Favorit verworfen:** Musik ignoriert `set favorited` bei Apple-Music-Titeln, Spotify `starred`
   nur lesbar; ein späterer Weg über das Hilfsprogramm bekommt eine eigene Prüfung.
+- **Prüfung 0.17.0 (27.10.):** `rafter secrets .` ohne Fund, `rafter run` Scan `373eff20` auf dem Release-Commit:
+  keine Befunde. ZIP Build 157: notarisiert, App-Berechtigungen unverändert (`automation.apple-events`,
+  `device.camera`, `keychain-access-groups`), 11 Plattenspieler-Dateien im Paket. Sichttest Michael ✓ (Plattenspieler,
+  Tonarm, Neon, Shuffle in Musik; Shuffle in Spotify noch nicht live geprüft).
 - **Vorschau per Leertaste (Zwischenablage, 0.15.0):** zeigt nur, was schon gespeichert ist; Text als reiner Text
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).
