@@ -19,7 +19,7 @@ final class LiveTextLink: NotchPart {
 
     nonisolated static var directory: URL? {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
-            .appendingPathComponent("Gnotchi", isDirectory: true)
+            .appendingPathComponent(AppDirectory.name, isDirectory: true)
     }
 
     func start() {

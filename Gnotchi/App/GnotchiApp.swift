@@ -137,7 +137,7 @@ final class AppModel {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.
             Self.log.error("Schrift Plus Jakarta Sans nicht registriert, Systemschrift im Einsatz")
         }
-        guard !Self.isRunningTests else { return }
+        guard !Self.isRunningTests, !Self.startedAsBildCopy(self) else { return }
         updater = Updater()
         updater?.onPendingChange = { [weak self] _ in self?.syncOwnUpdate() }
         Self.log.notice("Start")
@@ -157,6 +157,18 @@ final class AppModel {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.stopNotch() }
         }
+    }
+
+    /// Bild-Testkopie (G45, nur Debug-Build): nur Fenster + Befehlskanal. Kein Updater, keine Insel, kein Adapter und vor
+    /// allem kein Aufräumen in ~/.claude/settings.json – ihre leeren Einstellungen hätten die Hooks des echten Gnotchi entfernt.
+    private static func startedAsBildCopy(_ model: AppModel) -> Bool {
+        #if DEBUG
+        if AppDirectory.isBildCopy {
+            DebugBridge.start(model: model)
+            return true
+        }
+        #endif
+        return false
     }
 
     /// Schalter der Insel-Quellen („Musik in der Notch“ …): jede Quelle läuft, solange ihr Schalter an ist;

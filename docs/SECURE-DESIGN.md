@@ -1087,6 +1087,42 @@ nur aus Klicks (G29, G30).
   (`Text(verbatim:)`, kein Markdown/HTML), Bild als Vorschaubild (G40), nichts geladen; Tresor/Geheimnis verdeckt
   (G39/G43).
 
+### G45 – Bild-Testkopie mit Befehlskanal: nur Debug, eigene Kennung, feste Befehle (neu, 2026-10-28, nach 0.18.1)
+- **Wozu:** Sichttests sollen Fenster selbst prüfen können (hell/dunkel), statt die Optik Michael zu übergeben.
+  Fensterbilder macht die App aus sich heraus per ScreenCaptureKit; das Claude-Terminal darf keine Bildschirmfotos.
+- **Nie ausgeliefert:** Kanal, Bild-Kennung und Steuerkennung stehen nur in `#if DEBUG` (`Debug/DebugBridge.swift`,
+  `App/AppDirectory.swift`). Gemessen 28.10. am Release-Build (`make build CONFIG=Release`): `strings` findet
+  `debug.sock`, `dev.mwlr.gnotchi.bild`, `dev.mwlr.gnotchi.ctl`, „Befehlskanal“ 0×, ScreenCaptureKit nicht gelinkt;
+  im Debug-Build je ≥ 1× (Gegenprobe).
+- **Eigene Kennung `dev.mwlr.gnotchi.bild`** (Michael, 28.10.): Die Bildschirmaufnahme-Freigabe hängt an Kennung +
+  Signatur-Anforderung. Mit `dev.mwlr.gnotchi` hätte auch das veröffentlichte Gnotchi die Freigabe (gleiche
+  Anforderung, gemessen per `codesign -d -r-`), entgegen G12. Gestartet wird der Kanal nur, wenn Debug-Build **und**
+  diese Kennung zusammenkommen; eine `make dev`-Kopie (echte Kennung) hat ihn nicht.
+- **Keine echten Daten, keine Wirkung nach außen:** eigener Ordner `~/Library/Application Support/Gnotchi Bild`
+  (`AppDirectory.name`; vorher war „Gnotchi“ fest verdrahtet → die Kopie hätte Ablage, Zwischenablage-Speicher und
+  Sockets des echten Gnotchi benutzt), eigene Einstellungen (eigene Kennung). Die Kopie startet nur Fenster +
+  Kanal: kein Updater, keine Insel, kein Adapter, kein Aufräumen in `~/.claude/settings.json` (ihre leeren
+  Einstellungen hätten die Hooks des echten Gnotchi entfernt – G35). **Keine Berechtigungen** (leere Entitlements:
+  kein Apple Events, keine Kamera, keine Schlüsselbund-Gruppe).
+- **Wer darf steuern:** `debug.sock` über `PeerSocketServer` (Ordner 0700, Socket 0600, Audit-Token vor dem ersten
+  Byte) gegen Developer ID + Kennung `dev.mwlr.gnotchi.ctl` + Team LTKJ6Z2VYB. `gnotchictl` prüft umgekehrt die
+  Kopie, bevor es sendet. Gemessen 28.10.: signiert → Antwort; ad-hoc-signierte Kopie desselben Programms → kein `ok`.
+- **Feste Befehle** (`DebugCommand.parse`, Tests `DebugCommandTests`): `status`, `snapshot` nur für die Fenster
+  `einstellungen`/`hilfe` (Insel, Zwischenablage, Ablage zeigen echte Inhalte – G16/G40 – und sind nicht wählbar),
+  `appearance` light/dark/system. `id` 1–32 Zeichen A–Z/a–z/0–9, sie wird Dateiname (kein Pfad-Ausbruch). Alles
+  andere: verworfen, keine Antwort (gemessen: `snapshot zwischenablage` → keine Antwort). Höchstens 10 Befehle/s,
+  Rahmen ≤ 4 KB (PeerSocketServer).
+- **Ausgaben:** `Antworten/<id>.json` und `Bilder/<id>-<fenster>.png` im eigenen 0700-Ordner, nur Zahlen/Kennungen,
+  keine Inhalte. `gnotchictl` löscht die gelesene Antwort; Bilder bleiben bis zum Aufräumen liegen.
+- **Ort:** `~/Applications/Gnotchi Bild.app` statt `/tmp` – unter `/tmp` fanden die Systemeinstellungen die App
+  nicht über ihre Kennung (`Failed to find application for bundle_id`, gemessen 28.10.) und zeigten den Schalter nie.
+- **Restrisiko (hingenommen):** Ein Prozess des gleichen Nutzers kann den Socket löschen (Kanal fällt aus) und die
+  PNGs lesen, solange er Lesezugriff auf den 0700-Ordner hätte – also nur als derselbe Nutzer; sie zeigen nur
+  Einstellungs-/Hilfefenster mit leeren Einstellungen. Die Freigabe für „Gnotchi Bild“ bleibt in den
+  Systemeinstellungen stehen; entfernen per `tccutil reset ScreenCapture dev.mwlr.gnotchi.bild`.
+- **Prüfung:** `rafter-code-review` (28.10.): Pfade aus fester Liste bzw. geprüfter id, kein Shell-Aufruf in der App,
+  Peer-Prüfung beidseitig, keine Geheimnisse (`rafter secrets`). `rafter run` folgt nach dem Push.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |

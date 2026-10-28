@@ -57,7 +57,7 @@ final class ClipboardStore {
 
     /// Standardort: ~/Library/Application Support/Gnotchi/Zwischenablage (nur für Michael lesbar).
     static var defaultDirectory: URL {
-        URL.applicationSupportDirectory.appending(path: "Gnotchi/Zwischenablage", directoryHint: .isDirectory)
+        URL.applicationSupportDirectory.appending(path: AppDirectory.name + "/Zwischenablage", directoryHint: .isDirectory)
     }
 
     private static func prepare(_ directory: URL) throws {
