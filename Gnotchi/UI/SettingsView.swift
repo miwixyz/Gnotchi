@@ -76,9 +76,11 @@ struct SettingsView: View {
                 Button { tab = t } label: {
                     VStack(spacing: 3) {
                         Image(systemName: t.symbol).font(.system(size: 17, weight: .medium)).frame(height: 20)
-                        Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1)
+                        Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1).fixedSize()
                     }
-                    .frame(width: 74, height: 48)
+                    // Breite nach Text statt fest 74 pt: „Zwischenablage“ war abgeschnitten (Fensterbild 28.10., G45).
+                    .padding(.horizontal, 6)
+                    .frame(minWidth: 62, minHeight: 48, maxHeight: 48)
                     .foregroundStyle(tab == t ? FamilyTheme.accent : FamilyTheme.textSecondary)
                     .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
                         .fill(tab == t ? FamilyTheme.accent.opacity(0.14) : .clear))
