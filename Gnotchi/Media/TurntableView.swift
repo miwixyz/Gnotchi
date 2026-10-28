@@ -117,13 +117,17 @@ enum TurntableColors {
         return hi < 0.001 ? 0 : (hi - lo) / hi
     }
 
-    private static func average(_ img: CIImage, _ rect: CGRect) -> RGB? {
+    /// Einmal anlegen, nicht je Aufruf: 9 neue Kontexte je Cover kosteten ~75 ms auf dem Hauptthread,
+    /// ein gemeinsamer ~6 ms bei identischem Ergebnis (gemessen 28.10., BAMA-Check).
+    @MainActor private static let ciContext = CIContext(options: [.workingColorSpace: NSNull()])
+
+    @MainActor private static func average(_ img: CIImage, _ rect: CGRect) -> RGB? {
         guard let f = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: img, kCIInputExtentKey: CIVector(cgRect: rect)]),
               let out = f.outputImage else { return nil }
         var px = [UInt8](repeating: 0, count: 4)
-        CIContext(options: [.workingColorSpace: NSNull()]).render(out, toBitmap: &px, rowBytes: 4,
-                                                                    bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-                                                                    format: .RGBA8, colorSpace: nil)
+        ciContext.render(out, toBitmap: &px, rowBytes: 4,
+                         bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+                         format: .RGBA8, colorSpace: nil)
         return RGB(r: Double(px[0]) / 255, g: Double(px[1]) / 255, b: Double(px[2]) / 255)
     }
 

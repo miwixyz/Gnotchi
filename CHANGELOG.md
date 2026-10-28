@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.1] — 2026-10-28
+
+Der Plattenspieler wechselt die Coverfarben ohne Ruckler.
+
+### Behoben
+- **Kein Stocken mehr beim Titelwechsel im Plattenspieler.** Beim neuen Cover rechnet Gnotchi aus dessen Farben den Verlauf, den Lichtschein und die Neonschrift. Das hielt die App jedes Mal rund 75 Millisekunden an, genug für einen spürbaren Ruckler. Jetzt sind es rund 6 Millisekunden, die Farben bleiben genau gleich. Betrifft nur die Darstellung „Plattenspieler“.
+
+### Intern
+- `TurntableColors.average` nutzt einen gemeinsamen `CIContext` statt neun neuer je Cover. Gemessen per Nachbau der Berechnung (12 Cover, Median ~75 ms → ~6 ms, Ergebnis bitgleich). Fund aus dem Abgleich mit BAMA (`performance/recipes.md`: „Never make a `CIContext` per call“).
+
 ## [0.18.0] — 2026-10-28
 
 Alle Dateien der Ablage auf einmal herausziehen, und Zurückholen, wenn am Ziel nichts ankommt.
