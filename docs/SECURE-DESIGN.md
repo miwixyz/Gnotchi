@@ -1121,7 +1121,7 @@ nur aus Klicks (G29, G30).
   Einstellungs-/Hilfefenster mit leeren Einstellungen. Die Freigabe für „Gnotchi Bild“ bleibt in den
   Systemeinstellungen stehen; entfernen per `tccutil reset ScreenCapture dev.mwlr.gnotchi.bild`.
 - **Prüfung:** `rafter-code-review` (28.10.): Pfade aus fester Liste bzw. geprüfter id, kein Shell-Aufruf in der App,
-  Peer-Prüfung beidseitig, keine Geheimnisse (`rafter secrets`). `rafter run` folgt nach dem Push.
+  Peer-Prüfung beidseitig, keine Geheimnisse (`rafter secrets`). `rafter run` (28.10., Scan `837051df`, Standardmodus, Stand `5d1f6d8`): keine Funde.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
