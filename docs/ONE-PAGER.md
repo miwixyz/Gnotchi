@@ -63,7 +63,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Wie viele ungelesene Mails und Nachrichten warten, steht im Band. Ein Klick, und die App ist offen.
 - Arbeitet Claude Code für dich, siehst du es in der Notch. Ist die Antwort fertig, klappt sie kurz auf. Wartet Claude auf deine Erlaubnis, wird der Punkt gelb. Ein Klick bringt dich zurück zur Sitzung.
 - Hinter einem Symbol in der großen Insel steckt das Wetter für deinen Ort, von jetzt bis zum Ende der Woche.
-- Zieh eine Datei zur Notch, und sie wartet dort. Dann wechselst du in Ruhe die App oder den Bildschirm und ziehst sie am Ziel wieder heraus. Auf Wunsch packt Gnotchi alles in ein ZIP, auch mit Passwort.
+- Zieh eine Datei zur Notch, und sie wartet dort. Dann wechselst du in Ruhe die App oder den Bildschirm und ziehst sie am Ziel wieder heraus, einzeln oder alle in einem Zug. Auf Wunsch packt Gnotchi alles in ein ZIP, auch mit Passwort.
 - Machst du ein Bildschirmfoto, wartet es kurz darauf an der Notch, auch das aus CleanShot. Von dort ziehst du es in den Chat oder die Mail und musst es nicht erst auf dem Schreibtisch suchen. Nach einer halben Stunde räumt Gnotchi es wieder aus der Ablage, die Datei bleibt. Beides stellst du in den Einstellungen ein.
 - Läuft gerade nichts, zeigt die kleine Insel die Temperatur oder wie viele Dateien warten.
 

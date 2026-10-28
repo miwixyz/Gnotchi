@@ -89,6 +89,7 @@ struct ShelfBig: View {
             .frame(height: 104)
             HStack(spacing: 6) {
                 if !link.busy {
+                    if items.count > 1 { dragAll }
                     ShareLink(items: link.urls()) { bar("square.and.arrow.up", "Teilen") }.buttonStyle(.plain)
                     Button { link.airDrop(link.urls()) } label: { bar("airplayaudio", "AirDrop") }.buttonStyle(.plain)
                     Button { link.zip(password: false) } label: { bar("doc.zipper", "ZIP") }.buttonStyle(.plain)
@@ -102,6 +103,19 @@ struct ShelfBig: View {
             }
         }
         .foregroundStyle(.white)
+    }
+
+    /// Alle Dateien in einem Zug herausziehen (0.18, Michael 28.10.). Nur Einträge, deren Datei noch auffindbar ist,
+    /// werden mitgenommen und danach (Schalter „Nach dem Rausziehen entfernen“) aus der Ablage genommen.
+    private var dragAll: some View {
+        let present = items.filter { link.url(for: $0) != nil }
+        return bar("square.stack.3d.up", "Alle ziehen")
+            .overlay(DragSource(urls: present.compactMap { link.url(for: $0) },
+                                onEnded: { moved in if moved { link.draggedOut(present) } },
+                                menu: { _ in nil }))
+            .help("Alle Dateien auf einmal herausziehen")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: "Alle \(present.count) Dateien herausziehen"))
     }
 
     private func bar(_ symbol: String, _ title: String) -> some View {
@@ -204,22 +218,33 @@ struct ShelfTile: View {
     }
 }
 
-/// AppKit-Ziehquelle über einer Kachel: Ziehen → Datei-URL (wie aus dem Finder), Ende mit Ergebnis; Rechtsklick → Menü.
+/// AppKit-Ziehquelle über einer Kachel: Ziehen → Datei-URL(s) (wie aus dem Finder), Ende mit Ergebnis; Rechtsklick → Menü.
+/// Mehrere URLs ziehen in einer Sitzung (wie eine Mehrfachauswahl im Finder, 0.18).
 struct DragSource: NSViewRepresentable {
-    let url: URL?
+    let urls: [URL]
     let onEnded: (Bool) -> Void
     let menu: (NSView) -> NSMenu?
+
+    init(url: URL?, onEnded: @escaping (Bool) -> Void, menu: @escaping (NSView) -> NSMenu?) {
+        self.init(urls: url.map { [$0] } ?? [], onEnded: onEnded, menu: menu)
+    }
+
+    init(urls: [URL], onEnded: @escaping (Bool) -> Void, menu: @escaping (NSView) -> NSMenu?) {
+        self.urls = urls
+        self.onEnded = onEnded
+        self.menu = menu
+    }
 
     func makeNSView(context: Context) -> SourceView { SourceView() }
 
     func updateNSView(_ v: SourceView, context: Context) {
-        v.url = url
+        v.urls = urls
         v.onEnded = onEnded
         v.makeMenu = menu
     }
 
     final class SourceView: NSView, NSDraggingSource {
-        var url: URL?
+        var urls: [URL] = []
         var onEnded: (Bool) -> Void = { _ in }
         var makeMenu: (NSView) -> NSMenu? = { _ in nil }
         private var down: NSEvent?
@@ -228,12 +253,17 @@ struct DragSource: NSViewRepresentable {
         override func mouseDown(with event: NSEvent) { down = event }
 
         override func mouseDragged(with event: NSEvent) {
-            guard let start = down, let url else { return }
+            guard let start = down, !urls.isEmpty else { return }
             down = nil
-            let item = NSDraggingItem(pasteboardWriter: url as NSURL)
-            let icon = NSWorkspace.shared.icon(forFile: url.path)
-            item.setDraggingFrame(NSRect(x: 0, y: 0, width: 48, height: 48), contents: icon)
-            beginDraggingSession(with: [item], event: start, source: self)
+            // Leicht versetzter Stapel; macOS zeigt bei mehreren die Anzahl am Zeiger.
+            let items = urls.enumerated().map { i, url in
+                let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+                let shift = CGFloat(min(i, 4)) * 4
+                item.setDraggingFrame(NSRect(x: shift, y: -shift, width: 48, height: 48),
+                                      contents: NSWorkspace.shared.icon(forFile: url.path))
+                return item
+            }
+            beginDraggingSession(with: items, event: start, source: self)
         }
 
         override func menu(for event: NSEvent) -> NSMenu? { makeMenu(self) }

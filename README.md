@@ -72,7 +72,8 @@ Freigabe nicht und fragt nie danach.
   großen Insel bzw. direkt im Band; volle Ablage mit Im Finder zeigen, Teilen, AirDrop und ZIP (optional AES-256 mit
   Passwort). Verweise statt Kopien, ohne Freigabe. Ab 0.9.1 auch Fotos direkt aus der Fotos-App, ab 0.9.2
   Anhänge aus Outlook und aus Gmail im Browser (jeweils als Kopie, die beim Entfernen gelöscht wird).
-  Ab 0.10 kopiert das Rausziehen immer (das Original bleibt).
+  Ab 0.10 kopiert das Rausziehen immer (das Original bleibt). **Ab 0.18** „Alle ziehen“ (alle Dateien in einem Zug)
+  und „Zurückholen“ nach dem Rausziehen, falls am Ziel nichts angekommen ist.
 - **Bildschirmfotos in die Ablage (0.10):** Jedes neue Bildschirmfoto von macOS oder CleanShot (auch in iCloud Drive)
   landet von selbst in der Ablage und lässt sich gleich in Chat, Mail oder Dokument ziehen. Ab Werk aus; Fotos auf dem
   Schreibtisch brauchen einmal macOS' Zugriffsfreigabe, iCloud-Fotos erscheinen bis zu einer Minute verzögert.

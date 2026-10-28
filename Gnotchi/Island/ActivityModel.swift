@@ -13,6 +13,20 @@ final class ActivityModel {
         let symbol: String
         let title: String
         let subtitle: String
+        /// Knopf im Hinweis (0.18). Nur mit Knopf ist der Hinweis anklickbar, sonst gehen Klicks durch.
+        var action: NoticeAction? = nil
+    }
+
+    /// Was der Knopf im Hinweis tut. Eine feste Liste statt Closure, damit `Notice` vergleichbar bleibt.
+    enum NoticeAction: Equatable, Sendable {
+        /// Rausgezogene Ablage-Einträge zurücklegen – für Ziele, die „kopiert“ melden und nichts anlegen.
+        case restoreShelf
+
+        var title: String {
+            switch self {
+            case .restoreShelf: "Zurückholen"
+            }
+        }
     }
 
     /// Mikrofon/Kamera gerade in Gebrauch (0.2.0). App-Namen aus dem lokalen Bundle, nie ins Protokoll.
@@ -232,10 +246,22 @@ final class ActivityModel {
     func post(_ n: Notice) {
         notice = n
         noticeTask?.cancel()
-        noticeTask = Task { [weak self, noticeDuration] in
-            try? await Task.sleep(for: noticeDuration)
+        // Mit Knopf doppelt so lange – man muss erst hinsehen, dann zielen.
+        let duration = n.action == nil ? noticeDuration : noticeDuration * 2
+        noticeTask = Task { [weak self] in
+            try? await Task.sleep(for: duration)
             guard !Task.isCancelled else { return }
             self?.notice = nil
+        }
+    }
+
+    /// Knopf im Hinweis gedrückt: ausführen, Hinweis schließen.
+    func performNoticeAction() {
+        guard let action = notice?.action else { return }
+        noticeTask?.cancel()
+        notice = nil
+        switch action {
+        case .restoreShelf: shelf?.restoreLastDrag()
         }
     }
 

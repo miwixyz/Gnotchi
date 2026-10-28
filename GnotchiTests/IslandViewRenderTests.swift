@@ -141,6 +141,13 @@ final class IslandViewRenderTests: XCTestCase {
         try render(notchScreen, .notice, name: "notch-notice",
                    notice: ActivityModel.Notice(symbol: "headphones", title: "Beispiel-Kopfhörer Pro", subtitle: "Verbunden"))
     }
+    /// Hinweis mit Knopf (0.18): „Zurückholen“ muss neben dem Text Platz haben, mit und ohne Notch.
+    func testRenderNoticeWithRestoreButton() throws {
+        let n = ActivityModel.Notice(symbol: "tray.and.arrow.up.fill", title: "Rausgezogen",
+                                     subtitle: "12 Dateien", action: .restoreShelf)
+        try render(notchScreen, .notice, name: "notch-notice-restore", notice: n)
+        try render(pillScreen, .notice, name: "pill-notice-restore", notice: n)
+    }
     func testRenderPillNoticeLongName() throws {
         try render(pillScreen, .notice, name: "pill-notice",
                    notice: ActivityModel.Notice(symbol: "speaker.wave.2", title: "Ein sehr langer Lautsprechername im Wohnzimmer",

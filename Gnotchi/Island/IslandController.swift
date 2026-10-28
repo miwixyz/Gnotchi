@@ -348,7 +348,9 @@ final class IslandController {
                                              drag: activity.fileDragActive)
             if before == .shelfDrop && entry.state.mode != .shelfDrop { resetHover(id, entry.state) }
             // Hinweis und Live-Text sind nur Anzeige: Klicks gehen durch, Überfahren klappt nichts auf.
-            entry.panel.ignoresMouseEvents = entry.state.mode == .notice || entry.state.mode == .live
+            // Ausnahme (0.18): Hinweis mit Knopf („Zurückholen“) – aufklappen tut Überfahren trotzdem nicht (`hover`).
+            entry.panel.ignoresMouseEvents = (entry.state.mode == .notice && activity.notice?.action == nil)
+                || entry.state.mode == .live
             if let f = frame(entry.state.mode, entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }

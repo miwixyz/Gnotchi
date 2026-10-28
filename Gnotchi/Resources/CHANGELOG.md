@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.0] — 2026-10-28
+
+Alle Dateien der Ablage auf einmal herausziehen, und Zurückholen, wenn am Ziel nichts ankommt.
+
+### Neu
+- **„Alle ziehen“.** In der großen Ablage steht unten links ein neuer Griff, sobald mindestens zwei Dateien darin liegen. Zieh ihn, und alle Dateien wandern in einem Zug ans Ziel, wie eine Mehrfachauswahl im Finder. Wie beim einzelnen Rausziehen wird kopiert, die Originale bleiben, wo sie sind.
+- **„Zurückholen“ nach dem Rausziehen.** Nimmt Gnotchi Dateien nach dem Rausziehen aus der Ablage, zeigt die Insel 6 Sekunden lang „Rausgezogen“ mit der Anzahl und einem Knopf „Zurückholen“. Ein Klick legt genau diese Einträge zurück. Das hilft, wenn das Ziel die Übernahme meldet, aber nichts anlegt: Der Finder tut das zum Beispiel, wenn dort schon eine gleichnamige Datei liegt. Ist „Nach dem Rausziehen entfernen“ aus, erscheint kein Hinweis.
+
+### Intern
+- `DragSource` nimmt mehrere URLs (`init(urls:…)`, ein Ziehvorgang mit allen, leicht versetzter Stapel); `ShelfLink.draggedOut(_:[Item])`, `restoreLastDrag()`, `ShelfStore.restore(_:)` (eigene Kopien gelten wieder als benutzt, Höchstzahl gilt). `Notice.action` (`NoticeAction.restoreShelf`): nur Hinweise mit Knopf sind anklickbar, sie bleiben doppelt so lange; Überfahren klappt aus einem Hinweis weiterhin nichts auf. 7 neue Tests (`ShelfDragAllTests`), ein Render-Fall (`notch/pill-notice-restore`).
+
 ## [0.17.5] — 2026-10-27
 
 Der Plattenspieler ist wieder klar statt milchig.

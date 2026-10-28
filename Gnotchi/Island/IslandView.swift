@@ -255,6 +255,16 @@ struct IslandView: View {
             }
             .lineLimit(1).truncationMode(.tail)
             .frame(maxWidth: .infinity, alignment: .leading)
+            if let action = n.action {
+                Button { activity.performNoticeAction() } label: {
+                    Text(verbatim: action.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Capsule().fill(.white.opacity(0.18)))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .fixedSize()
+            }
         }
         .padding(.horizontal, 14)
         .frame(height: IslandGeometry.noticeSize.height)

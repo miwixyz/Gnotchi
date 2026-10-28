@@ -759,6 +759,16 @@ nur aus Klicks (G29, G30).
   (4) eine ObjC-Ausnahme aus `namesOfPromisedFilesDropped` würde Gnotchi beenden (in 5 Messungen nie geworfen);
   (5) der Aufruf fragt die liefernde App synchron – so ist Apples Schnittstelle. Sichttest nach den Fixes: Gmail ✓,
   Fotos ✓ (Gmail damit 5/5). `rafter run` Scan `8288d9ea` auf `84fd1c9`: keine Befunde.
+- **Ergänzung 0.18 (28.10.): „Alle ziehen“ und „Zurückholen“.** Die Ziehquelle übergibt jetzt alle aufgelösten
+  Lesezeichen in einer Sitzung, weiter nur Datei-URLs, nur `.copy` nach außen. „Angekommen“ nimmt die mitgezogenen
+  Einträge heraus und merkt sie sich **nur im Speicher**; „Zurückholen“ legt genau diese `Item`s unverändert zurück
+  (kein neues Lesezeichen, keine neue Datei), höchstens 50, Doppelte ausgeschlossen. Eine zurückgeholte eigene Kopie
+  (Ablage-Kopien) wird aus der Merkliste „beim nächsten Start löschen“ genommen und gilt wieder als benutzt; nach einem
+  Neustart ist sie schon gelöscht, das Zurückholen gibt es dann nicht mehr (Merkliste nur im Speicher). Anlass: der
+  Finder meldet bei gleichnamiger Datei am Ziel „kopiert“ und legt nichts an (gemessen 23.10. und 28.10.).
+  **G10:** Ein Hinweis ist nur dann anklickbar (`ignoresMouseEvents = false`), wenn er einen Knopf trägt, und nur
+  für 6 s; Überfahren klappt aus dem Hinweis nichts auf (`hover` nur aus klein/breit). Alle übrigen Hinweise lassen
+  Klicks weiter durch. Protokoll unverändert (nur Zahlen), keine neue Berechtigung.
 
 ### G34 – Claude-Hook-Weg: nur Status und gekürzter Text, beidseitig geprüft (neu, 2026-10-22, 0.9.0)
 - **Hook-Programm „Gnotchi Claude“** (`dev.mwlr.gnotchi.claude`, `Contents/Helpers/`, Developer ID, keine

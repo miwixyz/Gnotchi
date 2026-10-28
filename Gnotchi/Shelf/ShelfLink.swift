@@ -256,6 +256,9 @@ final class ShelfLink: NotchPart {
 
     func urls() -> [URL] { store.items.compactMap(store.resolve) }
 
+    /// Zuletzt rausgezogen, für „Zurückholen“ (nur im Speicher, bis zum nächsten Rausziehen).
+    @ObservationIgnored private var lastDragged: [ShelfStore.Item] = []
+
     func remove(_ item: ShelfStore.Item) {
         store.remove(item.id)
         publish()
@@ -281,9 +284,25 @@ final class ShelfLink: NotchPart {
     }
 
     /// Rausgezogen und angekommen → aus der Ablage (Schalter, ab Werk an).
-    func draggedOut(_ item: ShelfStore.Item) {
-        guard prefs.shelfRemoveOnDrag else { return }
-        store.removeAfterDrag(item.id)
+    func draggedOut(_ item: ShelfStore.Item) { draggedOut([item]) }
+
+    /// Mehrere in einem Zug rausgezogen („Alle ziehen“, 0.18). Ein Ziel kann „kopiert“ melden und nichts anlegen
+    /// (Finder bei gleichnamiger Datei, gemessen 23.10.) – deshalb ein Hinweis mit „Zurückholen“.
+    func draggedOut(_ items: [ShelfStore.Item]) {
+        guard prefs.shelfRemoveOnDrag, !items.isEmpty else { return }
+        for item in items { store.removeAfterDrag(item.id) }
+        lastDragged = items
+        publish()
+        activity.post(.init(symbol: "tray.and.arrow.up.fill",
+                            title: "Rausgezogen",
+                            subtitle: items.count == 1 ? "1 Datei" : "\(items.count) Dateien", action: .restoreShelf))
+    }
+
+    /// „Zurückholen“: die zuletzt rausgezogenen Einträge wieder in die Ablage.
+    func restoreLastDrag() {
+        guard !lastDragged.isEmpty else { return }
+        store.restore(lastDragged)
+        lastDragged = []
         publish()
     }
 

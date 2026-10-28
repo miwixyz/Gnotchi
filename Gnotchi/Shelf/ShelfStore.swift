@@ -117,6 +117,20 @@ final class ShelfStore {
         remove(id)
     }
 
+    /// „Zurückholen“ (0.18): rausgezogene Einträge unverändert zurück, ihre eigenen Kopien gelten wieder als benutzt.
+    /// Schon wieder vorhandene Einträge und alles über der Höchstzahl bleiben draußen.
+    func restore(_ restored: [Item]) {
+        var added = 0
+        for item in restored where !items.contains(where: { $0.id == item.id }) && items.count < Self.maxItems {
+            if let copies, let url = resolve(item), let folder = Self.copyFolder(of: url, in: copies) {
+                pending.remove(folder.lastPathComponent)
+            }
+            items.append(item)
+            added += 1
+        }
+        if added > 0 { save() }
+    }
+
     // MARK: Kopien aus Dateiversprechen (0.9.1)
 
     /// Frischer eigener Unterordner (0700) für ein Versprechen; bleibt beim Aufräumen stehen bis `release`.
