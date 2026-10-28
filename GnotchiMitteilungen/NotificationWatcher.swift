@@ -119,6 +119,7 @@ final class NotificationWatcher {
         poll = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.tick() }
         }
+        poll?.tolerance = 0.1   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
     }
 
     private func tick() {

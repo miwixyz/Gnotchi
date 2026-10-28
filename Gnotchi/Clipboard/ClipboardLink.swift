@@ -77,6 +77,7 @@ final class ClipboardLink: NotchPart {
         let t = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
+        t.tolerance = Self.pollInterval / 10   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
         RunLoop.main.add(t, forMode: .common)
         timer = t
         if prefs.clipboardPanelHotKey == nil { prefs.clipboardPanelHotKey = HotKeyCenter.defaultPanelHotKey() }

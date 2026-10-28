@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.2] — 2026-10-28
+
+Der Timer-Ton hält Gnotchi nicht mehr an, und die Einstellungen zeigen alle Reiter vollständig.
+
+### Behoben
+- **Kein Stocken mehr beim Timer-Ton.** Jeder Ton hielt Gnotchi für 40 bis 150 Millisekunden an, beim Alarm alle zweieinhalb Sekunden, solange die Insel pulsiert. Das betraf auch die Tonauswahl in den Einstellungen und im Menü. Jetzt startet der Ton nebenher, die Insel läuft dabei ruhig weiter. Ton, Lautstärke und Wiederholung bleiben gleich.
+- **Reiter „Zwischenablage“ in den Einstellungen nicht mehr abgeschnitten.** Der Name stand als „Zwischenabla…“ in der Leiste.
+- **Weniger Weckrufe für den Akku.** Sieben regelmäßige Prüfungen (Ablage beim Ziehen, Zwischenablage, Musik auf dem Schreibtisch, Mitteilungen, Kennzeichen im Dock, Claude Code, Freigabe-Abfrage des Hilfsprogramms) dürfen jetzt um ein Zehntel ihres Abstands verschoben laufen. So kann macOS sie mit anderen Aufgaben bündeln, statt den Prozessor jedes Mal eigens zu wecken. Die Zwischenablage zum Beispiel bemerkt eine Kopie dadurch höchstens 0,05 Sekunden später.
+
+### Intern
+- `CountdownTimer.play` spielt in einer eigenen Warteschlange (`dev.mwlr.gnotchi.ton`). Dort läuft keine Ereignisschleife: Ein `NSSound(named:)` erfährt nie, dass er fertig ist, gilt weiter als „spielt“, und jede Wiederholung bliebe stumm (gemessen im Nachbau). Deshalb nach `duration` + 0,1 s selbst `stop()`. Messpunkt `timer`: „Ton gestartet in … ms“. In der Bild-Testkopie gemessen: 5 von 5 Tönen gestartet, derselbe Ton dreimal hintereinander.
+- `Timer.tolerance` = Abstand ÷ 10 an `DragWatcher`, `ClipboardLink`, `DesktopMusic`, `NotificationWatcher`, `DockBadgeReader`, `ClaudeLink` und der Freigabe-Abfrage in `GnotchiMitteilungen/main.swift`. Fund aus dem Abgleich mit BAMA (`performance`).
+- Bild-Testkopie mit Befehlskanal (G45, nur im Debug-Build): eigene Kennung `dev.mwlr.gnotchi.bild`, Fensterbilder von Einstellungen und Hilfe, Darstellung hell/dunkel umschalten. Im veröffentlichten Gnotchi nicht enthalten.
+- Nicht übernommen nach Messung: eigener Zwischenspeicher für Datei-Symbole (macOS hält sie nach dem ersten Mal selbst vor, 0,04–0,1 ms je Abfrage) und ein Hinweis bei belegtem Kürzel (macOS nimmt Kürzel auch an, wenn eine andere App sie hält, nur ein doppeltes in derselben App scheitert).
+
 ## [0.18.1] — 2026-10-28
 
 Der Plattenspieler wechselt die Coverfarben ohne Ruckler.

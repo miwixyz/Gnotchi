@@ -39,6 +39,8 @@ final class DragWatcher {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.tick() }
         }
+        // Toleranz = ein Zehntel des Abstands: Das System darf Weckzeiten bündeln (Akku, BAMA-Check 28.10.).
+        timer?.tolerance = 0.01
     }
 
     func stop() {

@@ -36,6 +36,7 @@ final class DesktopMusicLink: NotchPart {
     func start() {
         guard timer == nil else { return }
         let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in MainActor.assumeIsolated { self?.update() } }
+        t.tolerance = 0.1   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
         RunLoop.main.add(t, forMode: .common)
         timer = t
         screenObserver = NotificationCenter.default.addObserver(

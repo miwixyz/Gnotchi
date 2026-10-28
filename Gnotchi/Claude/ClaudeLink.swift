@@ -56,6 +56,7 @@ final class ClaudeLink: NotchPart {
         pruneTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.activity.pruneClaude() }
         }
+        pruneTimer?.tolerance = 6   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
         installHooks()
     }
 

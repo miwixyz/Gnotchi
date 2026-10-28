@@ -64,6 +64,7 @@ final class HelperApp {
                 self.becameTrusted()
             }
         }
+        trustTimer?.tolerance = 0.2   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
     }
 
     private func becameTrusted() {

@@ -40,9 +40,23 @@ struct CountdownTimer: Equatable, Sendable {
         return s == silent || sounds.contains(s) ? s : defaultSound
     }
 
-    @MainActor static func play(_ sound: String) {
+    /// Abspielen abseits des Hauptthreads (gemessen 28.10. im Nachbau: erstes `play()` 160–275 ms, danach 11–31 ms –
+    /// auf dem Hauptthread hätte die pulsierende Insel gestockt). In der Warteschlange läuft keine Ereignisschleife:
+    /// Der Ton erfährt nie, dass er fertig ist, gilt weiter als „spielt“ – jede Wiederholung bliebe stumm, und er
+    /// würde nie freigegeben (gemessen 28.10.). Deshalb nach seiner Länge selbst stoppen.
+    nonisolated private static let soundQueue = DispatchQueue(label: "dev.mwlr.gnotchi.ton", qos: .userInitiated)
+    nonisolated private static let soundLog = Logger(subsystem: "dev.mwlr.gnotchi", category: "timer")
+
+    nonisolated static func play(_ sound: String) {
         guard sounds.contains(sound) else { return }
-        NSSound(named: NSSound.Name(sound))?.play()
+        soundQueue.async {
+            let start = ContinuousClock.now
+            guard let s = NSSound(named: NSSound.Name(sound)) else { return }
+            let started = s.play()
+            let ms = (ContinuousClock.now - start) / .milliseconds(1)
+            soundLog.notice("Ton \(started ? "gestartet" : "NICHT gestartet", privacy: .public) in \(Int(ms), privacy: .public) ms")
+            soundQueue.asyncAfter(deadline: .now() + s.duration + 0.1) { NSSound(named: NSSound.Name(sound))?.stop() }
+        }
     }
 
     /// Eingabe aus dem Menü-Fenster: nur ganze Minuten im Bereich, sonst nil.

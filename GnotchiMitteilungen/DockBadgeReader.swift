@@ -30,6 +30,7 @@ final class DockBadgeReader {
         timer = Timer.scheduledTimer(withTimeInterval: Self.interval, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.read() }
         }
+        timer?.tolerance = Self.interval / 10   // Weckzeiten bündeln (Akku, BAMA-Check 28.10.)
         read()
     }
 
