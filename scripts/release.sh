@@ -375,8 +375,15 @@ SPARKLE_BIN="build/SourcePackages/artifacts/sparkle/Sparkle/bin"
 # appcast.xml ein und behält deren Einträge (v0.2.0, 20.10.: Prüfung unten fand 0.1.0
 # daneben) – darum frisch erzeugen. Die alten Fassungen stehen in der Git-Geschichte.
 rm -f appcast.xml
+# Versionshinweise fürs Update-Fenster: Abschnitt aus CHANGELOG.md als HTML neben dem Archiv,
+# Sparkle zeigt ihn mit --embed-release-notes an (wie TippAI, Michael 29.10.).
+for archive in "${DIST}"/*.zip; do
+    python3 -I scripts/release-notes.py "${VERSION}" CHANGELOG.md "${archive%.zip}.html" \
+        || fail "Versionshinweise für ${VERSION} nicht erzeugt (CHANGELOG-Abschnitt fehlt?)"
+done
 "${SPARKLE_BIN}/generate_appcast" "${DIST}" \
     --download-url-prefix "https://github.com/miwixyz/Gnotchi/releases/download/${TAG}/" \
+    --embed-release-notes \
     --link "https://github.com/miwixyz/Gnotchi" \
     -o appcast.xml \
     || fail "generate_appcast fehlgeschlagen"
