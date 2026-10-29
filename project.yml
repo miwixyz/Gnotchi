@@ -168,6 +168,8 @@ targets:
         # Leer, sonst übernimmt XcodeGen die Info.plist der App aus dem Quellordner (Feed, Schlüssel …).
         INFOPLIST_FILE: ""
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.tests
+        # Kennzeichen beim Kompilieren: AppModel.isRunningTests hängt so nicht an Apples Umgebungsvariable.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) GNOTCHI_TESTS"
         # Wie im App-Ziel: ZIP der Ablage über libarchive (ShelfZip).
         SWIFT_OBJC_BRIDGING_HEADER: Gnotchi/Shelf/Gnotchi-Bridging-Header.h
         OTHER_LDFLAGS: "$(inherited) -larchive"

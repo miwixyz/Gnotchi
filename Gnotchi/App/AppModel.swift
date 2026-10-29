@@ -49,10 +49,15 @@ final class AppModel {
 
     /// Legt ein Test ein AppModel an, startet es weder Sparkle noch den Medien-Adapter (er startete perl,
     /// der Rückfall schickte Apple Events) und räumt nicht in ~/.claude/settings.json auf: Die Tests prüfen
-    /// reine Logik. Seit den Tests ohne Host-App (2026-10-29) läuft das im xctest-Agenten; dort ist die
-    /// Variable gesetzt, aber leer – deshalb `!= nil`, nicht „nicht leer“.
+    /// reine Logik. Seit den Tests ohne Host-App (2026-10-29) kompiliert das Testziel die App-Quellen selbst
+    /// mit dem Kennzeichen `GNOTCHI_TESTS` (project.yml) – das hängt nicht an Apples Umgebungsvariable.
+    /// Die Variable bleibt als zweite Absicherung; im xctest-Agenten ist sie gesetzt, aber leer (`!= nil`).
     nonisolated static var isRunningTests: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #if GNOTCHI_TESTS
+        return true
+        #else
+        return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #endif
     }
 
     /// Alle Parameter außer den Standardwerten nur für Tests: eigene Einstellungen (der Test-Host
