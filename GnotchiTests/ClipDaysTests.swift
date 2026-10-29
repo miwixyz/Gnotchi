@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.14.0: Tagestrenner in der Kartenreihe – Mitternacht und Zeitzone.
 final class ClipDaysTests: XCTestCase {

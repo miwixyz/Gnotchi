@@ -138,20 +138,39 @@ targets:
         SKIP_INSTALL: YES
 
   # Prüft reine Logik (Zeilen schneiden, Adapter-Zeile bereinigen, Cover-Grenzen, Signaturprüfung,
-  # Argumente des Kindprozesses). Die App erkennt den Testlauf und startet dann weder Sparkle
-  # noch den Adapter (GnotchiApp).
+  # Argumente des Kindprozesses).
+  #
+  # OHNE Host-App (2026-10-29, Kalli-Muster): keine Abhängigkeit auf das Ziel Gnotchi, also kein
+  # TEST_HOST – ein Testlauf startet keine zweite Gnotchi neben der installierten. Die App-Quellen
+  # werden direkt mitkompiliert, die Tests laufen im xctest-Agenten. Draußen bleibt nur der
+  # Einstieg (@main in GnotchiApp.swift). Sparkle ist gelinkt, weil AppModel den Updater-Typ kennt;
+  # angelegt wird er im Testlauf nie (AppModel.isRunningTests). Bilder und Schriften liegen im
+  # Testbündel, gefunden über AppResources.bundle.
   GnotchiTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: GnotchiTests
+      - path: Gnotchi
+        excludes:
+          - App/GnotchiApp.swift
+          - Resources/**
+      - path: Gnotchi/Resources/Turntable
+        buildPhase: resources
+      - path: Gnotchi/Resources/PlusJakartaSans-Variable.ttf
+        buildPhase: resources
     dependencies:
-      - target: Gnotchi
+      - package: Sparkle
+        product: Sparkle
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        ENABLE_TESTABILITY: YES
+        # Leer, sonst übernimmt XcodeGen die Info.plist der App aus dem Quellordner (Feed, Schlüssel …).
+        INFOPLIST_FILE: ""
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.tests
+        # Wie im App-Ziel: ZIP der Ablage über libarchive (ShelfZip).
+        SWIFT_OBJC_BRIDGING_HEADER: Gnotchi/Shelf/Gnotchi-Bridging-Header.h
+        OTHER_LDFLAGS: "$(inherited) -larchive"
 
   # Medien-Adapter (Vendor/, BSD-3). Gnotchi lädt dieses Framework NIE selbst:
   # /usr/bin/perl lädt es als Kindprozess (docs/SECURE-DESIGN.md G2). Deshalb

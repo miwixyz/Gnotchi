@@ -1,6 +1,5 @@
 import CoreGraphics
 import XCTest
-@testable import Gnotchi
 
 /// Spezifikation „Aufbau 4“: Lage aus den Notch-Maßen; ohne Notch Pille 180 × 24 oben mittig.
 final class IslandGeometryTests: XCTestCase {

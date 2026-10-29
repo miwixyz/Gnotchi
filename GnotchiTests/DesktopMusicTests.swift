@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 /// 0.15.0 Musik auf dem Schreibtisch: Sichtbarkeit, Lage, Bild (nur ERFUNDENE Titel, G16).
 @MainActor

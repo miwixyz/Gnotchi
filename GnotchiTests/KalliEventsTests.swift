@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundene Termine, keine echten Kalenderdaten (Datenschutz-Gate, SECURE-DESIGN G16)
 

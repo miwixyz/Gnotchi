@@ -1,6 +1,5 @@
 import CoreAudio
 import XCTest
-@testable import Gnotchi
 
 /// 0.2.0 Kopfhörer-Hinweis: wann die Insel 3 s Gerät + Zustand zeigt (Michael 20.10.: beim Umschalten
 /// auf Bluetooth-Kopfhörer und beim Zurückwechseln; nicht, wenn Gnotchi selbst umgeschaltet hat).

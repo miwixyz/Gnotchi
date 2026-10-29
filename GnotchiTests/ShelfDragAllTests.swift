@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// „Alle ziehen“ (0.18): nimmt genau die mitgezogenen Einträge aus der Ablage, und nur mit Schalter.
 @MainActor

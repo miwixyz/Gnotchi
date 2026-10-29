@@ -1,6 +1,5 @@
 import CoreAudio
 import XCTest
-@testable import Gnotchi
 
 /// Wo die Musik spielt (Michael, 18.10.: Spotify Connect auf externe Lautsprecher soll sichtbar sein).
 /// Gemessen 18.10.: Spielt Spotify über Connect, meldet MediaRemote playing = true, Core Audio für

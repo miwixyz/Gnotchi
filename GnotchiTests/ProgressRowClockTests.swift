@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Zeitanzeige der großen Insel. `Int(...)` würde bei NaN/∞/riesigen Werten abstürzen –
 /// NowPlayingInfo garantiert endlich und ≤ 48 h, die Anzeige sichert trotzdem selbst ab.

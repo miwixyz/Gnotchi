@@ -1,6 +1,5 @@
 import AppKit
 import XCTest
-@testable import Gnotchi
 
 /// Rechtsklick auf die Insel (Michael, 18.10.): Einstellungen und Hilfe wie im Menüleisten-Menü.
 @MainActor

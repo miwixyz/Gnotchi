@@ -137,14 +137,15 @@ sh scripts/privacy-gate.sh || fail "Datenschutz-Gate nicht bestanden (siehe oben
 # Ein Release, das die Tests nicht laeuft, ist ein Release ohne Abnahme. Sie
 # brauchen unter einer Sekunde — es gibt keinen Grund, sie zu ueberspringen.
 step "[2/10] Tests"
-# Signiert wie das Release: Ein ad-hoc signierter Test-Host waere eine zweite
-# TCC-Identitaet fuer dev.mwlr.gnotchi. Siehe Makefile-Kommentar am test-Ziel.
+# Ohne Host-App, also ohne zweite Gnotchi und ohne Signatur. Siehe
+# Makefile-Kommentar am test-Ziel. Das Schema Gnotchi hat seit 2026-10-29
+# keine Tests mehr, ein `-scheme Gnotchi test` braeche ab.
 make gen >/dev/null   # Projekt + Package.resolved VOR den Tests (Rafter-Fund F2)
-xcodebuild -project "${APP}.xcodeproj" -scheme "${APP}" \
+xcodebuild -project "${APP}.xcodeproj" -scheme "${APP}Tests" \
     -destination 'platform=macOS' \
     -derivedDataPath ./build \
     -onlyUsePackageVersionsFromResolvedFile \
-    -allowProvisioningUpdates \
+    CODE_SIGNING_ALLOWED=NO \
     test >/dev/null 2>&1 \
     || fail "Tests fehlgeschlagen. Ursache mit 'make test' ansehen."
 echo "  ✓ alle Tests bestanden"

@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.14.0 Kartenbild: Farbcode nur, wenn die ganze Kopie einer ist.
 final class ColorCodeTests: XCTestCase {

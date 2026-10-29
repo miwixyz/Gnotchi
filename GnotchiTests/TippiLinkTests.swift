@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.2.0 Tippi-Aufnahme in der Insel. Nachrichten kommen über distnoted – jeder lokale Prozess kann senden
 /// (SECURE-DESIGN G17): nur das Schema `v`=1, `state` aus der Positivliste, `level` endliche Zahl 0…1.

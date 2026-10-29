@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Begrenzter Zwischenspeicher für App-Symbole (Review 18.10.).
 final class BoundedCacheTests: XCTestCase {

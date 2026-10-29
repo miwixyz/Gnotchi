@@ -1,6 +1,5 @@
 import CryptoKit
 import XCTest
-@testable import Gnotchi
 
 /// 0.11.0 Zwischenablage (docs/SECURE-DESIGN.md G37–G39): Aufnahme-Regeln, Verschlüsselung, Speicher.
 @MainActor

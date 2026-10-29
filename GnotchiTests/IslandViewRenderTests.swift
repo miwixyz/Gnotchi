@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 /// Sichtprüfung ohne App-Start: rendert die Insel (klein/groß, Notch/Pille). Prüft nur, dass gerendert
 /// wird; das Aussehen beurteilt ein Mensch (Plan Aufgabe 10/14). PNGs nur auf Wunsch, z. B.:

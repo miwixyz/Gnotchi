@@ -1,6 +1,5 @@
 // SYNTHETISCH – erfundene Beispieldaten, keine echten Hördaten (Datenschutz-Gate, SECURE-DESIGN G16)
 import XCTest
-@testable import Gnotchi
 
 /// G4/G5 + Mitschnitt 18.10.: Was aus dem Strom wird.
 final class NowPlayingInfoTests: XCTestCase {

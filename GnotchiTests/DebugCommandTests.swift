@@ -1,4 +1,3 @@
-@testable import Gnotchi
 import XCTest
 
 /// G45: Der Befehlskanal der Bild-Testkopie nimmt nur die feste Befehlsliste an.

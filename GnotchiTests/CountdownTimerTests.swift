@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.5.0 Eigener Timer: Zeitlogik, Pause/Weiter, Anzeige, Modell.
 @MainActor

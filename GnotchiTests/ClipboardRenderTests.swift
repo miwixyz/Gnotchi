@@ -2,7 +2,6 @@ import AppKit
 import CryptoKit
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 /// 0.14.0 Kartenbild: Sichtprüfung des Herunterklappens ohne App-Start, nur mit ERFUNDENEN Einträgen in einem
 /// Speicher im Arbeitsspeicher (nie Michaels Verlauf). PNG wie bei den Insel-Bildern:

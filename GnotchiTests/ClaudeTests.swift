@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundene Sitzungen, Pfade und Einstellungen (Datenschutz-Gate, SECURE-DESIGN G16)
 

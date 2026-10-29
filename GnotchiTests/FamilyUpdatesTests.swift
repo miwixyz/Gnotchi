@@ -1,6 +1,5 @@
 import Security
 import XCTest
-@testable import Gnotchi
 
 /// 0.4.0 Updates der App-Familie (SECURE-DESIGN G23/G24): Schema, Erledigt-Regel, Drossel, Zuordnung fest,
 /// Signaturprüfung vor dem Öffnen.

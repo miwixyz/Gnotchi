@@ -1,7 +1,6 @@
 import Darwin
 import Security
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundene Beispielsätze, keine echten Diktate (Datenschutz-Gate, SECURE-DESIGN G16)
 

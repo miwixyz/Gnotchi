@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// G2: Gnotchi startet den Adapter nur aus einem unveränderten, signierten Bundle.
 final class BundleIntegrityTests: XCTestCase {

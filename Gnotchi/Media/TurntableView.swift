@@ -32,7 +32,7 @@ enum TurntableArt {
     @MainActor static let spindle = load("spindel", "png")
 
     @MainActor private static func load(_ name: String, _ ext: String) -> NSImage? {
-        Bundle.main.url(forResource: name, withExtension: ext).flatMap(NSImage.init(contentsOf:))
+        AppResources.bundle.url(forResource: name, withExtension: ext).flatMap(NSImage.init(contentsOf:))
     }
 }
 

@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundene Mitteilungen, keine echten Inhalte (Datenschutz-Gate, SECURE-DESIGN G16)
 

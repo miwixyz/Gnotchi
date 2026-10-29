@@ -1,6 +1,5 @@
 import CryptoKit
 import XCTest
-@testable import Gnotchi
 
 /// 0.13.0 Geheimnisse (docs/SECURE-DESIGN.md G43): Erkennung, Verdecken, Ablauf, Umfang des Löschens.
 ///

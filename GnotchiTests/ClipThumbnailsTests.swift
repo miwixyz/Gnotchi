@@ -1,6 +1,5 @@
 import AppKit
 import XCTest
-@testable import Gnotchi
 
 /// 0.15.1: Datei-Einträge mit mitkopiertem Bild zeigen das Bild. Gemessen 26.10. an CleanShot/Clop:
 /// public.file-url + public.png (405 KB) + Klartext in einem Eintrag → als `.file` gespeichert, Karte und Vorschau

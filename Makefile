@@ -28,15 +28,16 @@ build: gen
 		-configuration $(CONFIG) -derivedDataPath $(DERIVED) \
 		-onlyUsePackageVersionsFromResolvedFile CODE_SIGNING_ALLOWED=NO build
 
-# MIT Signatur (wie Kalli/Seam): Der Test-Host ist die App selbst. Ad hoc signiert
-# entstünde eine zweite Identität für dev.mwlr.gnotchi in den Datenschutz-Einstellungen
-# (Automation). Gnotchi startet im Testlauf weder Sparkle noch den Adapter
-# (siehe GnotchiApp.isRunningTests).
+# OHNE Host-App (ab 2026-10-29, Kalli-Muster): Die App-Quellen werden direkt ins Testbündel
+# kompiliert (project.yml), die Tests laufen im `xctest`-Agenten. Es startet keine zweite Gnotchi,
+# also gibt es keine zweite Identität für dev.mwlr.gnotchi in den Datenschutz-Einstellungen und
+# keinen Grund mehr für die Developer-ID-Signatur, die bis 0.18.2 hier stand. Legt ein Test
+# AppModel an, startet es weder Sparkle noch den Adapter (AppModel.isRunningTests).
 test: gen
-	xcodebuild -project $(APP).xcodeproj -scheme $(APP) \
+	xcodebuild -project $(APP).xcodeproj -scheme $(APP)Tests \
 		-destination 'platform=macOS' \
 		-derivedDataPath $(DERIVED) \
-		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates test
+		-onlyUsePackageVersionsFromResolvedFile CODE_SIGNING_ALLOWED=NO test
 
 # Nur die Insel-Bilder (IslandViewRenderTests) nach build/render/ – ohne App-Start, für die Sichtprüfung
 # nach jeder Änderung an der Insel. Vorher von Hand mit TEST_RUNNER_GNOTCHI_RENDER_DIR (20.10.: viermal
@@ -45,9 +46,9 @@ RENDER_DIR = $(CURDIR)/build/render
 render: gen
 	@mkdir -p "$(RENDER_DIR)"
 	@find "$(RENDER_DIR)" -name 'gnotchi-island-*.png' -delete
-	@TEST_RUNNER_GNOTCHI_RENDER_DIR="$(RENDER_DIR)" xcodebuild -project $(APP).xcodeproj -scheme $(APP) \
+	@TEST_RUNNER_GNOTCHI_RENDER_DIR="$(RENDER_DIR)" xcodebuild -project $(APP).xcodeproj -scheme $(APP)Tests \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) \
-		-onlyUsePackageVersionsFromResolvedFile -allowProvisioningUpdates \
+		-onlyUsePackageVersionsFromResolvedFile CODE_SIGNING_ALLOWED=NO \
 		test -only-testing:GnotchiTests/IslandViewRenderTests 2>&1 | grep -E '^xcodebuild: error:|\.swift:[0-9]+:[0-9]+: error:|\*\* TEST' || true
 	@n=$$(find "$(RENDER_DIR)" -name 'gnotchi-island-*.png' | wc -l | tr -d ' '); \
 	if [ "$$n" -eq 0 ]; then echo "✗ keine Bilder in $(RENDER_DIR) – Testausgabe oben prüfen"; exit 1; fi; \

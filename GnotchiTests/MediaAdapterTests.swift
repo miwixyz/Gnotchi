@@ -1,6 +1,5 @@
 // SYNTHETISCH – erfundene Beispieldaten, keine echten Hördaten (Datenschutz-Gate, SECURE-DESIGN G16)
 import XCTest
-@testable import Gnotchi
 
 /// G3/G9: feste Argumente, Neustart mit wachsender Pause, nach 3 Abbrüchen Schluss.
 final class MediaAdapterTests: XCTestCase {

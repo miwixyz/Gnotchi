@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundener Titel, gezeichnetes Cover, keine Hördaten (Datenschutz-Gate, SECURE-DESIGN G16).
 
@@ -211,6 +210,8 @@ final class TurntableTests: XCTestCase {
     }
 
     private func renderTurntable(artwork: NSImage, file: String) throws {
+        // Neonschrift: Ohne Host-App registriert keine startende App die Schriften.
+        XCTAssertTrue(FamilyTheme.registerFonts(bundle: AppResources.bundle))
         let model = NowPlayingModel()
         model.setPreviewState(info: NowPlayingInfo(title: "Erfundener Titel", artist: "Muster-Band", album: "Testalbum",
                                                    appBundleID: nil, isPlaying: true, duration: 200, elapsedAtStamp: 10,

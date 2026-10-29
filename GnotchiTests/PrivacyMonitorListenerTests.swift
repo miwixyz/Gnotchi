@@ -1,6 +1,5 @@
 import CoreAudio
 import XCTest
-@testable import Gnotchi
 
 /// Regression 21.10. (Ressourcenfund): Jede Geräteänderung meldete „Geräteliste geändert“ viermal so
 /// oft wie die vorige, weil `devicesChanged` die System-Beobachter im eigenen Rückruf ab- und neu

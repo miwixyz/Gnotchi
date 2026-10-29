@@ -275,7 +275,7 @@ Alle Entscheidungen mit Begründung: [docs/SECURE-DESIGN.md](docs/SECURE-DESIGN.
 ```bash
 make gen       # Projekt erzeugen (xcodegen), CHANGELOG ins Bundle spiegeln, Package.resolved einspielen
 make build     # bauen, unsigniert
-make test      # Tests (signiert, der Test-Host ist die App)
+make test      # Tests ohne Host-App: keine zweite Gnotchi, unsigniert (Schema GnotchiTests)
 make render    # nur die Insel-Bilder nach build/render/ (Sichtprüfung ohne App-Start)
 make lint      # Datenschutz-Gate + SwiftLint strikt (inkl. „keine Bedienungshilfen“, „Kindprozess nur im Adapter“)
 make hooks     # einmal je Klon: Datenschutz-Gate vor jedem Commit
@@ -296,7 +296,8 @@ Erfundene Titel, Platzhalter-Cover, rote Linie = Hardware-Notch.
 
 | Pfad | Was |
 |---|---|
-| `Gnotchi/App/GnotchiApp.swift` | Einstieg, Menüleiste, Fenster, Start und Stopp der Notch |
+| `Gnotchi/App/GnotchiApp.swift` | Einstieg, Menüleiste, Fenster |
+| `Gnotchi/App/AppModel.swift` | Start und Stopp der Notch und ihrer Quellen, Updater (ohne @main, damit die Tests es mitkompilieren) |
 | `Gnotchi/Island/` | Insel: Panels je Bildschirm, Lage, Ansicht, Rechtsklick-Menü, zweite Notch-App |
 | `Gnotchi/Media/MediaAdapter.swift` | Kindprozess `/usr/bin/perl` + Adapter, Neustart, Waisen |
 | `Gnotchi/Media/NowPlayingInfo.swift` | Adapter-Zeile → bereinigter Wiedergabe-Zustand |

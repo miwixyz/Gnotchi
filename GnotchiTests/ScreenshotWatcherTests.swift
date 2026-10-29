@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – Testdateien in einem frischen Temp-Ordner (Datenschutz-Gate, SECURE-DESIGN G16).
 

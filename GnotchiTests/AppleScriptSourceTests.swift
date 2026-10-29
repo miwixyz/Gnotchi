@@ -1,6 +1,5 @@
 import CoreServices
 import XCTest
-@testable import Gnotchi
 
 /// G7: Antworten der Rückfall-Skripte und feste Befehle.
 final class AppleScriptSourceTests: XCTestCase {

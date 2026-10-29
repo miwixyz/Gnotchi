@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.3.0 Qotti-Kontingent (SECURE-DESIGN G22): Schema, Warnstufen 80/95 %/Drosselung, Texte.
 @MainActor

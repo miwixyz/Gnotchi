@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.2.0 Mikrofon/Kamera aktiv: Punkt an der Insel, beim Darüberfahren welche App das Mikrofon nutzt
 /// (Michael 20.10.). Namen aus dem lokalen App-Bundle, nie ins Protokoll.

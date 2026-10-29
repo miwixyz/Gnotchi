@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Spezifikation: sichtbar bei Wiedergabe; nach 5 s Pause zurück in die Notch.
 final class NowPlayingModelTests: XCTestCase {

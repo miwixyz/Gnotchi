@@ -1,6 +1,5 @@
 import CoreAudio
 import XCTest
-@testable import Gnotchi
 
 /// 0.4.0 Live-Aktivitäten: Rotation, Pause beim Überfahren, Trackwechsel, Medienfilter (G25), Kopfhörer, Insel-Formen.
 @MainActor

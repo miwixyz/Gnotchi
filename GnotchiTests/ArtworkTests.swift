@@ -2,7 +2,6 @@ import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
 import XCTest
-@testable import Gnotchi
 
 /// G6: nur JPEG/PNG/HEIC, Base64 ≤ 2 MB, verkleinert auf ≤ 256 px.
 final class ArtworkTests: XCTestCase {

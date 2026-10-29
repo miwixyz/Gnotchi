@@ -1,6 +1,5 @@
 import CoreGraphics
 import XCTest
-@testable import Gnotchi
 
 /// Reine Rechnungen des IslandControllers: Koordinaten, Vollbild-Erkennung, Panelgröße.
 final class IslandControllerTests: XCTestCase {

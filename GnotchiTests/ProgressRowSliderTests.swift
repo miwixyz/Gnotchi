@@ -1,6 +1,5 @@
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 /// Absturz 22.10., 13:14 (`Normalizing.init` → precondition): Der VoiceOver-Regler im Fortschrittsbalken bekam bei
 /// Wiedergabe ohne Dauer den Bereich 0…1 mit Schritt 10. Gemessen: Schritt größer als Bereich bricht ab.

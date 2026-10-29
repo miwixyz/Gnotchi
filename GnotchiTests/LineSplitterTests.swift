@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// G4: Strom zeilenweise, überlange Zeilen verwerfen statt Speicher fluten.
 final class LineSplitterTests: XCTestCase {

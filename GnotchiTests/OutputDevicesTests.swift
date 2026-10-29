@@ -1,6 +1,5 @@
 import CoreAudio
 import XCTest
-@testable import Gnotchi
 
 /// 0.2.0 Audio-Ausgang wählen: Art und Symbol je Übertragungsart, Reihenfolge im Menü,
 /// nur Geräte aus der aktuellen Liste dürfen gesetzt werden (SECURE-DESIGN G20).

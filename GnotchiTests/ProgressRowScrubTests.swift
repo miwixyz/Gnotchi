@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Dünner Fortschrittsbalken (Michael, 18.10.): Mausposition → Sekunden, Füllstand.
 final class ProgressRowScrubTests: XCTestCase {

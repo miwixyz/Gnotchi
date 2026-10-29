@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 import XCTest
-@testable import Gnotchi
 
 /// Aus Seam (Code-Audit 09.10., Q9): `NSColor(FamilyTheme.accent)` muss dynamisch bleiben.
 /// Gnotchi: Pasta-Gold, hell #B07A2A, dunkel #E3B66A.

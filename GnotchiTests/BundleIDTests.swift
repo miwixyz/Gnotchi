@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Gleiche Regeln wie Seams `LinkRules.isBundleID`: ASCII-Buchstaben/-Ziffern, Punkt, Bindestrich,
 /// 1 bis 255 Zeichen. Die Bundle-ID kommt aus dem Adapter-Strom, also von beliebigen Apps (G4).

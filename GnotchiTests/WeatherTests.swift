@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – erfundene Werte im gemessenen Aufbau von Open-Meteo (22.10.), keine echten Daten.
 

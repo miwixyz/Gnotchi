@@ -1,6 +1,5 @@
 import Darwin
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – Testdateien werden in einem frischen Temp-Ordner angelegt (Datenschutz-Gate, SECURE-DESIGN G16).
 

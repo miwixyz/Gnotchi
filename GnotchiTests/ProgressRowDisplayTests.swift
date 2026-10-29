@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Was die Fortschrittszeile zeigt – reine Rechnung aus Position und Dauer (Review 18.10.).
 final class ProgressRowDisplayTests: XCTestCase {

@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Lebenszyklus „Musik in der Notch“ gegen Attrappen: Reihenfolge, keine doppelten Starts/Stopps,
 /// und im Testlauf (ohne Freigabe) startet nichts – sonst liefe perl bzw. AppleScript im Test-Host.

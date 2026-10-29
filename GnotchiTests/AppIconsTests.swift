@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Name der Quell-App für die Kopfzeile der großen Insel (Michael, 18.10.: „welche App spielt“).
 /// Der Name kommt aus dem lokalen App-Bundle (FileManager.displayName), nie aus dem Strom.

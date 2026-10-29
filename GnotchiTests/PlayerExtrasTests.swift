@@ -1,6 +1,5 @@
 import AppKit
 import XCTest
-@testable import Gnotchi
 
 // SYNTHETISCH – keine Hördaten (Datenschutz-Gate, SECURE-DESIGN G16).
 

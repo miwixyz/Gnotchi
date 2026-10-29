@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Security-Review 18.10. (B3/B4): höchstens ein Befehl bzw. ein Cover-Dekodieren gleichzeitig.
 final class SingleFlightTests: XCTestCase {

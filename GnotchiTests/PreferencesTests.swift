@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 @MainActor
 final class PreferencesTests: XCTestCase {
