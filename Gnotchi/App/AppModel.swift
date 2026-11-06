@@ -100,6 +100,8 @@ final class AppModel {
             NotchFeature(part: ClipboardLink(activity: activity, prefs: prefs)) { $0.clipboard },
             // 0.15.0: Musik auf dem Schreibtisch – nur mit Musik in der Notch (gleiche Daten), ab Werk aus.
             NotchFeature(part: DesktopMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.desktopMusic },
+            // 0.20.0 (G46): Sperrbildschirm über private SkyLight-Ebene, ab Werk aus, nur mit Musik in der Notch.
+            NotchFeature(part: LockScreenMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.lockScreenMusic },
         ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras

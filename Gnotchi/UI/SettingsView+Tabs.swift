@@ -154,6 +154,19 @@ extension SettingsView {
                        + "auch bündig in die Ecke. Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. "
                        + "Drüberfahren zeigt die Knöpfe, Klick aufs Cover holt die App.",
                      symbol: "photo.on.rectangle", color: FamilyTheme.textSecondary)
+                // 0.20.0 (G46): Sperrbildschirm, ab Werk aus. Ohne SkyLight-Funktionen ausgegraut.
+                toggleRow("Auf dem Sperrbildschirm zeigen", isOn: $prefs.lockScreenMusic)
+                    .disabled(!LockScreenSpace.isAvailable)
+                    .onChange(of: prefs.lockScreenMusic) { model.applyNotchSetting() }
+                if prefs.lockScreenMusic && LockScreenSpace.isAvailable {
+                    toggleRow("Titel verbergen (nur Knöpfe)", isOn: $prefs.lockScreenHideTitle)
+                        .onChange(of: prefs.lockScreenHideTitle) { model.applyNotchSetting() }
+                }
+                note(LockScreenSpace.isAvailable
+                     ? "Jeder am gesperrten Mac sieht den Titel und kann die Wiedergabe steuern. "
+                       + "Klick aufs Cover zeigt es groß, nach 30 Sekunden kommt die kleine Karte zurück."
+                     : "Unter dieser macOS-Version nicht verfügbar.",
+                     symbol: "lock", color: FamilyTheme.textSecondary)
             }
         }
         card("Medienfilter") {

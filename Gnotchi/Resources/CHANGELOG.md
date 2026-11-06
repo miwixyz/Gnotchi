@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unreleased]
+
+### Neu
+- **Musik auf dem Sperrbildschirm.** Auf Wunsch zeigt Gnotchi bei gesperrtem Mac eine kleine Karte mit Cover, Titel, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter, mittig zwischen Uhr und Anmeldung. Ein Klick aufs Cover zeigt es groß. Einschalten unter Einstellungen → Wiedergabe (ab Werk aus). Mit „Titel verbergen“ bleiben nur die Knöpfe.
+
+### Intern
+- `LockScreenMusicLink` legt die Karte in einen eigenen Fensterbereich der privaten SkyLight-Schnittstelle (absolute Ebene 400). Öffentliche Ebenen, auch `CGShieldingWindowLevel()+1`, verschwinden beim Sperren (gemessen unter macOS 27.2). Fehlt eine der Funktionen, ist der Schalter aus. Sperrzustand aus den Meldungen von loginwindow plus sekündlicher Prüfung über `CGSessionCopyCurrentDictionary`, damit die Karte nach dem Entsperren nie über allem hängen bleibt. Nur dieses eine Fenster kommt in den Bereich, Klicks können nur die drei Knöpfe und das große Cover auslösen. SECURE-DESIGN G46.
+
 ## [0.19.0] — 2026-11-06
 
 Der Timer zeigt seine Restzeit in der Menüleiste und kann einen Namen tragen.

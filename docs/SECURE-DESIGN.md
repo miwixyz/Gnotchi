@@ -1123,6 +1123,30 @@ nur aus Klicks (G29, G30).
 - **Prüfung:** `rafter-code-review` (28.10.): Pfade aus fester Liste bzw. geprüfter id, kein Shell-Aufruf in der App,
   Peer-Prüfung beidseitig, keine Geheimnisse (`rafter secrets`). `rafter run` (28.10., Scan `837051df`, Standardmodus, Stand `5d1f6d8`): keine Funde.
 
+### G46 – Musik auf dem Sperrbildschirm (neu, 2026-11-06, 0.20.0)
+- **Was:** kleine Karte (Cover, Titel, Interpret, Fortschritt, ⏮ ⏯ ⏭) bei **gesperrtem** Mac, mittig zwischen Uhr und
+  Anmeldung; Klick aufs Cover → großes Cover, zurück per Klick oder nach 30 s. Ab Werk aus, nur mit „Musik in der
+  Notch“. Spec `specs/2026-11-06-gnotchi-0.20.0-sperrbildschirm.md` (STRIDE dort).
+- **Neue Grenze:** gesperrter Mac ↔ **unangemeldete Person vor dem Bildschirm**. Preisgabe von Titel/Cover bewusst
+  (Michael 06.11.), Hinweis im Schalter; Unterschalter „Titel verbergen“ zeigt nur Musiknote + Knöpfe, auch kein
+  großes Cover.
+- **Private Schnittstelle:** SkyLight per `dlopen`/`dlsym` (`SLSSpaceCreate`, `SLSSpaceSetAbsoluteLevel` 400,
+  `SLSShowSpaces`, `SLSSpaceAddWindowsAndRemoveFromSpaces`, `SLSRemoveWindowsFromSpaces`, `SLSHideSpaces`,
+  `SLSSpaceDestroy`). Fehlt eine Funktion oder scheitert der Aufbau → Funktion aus (Schalter ausgegraut bzw. kein
+  zweiter Versuch im Lauf), kein Absturz. Keine neue Berechtigung (gemessen 06.11., Mess-Apps ohne TCC-Anfrage).
+- **Nur ein Fenster** im Sperr-Space (`LockScreenSpace.windows`, Test `testSpaceHostsExactlyOneWindow`). Andere
+  Gnotchi-Teile (Zwischenablage, Ablage, Mitteilungen, Claude Code, Live-Text) kommen nie hinein.
+- **Klicks:** nur ⏮ ⏯ ⏭ (derselbe Weg wie die Insel, G13) und klein ↔ groß innerhalb des eigenen Fensters. Kein
+  App-Aktivieren (anders als G44), kein Menü, kein Rechtsklick, kein Ziehen, keine Texteingabe
+  (`canBecomeKey = false`) – also auch keine nachgemachte Passwortabfrage möglich.
+- **Hängen bleiben verhindert:** Ebene 400 liegt über allem. Sichtbar nur bei `CGSSessionScreenIsLocked == true`
+  (`CGSessionCopyCurrentDictionary`, jede Sekunde) – die Meldungen `com.apple.screenIsLocked/Unlocked` beschleunigen
+  nur; verpasste Meldungen ändern nichts.
+- **Fremddaten** wie in der Insel (G4/G5/G6, `Text(verbatim:)`), Titel nie ins Protokoll (G8/G16): protokolliert wird
+  nur „Sperrkarte gezeigt/entfernt“ und Fehler der Schnittstelle.
+- **Restrisiko (getragen):** Apple kann die private Schnittstelle ändern oder sperren.
+- **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Signaturen `UInt64`/`Void`, Klickfläche nur Knöpfe + Umschalten, „Titel verbergen“ zeichnet weder Text noch Cover, Protokoll ohne Titel), `rafter secrets .` ohne Fund. `rafter run` steht aus (Kontingent bis 26.11. leer). Sichttest Michael ✓ (Mac mini 3440×1440): Lage, Knöpfe, großes Cover, Entsperren → weg. Großes Cover bis 440 pt (Michael), **ohne Schatten**: macOS zeichnet ihn auf dem Sperrbildschirm als Rechteck (Mess-Fassung ohne Schatten → sauber).
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |

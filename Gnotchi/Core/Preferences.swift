@@ -21,6 +21,9 @@ final class Preferences {
         /// Abstand des Covers zur gewählten Ecke (nach dem Ziehen), x/y in Punkten.
         static let desktopMusicInsetX = "desktopMusicInsetX"
         static let desktopMusicInsetY = "desktopMusicInsetY"
+        /// 0.20.0 Musik auf dem Sperrbildschirm (ab Werk aus) und „Titel verbergen“.
+        static let lockScreenMusic = "lockScreenMusic"
+        static let lockScreenHideTitle = "lockScreenHideTitle"
         static let expandDelay = "expandDelay"
         static let headphoneNotice = "headphoneNotice"
         static let micCamera = "micCamera"
@@ -124,6 +127,10 @@ final class Preferences {
             defaults.set(Double(desktopMusicInset.height), forKey: Key.desktopMusicInsetY)
         }
     }
+    /// 0.20.0: Karte auf dem Sperrbildschirm (G46). Ab Werk **aus** – jeder am gesperrten Mac sieht und steuert sie.
+    var lockScreenMusic: Bool { didSet { defaults.set(lockScreenMusic, forKey: Key.lockScreenMusic) } }
+    /// Nur Musiknote und Knöpfe, kein Cover, kein Text (Michael 06.11.). Ab Werk aus.
+    var lockScreenHideTitle: Bool { didSet { defaults.set(lockScreenHideTitle, forKey: Key.lockScreenHideTitle) } }
     static let desktopMusicDefaultInset = CGSize(width: 24, height: 24)
 
     enum DesktopCorner: String, CaseIterable { case bottomLeft, bottomRight, topLeft, topRight }
@@ -308,7 +315,7 @@ final class Preferences {
         desktopMusicSize = defaults.string(forKey: Key.desktopMusicSize).flatMap(DesktopSize.init(rawValue:)) ?? .medium
         desktopMusicInset = Self.validInset(defaults)
         (desktopMusicStyle, desktopMusicScreen) = (Self.validStyle(defaults), Self.validScreen(defaults))
-        (desktopMusicNeon, desktopMusicTonearm) = Self.turntableFlags(defaults)
+        ((desktopMusicNeon, desktopMusicTonearm), (lockScreenMusic, lockScreenHideTitle)) = (Self.turntableFlags(defaults), Self.lockFlags(defaults))
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
         headphoneNotice = defaults.object(forKey: Key.headphoneNotice) as? Bool ?? true
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
@@ -423,6 +430,11 @@ final class Preferences {
     /// Neonschrift (ab Werk an) und Start/Stopp-Knopf (ab Werk aus).
     nonisolated static func turntableFlags(_ defaults: UserDefaults) -> (neon: Bool, tonearm: Bool) {
         (defaults.object(forKey: Key.desktopMusicNeon) as? Bool ?? true, defaults.object(forKey: Key.desktopMusicTonearm) as? Bool ?? false)
+    }
+
+    /// 0.20.0: beide ab Werk aus (G46).
+    nonisolated static func lockFlags(_ defaults: UserDefaults) -> (show: Bool, hideTitle: Bool) {
+        (defaults.object(forKey: Key.lockScreenMusic) as? Bool ?? false, defaults.object(forKey: Key.lockScreenHideTitle) as? Bool ?? false)
     }
 
     nonisolated static func validScreen(_ defaults: UserDefaults) -> String {
