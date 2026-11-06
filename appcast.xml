@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.19.0</title>
-            <pubDate>Fri, 06 Nov 2026 15:37:04 +0100</pubDate>
+            <title>0.21.0</title>
+            <pubDate>Fri, 06 Nov 2026 17:59:05 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>189</sparkle:version>
-            <sparkle:shortVersionString>0.19.0</sparkle:shortVersionString>
+            <sparkle:version>193</sparkle:version>
+            <sparkle:shortVersionString>0.21.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><p>Der Timer zeigt seine Restzeit in der Menüleiste und kann einen Namen tragen.</p><h3>Neu</h3><ul><li><b>Restzeit in der Menüleiste.</b> Solange ein Timer läuft, steht die Zeit neben dem Gnotchi-Symbol, etwa „4:59“. Pausiert steht „‖ 4:59“ da. Ohne Timer bleibt es beim Symbol.</li><li><b>Timer mit Namen.</b> Unter <b>Timer → Eigene Zeit oder Name …</b> gibst du neben den Minuten auf Wunsch einen Namen ein, etwa „Tee“ (höchstens 30 Zeichen). Der Name steht in der Insel, im Timer-Menü („Läuft: Tee“) und beim Ablauf.</li><li><b>Neuerungen im Update-Fenster.</b> Bietet Gnotchi ein Update an, steht im Fenster, was die neue Version bringt.</li></ul><h3>Geändert</h3><ul><li><b>Kräftigere Farben bei „Kontrast erhöhen“.</b> Ist die Bedienungshilfe in den Systemeinstellungen an, nutzen die Einstellungen Farben mit deutlich mehr Kontrast. Ohne den Schalter bleibt alles wie bisher.</li><li><b>Neuer Name der Freigabe.</b> Hilfe und Einstellungen nennen die Liste so, wie sie unter macOS 27 heißt: „Gerätesteuerung und Datenzugriff“.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.19.0/Gnotchi-0.19.0.zip" length="7409755" type="application/octet-stream" sparkle:edSignature="dkaKQ26uwSvZkPZk5o+E7KrGpKVbmSxQDcxrya/acnPqvt/d1HlLdzMsUb5O42/km/09t8J/vB8PQckroC8MAg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><p>Die Musik steht jetzt auch auf dem Sperrbildschirm, der Mac bleibt auf Wunsch wach, und der Timer hat eine neue Auswahl. 0.20.0 ist nicht einzeln erschienen.</p><h3>Neu</h3><ul><li><b>Musik auf dem Sperrbildschirm.</b> Auf Wunsch zeigt Gnotchi bei gesperrtem Mac eine kleine Karte mit Cover, Titel, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter, mittig zwischen Uhr und Anmeldung. Ein Klick aufs Cover zeigt es groß. Einschalten unter Einstellungen → Wiedergabe (ab Werk aus). Mit „Titel verbergen“ bleiben nur die Knöpfe.</li><li><b>Wach bleiben.</b> Neues Kaffeetassen-Symbol in der großen Insel: Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis du ausschaltest oder nach Zeitplan (Wochentage, von–bis, ab Werk Mo–Fr 9–18 Uhr). Auf Wunsch hält Gnotchi deinen Status in Teams oder Slack auf „aktiv“: Hast du 4 Minuten nichts eingegeben, bewegt sich der Zeiger um einen Punkt hin und zurück, höchstens einmal pro Minute. Dafür braucht es das Hilfsprogramm „Gnotchi Mitteilungen“ mit seiner Freigabe. Gnotchi startet es auch dann, wenn „Mitteilungen“ aus ist, liest dann aber keine Mitteilungen.</li></ul><h3>Geändert</h3><ul><li><b>Neue Timer-Auswahl.</b> In der großen Insel stehen jetzt ein Namensfeld mit Start, „− 25 min +“ mit einem Lineal zum Ziehen und die Voreinstellungen 1m, 5m, 10m, 25m, 45m und 1h. Die Insel wird dafür höher.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.21.0/Gnotchi-0.21.0.zip" length="7479363" type="application/octet-stream" sparkle:edSignature="yDuxbiKmXKCZHMKjZQi79NfIeXDhYmpARuCxdunJWSK8Xo24CAoxq4Umxbp44SnS1TSZtOr5XjjGHBozmA7BBg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: TrtJ0wl+NwT5VUnjgPx/MhQnluzkYe8eHtImUC+nFisYBZWzazj6uUKF5ZLZLhU0vubmBln5tpt01za8jF3sDQ==
-length: 2263
+edSignature: xHCgo2euac/Ieq1BqH8SM+zVFppaVqr423YrqjCSxaLb6diiJo1PafVCCMRn+RfBt2ZjTbvrdvsEoc+1bTvtDQ==
+length: 2598
 -->
