@@ -4,16 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.18.2</title>
-            <pubDate>Wed, 28 Oct 2026 16:09:09 +0100</pubDate>
+            <title>0.19.0</title>
+            <pubDate>Fri, 06 Nov 2026 15:37:04 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>181</sparkle:version>
-            <sparkle:shortVersionString>0.18.2</sparkle:shortVersionString>
+            <sparkle:version>189</sparkle:version>
+            <sparkle:shortVersionString>0.19.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.18.2/Gnotchi-0.18.2.zip" length="7401651" type="application/octet-stream" sparkle:edSignature="zCE07wEVJJnnXfek+ZmYI3/p+X0GDqnZlThNVLrgetj5y4C7cVc3D9SujRGqARstj30hz3+m+XqgsIC7y3jYBQ=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><p>Der Timer zeigt seine Restzeit in der Menüleiste und kann einen Namen tragen.</p><h3>Neu</h3><ul><li><b>Restzeit in der Menüleiste.</b> Solange ein Timer läuft, steht die Zeit neben dem Gnotchi-Symbol, etwa „4:59“. Pausiert steht „‖ 4:59“ da. Ohne Timer bleibt es beim Symbol.</li><li><b>Timer mit Namen.</b> Unter <b>Timer → Eigene Zeit oder Name …</b> gibst du neben den Minuten auf Wunsch einen Namen ein, etwa „Tee“ (höchstens 30 Zeichen). Der Name steht in der Insel, im Timer-Menü („Läuft: Tee“) und beim Ablauf.</li><li><b>Neuerungen im Update-Fenster.</b> Bietet Gnotchi ein Update an, steht im Fenster, was die neue Version bringt.</li></ul><h3>Geändert</h3><ul><li><b>Kräftigere Farben bei „Kontrast erhöhen“.</b> Ist die Bedienungshilfe in den Systemeinstellungen an, nutzen die Einstellungen Farben mit deutlich mehr Kontrast. Ohne den Schalter bleibt alles wie bisher.</li><li><b>Neuer Name der Freigabe.</b> Hilfe und Einstellungen nennen die Liste so, wie sie unter macOS 27 heißt: „Gerätesteuerung und Datenzugriff“.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.19.0/Gnotchi-0.19.0.zip" length="7409755" type="application/octet-stream" sparkle:edSignature="dkaKQ26uwSvZkPZk5o+E7KrGpKVbmSxQDcxrya/acnPqvt/d1HlLdzMsUb5O42/km/09t8J/vB8PQckroC8MAg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 5RpBRSO2fky1UQoXFhb8QRMmkLGdafQSPfdPTAGtCphPW4Pkz620FsEaplSFnem/3B4sG8EMzYwoWslKysLrAg==
-length: 1103
+edSignature: TrtJ0wl+NwT5VUnjgPx/MhQnluzkYe8eHtImUC+nFisYBZWzazj6uUKF5ZLZLhU0vubmBln5tpt01za8jF3sDQ==
+length: 2263
 -->
