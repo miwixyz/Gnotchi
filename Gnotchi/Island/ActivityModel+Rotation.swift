@@ -62,20 +62,21 @@ extension ActivityModel {
     /// Was die große Insel groß zeigt: dieselbe Aktivität wie die kleine. Ohne Aktivität Mikrofon/Kamera bzw.
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
-        case media, event, timer, timerPicker, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf,
+        case media, event, timer, timerPicker, awake, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf,
              clipboard, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
                                        mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
                                        weather: Bool = false, shelf: Bool = false, clipboard: Bool = false,
-                                       idle: BigContent = .none) -> BigContent {
+                                       awake: Bool = false, idle: BigContent = .none) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
         if weather { return .weather }
         if shelf { return .shelf }
         if clipboard { return .clipboard }
         if timerPicker { return .timerPicker }
+        if awake { return .awake }
         return switch current {
         case .event?: .event
         case .timer?: .timer
@@ -116,7 +117,7 @@ extension ActivityModel {
         return Self.bigContent(current: current, privacy: privacy.isActive, hasMediaInfo: media.isVisible,
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
                                weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
-                               clipboard: clipboardActive && clipboard != nil,
+                               clipboard: clipboardActive && clipboard != nil, awake: awakePageActive && awake != nil,
                                idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
     }
 
@@ -128,7 +129,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive || weatherActive || shelfActive || clipboardActive { return nil }
+        if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -147,6 +148,7 @@ extension ActivityModel {
         if chipItems.contains(item) { rotationCursor = item }
         mirrorActive = false
         timerPickerActive = false
+        awakePageActive = false
         weatherActive = false
         shelfActive = false
         clipboardActive = false
@@ -159,6 +161,7 @@ extension ActivityModel {
     func selectMirror() {
         if mirrorEnabled { mirrorActive = true }
         timerPickerActive = false
+        awakePageActive = false
         weatherActive = false
         shelfActive = false
         clipboardActive = false
@@ -170,6 +173,7 @@ extension ActivityModel {
         weatherActive = true
         mirrorActive = false
         timerPickerActive = false
+        awakePageActive = false
         shelfActive = false
         clipboardActive = false
     }
@@ -186,6 +190,7 @@ extension ActivityModel {
         weatherActive = false
         mirrorActive = false
         timerPickerActive = false
+        awakePageActive = false
         shelf?.prune()
     }
 
@@ -197,12 +202,25 @@ extension ActivityModel {
         shelfActive = false
         mirrorActive = false
         timerPickerActive = false
+        awakePageActive = false
+    }
+
+    /// Wach bleiben groß (0.21.0).
+    func selectAwake() {
+        guard awake != nil else { return }
+        awakePageActive = true
+        timerPickerActive = false
+        clipboardActive = false
+        weatherActive = false
+        shelfActive = false
+        mirrorActive = false
     }
 
     /// Insel klappt zu / Spiegel ausgeschaltet: Kamera aus (MirrorView verschwindet).
     func endMirror() {
         if mirrorActive { mirrorActive = false }
         if timerPickerActive { timerPickerActive = false }
+        if awakePageActive { awakePageActive = false }
         if weatherActive { weatherActive = false }
         if shelfActive { shelfActive = false }
         if clipboardActive { clipboardActive = false }

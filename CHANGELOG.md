@@ -6,9 +6,15 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ### Neu
 - **Musik auf dem Sperrbildschirm.** Auf Wunsch zeigt Gnotchi bei gesperrtem Mac eine kleine Karte mit Cover, Titel, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter, mittig zwischen Uhr und Anmeldung. Ein Klick aufs Cover zeigt es groß. Einschalten unter Einstellungen → Wiedergabe (ab Werk aus). Mit „Titel verbergen“ bleiben nur die Knöpfe.
+- **Wach bleiben.** Neues Kaffeetassen-Symbol in der großen Insel: Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis du ausschaltest oder nach Zeitplan (Wochentage, von–bis, ab Werk Mo–Fr 9–18 Uhr). Auf Wunsch hält Gnotchi deinen Status in Teams oder Slack auf „aktiv“: Hast du 4 Minuten nichts eingegeben, bewegt sich der Zeiger um einen Punkt hin und zurück, höchstens einmal pro Minute. Dafür braucht es das Hilfsprogramm „Gnotchi Mitteilungen“ mit seiner Freigabe. Gnotchi startet es auch dann, wenn „Mitteilungen“ aus ist, liest dann aber keine Mitteilungen.
+
+### Geändert
+- **Neue Timer-Auswahl.** In der großen Insel stehen jetzt ein Namensfeld mit Start, „− 25 min +“ mit einem Lineal zum Ziehen und die Voreinstellungen 1m, 5m, 10m, 25m, 45m und 1h. Die Insel wird dafür höher.
 
 ### Intern
 - `LockScreenMusicLink` legt die Karte in einen eigenen Fensterbereich der privaten SkyLight-Schnittstelle (absolute Ebene 400). Öffentliche Ebenen, auch `CGShieldingWindowLevel()+1`, verschwinden beim Sperren (gemessen unter macOS 27.2). Fehlt eine der Funktionen, ist der Schalter aus. Sperrzustand aus den Meldungen von loginwindow plus sekündlicher Prüfung über `CGSessionCopyCurrentDictionary`, damit die Karte nach dem Entsperren nie über allem hängen bleibt. Nur dieses eine Fenster kommt in den Bereich, Klicks können nur die drei Knöpfe und das große Cover auslösen. SECURE-DESIGN G46.
+- Wach bleiben: `StayAwake` hält `PreventUserIdleSystemSleep`. `IOPMAssertionDeclareUserActivity` (wie `caffeinate -u`) setzt die Leerlaufzeit nicht zurück, gemessen 8,9 → 9,2 s. Deshalb bewegt das Hilfsprogramm den Zeiger (`NudgePointer`, Befehl `nudge` ohne Inhalt). Gemessen: `HIDIdleTime` springt zur selben Zehntelsekunde auf 0. Neuer Filter-Schlüssel `notes`: false = Hilfsprogramm nur für die Mausbewegung, ohne Leser. SECURE-DESIGN G47.
+- Timer-Auswahl und Wach-Seite bekommen eine eigene Höhe (`IslandController.tallHeight`), Fenster und Inselform rechnen mit derselben Höhe. Die Insel nimmt Tastatur nur auf der Timer-Auswahl an (`IslandPanel.allowsKey`).
 
 ## [0.19.0] — 2026-11-06
 

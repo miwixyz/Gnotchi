@@ -21,6 +21,9 @@ final class HelperApp {
     /// Zuletzt geschickter Filter-Teil „Ungelesen-Zahlen“ – gelesen wird erst mit Freigabe.
     private var badgeApps: Set<String>?
     private var trusted = false
+    /// 0.21.0 (G47): Mitteilungen lesen? Gnotchi schickt `notes: false`, wenn es das Hilfsprogramm nur für die
+    /// Mausbewegung gestartet hat – dann laufen weder Mitteilungs- noch Abzeichen-Leser.
+    private var readsNotes = false
     private var connection: GnotchiConnection?
     private var trustTimer: Timer?
     private var signalSources: [DispatchSourceSignal] = []
@@ -69,26 +72,28 @@ final class HelperApp {
 
     private func becameTrusted() {
         trusted = true
-        watcher.start()
-        updateDock()
+        updateReaders()
     }
 
     private func handle(_ command: NotifyWire.Command) {
         switch command {
-        case .filter(let apps, let calls, let badges):
+        case .filter(let apps, let calls, let badges, let notes):
             watcher.filter = .init(apps: Set(apps), calls: calls)
             badgeApps = badges ? Set(apps) : nil
-            updateDock()
+            readsNotes = notes
+            updateReaders()
         case .shown(let id): watcher.markShown(id)
         case .release(let id): watcher.release(id)
         case .act(let id, let action, let stop): watcher.perform(id: id, action: action, stopVoicemail: stop)
         case .paste: PasteKey.press(trusted: trusted)
+        case .nudge: NudgePointer.nudge(trusted: trusted)
         }
     }
 
-    /// Dock nur lesen, wenn eingeschaltet **und** freigegeben (G28 erweitert).
-    private func updateDock() {
-        guard trusted, let apps = badgeApps else { return dock.stop() }
+    /// Mitteilungen und Dock nur lesen, wenn freigegeben **und** Gnotchi „Mitteilungen“ an hat (G28, G47).
+    private func updateReaders() {
+        if trusted && readsNotes { watcher.start() } else { watcher.stop() }
+        guard trusted, readsNotes, let apps = badgeApps else { return dock.stop() }
         dock.apps = apps
         dock.start()
     }

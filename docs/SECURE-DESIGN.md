@@ -1147,6 +1147,31 @@ nur aus Klicks (G29, G30).
 - **Restrisiko (getragen):** Apple kann die private Schnittstelle ändern oder sperren.
 - **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Signaturen `UInt64`/`Void`, Klickfläche nur Knöpfe + Umschalten, „Titel verbergen“ zeichnet weder Text noch Cover, Protokoll ohne Titel), `rafter secrets .` ohne Fund. `rafter run` steht aus (Kontingent bis 26.11. leer). Sichttest Michael ✓ (Mac mini 3440×1440): Lage, Knöpfe, großes Cover, Entsperren → weg. Großes Cover bis 440 pt (Michael), **ohne Schatten**: macOS zeichnet ihn auf dem Sperrbildschirm als Rechteck (Mess-Fassung ohne Schatten → sauber).
 
+### G47 – Wach bleiben: zeitgesteuerte Mausbewegung über das Hilfsprogramm (neu, 2026-11-06, 0.21.0)
+- **Was:** `StayAwake` hält `PreventUserIdleSystemSleep` (keine Freigabe) – von Hand oder nach Zeitplan (Tage, von–bis,
+  nur lokal in UserDefaults). Mit „Status in Teams/Slack aktiv halten“ (ab Werk aus, Michael 06.11.) schickt Gnotchi
+  höchstens alle ~60 s `{"v":1,"nudge":true}`. Spec `specs/2026-11-06-gnotchi-0.21.0-wachbleiben-timer.md`.
+- **Warum über das Hilfsprogramm:** `IOPMAssertionDeclareUserActivity` setzt `HIDIdleTime` nicht zurück (gemessen
+  8,9 → 9,2 s). Ein echtes Mausereignis braucht Bedienungshilfen – nur „Gnotchi Mitteilungen“ hat sie (G1 bleibt).
+- **Erste zeitgesteuerte Eingabe** (bisher nur nach Klick, G30/G42) – eng gefasst: Befehl ohne Inhalt (Schema strikt,
+  Test), Bewegung fest 1 pt hin und zurück (`NudgePointer`, einzige weitere Lint-Ausnahme von
+  `keine_eingaben_im_helfer`), nur bei ≥ 4 Min. `HIDIdleTime` (misst das Hilfsprogramm selbst), nie gesperrt, höchstens
+  1/60 s (Regel getestet). Klickt nie, tippt nie. Protokoll nur „Zeiger bewegt (Leerlauf vorher …)“.
+- **Hilfsprogramm eigens gestartet** (Michael 06.11.), wenn „Mitteilungen“ aus ist: Filter `notes: false` → weder
+  Mitteilungs- noch Abzeichen-Leser laufen. Abweichung von G42 (Einfügen startet es nicht eigens), bewusst so.
+- **STRIDE:** S fremder Absender → Peer-Prüfung G29 · T Zusatzfelder → verworfen · R Protokoll ohne Inhalte ·
+  I Zeitplan nur lokal · D Zeiger zuckt beim Arbeiten → Leerlauf-Prüfung im Hilfsprogramm · E Gnotchi bekommt indirekt
+  „Maus bewegen“ → nur 1 pt hin und zurück, kein Klick. **Getragen:** Die Funktion täuscht Anwesenheit vor – Michaels
+  Wahl für seinen Mac.
+- **Messung 06.11. (Mac mini):** Mess-Fassung mit 30-s-Grenze, `HIDIdleTime` von außen jede 0,5 s gelesen:
+  Rücksprung 86,8 → 0,1 s und 59,5 → 0,0 s zur selben Zehntelsekunde wie „Zeiger bewegt“. Teams/Slack nicht live
+  geprüft.
+- **Timer-Namensfeld:** Die Insel (`IslandPanel`) nimmt Tastatur nur auf der Timer-Auswahl an; fällt die Erlaubnis weg,
+  gibt sie den Fokus ab. Name reiner Text, höchstens 30 Zeichen, `Text(verbatim:)` (wie 0.19.0).
+- **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Bewegung fest, vier Bedingungen vor jeder Bewegung, Leser im
+  Hilfsprogramm erst nach Filter mit `notes: true`, Schema strikt), `rafter secrets .` ohne Fund. **`rafter run` Pflicht vor
+  Release** (neue Eingabe-Fläche im Hilfsprogramm), Kontingent leer bis 26.11.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |

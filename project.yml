@@ -151,6 +151,8 @@ targets:
     platform: macOS
     sources:
       - path: GnotchiTests
+      # 0.21.0 (G47): Regel der Mausbewegung im Hilfsprogramm mittesten.
+      - path: GnotchiMitteilungen/NudgePointer.swift
       - path: Gnotchi
         excludes:
           - App/GnotchiApp.swift

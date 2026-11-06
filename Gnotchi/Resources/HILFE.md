@@ -175,13 +175,23 @@ aus Kalli anzeigen“.
 Menüleisten-Symbol → **Timer** → 5, 10, 15 oder 25 Minuten oder **Eigene Zeit oder Name …** (1 bis 180 Minuten,
 dazu auf Wunsch ein Name wie „Tee“, höchstens 30 Zeichen). Der Name steht in der Insel und beim Ablauf. Solange
 ein Timer läuft, steht die Restzeit neben dem Menüleisten-Symbol, pausiert mit „‖“ davor.
-Oder in der großen Insel auf das Timer-Symbol klicken: Dort stehen dieselben Zeiten und **− 30 +** für eine
-eigene Zeit. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
+Oder in der großen Insel auf das Timer-Symbol klicken: Oben gibst du auf Wunsch einen Namen ein und startest mit
+**Start** oder ↵. Darunter stellst du die Zeit mit **−** und **+** oder ziehst am Lineal, ganz unten stehen
+1m, 5m, 10m, 25m, 45m und 1h. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
 neuer ersetzt den alten.
 
 Ist die Zeit um, **pulsiert die Insel orange, bis du sie anklickst**, und der Ton wiederholt sich höchstens
 eine Minute lang. Das geht auch über Apps im Vollbild. Schalter „Timer-Ablauf bis Klick anzeigen“ aus: nur
 ein kurzer Hinweis und ein Ton. Den Ton wählst du unter **Timer → Ton** oder in den Einstellungen.
+
+## Wach bleiben
+
+Ab 0.21 hält Gnotchi den Mac auf Wunsch wach. In der großen Insel auf das **Kaffeetassen-Symbol** klicken:
+- Die große Tasse schaltet ein und aus. Daneben wählst du eine Dauer: **1 Std.**, **2 Std.**, **4 Std.** oder **Bis aus**.
+- **Zeitplan:** Schalter an, Tage antippen (ab Werk Mo–Fr) und **von – bis** in 15-Minuten-Schritten (ab Werk 9:00–18:00). Schaltest du im Zeitfenster von Hand aus, bleibt es bis zum Ende des Fensters heute aus.
+- Solange es an ist, schläft der Mac nicht ein. Der Bildschirm darf trotzdem nach der Systemzeit ausgehen.
+
+**Status in Teams/Slack aktiv halten:** Teams, Slack und Co. zeigen dich als „abwesend“, wenn du eine Weile nichts eingibst. Ist der Schalter an, bewegt Gnotchi den Zeiger um einen Punkt hin und zurück, sobald du 4 Minuten nichts eingegeben hast, höchstens einmal pro Minute. Arbeitest du, passiert nichts. Dadurch bleibt auch der Bildschirm an. Die Bewegung macht das Hilfsprogramm „Gnotchi Mitteilungen“, es braucht dafür seine Freigabe unter **Gerätesteuerung und Datenzugriff → Bedienungshilfen**. Ist „Mitteilungen“ aus, startet Gnotchi es trotzdem, nur für die Bewegung. Mitteilungen liest es dann nicht. Bei gesperrtem Bildschirm bewegt sich nichts.
 
 ## Spiegel
 

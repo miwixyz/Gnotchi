@@ -130,6 +130,8 @@ struct IslandView: View {
                             clipboard: activity.clipboard == nil ? nil : activity.clipboardActive, onClipboard: { activity.selectClipboard() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
+                            awake: activity.awake.map { ($0.isActive, activity.awakePageActive) },
+                            onAwake: { activity.selectAwake() },
                             pinned: activity.pinned, onPin: { activity.togglePin() }, unread: activity.unread)
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
@@ -557,7 +559,11 @@ extension IslandView {
         case .alarm:
             AlarmCard(name: activity.alarmName) { activity.dismissTimerAlarm() }.padding(.top, top).transition(.opacity)
         case .timerPicker:
-            TimerPicker { activity.startTimer(minutes: $0) }.padding(.top, top).transition(.opacity)
+            TimerPicker { activity.startTimer(minutes: $0, name: $1) }.padding(.top, top + 6).transition(.opacity)
+        case .awake:
+            if let awake = activity.awake {
+                AwakeView(awake: awake, helperTrusted: activity.notifyTrust).padding(.top, top + 6).transition(.opacity)
+            }
         case .mirror:
             MirrorView(onSettings: MirrorView.openCameraSettings)
                 .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6, leading: 16, bottom: 12,
@@ -624,7 +630,8 @@ extension IslandView {
                                       chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
                                       weather: activity.bigContent == .weather,
                                       shelf: activity.bigContent == .shelf, strip: activity.showsShelfStrip,
-                                      clipboard: activity.bigContent == .clipboard)?.size ?? state.layout.expanded.size
+                                      clipboard: activity.bigContent == .clipboard,
+                                      tall: IslandController.tallHeight(activity.bigContent))?.size ?? state.layout.expanded.size
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size

@@ -73,7 +73,7 @@ final class AppModel {
         self.nowPlaying = nowPlaying
         let activity = ActivityModel(media: nowPlaying)
         self.activity = activity
-        let kalli = extraFeatures == nil && source == nil ? KalliEventLink(activity: activity) : nil
+        let (kalli, awake) = extraFeatures == nil && source == nil ? (KalliEventLink(activity: activity), Self.makeAwake(activity)) : (nil, nil)
         // Mit Attrappen-Quelle (Test) ohne echte Zusatzquellen, sonst liefen Core-Audio-Beobachter im Test-Host.
         let extras = extraFeatures ?? (source == nil ? [
             // Ein Beobachter für Hinweis und Aktivität (G19: einmal angemeldet).
@@ -87,7 +87,8 @@ final class AppModel {
             NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
             NotchFeature(part: FamilyUpdateLink(activity: activity)) { $0.familyUpdates },
             // 0.6.0 (G28–G30): startet das Hilfsprogramm mit der Bedienungshilfen-Freigabe, nicht Gnotchi selbst.
-            NotchFeature(part: NotifyLink(activity: activity, prefs: prefs)) { $0.notifications },
+            // 0.21.0 (G47): auch nur für die Mausbewegung von „Wach bleiben“ – dann liest es nichts (`notes: false`).
+            NotchFeature(part: NotifyLink(activity: activity, prefs: prefs)) { [awake] in $0.notifications || awake?.nudge == true },
             // 0.7.0 (G31): einziger Netzzugriff außer Updates, nur bei eingeschaltetem Wetter.
             NotchFeature(part: WeatherLink(activity: activity, prefs: prefs)) { $0.weather },
             // 0.8.0 (G32): Ziehen erkennen ohne Freigabe, Verweise statt Kopien.
@@ -102,10 +103,11 @@ final class AppModel {
             NotchFeature(part: DesktopMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.desktopMusic },
             // 0.20.0 (G46): Sperrbildschirm über private SkyLight-Ebene, ab Werk aus, nur mit Musik in der Notch.
             NotchFeature(part: LockScreenMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.lockScreenMusic },
-        ] + (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? []) : [])
+        ] + Self.optionalFeatures(kalli: kalli, awake: awake) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland
+        awake?.onNudgeChange = { [weak self] in self?.applyNotchSetting() }
         FamilyTheme.app = .gnotchi
         if !FamilyTheme.registerFonts(bundle: AppResources.bundle) {
             // Seam-Code-Audit 09.10., C12: sonst fällt SwiftUI still auf die Systemschrift zurück.
@@ -237,6 +239,22 @@ final class AppModel {
         }
         for i in runningFeatures.sorted() { features[i].part.stop() }
         runningFeatures.removeAll()
+    }
+}
+
+extension AppModel {
+    /// 0.21.0 Wach bleiben (G47): Mausbewegung über das Hilfsprogramm (`notifyCommand`), nur im Echtbetrieb.
+    static func makeAwake(_ activity: ActivityModel) -> StayAwake {
+        let awake = StayAwake()
+        activity.awake = awake
+        awake.send = { [weak activity] in activity?.notifyCommand($0) }
+        return awake
+    }
+
+    /// Teile, die es nur im Echtbetrieb gibt: Kalli-Termine, Wach bleiben (immer an, schaltet sich selbst).
+    static func optionalFeatures(kalli: KalliEventLink?, awake: StayAwake?) -> [NotchFeature] {
+        (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? [])
+            + (awake.map { [NotchFeature(part: $0) { _ in true }] } ?? [])
     }
 }
 

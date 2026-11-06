@@ -157,6 +157,7 @@ extension ActivityModel {
     /// Klick auf das Timer-Symbol in der Leiste, solange keiner läuft: Auswahl groß zeigen.
     func showTimerPicker() {
         timerPickerActive = true
+        awakePageActive = false
         mirrorActive = false
         weatherActive = false
         shelfActive = false

@@ -96,6 +96,9 @@ struct ChipRow: View {
     let onSelect: (LiveActivity) -> Void
     var onMirror: () -> Void = {}
     var onTimer: () -> Void = {}
+    /// Wach bleiben (0.21.0): (aktiv, groß gezeigt).
+    var awake: (Bool, Bool)?
+    var onAwake: () -> Void = {}
     var pinned = false
     var onPin: () -> Void = {}
     /// Ungelesen-Zahlen (0.9.0, G33) rechts in der Leiste.
@@ -116,6 +119,10 @@ struct ChipRow: View {
             }
             if let timerButton {
                 fixedButton("timer", label: "Timer", selected: timerButton, action: onTimer)
+            }
+            if let (on, shown) = awake {
+                fixedButton(on ? "cup.and.saucer.fill" : "cup.and.saucer", label: on ? "Wach bleiben, an" : "Wach bleiben",
+                            selected: shown, action: onAwake)
             }
             if let (w, shown) = weather {
                 Button(action: onWeather) {
@@ -410,56 +417,6 @@ struct TimerCard: View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
                 .frame(width: 36, height: 36).background(Circle().fill(.white.opacity(0.18)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: label))
-    }
-}
-
-/// Timer-Auswahl groß: 5 · 10 · 15 · 25 Minuten, rechts eine eigene Zeit mit − / + und Start.
-struct TimerPicker: View {
-    let onStart: (Int) -> Void
-    @AppStorage(CountdownTimer.customKey) private var custom = 30
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "timer").font(.system(size: 26, weight: .semibold)).foregroundStyle(.orange)
-                .frame(width: 34, height: 44)
-            ForEach(CountdownTimer.choices, id: \.self) { m in
-                pill("\(m)", label: "\(m) Minuten") { onStart(m) }
-            }
-            Spacer(minLength: 4)
-            HStack(spacing: 2) {
-                round("minus", label: "Eine Minute weniger") { custom = CountdownTimer.stepCustom(custom, up: false) }
-                Text(verbatim: "\(CountdownTimer.clampCustom(custom))")
-                    .font(.system(size: 15, weight: .semibold).monospacedDigit()).foregroundStyle(.white)
-                    .frame(minWidth: 32)
-                round("plus", label: "Eine Minute mehr") { custom = CountdownTimer.stepCustom(custom, up: true) }
-            }
-            .padding(.horizontal, 4).frame(height: 32).background(Capsule().fill(.white.opacity(0.10)))
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text(verbatim: "Eigene Zeit \(CountdownTimer.clampCustom(custom)) Minuten"))
-            round("play.fill", label: "Eigene Zeit starten", filled: true) { onStart(CountdownTimer.clampCustom(custom)) }
-        }
-        .padding(.horizontal, 16)
-        .frame(height: IslandGeometry.expandedSize.height - 12)
-    }
-
-    private func pill(_ text: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(verbatim: text).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
-                .frame(width: 38, height: 32).background(Capsule().fill(.white.opacity(0.18)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: label))
-    }
-
-    private func round(_ symbol: String, label: String, filled: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-                .frame(width: filled ? 32 : 24, height: filled ? 32 : 24)
-                .background(Circle().fill(.white.opacity(filled ? 0.18 : 0)))
-                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: label))

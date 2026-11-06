@@ -89,6 +89,9 @@ final class ActivityModel {
     var timer: CountdownTimer?
     /// Timer-Auswahl groß gezeigt (Klick auf das Timer-Symbol, solange keiner läuft).
     var timerPickerActive = false
+    /// Wach bleiben (0.21.0): Logik + Einstellungen; groß gezeigt?
+    var awake: StayAwake?
+    var awakePageActive = false
     @ObservationIgnored var timerTask: Task<Void, Never>?
     /// Abgelaufener Timer: Insel pulsiert, bis man klickt (Michael 21.10.: „Töne zu kurz, man überhört es“).
     var timerAlarm = false

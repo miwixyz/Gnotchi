@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 
 /// Form und Größe der Insel je Zustand – reine Rechnungen (getestet), ausgelagert aus IslandController.
@@ -74,16 +75,31 @@ extension IslandController {
         }
     }
 
+    /// 0.21.0: eigene Höhe für Timer-Auswahl und „Wach bleiben“ (Michael 06.11.: „Insel wird höher“).
+    nonisolated static func tallHeight(_ big: ActivityModel.BigContent) -> CGFloat? {
+        switch big {
+        case .timerPicker: IslandGeometry.timerPickerHeight
+        case .awake: IslandGeometry.awakeHeight
+        default: nil
+        }
+    }
+
     /// Große Insel „Eine Sache groß“ (0.5.0): alles in Player-Größe (Michael 21.10.: Hinweis-Größe war zu klein),
     /// nur „nur Mikrofon/Kamera“ in Hinweis-Größe; die Symbolleiste eine Zeile höher.
     nonisolated static func bigFrame(layout: IslandGeometry.Layout, small: Bool, chipRow: Bool,
                                      mirror: Bool = false, weather: Bool = false, shelf: Bool = false,
-                                     strip: Bool = false, clipboard: Bool = false) -> CGRect? {
+                                     strip: Bool = false, clipboard: Bool = false, tall: CGFloat? = nil) -> CGRect? {
         guard var r = panelFrame(mode: .expanded, layout: layout, hasMedia: !small || mirror || weather || shelf || clipboard,
                                  updates: chipRow ? 1 : 0, rows: chipRow ? 3 : 2) else { return nil }
         if strip {   // Kachelreihe der Ablage unten dran (0.8.0)
             r.origin.y -= IslandGeometry.shelfStripHeight
             r.size.height += IslandGeometry.shelfStripHeight
+        }
+        if let tall, !(mirror || weather || shelf || clipboard) {   // 0.21.0: Timer-Auswahl, Wach bleiben
+            let extra = tall - IslandGeometry.expandedSize.height
+            r.origin.y -= extra
+            r.size.height += extra
+            return r
         }
         guard mirror || weather || shelf || clipboard else { return r }
         let tall = mirror ? IslandGeometry.mirrorHeight : (weather ? IslandGeometry.weatherHeight
@@ -122,4 +138,19 @@ extension IslandController {
                                            new: [CGDirectDisplayID: IslandGeometry.Layout]) -> Bool {
         old != new
     }
+}
+
+/// Insel-Fenster (0.21.0): nimmt Tastatur nur an, solange `allowsKey` gesetzt ist (Namensfeld der Timer-Auswahl), und
+/// aktiviert Gnotchi dabei nie (`nonactivatingPanel`, Muster der Zwischenablage). Fällt die Erlaubnis weg, während die
+/// Insel den Fokus hat, gibt sie ihn ab – sonst landeten Tasten weiter in der Insel statt in der Arbeits-App.
+final class IslandPanel: NSPanel {
+    var allowsKey = false {
+        didSet {
+            guard oldValue, !allowsKey, isKeyWindow else { return }
+            orderOut(nil)
+            orderFrontRegardless()
+        }
+    }
+    override var canBecomeKey: Bool { allowsKey }
+    override var canBecomeMain: Bool { false }
 }

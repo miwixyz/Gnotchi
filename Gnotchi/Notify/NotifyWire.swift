@@ -59,13 +59,17 @@ enum NotifyWire {
     }
 
     enum Command: Equatable, Sendable {
-        case filter(apps: [String], calls: Bool, badges: Bool = false)
+        /// `notes` (0.21.0, G47): false = Hilfsprogramm läuft nur für die Mausbewegung, liest keine Mitteilungen/Abzeichen.
+        case filter(apps: [String], calls: Bool, badges: Bool = false, notes: Bool = true)
         case shown(String), release(String)
         /// `stopVoicemail` (0.9.0, G30 erweitert): nur mit „Ablehnen“ am Anruf. Das Hilfsprogramm drückt danach im selben
         /// Banner einmal „Live-Voicemail stoppen“ – Apples Fenster ist weg, der Anrufer landet auf der Mailbox.
         case act(id: String, action: String, stopVoicemail: Bool = false)
         /// Zwischenablage einfügen (0.12.0, G42): Das Hilfsprogramm drückt einmal ⌘V. Ohne Inhalt, ohne Taste, ohne Ziel.
         case paste
+        /// Wach bleiben (0.21.0, G47): Zeiger 1 pt hin und zurück – nur bei ≥ 4 Min. Leerlauf, das prüft das Hilfsprogramm.
+        /// Ohne Inhalt, ohne Richtung, ohne Ziel.
+        case nudge
     }
 
     // MARK: Aktionen (G30)
@@ -250,21 +254,24 @@ enum NotifyWire {
 
     nonisolated static func encode(_ c: Command) -> [String: Any] {
         switch c {
-        case .filter(let apps, let calls, let badges): ["v": 1, "apps": apps, "calls": calls, "badges": badges]
+        case .filter(let apps, let calls, let badges, let notes):
+            ["v": 1, "apps": apps, "calls": calls, "badges": badges, "notes": notes]
         case .shown(let id): ["v": 1, "shown": id]
         case .release(let id): ["v": 1, "release": id]
         case .act(let id, let action, let stop):
             stop ? ["v": 1, "act": id, "action": action, "then": "stopVoicemail"] : ["v": 1, "act": id, "action": action]
         case .paste: ["v": 1, "paste": true]
+        case .nudge: ["v": 1, "nudge": true]
         }
     }
 
     nonisolated static func parseCommand(_ payload: Data) -> Command? {
         guard let obj = object(payload) else { return nil }
         if let raw = obj["apps"] {
-            guard obj.count == 4, let apps = raw as? [String], apps.count <= maxApps, apps.allSatisfy(isValidBundleID),
-                  let calls = obj["calls"].flatMap(bool), let badges = obj["badges"].flatMap(bool) else { return nil }
-            return .filter(apps: apps, calls: calls, badges: badges)
+            guard obj.count == 5, let apps = raw as? [String], apps.count <= maxApps, apps.allSatisfy(isValidBundleID),
+                  let calls = obj["calls"].flatMap(bool), let badges = obj["badges"].flatMap(bool),
+                  let notes = obj["notes"].flatMap(bool) else { return nil }
+            return .filter(apps: apps, calls: calls, badges: badges, notes: notes)
         }
         if let raw = obj["shown"] {
             guard obj.count == 2, let id = raw as? String, isValidID(id) else { return nil }
@@ -275,10 +282,14 @@ enum NotifyWire {
             return .release(id)
         }
         if obj["act"] != nil { return parseAct(obj) }
-        // G42: genau `v` + `paste` = echter Wahrheitswert true, sonst nichts.
-        if let raw = obj["paste"] {
-            guard obj.count == 2, bool(raw) == true else { return nil }
-            return .paste
+        return parseFlag(obj)
+    }
+
+    /// Befehle ohne Inhalt – G42 `paste`, G47 `nudge`: genau `v` + Schlüssel = echter Wahrheitswert true, sonst nichts.
+    nonisolated private static func parseFlag(_ obj: [String: Any]) -> Command? {
+        for (key, command) in [("paste", Command.paste), ("nudge", Command.nudge)] {
+            guard let raw = obj[key] else { continue }
+            return obj.count == 2 && bool(raw) == true ? command : nil
         }
         return nil
     }

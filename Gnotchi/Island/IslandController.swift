@@ -201,6 +201,7 @@ final class IslandController {
             _ = activity.weatherActive
             _ = activity.timer != nil
             _ = activity.timerPickerActive
+            _ = (activity.awakePageActive, activity.awake?.isActive)   // 0.21.0: eigene Höhe
             _ = activity.timerAlarm
             _ = activity.pinned
             _ = activity.playerOverlay
@@ -263,7 +264,7 @@ final class IslandController {
     }
 
     private func makePanel(state: IslandState, displayID: CGDirectDisplayID) -> NSPanel {
-        let p = NSPanel(contentRect: state.layout.compact, styleMask: [.borderless, .nonactivatingPanel],
+        let p = IslandPanel(contentRect: state.layout.compact, styleMask: [.borderless, .nonactivatingPanel],
                         backing: .buffered, defer: false)
         // Über der Menüleiste; Gnotchi hat keinen eigenen Abdunkler wie Seam, normale Fenster reichen als Untergrenze.
         p.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 3)
@@ -354,6 +355,8 @@ final class IslandController {
             if let f = frame(entry.state.mode, entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }
+            // 0.21.0: Tastatur nur fürs Namensfeld der Timer-Auswahl – sonst nimmt die Insel nie den Fokus.
+            (entry.panel as? IslandPanel)?.allowsKey = entry.state.mode == .expanded && activity.bigContent == .timerPicker
             entry.panel.orderFrontRegardless()
             // Stecknadel gelöst, Maus schon weg: jetzt zuklappen wie beim Verlassen.
             if entry.state.mode == .expanded || entry.state.mode == .band, !activity.pinned, pointerInside[id] != true,
@@ -562,7 +565,8 @@ extension IslandController {
         guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
         return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
                              weather: activity.bigContent == .weather, shelf: activity.bigContent == .shelf,
-                             strip: activity.showsShelfStrip, clipboard: activity.bigContent == .clipboard)
+                             strip: activity.showsShelfStrip, clipboard: activity.bigContent == .clipboard,
+                             tall: Self.tallHeight(activity.bigContent))
     }
 }
 

@@ -86,8 +86,9 @@ final class NotifyLink: NotchPart {
     }
 
     private func sendFilter() {
+        // 0.21.0 (G47): Nur für „Wach bleiben“ gestartet → `notes: false`, das Hilfsprogramm liest dann nichts.
         let f = NotifyWire.Command.filter(apps: prefs.notifyApps ?? [], calls: prefs.notifyCalls,
-                                          badges: prefs.notifyBadges)
+                                          badges: prefs.notifyBadges, notes: prefs.notifications)
         if !prefs.notifyBadges { activity.receiveBadges([]) }
         guard f != lastFilter else { return }
         lastFilter = f
