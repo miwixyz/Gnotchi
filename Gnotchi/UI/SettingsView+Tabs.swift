@@ -279,7 +279,7 @@ extension SettingsView {
                 }
             if !prefs.notifications {
                 note("Ein eigenes Hilfsprogramm „Gnotchi Mitteilungen“ liest Apples Mitteilungen und braucht dafür die "
-                     + "Bedienungshilfen-Freigabe. Gnotchi selbst bleibt ohne.", symbol: "info.circle",
+                     + "Freigabe „Gerätesteuerung und Datenzugriff“. Gnotchi selbst bleibt ohne.", symbol: "info.circle",
                      color: FamilyTheme.textSecondary)
             } else {
                 switch model.activity.notifyTrust {
@@ -287,7 +287,8 @@ extension SettingsView {
                     note("Hilfsprogramm startet …", symbol: "hourglass", color: FamilyTheme.textSecondary)
                 case false?:
                     row(nil) {
-                        Label("Bedienungshilfen für „Gnotchi Mitteilungen“ freigeben", systemImage: "exclamationmark.triangle")
+                        Label("„Gnotchi Mitteilungen“ in „Gerätesteuerung und Datenzugriff“ freigeben",
+                              systemImage: "exclamationmark.triangle")
                             .foregroundStyle(FamilyTheme.warning)
                         Spacer()
                         Button("Öffnen …") { NotifyApps.openAccessibilitySettings() }

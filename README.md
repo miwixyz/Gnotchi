@@ -50,7 +50,7 @@ Freigabe nicht und fragt nie danach.
   **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
-- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne Bedienungshilfen. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren. **Ab 0.15** zeigt die Leertaste eine große Vorschau der markierten Karte.
+- **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne diese Freigabe. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren. **Ab 0.15** zeigt die Leertaste eine große Vorschau der markierten Karte.
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
@@ -59,7 +59,7 @@ Freigabe nicht und fragt nie danach.
   Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Mitteilungen und Anrufe (0.6):** Mitteilungen ausgewählter Apps erscheinen in der Notch statt oben rechts,
   mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
-  Auflegen. Ein eigenes Hilfsprogramm mit Bedienungshilfen-Freigabe liest Apples Banner; Gnotchi selbst bleibt
+  Auflegen. Ein eigenes Hilfsprogramm mit der Freigabe „Gerätesteuerung und Datenzugriff“ liest Apples Banner; Gnotchi selbst bleibt
   ohne. Ab Werk aus.
 - **Claude Code in der Notch (0.9):** laufende Claude-Code-Sitzungen mit „arbeitet“, „wartet auf Erlaubnis“
   (Werkzeug + Befehl) und „fertig“ (Anfang der Antwort); Klick holt das Programm der Sitzung nach vorn. Nur
@@ -164,12 +164,12 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **Automation für Spotify** | beim ersten Spulen in Spotify | Spotify spult per AppleScript. Über Spotify Connect springt die Zeit sonst zurück (gemessen 18.10.2026). |
 | **Automation für Musik** | nur, wenn der Rückfall greift (siehe unten) | Steuern und Titel lesen ohne den systemweiten Weg |
 | **Kamera** | beim ersten Klick auf den Spiegel (0.5) | Nur der Spiegel. Das Bild geht direkt auf den Bildschirm, nie in eine Datei ([G27](docs/SECURE-DESIGN.md)) |
-| **Bedienungshilfen für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Ab 0.12 drückt es auf deinen Doppelklick in der Zwischenablage ⌘V, keine andere Taste. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md), [G42](docs/SECURE-DESIGN.md)) |
+| **Gerätesteuerung und Datenzugriff für „Gnotchi Mitteilungen“** | wenn du „Mitteilungen in der Notch“ einschaltest (0.6) | Nur das Hilfsprogramm liest Apples Mitteilungsbanner, versteckt sie und löst auf deinen Klick deren Knöpfe aus. Ab 0.12 drückt es auf deinen Doppelklick in der Zwischenablage ⌘V, keine andere Taste. Gnotchi selbst bekommt keine Freigabe ([G28](docs/SECURE-DESIGN.md), [G42](docs/SECURE-DESIGN.md)) |
 | **Touch ID bzw. Mac-Passwort** | beim Öffnen des Tresors in der Zwischenablage (0.11) | Gibt den Tresor-Schlüssel im Schlüsselbund für fünf Minuten frei ([G39](docs/SECURE-DESIGN.md)) |
 | **„Aus anderen Apps einfügen“** | nur, falls macOS beim Mitlesen der Zwischenablage nachfragt (0.11; auf macOS 27.0.1 fragte es nicht, gemessen 24.10.2026) | Verlauf der Zwischenablage ([G37](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
-Was Gnotchi **nicht** braucht: keine Bedienungshilfen (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon,
+Was Gnotchi **nicht** braucht: keine Freigabe „Gerätesteuerung und Datenzugriff“ (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon,
 kein Bluetooth (die Kamera nur für den Spiegel, siehe oben). Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
 CoreMediaIO ohne Freigabe (gemessen 20.10.2026: Kamera ohne Anfrage, beim Mikrofon nur eine stille
 Vorabprüfung von macOS, kein Dialog).

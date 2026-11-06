@@ -183,8 +183,8 @@ der Notch“.
 ## Mitteilungen und Anrufe
 
 Einstellungen → **Mitteilungen in der Notch** (ab Werk aus). Beim Einschalten startet Gnotchi das Hilfsprogramm
-**„Gnotchi Mitteilungen“** und macOS fragt nach der Bedienungshilfen-Freigabe für dieses Programm. Erlaube sie
-unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → „Gnotchi Mitteilungen“. Gnotchi selbst
+**„Gnotchi Mitteilungen“** und macOS fragt nach der Freigabe „Gerätesteuerung und Datenzugriff“ für dieses Programm. Erlaube sie
+unter Systemeinstellungen → Datenschutz & Sicherheit → Gerätesteuerung und Datenzugriff → „Gnotchi Mitteilungen“. Gnotchi selbst
 bekommt keine Freigabe.
 
 - **Welche Apps:** In der Liste darunter hakst du die Apps an, deren Mitteilungen in die Notch dürfen. Beim
@@ -259,7 +259,7 @@ Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt 
 - **Aus der Notch (ab 0.14, Voreinstellung):** ⌃< klappt die Zwischenablage direkt aus der Notch herunter, auf Bildschirmen ohne Notch aus der Pille oben. Oben die Suche, darunter deine Sammlungen als Knöpfe mit Name und Anzahl, dann eine Reihe Karten, getrennt nach „Heute“, „Gestern“ und älteren Tagen. Jede Karte zeigt ihren Inhalt passend: Farbcodes als Farbfläche, Bilder randlos, Links mit der Domain, Dateien mit ihrem Symbol. Bilddateien, die mitsamt Bild kopiert wurden (etwa aus CleanShot), zeigen das Bild. Fährst du über eine Karte, erscheinen Stern (anheften) und Papierkorb. ←/→ wählen, Doppelklick oder ↵ fügt ein, Esc oder Klick daneben schließt. Fährt die Maus hinaus, klappt die Ansicht wieder zu. **Mehr Platz:** Drück das Kürzel nochmal oder klick auf „Mehr“ (Pfeile oben rechts), dann öffnet sich die große Ansicht am Rand, mit derselben Suche und Sammlung. Ein drittes Mal schließt. Lieber direkt am Rand? Einstellungen → Zwischenablage → „Zuerst aus der Notch“ ausschalten.
 - **Vorschau (ab 0.15):** Leertaste zeigt die markierte Karte groß: Text vollständig, Bild groß, Farbe mit HEX, RGB und HSL, Link als volle Adresse, Bilddatei als Bild mit Pfad darunter. Mit ←/→ blätterst du weiter, Leertaste oder Esc schließt. Steht im Suchfeld schon Text, tippt die Leertaste ein Leerzeichen.
 - **Große Ansicht am Rand:** Unter Einstellungen → Zwischenablage → „Große Ansicht“ wählst du Rechts, Links oder Unten. Das Kürzel änderst du dort ebenfalls. Oben sind die Suche und der Name der offenen Sammlung, darunter die Karten, unten die Reiter für Verlauf, Angeheftetes und deine Sammlungen. ↑/↓ wählen (bei „Unten“ auch ←/→), ein Klick markiert, Esc schließt.
-- **Einfügen (ab 0.12):** **Doppelklick**, ↵ oder ⌘1–⌘9 fügen den Eintrag direkt in die App ein, in der du gerade arbeitest. **Mit ⇧ als reinen Text.** Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“. Deshalb geht das nur, wenn „Mitteilungen in der Notch“ an ist und das Hilfsprogramm die Bedienungshilfen-Freigabe hat. Sonst kopiert Gnotchi nur, und du fügst mit **⌘V** selbst ein. Die Zeile unten in der Seitenansicht sagt dir, was gerade gilt. Nur kopieren: Rechtsklick → Kopieren.
+- **Einfügen (ab 0.12):** **Doppelklick**, ↵ oder ⌘1–⌘9 fügen den Eintrag direkt in die App ein, in der du gerade arbeitest. **Mit ⇧ als reinen Text.** Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“. Deshalb geht das nur, wenn „Mitteilungen in der Notch“ an ist und das Hilfsprogramm die Freigabe „Gerätesteuerung und Datenzugriff“ hat. Sonst kopiert Gnotchi nur, und du fügst mit **⌘V** selbst ein. Die Zeile unten in der Seitenansicht sagt dir, was gerade gilt. Nur kopieren: Rechtsklick → Kopieren.
 - **Reagiert das Kürzel nicht,** belegt es vermutlich eine andere App, zum Beispiel PastePal. Wähl dann ein anderes oder beende die andere App.
 - **In der Notch:** Das Zwischenablage-Symbol in der Leiste der großen Insel zeigt Angeheftetes und die letzten Kopien. Klick kopiert, ⇧-Klick als reinen Text, „Alle …“ öffnet die Seitenansicht.
 - **Ordnen:** Rechtsklick auf eine Karte → Anheften, Zu Sammlung, Titel, Löschen. Oder die Karte auf einen Reiter ziehen. Mit dem Plus unten legst du eine Sammlung oder einen Tresor an. Ein Eintrag kann in mehreren Sammlungen stecken. Karten kannst du auch direkt in andere Apps ziehen.
@@ -308,10 +308,10 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Bedienungshilfen**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Auch
+Gnotchi braucht **keine Freigabe „Gerätesteuerung und Datenzugriff“**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Auch
 die Dateiablage braucht keine Freigabe. Ausnahme: Wer „Bildschirmfotos automatisch ablegen“ einschaltet und Fotos auf
 dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibtisch.
-Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Bedienungshilfen dem eigenen Hilfsprogramm
+Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Freigabe „Gerätesteuerung und Datenzugriff“ dem eigenen Hilfsprogramm
 „Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock
 und drückt beim Einfügen aus der Zwischenablage ⌘V, sonst keine Taste.
 „Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.

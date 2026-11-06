@@ -74,7 +74,7 @@ im Kontrollzentrum. In der Notch steht kein Logo und keine eigene Farbe.
 
 ## Datenschutz
 
-Gnotchi selbst braucht keine Bedienungshilfen-Freigabe. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Fügst du aus der Zwischenablage ein, drückt es ⌘V und sonst keine Taste. Mitteilungstexte werden weder gespeichert noch protokolliert.
+Gnotchi selbst braucht keine Freigabe „Gerätesteuerung und Datenzugriff“. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Fügst du aus der Zwischenablage ein, drückt es ⌘V und sonst keine Taste. Mitteilungstexte werden weder gespeichert noch protokolliert.
 
 Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
 
