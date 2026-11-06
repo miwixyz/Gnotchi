@@ -2,6 +2,24 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.0] — 2026-11-06
+
+Der Timer zeigt seine Restzeit in der Menüleiste und kann einen Namen tragen.
+
+### Neu
+- **Restzeit in der Menüleiste.** Solange ein Timer läuft, steht die Zeit neben dem Gnotchi-Symbol, etwa „4:59“. Pausiert steht „‖ 4:59“ da. Ohne Timer bleibt es beim Symbol.
+- **Timer mit Namen.** Unter **Timer → Eigene Zeit oder Name …** gibst du neben den Minuten auf Wunsch einen Namen ein, etwa „Tee“ (höchstens 30 Zeichen). Der Name steht in der Insel, im Timer-Menü („Läuft: Tee“) und beim Ablauf.
+- **Neuerungen im Update-Fenster.** Bietet Gnotchi ein Update an, steht im Fenster, was die neue Version bringt.
+
+### Geändert
+- **Kräftigere Farben bei „Kontrast erhöhen“.** Ist die Bedienungshilfe in den Systemeinstellungen an, nutzen die Einstellungen Farben mit deutlich mehr Kontrast. Ohne den Schalter bleibt alles wie bisher.
+- **Neuer Name der Freigabe.** Hilfe und Einstellungen nennen die Liste so, wie sie unter macOS 27 heißt: „Gerätesteuerung und Datenzugriff“.
+
+### Intern
+- Die Restzeit kommt fertig aus dem Modell (`ActivityModel.menuBarClock`) und wird nur gesetzt, wenn sie sich ändert. Eine `TimelineView` im `MenuBarExtra`-Label lief in eine Endlosschleife (Hauptthread 99 %, in einer Mess-App nachgestellt). Mit laufendem Timer kostet das Neuzeichnen etwa 3,5 % eines Kerns, ohne Timer nichts.
+- Die Tests laufen ohne Host-App, beim Testlauf startet kein zweites Gnotchi mehr. Der Testschutz hängt an einem Kompilier-Kennzeichen statt an einer Umgebungsvariable.
+- `scripts/release-notes.py` erzeugt die Neuerungen fürs Update-Fenster aus dem CHANGELOG-Abschnitt (ohne „Intern“).
+
 ## [0.18.2] — 2026-10-28
 
 Der Timer-Ton hält Gnotchi nicht mehr an, und die Einstellungen zeigen alle Reiter vollständig.

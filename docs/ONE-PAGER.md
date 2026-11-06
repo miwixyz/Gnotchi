@@ -54,7 +54,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
 - Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
   braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.12.0.
-- Den Timer startest du im Menü, er läuft in der Notch mit. Ist er um, blinkt sie orange, bis du klickst.
+- Den Timer startest du im Menü, auf Wunsch mit Namen wie „Tee“. Die Restzeit steht in der Notch und in der Menüleiste. Ist er um, blinkt die Notch orange, bis du klickst.
 - Vor einem Anruf kurz in den Spiegel schauen: Das Kamera-Symbol in der großen Insel zeigt dein Bild.
   Die Kamera ist aus, sobald die Insel zuklappt.
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer

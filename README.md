@@ -54,7 +54,8 @@ Freigabe nicht und fragt nie danach.
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
-  die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute.
+  die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute. **Ab 0.19**
+  steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“).
 - **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die
   Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Mitteilungen und Anrufe (0.6):** Mitteilungen ausgewählter Apps erscheinen in der Notch statt oben rechts,
