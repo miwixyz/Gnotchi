@@ -4,6 +4,8 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.22.0] — 2026-11-06
+
 ### Geändert
 - **Die große Insel schwebt.** Sie hängt nicht mehr an Notch oder Pille, sondern schwebt 8 Punkte darunter in durchscheinendem Glas mit runden Ecken und Schatten. Die kleine Insel bleibt dabei an der Notch stehen. Alle großen Ansichten sind jetzt gleich breit (600 Punkte), die Timer-Auswahl ist dadurch niedriger. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.
 - **Verschieben.** Zieh die große Insel an einer freien Stelle, wohin du willst. Gnotchi merkt sich die Stelle für alle Bildschirme. Doppelklick auf eine freie Stelle oder Rechtsklick → „Insel zurücksetzen“ holt sie zurück, nah an der alten Stelle rastet sie ein.

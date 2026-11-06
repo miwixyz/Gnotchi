@@ -22,7 +22,8 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Läuft Musik oder ein Video, zeigt die Notch klein das Cover und einen Pegel. Auf Bildschirmen
   ohne Notch sitzt dieselbe Insel als Pille oben in der Mitte. Läuft dort nichts, sieht sie aus wie die Menüleiste.
 - Bleibt die Maus kurz darauf, klappt sie auf: Titel, Interpret, Zurück, Pause, Weiter und ein
-  Fortschrittsbalken zum Spulen.
+  Fortschrittsbalken zum Spulen. Die große Insel schwebt dabei knapp unter der Notch, und du kannst sie
+  hinziehen, wo sie dich nicht stört. Ein Klick daneben schließt sie.
 - Das funktioniert mit Spotify, Musik und mit Videos in Safari, Edge oder Helium. Egal, in
   welchem Fenster sie gerade liegen.
 - Wer mag, legt Cover und Titel zusätzlich auf den Schreibtisch, hinter alle Fenster, und schiebt sie mit der Maus in eine Ecke.
