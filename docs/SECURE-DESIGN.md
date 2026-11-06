@@ -1145,7 +1145,7 @@ nur aus Klicks (G29, G30).
 - **Fremddaten** wie in der Insel (G4/G5/G6, `Text(verbatim:)`), Titel nie ins Protokoll (G8/G16): protokolliert wird
   nur „Sperrkarte gezeigt/entfernt“ und Fehler der Schnittstelle.
 - **Restrisiko (getragen):** Apple kann die private Schnittstelle ändern oder sperren.
-- **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Signaturen `UInt64`/`Void`, Klickfläche nur Knöpfe + Umschalten, „Titel verbergen“ zeichnet weder Text noch Cover, Protokoll ohne Titel), `rafter secrets .` ohne Fund. `rafter run` steht aus (Kontingent bis 26.11. leer). Sichttest Michael ✓ (Mac mini 3440×1440): Lage, Knöpfe, großes Cover, Entsperren → weg. Großes Cover bis 440 pt (Michael), **ohne Schatten**: macOS zeichnet ihn auf dem Sperrbildschirm als Rechteck (Mess-Fassung ohne Schatten → sauber).
+- **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Signaturen `UInt64`/`Void`, Klickfläche nur Knöpfe + Umschalten, „Titel verbergen“ zeichnet weder Text noch Cover, Protokoll ohne Titel), `rafter secrets .` ohne Fund. `rafter run` Scan `000555d1` auf `05f93e2` (06.11., vom Guthaben): keine Funde. Sichttest Michael ✓ (Mac mini 3440×1440): Lage, Knöpfe, großes Cover, Entsperren → weg. Großes Cover bis 440 pt (Michael), **ohne Schatten**: macOS zeichnet ihn auf dem Sperrbildschirm als Rechteck (Mess-Fassung ohne Schatten → sauber).
 
 ### G47 – Wach bleiben: zeitgesteuerte Mausbewegung über das Hilfsprogramm (neu, 2026-11-06, 0.21.0)
 - **Was:** `StayAwake` hält `PreventUserIdleSystemSleep` (keine Freigabe) – von Hand oder nach Zeitplan (Tage, von–bis,
@@ -1169,8 +1169,8 @@ nur aus Klicks (G29, G30).
 - **Timer-Namensfeld:** Die Insel (`IslandPanel`) nimmt Tastatur nur auf der Timer-Auswahl an; fällt die Erlaubnis weg,
   gibt sie den Fokus ab. Name reiner Text, höchstens 30 Zeichen, `Text(verbatim:)` (wie 0.19.0).
 - **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Bewegung fest, vier Bedingungen vor jeder Bewegung, Leser im
-  Hilfsprogramm erst nach Filter mit `notes: true`, Schema strikt), `rafter secrets .` ohne Fund. **`rafter run` Pflicht vor
-  Release** (neue Eingabe-Fläche im Hilfsprogramm), Kontingent leer bis 26.11.
+  Hilfsprogramm erst nach Filter mit `notes: true`, Schema strikt), `rafter secrets .` ohne Fund. `rafter run` Scan `000555d1` auf
+  `05f93e2` (06.11., vom Guthaben): keine Funde.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

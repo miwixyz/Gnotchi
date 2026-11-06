@@ -27,6 +27,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   welchem Fenster sie gerade liegen.
 - Wer mag, legt Cover und Titel zusätzlich auf den Schreibtisch, hinter alle Fenster, und schiebt sie mit der Maus in eine Ecke.
 - Oder es steht ein Plattenspieler auf dem Schreibtisch. Die Platte dreht sich, der Tonarm wandert mit dem Lied nach innen, und dahinter leuchtet der Bildschirm in den Farben des Covers. Auf Wunsch steht „Now Playing“ in Neon darüber.
+- Ist der Mac gesperrt, zeigt Gnotchi die Musik jetzt auch dort, wenn du willst: Cover, Titel und die drei Knöpfe zwischen Uhr und Anmeldung. Klick aufs Cover, dann wird es groß. Sollen andere nicht sehen, was du hörst, blendest du den Titel aus.
 - Über dem Titel steht, welche App spielt. Läuft der Ton woanders, sagt die Insel es dir: „Auf
   anderem Gerät“ bei Spotify Connect, bei AirPlay oder Bluetooth der Name des Lautsprechers.
 - Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf
@@ -54,7 +55,8 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
 - Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
   braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.12.0.
-- Den Timer startest du im Menü, auf Wunsch mit Namen wie „Tee“. Die Restzeit steht in der Notch und in der Menüleiste. Ist er um, blinkt die Notch orange, bis du klickst.
+- Den Timer startest du im Menü oder in der Insel. Namen eintippen, Zeit am Lineal ziehen oder einfach 1, 5, 10, 25, 45 Minuten oder eine Stunde wählen. Die Restzeit steht in der Notch und in der Menüleiste. Ist er um, blinkt die Notch orange, bis du klickst.
+- Soll der Mac nicht einschlafen, klickst du auf die Kaffeetasse. Für eine bis vier Stunden, bis du wieder ausschaltest, oder nach Zeitplan, etwa Montag bis Freitag von 9 bis 18 Uhr. Und wenn Teams oder Slack dich nicht auf „abwesend“ setzen sollen: Hast du vier Minuten nichts angefasst, rückt der Zeiger einen Punkt zur Seite und gleich wieder zurück.
 - Vor einem Anruf kurz in den Spiegel schauen: Das Kamera-Symbol in der großen Insel zeigt dein Bild.
   Die Kamera ist aus, sobald die Insel zuklappt.
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer

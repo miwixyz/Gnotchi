@@ -2,7 +2,9 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.21.0] — 2026-11-06
+
+Die Musik steht jetzt auch auf dem Sperrbildschirm, der Mac bleibt auf Wunsch wach, und der Timer hat eine neue Auswahl. 0.20.0 ist nicht einzeln erschienen.
 
 ### Neu
 - **Musik auf dem Sperrbildschirm.** Auf Wunsch zeigt Gnotchi bei gesperrtem Mac eine kleine Karte mit Cover, Titel, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter, mittig zwischen Uhr und Anmeldung. Ein Klick aufs Cover zeigt es groß. Einschalten unter Einstellungen → Wiedergabe (ab Werk aus). Mit „Titel verbergen“ bleiben nur die Knöpfe.

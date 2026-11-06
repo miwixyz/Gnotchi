@@ -39,6 +39,9 @@ Freigabe nicht und fragt nie danach.
 - **Plattenspieler (0.17, ab Werk aus):** dieselbe Anzeige als drehender Plattenspieler mittig auf einem wählbaren
   Bildschirm, Tonarm wandert mit dem Titel, Farbverlauf aus dem Cover unter den Schreibtisch-Symbolen, optional
   Neonschrift „Now Playing“ und Start/Pause über den Start/Stopp-Knopf am Gerät. Gezeichnet aus KI-Fotos (Ebenen, gemessene Perspektive).
+- **Sperrbildschirm (0.21, ab Werk aus):** Cover, Titel, Fortschritt und Zurück/Wiedergabe/Weiter bei gesperrtem Mac,
+  zwischen Uhr und Anmeldung; Klick aufs Cover zeigt es groß. „Titel verbergen“ lässt nur die Knöpfe stehen. Nutzt eine
+  nicht offizielle Fensterebene von macOS, ohne Freigabe ([G46](docs/SECURE-DESIGN.md)).
 - **Shuffle (0.17):** bei Spotify und Musik in der großen Insel und am Plattenspieler, per AppleScript nur auf Klick
   ([G7](docs/SECURE-DESIGN.md)). Ein Favoriten-Herz fehlt noch (Musik ignoriert den Befehl bei Apple-Music-Titeln,
   Spotify erlaubt ihn nicht).
@@ -55,7 +58,11 @@ Freigabe nicht und fragt nie danach.
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
   die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute. **Ab 0.19**
-  steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“).
+  steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“). **Ab 0.21** hat
+  die große Insel eine neue Auswahl: Namensfeld mit Start, Lineal zum Ziehen, 1m bis 1h.
+- **Wach bleiben (0.21):** Kaffeetasse in der großen Insel. Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis aus
+  oder nach Zeitplan (Tage, von–bis). Optional bleibt der Status in Teams/Slack „aktiv“: Nach 4 Minuten ohne Eingabe
+  bewegt das Hilfsprogramm „Gnotchi Mitteilungen“ den Zeiger um einen Punkt hin und zurück ([G47](docs/SECURE-DESIGN.md)).
 - **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die
   Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Mitteilungen und Anrufe (0.6):** Mitteilungen ausgewählter Apps erscheinen in der Notch statt oben rechts,

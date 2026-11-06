@@ -93,7 +93,7 @@ Ecke, Größe und Verschieben gelten nur für die Karte.
 
 ## Musik auf dem Sperrbildschirm
 
-Ab 0.20 zeigt Gnotchi auf Wunsch die laufende Musik auch bei gesperrtem Mac: eine kleine Karte mit Cover, Titel, Interpret, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter. Sie steht mittig zwischen der Uhr und der Anmeldung. Ein Klick aufs Cover zeigt es groß, ein zweiter Klick oder 30 Sekunden ohne Bedienung bringen die kleine Karte zurück. Die Karte ist da, solange Musik spielt oder pausiert, und verschwindet nach 10 Minuten Pause. Sobald du entsperrst, ist sie weg.
+Ab 0.21 zeigt Gnotchi auf Wunsch die laufende Musik auch bei gesperrtem Mac: eine kleine Karte mit Cover, Titel, Interpret, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter. Sie steht mittig zwischen der Uhr und der Anmeldung. Ein Klick aufs Cover zeigt es groß, ein zweiter Klick oder 30 Sekunden ohne Bedienung bringen die kleine Karte zurück. Die Karte ist da, solange Musik spielt oder pausiert, und verschwindet nach 10 Minuten Pause. Sobald du entsperrst, ist sie weg.
 
 Einschalten unter Einstellungen → Wiedergabe → „Auf dem Sperrbildschirm zeigen“ (ab Werk aus). **Achtung:** Jeder, der vor deinem gesperrten Mac sitzt, sieht dann, was läuft, und kann die Wiedergabe steuern. Mehr geht nicht: Die Karte öffnet keine App, kein Menü und nimmt keine Eingabe an. Mit „Titel verbergen“ zeigt sie nur eine Musiknote und die Knöpfe, kein Cover, keinen Text.
 
