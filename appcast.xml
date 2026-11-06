@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.21.0</title>
-            <pubDate>Fri, 06 Nov 2026 17:59:05 +0100</pubDate>
+            <title>0.22.0</title>
+            <pubDate>Fri, 06 Nov 2026 20:15:25 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>193</sparkle:version>
-            <sparkle:shortVersionString>0.21.0</sparkle:shortVersionString>
+            <sparkle:version>196</sparkle:version>
+            <sparkle:shortVersionString>0.22.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><p>Die Musik steht jetzt auch auf dem Sperrbildschirm, der Mac bleibt auf Wunsch wach, und der Timer hat eine neue Auswahl. 0.20.0 ist nicht einzeln erschienen.</p><h3>Neu</h3><ul><li><b>Musik auf dem Sperrbildschirm.</b> Auf Wunsch zeigt Gnotchi bei gesperrtem Mac eine kleine Karte mit Cover, Titel, Fortschritt und den Knöpfen Zurück, Wiedergabe/Pause und Weiter, mittig zwischen Uhr und Anmeldung. Ein Klick aufs Cover zeigt es groß. Einschalten unter Einstellungen → Wiedergabe (ab Werk aus). Mit „Titel verbergen“ bleiben nur die Knöpfe.</li><li><b>Wach bleiben.</b> Neues Kaffeetassen-Symbol in der großen Insel: Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis du ausschaltest oder nach Zeitplan (Wochentage, von–bis, ab Werk Mo–Fr 9–18 Uhr). Auf Wunsch hält Gnotchi deinen Status in Teams oder Slack auf „aktiv“: Hast du 4 Minuten nichts eingegeben, bewegt sich der Zeiger um einen Punkt hin und zurück, höchstens einmal pro Minute. Dafür braucht es das Hilfsprogramm „Gnotchi Mitteilungen“ mit seiner Freigabe. Gnotchi startet es auch dann, wenn „Mitteilungen“ aus ist, liest dann aber keine Mitteilungen.</li></ul><h3>Geändert</h3><ul><li><b>Neue Timer-Auswahl.</b> In der großen Insel stehen jetzt ein Namensfeld mit Start, „− 25 min +“ mit einem Lineal zum Ziehen und die Voreinstellungen 1m, 5m, 10m, 25m, 45m und 1h. Die Insel wird dafür höher.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.21.0/Gnotchi-0.21.0.zip" length="7479363" type="application/octet-stream" sparkle:edSignature="yDuxbiKmXKCZHMKjZQi79NfIeXDhYmpARuCxdunJWSK8Xo24CAoxq4Umxbp44SnS1TSZtOr5XjjGHBozmA7BBg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Die große Insel schwebt.</b> Sie hängt nicht mehr an Notch oder Pille, sondern schwebt 8 Punkte darunter in durchscheinendem Glas mit runden Ecken und Schatten. Die kleine Insel bleibt dabei an der Notch stehen. Alle großen Ansichten sind jetzt gleich breit (600 Punkte), die Timer-Auswahl ist dadurch niedriger. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.</li><li><b>Verschieben.</b> Zieh die große Insel an einer freien Stelle, wohin du willst. Gnotchi merkt sich die Stelle für alle Bildschirme. Doppelklick auf eine freie Stelle oder Rechtsklick → „Insel zurücksetzen“ holt sie zurück, nah an der alten Stelle rastet sie ein.</li><li><b>Schließen.</b> Weiter durch Wegfahren mit der Maus, dabei zählt der Weg von der kleinen Insel hinüber mit, und nach dem Aufgehen bleiben 1,5 Sekunden, um sie zu erreichen. Neu: Ein Klick daneben schließt sie sofort, Esc im Namensfeld der Timer-Auswahl auch. Die Stecknadel hält sie weiter offen.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.22.0/Gnotchi-0.22.0.zip" length="7504464" type="application/octet-stream" sparkle:edSignature="XMbvA6enEdGHlfcMjzbGVfSr7CIYVAawL/ARkMHiGFglePthKDYi8wpLcqFU70pb4q4DmAATks5B0Q/IUHqOAg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: xHCgo2euac/Ieq1BqH8SM+zVFppaVqr423YrqjCSxaLb6diiJo1PafVCCMRn+RfBt2ZjTbvrdvsEoc+1bTvtDQ==
-length: 2598
+edSignature: lnVbQt2gMpSykEfxL3NdkL4ISVPMbUyOcBljd/YbMBILypbTt5YK9pkvNOKFxCz44h9dilOnuOqnm3Wt9BThAw==
+length: 2220
 -->
