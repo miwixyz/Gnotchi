@@ -28,14 +28,15 @@ struct MenuContent: View {
             ForEach(CountdownTimer.choices, id: \.self) { m in
                 Button { model.activity.startTimer(minutes: m) } label: { Text(verbatim: "\(m) Minuten") }
             }
-            Button("Eigene Zeit …") { askCustomTimer() }
+            Button("Eigene Zeit oder Name …") { askCustomTimer() }
             Picker("Ton", selection: Binding(get: { model.prefs.timerSound },
                                              set: { model.prefs.timerSound = $0; CountdownTimer.play($0) })) {
                 Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)
                 ForEach(CountdownTimer.sounds, id: \.self) { Text(verbatim: $0).tag($0) }
             }
-            if model.activity.timer != nil {
+            if let t = model.activity.timer {
                 Divider()
+                if let name = t.name { Text(verbatim: "Läuft: \(name)") }
                 Button("Timer stoppen") { model.activity.stopTimer() }
             }
         }
@@ -55,10 +56,18 @@ struct MenuContent: View {
         let last = CountdownTimer.clampCustom(UserDefaults.standard.object(forKey: CountdownTimer.customKey) as? Int ?? 30)
         let alert = NSAlert()
         alert.messageText = "Timer mit eigener Zeit"
-        alert.informativeText = "Minuten (1 bis 180):"
+        alert.informativeText = "Minuten (1 bis 180) und optional ein Name:"
         let field = NSTextField(string: "\(last)")
-        field.frame = NSRect(x: 0, y: 0, width: 80, height: 24)
-        alert.accessoryView = field
+        field.frame = NSRect(x: 0, y: 30, width: 80, height: 24)
+        // Name optional (Michael 06.11.), z. B. „Tee“ – erscheint in der Insel und beim Ablauf.
+        let nameField = NSTextField(string: "")
+        nameField.placeholderString = "Name (optional)"
+        nameField.frame = NSRect(x: 0, y: 0, width: 220, height: 24)
+        let box = NSView(frame: NSRect(x: 0, y: 0, width: 220, height: 54))
+        box.addSubview(field)
+        box.addSubview(nameField)
+        field.nextKeyView = nameField
+        alert.accessoryView = box
         alert.addButton(withTitle: "Starten")
         alert.addButton(withTitle: "Abbrechen")
         alert.window.initialFirstResponder = field
@@ -66,7 +75,7 @@ struct MenuContent: View {
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         guard let minutes = CountdownTimer.parseCustom(field.stringValue) else { return NSSound.beep() }
         UserDefaults.standard.set(minutes, forKey: CountdownTimer.customKey)
-        model.activity.startTimer(minutes: minutes)
+        model.activity.startTimer(minutes: minutes, name: nameField.stringValue)
     }
 
     /// Meldet zugleich `openWindow` an AppModel (falls das Menüleisten-Symbol es nicht schon getan hat).

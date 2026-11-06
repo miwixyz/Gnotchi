@@ -23,6 +23,41 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertEqual(t.remaining(now: t0.addingTimeInterval(560)), 180)
     }
 
+    func testNameIsOptionalCleanedAndLimited() {
+        XCTAssertNil(CountdownTimer(minutes: 5, now: t0).name)
+        XCTAssertNil(CountdownTimer(minutes: 5, name: "   ", now: t0).name, "leer → ohne Namen")
+        XCTAssertEqual(CountdownTimer(minutes: 5, name: "  Tee ", now: t0).name, "Tee")
+        XCTAssertEqual(CountdownTimer(minutes: 5, name: "Tee\nkochen", now: t0).name, "Tee kochen", "kein Umbruch")
+        XCTAssertEqual(CountdownTimer(minutes: 5, name: String(repeating: "x", count: 99), now: t0).name?.count,
+                       CountdownTimer.nameLimit)
+    }
+
+    func testCardSubtitleShowsName() {
+        var t = CountdownTimer(minutes: 5, name: "Tee", now: t0)
+        XCTAssertEqual(TimerCard.subtitle(t), "Tee · von 5 Min")
+        t.pause(now: t0)
+        XCTAssertEqual(TimerCard.subtitle(t), "Tee · pausiert · von 5 Min")
+        XCTAssertEqual(TimerCard.subtitle(CountdownTimer(minutes: 25, now: t0)), "von 25 Min")
+    }
+
+    func testMenuBarText() {
+        var t = CountdownTimer(minutes: 5, now: t0)
+        XCTAssertEqual(ActivityModel.menuBarText(t, now: t0.addingTimeInterval(1)), "4:59")
+        t.pause(now: t0.addingTimeInterval(1))
+        XCTAssertEqual(ActivityModel.menuBarText(t, now: t0.addingTimeInterval(99)), "‖ 4:59")
+    }
+
+    func testMenuBarClockFollowsTimer() {
+        let m = ActivityModel(media: NowPlayingModel())
+        XCTAssertNil(m.menuBarClock)
+        m.startTimer(minutes: 5, name: "Tee")
+        XCTAssertEqual(m.menuBarClock, "5:00")
+        m.pauseTimer()
+        XCTAssertEqual(m.menuBarClock?.hasPrefix("‖ "), true)
+        m.stopTimer()
+        XCTAssertNil(m.menuBarClock, "ohne Timer nur das Symbol")
+    }
+
     func testClock() {
         XCTAssertEqual(CountdownTimer.clock(1500), "25:00")
         XCTAssertEqual(CountdownTimer.clock(59.2), "1:00", "aufgerundet: 0:00 erst beim Ablauf")

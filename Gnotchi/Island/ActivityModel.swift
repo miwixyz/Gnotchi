@@ -92,6 +92,12 @@ final class ActivityModel {
     @ObservationIgnored var timerTask: Task<Void, Never>?
     /// Abgelaufener Timer: Insel pulsiert, bis man klickt (Michael 21.10.: „Töne zu kurz, man überhört es“).
     var timerAlarm = false
+    /// Name des abgelaufenen Timers für die Alarm-Karte (nil = ohne Namen).
+    var alarmName: String?
+    /// Restzeit-Text neben dem Menüleisten-Symbol (nil = kein Timer). Wird nur bei echter Änderung gesetzt:
+    /// Eine `TimelineView` im `MenuBarExtra`-Label lief 06.11. in eine Endlosschleife (Hauptthread 99 %).
+    var menuBarClock: String?
+    @ObservationIgnored var menuBarClockTask: Task<Void, Never>?
     /// Schalter „Timer-Ablauf bis Klick anzeigen“; aus = kurzer Hinweis + ein Ton wie zuvor.
     var timerAlarmEnabled = true
     @ObservationIgnored var alarmSoundTask: Task<Void, Never>?

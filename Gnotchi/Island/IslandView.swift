@@ -494,7 +494,9 @@ extension IslandView {
                     TimelineView(.periodic(from: .now, by: 1)) { ctx in
                         OverlayCard(symbol: t.isPaused ? "pause.fill" : "timer", tint: .orange,
                                     title: CountdownTimer.clock(t.remaining(now: ctx.date)),
-                                    subtitle: t.isPaused ? "pausiert – zum Fortsetzen klicken" : "zum Pausieren klicken",
+                                    subtitle: [t.name, t.isPaused ? "pausiert – zum Fortsetzen klicken"
+                                                                  : "zum Pausieren klicken"].compactMap { $0 }
+                                                  .joined(separator: " · "),
                                     onTap: { t.isPaused ? activity.resumeTimer() : activity.pauseTimer() })
                     }
                 }
@@ -553,7 +555,7 @@ extension IslandView {
                     .padding(.top, top).transition(.opacity)
             }
         case .alarm:
-            AlarmCard { activity.dismissTimerAlarm() }.padding(.top, top).transition(.opacity)
+            AlarmCard(name: activity.alarmName) { activity.dismissTimerAlarm() }.padding(.top, top).transition(.opacity)
         case .timerPicker:
             TimerPicker { activity.startTimer(minutes: $0) }.padding(.top, top).transition(.opacity)
         case .mirror:

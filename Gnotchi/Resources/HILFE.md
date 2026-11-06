@@ -164,7 +164,9 @@ aus Kalli anzeigen“.
 
 ## Timer
 
-Menüleisten-Symbol → **Timer** → 5, 10, 15 oder 25 Minuten oder **Eigene Zeit …** (1 bis 180 Minuten).
+Menüleisten-Symbol → **Timer** → 5, 10, 15 oder 25 Minuten oder **Eigene Zeit oder Name …** (1 bis 180 Minuten,
+dazu auf Wunsch ein Name wie „Tee“, höchstens 30 Zeichen). Der Name steht in der Insel und beim Ablauf. Solange
+ein Timer läuft, steht die Restzeit neben dem Menüleisten-Symbol, pausiert mit „‖“ davor.
 Oder in der großen Insel auf das Timer-Symbol klicken: Dort stehen dieselben Zeiten und **− 30 +** für eine
 eigene Zeit. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
 neuer ersetzt den alten.

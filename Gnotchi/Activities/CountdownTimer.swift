@@ -65,14 +65,27 @@ struct CountdownTimer: Equatable, Sendable {
         return m
     }
 
+    /// Optionaler Name (Michael 06.11.), z. B. „Tee“. Nil = ohne Namen.
+    nonisolated static let nameLimit = 30
+
+    /// Eingabe → Name: Zeilenumbrüche und Steuerzeichen raus, getrimmt, höchstens `nameLimit` Zeichen; leer → nil.
+    nonisolated static func cleanName(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let flat = String(text.unicodeScalars.map { CharacterSet.controlCharacters.contains($0) ? " " : Character($0) })
+        let trimmed = flat.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : String(trimmed.prefix(nameLimit))
+    }
+
     let duration: TimeInterval
+    let name: String?
     /// Läuft: Ende. Pausiert: nil.
     private(set) var endsAt: Date?
     /// Pausiert: verbleibende Zeit. Läuft: nil.
     private(set) var pausedRemaining: TimeInterval?
 
-    init(minutes: Int, now: Date) {
+    init(minutes: Int, name: String? = nil, now: Date) {
         duration = TimeInterval(minutes * 60)
+        self.name = Self.cleanName(name)
         endsAt = now.addingTimeInterval(duration)
     }
 
@@ -114,9 +127,9 @@ extension ActivityModel {
     private static var timerLog: Logger { Logger(subsystem: "dev.mwlr.gnotchi", category: "timer") }
 
     /// Startet einen Timer (ersetzt einen laufenden) und zeigt ihn groß, falls die Insel offen ist.
-    func startTimer(minutes: Int) {
+    func startTimer(minutes: Int, name: String? = nil) {
         dismissTimerAlarm()
-        timer = CountdownTimer(minutes: minutes, now: Date())
+        timer = CountdownTimer(minutes: minutes, name: name, now: Date())
         timerPickerActive = false
         mirrorActive = false
         rotationCursor = .timer
@@ -138,6 +151,7 @@ extension ActivityModel {
         timer = nil
         timerTask?.cancel()
         timerTask = nil
+        scheduleMenuBarClock()
     }
 
     /// Klick auf das Timer-Symbol in der Leiste, solange keiner läuft: Auswahl groß zeigen.
@@ -149,7 +163,37 @@ extension ActivityModel {
         clipboardActive = false
     }
 
+    /// „12:34“, pausiert „‖ 12:34“.
+    nonisolated static func menuBarText(_ t: CountdownTimer, now: Date) -> String {
+        (t.isPaused ? "‖ " : "") + CountdownTimer.clock(t.remaining(now: now))
+    }
+
+    /// Setzt `menuBarClock` nur bei Änderung (jedes Setzen zeichnet das Menüleisten-Symbol neu).
+    func refreshMenuBarClock(now: Date = Date()) {
+        let text = timer.map { Self.menuBarText($0, now: now) }
+        if menuBarClock != text { menuBarClock = text }
+    }
+
+    /// Takt fürs Menüleisten-Symbol: läuft nur, solange ein Timer läuft (nicht pausiert), weckt zur vollen Sekunde.
+    private func scheduleMenuBarClock() {
+        menuBarClockTask?.cancel()
+        menuBarClockTask = nil
+        refreshMenuBarClock()
+        guard let t = timer, !t.isPaused else { return }
+        menuBarClockTask = Task { [weak self] in
+            while !Task.isCancelled {
+                let left = self?.timer?.remaining(now: Date()) ?? 0
+                let frac = left - left.rounded(.down)
+                try? await Task.sleep(for: .seconds(frac > 0.001 ? frac : 1))
+                guard !Task.isCancelled, let self else { return }
+                self.refreshMenuBarClock()
+                if self.timer == nil { return }
+            }
+        }
+    }
+
     private func scheduleTimerEnd() {
+        scheduleMenuBarClock()
         timerTask?.cancel()
         timerTask = nil
         guard let t = timer, !t.isPaused else { return }
@@ -166,10 +210,14 @@ extension ActivityModel {
         guard let t = timer else { return }
         timer = nil
         timerTask = nil
+        scheduleMenuBarClock()
         Self.timerLog.notice("Timer abgelaufen")
+        alarmName = t.name
         let sound = CountdownTimer.validSound(UserDefaults.standard.object(forKey: Preferences.Key.timerSound))
         guard timerAlarmEnabled else {
-            post(Notice(symbol: "timer", title: "Timer abgelaufen", subtitle: "\(Int(t.duration / 60)) Minuten sind um"))
+            post(Notice(symbol: "timer", title: t.name ?? "Timer abgelaufen",
+                        subtitle: t.name == nil ? "\(Int(t.duration / 60)) Minuten sind um"
+                                                : "Timer abgelaufen · \(Int(t.duration / 60)) Min"))
             return CountdownTimer.play(sound)
         }
         timerAlarm = true

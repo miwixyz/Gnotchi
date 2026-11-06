@@ -359,10 +359,12 @@ struct AlarmPulse: View {
 
 /// Abgelaufener Timer, groß: pulsierender Rahmen, „OK“ beendet.
 struct AlarmCard: View {
+    var name: String? = nil
     let onDismiss: () -> Void
 
     var body: some View {
-        ActivityCard(title: "Timer abgelaufen", subtitle: "Zum Beenden klicken", action: "OK", onTap: onDismiss,
+        ActivityCard(title: name ?? "Timer abgelaufen",
+                     subtitle: name == nil ? "Zum Beenden klicken" : "Timer abgelaufen · zum Beenden klicken", action: "OK", onTap: onDismiss,
                      leading: {
             Image(systemName: "timer").font(.system(size: 28, weight: .bold)).foregroundStyle(.white)
                 .frame(width: 44, height: 44).background(Circle().fill(Color.orange.opacity(0.9)))
@@ -385,9 +387,8 @@ struct TimerCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: CountdownTimer.clock(timer.remaining(now: context.date)))
                         .font(.system(size: 28, weight: .semibold).monospacedDigit()).foregroundStyle(.white)
-                    Text(verbatim: timer.isPaused ? "pausiert · von \(Int(timer.duration / 60)) Min"
-                                                  : "von \(Int(timer.duration / 60)) Min")
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
+                    Text(verbatim: TimerCard.subtitle(timer))
+                        .font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.tail)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 roundButton(timer.isPaused ? "play.fill" : "pause.fill", label: timer.isPaused ? "Weiter" : "Pause",
@@ -397,6 +398,12 @@ struct TimerCard: View {
             .padding(.horizontal, 16)
             .frame(height: IslandGeometry.expandedSize.height - 12)
         }
+    }
+
+    /// „Tee · pausiert · von 5 Min“ – Name nur, wenn vergeben.
+    static func subtitle(_ t: CountdownTimer) -> String {
+        ([t.name, t.isPaused ? "pausiert" : nil].compactMap { $0 } + ["von \(Int(t.duration / 60)) Min"])
+            .joined(separator: " · ")
     }
 
     private func roundButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {

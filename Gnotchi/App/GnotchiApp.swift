@@ -43,8 +43,21 @@ private struct MenuBarLabel: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Image(nsImage: MenuBarGlyph.image)
-            .accessibilityLabel("Gnotchi")
-            .onAppear { model.registerWindowOpener { openWindow(id: $0) } }
+        // Restzeit neben dem Symbol, solange ein Timer läuft oder pausiert (Michael 06.11.). Bewusst ohne
+        // `TimelineView`: im MenuBarExtra-Label erzeugte sie eine Endlosschleife (06.11., Hauptthread 99 %).
+        // Der Text kommt fertig aus dem Modell und ändert sich höchstens einmal pro Sekunde.
+        Group {
+            if let clock = model.activity.menuBarClock {
+                HStack(spacing: 4) {
+                    Image(nsImage: MenuBarGlyph.image)
+                    Text(verbatim: clock).monospacedDigit()
+                }
+                .accessibilityLabel(Text(verbatim: "Gnotchi, Timer \(clock)"))
+            } else {
+                Image(nsImage: MenuBarGlyph.image)
+                    .accessibilityLabel("Gnotchi")
+            }
+        }
+        .onAppear { model.registerWindowOpener { openWindow(id: $0) } }
     }
 }
