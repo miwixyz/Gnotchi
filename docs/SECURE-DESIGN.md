@@ -1172,6 +1172,21 @@ nur aus Klicks (G29, G30).
   Hilfsprogramm erst nach Filter mit `notes: true`, Schema strikt), `rafter secrets .` ohne Fund. `rafter run` Scan `000555d1` auf
   `05f93e2` (06.11., vom Guthaben): keine Funde.
 
+### G48 – Schwebende große Insel: Mauslage statt Ereignis-Mithörer (neu, 2026-11-06, 0.22.0)
+- **Was:** Die große Insel schwebt im eigenen Panel, verschiebbar (Spec
+  `specs/2026-11-06-gnotchi-0.22.0-abgekoppelte-insel.md`). Gespeichert wird nur der Versatz (zwei Zahlen,
+  `islandOffsetX/Y`, auf ±20 000 pt und endliche Werte geprüft, sonst Grundlage).
+- **Klick daneben ohne Mithörer:** `NSEvent.addGlobalMonitorForEvents` bräuchte keine Freigabe, widerspricht aber G1
+  (Lint `keine_bedienungshilfen`). Stattdessen fragt die Zuklapp-Schleife alle 50 ms `NSEvent.mouseLocation` und
+  `NSEvent.pressedMouseButtons` ab – dieselben Klassenwerte, die das Zuklappen seit 0.1 beim Ziehen über den Rand nutzt –
+  und **nur**, solange die Maus die Insel verlassen hat und groß offen ist. Gelesen wird nur „gedrückt ja/nein“ und die
+  Lage, nie Tasten, nie Ziel-App, nichts gespeichert oder protokolliert.
+- **Esc nur mit Fokus** (Michael 06.11.): `IslandPanel.cancelOperation`, kommt nur an, wenn die Insel den Fokus hat
+  (Namensfeld der Timer-Auswahl, G47). Kein Tasten-Mithörer, keine Eingabeüberwachung.
+- **STRIDE:** S – · T kaputter Versatz in den Einstellungen → geprüft, Rückfall Grundlage · R – · I keine neuen Daten ·
+  D Schleife läuft nur außerhalb der Insel bei offener Insel, endet beim Zuklappen oder Wiedereintritt · E keine neue
+  Freigabe, kein neuer Prozess, kein Netz.
+
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
 | | Grenze | Bedrohung | Antwort |

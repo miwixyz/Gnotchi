@@ -19,24 +19,29 @@ final class IslandController {
     /// Zweite Prüfung, bevor der Hinweis erscheint (kurz aufblitzende Fenster lösen nichts aus).
     private static let competitorConfirmDelay: Duration = .milliseconds(1500)
 
-    private struct Entry {
+    /// 0.22.0: `big`/`bigState` = schwebende große Insel (IslandController+Detached); `panel` zeigt dann weiter klein.
+    struct Entry {
         let panel: NSPanel
         let state: IslandState
+        let big: IslandPanel
+        let bigState: IslandState
     }
 
-    private let activity: ActivityModel
+    // Intern statt privat (0.22.0): auch IslandController+Detached.swift greift zu.
+    let activity: ActivityModel
     /// Musik: Hinweis auf eine zweite Notch-App und „Insel gezeigt“ gehören zum Wiedergabe-Modell.
     private var model: NowPlayingModel { activity.media }
-    private var panels: [CGDirectDisplayID: Entry] = [:]
+    var panels: [CGDirectDisplayID: Entry] = [:]
+    var detached = DetachedRuntime()
     /// Getrennt nach Zentrum: Ein Token lässt sich nur dort abmelden, wo es angemeldet wurde.
     private var appObservers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
     /// Je Bildschirm: Sonst bräche das Aufgehen auf Bildschirm B das Zuklappen auf A ab.
-    private var collapseTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
+    var collapseTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
     /// Je Bildschirm: Aufklappen erst nach der gewählten Verzögerung (Preferences.expandDelay).
     private var expandTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
     /// Je Bildschirm: Ist die Maus gerade über der Insel? Gilt nach Ablauf der Verzögerung.
-    private var pointerInside: [CGDirectDisplayID: Bool] = [:]
+    var pointerInside: [CGDirectDisplayID: Bool] = [:]
     /// Je Bildschirm: Aus dem Band aufgeklappt, Maus steht danach außerhalb der (schmaleren) Insel. Das erste „raus“
     /// kommt dann vom Verkleinern, nicht von der Maus – einmal länger warten (0.15.1, Bildschirmvideo 26.10.).
     private var shrankAwayFromPointer: Set<CGDirectDisplayID> = []
@@ -45,11 +50,11 @@ final class IslandController {
     /// Öffnet ein App-Fenster (Einstellungen, Hilfe) über AppModel – das Panel hat kein eigenes `openWindow`.
     private let openWindow: @MainActor (String) -> Void
     /// Klick auf ein Update (0.4.0): AppModel öffnet die echte App bzw. Sparkle (G24).
-    private let openUpdate: @MainActor (FamilyApp) -> Void
+    let openUpdate: @MainActor (FamilyApp) -> Void
     /// Klick auf den Termin (0.5.0): Apple Kalender öffnen.
-    private let openEvent: @MainActor () -> Void
+    let openEvent: @MainActor () -> Void
     /// Bildschirme, auf denen gerade das Kontextmenü offen ist: Überfahren-Ereignisse dort ignorieren.
-    private var menuOpen: Set<CGDirectDisplayID> = []
+    var menuOpen: Set<CGDirectDisplayID> = []
     private var spaceRecheck: Task<Void, Never>?
     /// Läuft, solange ein gefundener Konkurrent auf die bestätigende zweite Prüfung wartet.
     private var competitorCheck: Task<Void, Never>?
@@ -61,8 +66,8 @@ final class IslandController {
     private var generation = 0
 
     /// Wie lange die Maus weg sein muss, bevor die Insel zuklappt, und wie lange die Animation läuft.
-    private static let collapseDelay: Duration = .milliseconds(300)
-    private static let animationTail: Duration = .milliseconds(350)
+    static let collapseDelay: Duration = .milliseconds(300)
+    static let animationTail: Duration = .milliseconds(350)
     /// Bildschirm-Änderungen kommen oft in Salven (Anstecken, Auflösung, Menüleiste ein/aus) – sammeln.
     private static let screenDebounceDelay: Duration = .milliseconds(300)
 
@@ -114,7 +119,7 @@ final class IslandController {
         workspaceObservers.removeAll()
         cancelTasks()
         activity.stopRotation()
-        panels.values.forEach { $0.panel.orderOut(nil) }
+        panels.values.forEach { $0.panel.orderOut(nil); $0.big.orderOut(nil) }
         panels.removeAll()
         model.setCompetingNotchApp(nil)
         model.setIslandShown(false)
@@ -254,11 +259,12 @@ final class IslandController {
     /// Bildschirme dazu/weg, Auflösung geändert: alle Panels neu, Maße frisch gemessen.
     private func rebuild(layouts: [CGDirectDisplayID: IslandGeometry.Layout] = currentLayouts()) {
         cancelTasks()
-        panels.values.forEach { $0.panel.orderOut(nil) }
+        panels.values.forEach { $0.panel.orderOut(nil); $0.big.orderOut(nil) }
         panels.removeAll()
         for (id, layout) in layouts {
-            let state = IslandState(layout: layout)
-            panels[id] = Entry(panel: makePanel(state: state, displayID: id), state: state)
+            let state = IslandState(layout: layout), bigState = IslandState(layout: DetachedIsland.base)
+            panels[id] = Entry(panel: makePanel(state: state, displayID: id), state: state,
+                               big: makeBigPanel(state: bigState, displayID: id), bigState: bigState)
         }
         refresh()
     }
@@ -334,6 +340,7 @@ final class IslandController {
                 entry.state.mode = .hidden
                 entry.panel.ignoresMouseEvents = true
                 entry.panel.orderOut(nil)
+                hideBig(id)
                 // Weggeblendet unter der Maus: SwiftUI meldet kein Verlassen mehr – sonst stünde der Takt für immer.
                 if pointerInside[id] == true {
                     pointerInside[id] = false
@@ -355,12 +362,11 @@ final class IslandController {
             if let f = frame(entry.state.mode, entry.state.layout) {
                 entry.panel.setFrame(f, display: true)
             }
-            // 0.21.0: Tastatur nur fürs Namensfeld der Timer-Auswahl – sonst nimmt die Insel nie den Fokus.
-            (entry.panel as? IslandPanel)?.allowsKey = entry.state.mode == .expanded && activity.bigContent == .timerPicker
             entry.panel.orderFrontRegardless()
+            syncBig(id)   // 0.22.0: groß schwebt im eigenen Panel; dort auch die Tastatur fürs Namensfeld (allowsKey)
             // Stecknadel gelöst, Maus schon weg: jetzt zuklappen wie beim Verlassen.
             if entry.state.mode == .expanded || entry.state.mode == .band, !activity.pinned, pointerInside[id] != true,
-               collapseTasks[id] == nil {
+               detached.inside[id] != true, collapseTasks[id] == nil {
                 hover(false, displayID: id)
             }
         }
@@ -415,27 +421,10 @@ final class IslandController {
             }
             return
         }
-        // Angeheftet (Stecknadel): bleibt offen, auch wenn die Maus weggeht.
-        guard !activity.pinned else { return }
-        collapseTasks[displayID] = Task { [weak self] in
-            try? await Task.sleep(for: Self.collapseDelay(shrankAwayFromPointer: shrank))
-            // Zieht man den Fortschrittsbalken über den Inselrand hinaus, nicht mitten im Ziehen zuklappen
-            // (das Ende des Ziehens und damit das Spulen ginge verloren) – erst nach dem Loslassen.
-            while !Task.isCancelled, NSEvent.pressedMouseButtons != 0 {
-                try? await Task.sleep(for: .milliseconds(100))
-            }
-            // Ist die Insel inzwischen weg, bleibt sie weg.
-            guard !Task.isCancelled, let self, let e = self.panels[displayID] else { return }
-            if e.state.mode == .expanded || e.state.mode == .band {
-                activity.endMirror()   // Spiegel nur, solange groß sichtbar (G27)
-                e.state.mode = .compact
-                try? await Task.sleep(for: Self.animationTail)   // Animation auslaufen lassen, dann Panel verkleinern
-            }
-            // Auch „klein, Panel noch groß“ verkleinern: Kurz wieder drüber während des Zuklappens und vor
-            // Ablauf der Aufklapp-Verzögerung wieder weg – sonst finge das große Panel Menüleisten-Klicks ab.
-            guard !Task.isCancelled, e.state.mode == .compact else { return }
-            e.panel.setFrame(e.state.layout.compact, display: true)
-        }
+        // Angeheftet (Stecknadel): bleibt offen, auch wenn die Maus weggeht. Über der schwebenden Insel: noch drin.
+        guard !activity.pinned, detached.inside[displayID] != true else { return }
+        // Zuklappen mit Lücke, Anlauf und Klick daneben (0.22.0): IslandController+Detached.
+        startCollapse(displayID, shrank: shrank)
     }
 
     /// Name, Bundle-ID, Bundle-Pfad und Art einer fremden App – nur über NSRunningApplication(PID) aus dem
@@ -471,6 +460,7 @@ extension IslandController {
         let target: IslandState.Mode = activity.bandStyle ? .band : .expanded
         if let f = frame(target, e.state.layout) { e.panel.setFrame(f, display: true) }
         e.state.mode = target
+        if target == .expanded { noteOpened(displayID); syncBig(displayID) }
     }
 
     /// Zeit, um nach dem Aufklappen aus dem Band vom Bandflügel in die Insel zu fahren.
@@ -487,15 +477,20 @@ extension IslandController {
             e.panel.setFrame(f, display: true)
         }
         e.state.mode = .expanded
+        noteOpened(displayID)
+        syncBig(displayID)
     }
 
     /// Kontextmenü (Einstellungen, Hilfe). Klappt die Insel nicht auf: Eine laufende Aufklapp-Verzögerung
     /// wird abgebrochen, die Insel bleibt, wie sie ist. `popUpContextMenu` kehrt erst nach dem Schließen
     /// zurück; Überfahren-Meldungen währenddessen werden ignoriert und danach an der Mauslage nachgeholt.
-    private func showContextMenu(_ event: NSEvent, in view: NSView, displayID: CGDirectDisplayID) {
+    func showContextMenu(_ event: NSEvent, in view: NSView, displayID: CGDirectDisplayID) {
         let menu = NSMenu()
         for item in Self.contextMenuItems {
             menu.addItem(ClosureMenuItem(title: item.title) { [weak self] in self?.openWindow(item.windowID) })
+        }
+        if DetachedIsland.offset() != .zero {   // 0.22.0: verschobene große Insel zurück unter Notch/Pille
+            menu.addItem(ClosureMenuItem(title: "Insel zurücksetzen") { [weak self] in self?.resetDetachedOffset() })
         }
         runMenu(displayID: displayID) { NSMenu.popUpContextMenu(menu, with: event, for: view) }
     }
@@ -513,14 +508,15 @@ extension IslandController {
         menuOpen.remove(displayID)
         let inside = entry.panel.frame.contains(NSEvent.mouseLocation)
         pointerInside[displayID] = inside
-        if !inside { hover(false, displayID: displayID) }
+        let overBig = entry.big.isVisible && entry.big.frame.contains(NSEvent.mouseLocation)
+        if !inside && !overBig { hover(false, displayID: displayID) }
     }
 }
 
 /// `acceptsFirstMouse` ist ab Werk false; vorsorglich gesetzt, damit die Tasten auf den ersten Klick
 /// reagieren, obwohl das Panel nie Key wird (Tippi-Muster). Rechtsklick und Ctrl-Klick gehen an
 /// `onContextClick` (Kontextmenü), nicht an SwiftUI – ein Ctrl-Klick auf eine Taste löst sie nicht aus.
-private final class ClickableHostingView<Content: View>: NSHostingView<Content> {
+final class ClickableHostingView<Content: View>: NSHostingView<Content> {
     var onContextClick: ((NSEvent, NSView) -> Void)?
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -562,11 +558,8 @@ extension IslandController {
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
         if mode == .message { return Self.messageFrame(layout: layout, note: activity.currentNote) }
-        guard mode == .expanded else { return Self.panelFrame(mode: mode, layout: layout) }
-        return Self.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
-                             weather: activity.bigContent == .weather, shelf: activity.bigContent == .shelf,
-                             strip: activity.showsShelfStrip, clipboard: activity.bigContent == .clipboard,
-                             tall: Self.tallHeight(activity.bigContent))
+        // 0.22.0: Groß schwebt im eigenen Panel (`detachedSize`, IslandController+Detached) – dieses bleibt klein.
+        return Self.panelFrame(mode: mode == .expanded ? .compact : mode, layout: layout)
     }
 }
 
@@ -578,6 +571,8 @@ extension IslandController {
         expandTasks.values.forEach { $0.cancel() }
         expandTasks.removeAll()
         pointerInside.removeAll()
+        detached.hideTasks.values.forEach { $0.cancel() }
+        detached = DetachedRuntime()
         activity.setRotationPaused(false)
         spaceRecheck?.cancel()
         spaceRecheck = nil

@@ -317,7 +317,8 @@ final class IslandViewRenderTests: XCTestCase {
                         shelfFiles: [String] = [], drag: Bool = false, showWeatherBig: Bool = true,
                         unread: [NotifyWire.Badge] = [], claude: [ClaudeWire.Message] = []) throws {
         let layout = IslandGeometry.layout(for: screen)
-        let state = IslandState(layout: layout)
+        // 0.22.0: Groß schwebt abgekoppelt im eigenen Panel – Bild der schwebenden Insel, ohne Notch-Streifen.
+        let state = IslandState(layout: mode == .expanded ? DetachedIsland.base : layout)
         state.mode = mode
         let model = NowPlayingModel()
         // Klein mit Pause: der Pegel steht, das Bild ist bei jedem Lauf gleich. Groß zeigt keinen Pegel;
@@ -351,12 +352,12 @@ final class IslandViewRenderTests: XCTestCase {
         let view = ZStack(alignment: .top) {
             // Mittelgrau statt Hintergrundbild: Form und Kanten sind so gut zu sehen.
             Color(white: 0.55)
-            IslandView(state: state, onHover: { _ in })
+            IslandView(state: state, onHover: { _ in }, detached: mode == .expanded)
                 .environment(model)
                 .environment(activity)
                 .frame(width: panel.width, height: panel.height)
             // Hardware-Notch als rote Haarlinie, um die Ausrichtung zu prüfen.
-            if let n = layout.notch {
+            if mode != .expanded, let n = layout.notch {
                 Rectangle().stroke(Color.red, lineWidth: 0.5).frame(width: n.width, height: n.height)
             }
         }
@@ -380,10 +381,9 @@ final class IslandViewRenderTests: XCTestCase {
         switch mode {
         case .message: panel = IslandController.messageFrame(layout: layout, note: activity.currentNote)
         case .expanded:
-            panel = IslandController.bigFrame(layout: layout, small: activity.bigContent == .privacy, chipRow: activity.showsChipRow,
-                                              mirror: activity.mirrorActive, weather: activity.bigContent == .weather,
-                                              shelf: activity.bigContent == .shelf,
-                                              strip: activity.showsShelfStrip) ?? layout.compact
+            let s = IslandController.detachedSize(activity)
+            panel = CGRect(origin: .zero, size: s).insetBy(dx: -DetachedIsland.pad, dy: -DetachedIsland.pad)
+            return (panel, CGSize(width: 680, height: panel.height))
         default: panel = IslandController.panelFrame(mode: mode, layout: layout) ?? layout.compact
         }
         let canvas = CGSize(width: mode == .band ? 1100 : (wide ? 680 : 520), height: wide ? 420 : 210)

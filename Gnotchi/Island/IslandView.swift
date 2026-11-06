@@ -17,10 +17,11 @@ final class IslandState {
     /// nicht mehr auf (Michael 22.10.: „Ich muss x-mal klicken“).
     var hoverEpoch = 0
     var layout: IslandGeometry.Layout
+    var anchor: UnitPoint = .top   // 0.22.0: Feder der schwebenden Insel kommt aus Richtung Pille
     init(layout: IslandGeometry.Layout) { self.layout = layout }
 }
 
-/// Die Insel. Tiefschwarz, oben bündig, unten weich gerundet – „seamless wie macOS“ (Michael 18.10.): Systemschrift (SF Pro), kein Rand, kein Schatten; Glas nur angeheftet und als ruhige Insel (0.16.0).
+/// Die Insel. Tiefschwarz, oben bündig, unten weich gerundet – „seamless wie macOS“ (Michael 18.10.): Systemschrift (SF Pro), kein Rand, kein Schatten; Glas als ruhige Insel (0.16.0). Groß schwebt ab 0.22.0 abgekoppelt in Glas (IslandView+Detached).
 /// Titel/Interpret kommen von beliebigen Websites → nur `Text(verbatim:)` (SECURE-DESIGN G5).
 struct IslandView: View {
     @Environment(NowPlayingModel.self) private var model
@@ -36,25 +37,28 @@ struct IslandView: View {
     var onOpenEvent: () -> Void = {}
     /// Klick auf das Band (0.5.0): volle Insel.
     var onExpandFull: () -> Void = {}
+    var detached = false   // 0.22.0: schwebende große Insel im eigenen Panel (IslandView+Detached)
+    var onDetached: (DetachedEvent) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 0) {
+            if detached { detachedIsland } else {
             ZStack(alignment: .top) {
                 let shape = UnevenRoundedRectangle(bottomLeadingRadius: corner, bottomTrailingRadius: corner,
                                                    style: .continuous)
-                if quiet || (activity.pinned && state.mode == .expanded) {
-                    // Angeheftet: durchscheinendes Glas statt Schwarz (Michael 21.10.: „weniger Deckung“). Ruhige Insel (0.16.0): klares Glas.
-                    shape.fill(.black.opacity(quiet ? 0 : 0.35)).familyGlass(in: shape)
+                if quiet {
+                    shape.fill(.clear).familyGlass(in: shape)   // Ruhige Insel (0.16.0): klares Glas
                 } else {
                     shape.fill(.black)
                 }
                 // Timer-Alarm klein: die ganze Insel pulsiert orange, in ihrer eigenen Form (0.5.0).
-                if activity.timerAlarm && state.mode == .compact { AlarmPulse().clipShape(shape) }
+                if activity.timerAlarm && shownMode == .compact { AlarmPulse().clipShape(shape) }
                 content
             }
             .frame(width: size.width, height: size.height)
             .onHover(perform: onHover)
             .id(state.hoverEpoch)
+            }
             Spacer(minLength: 0)
         }
         // Füllt das Panel (klein ODER groß); die Insel hängt oben mittig – beide Rechtecke teilen midX und Oberkante.
@@ -68,8 +72,8 @@ struct IslandView: View {
     private var pill: Bool { state.layout.notch == nil }
     private var quiet: Bool { pill && state.mode == .compact && activity.showsQuietIsland }   // 0.16.0, ActivityModel+Quiet
 
-    @ViewBuilder private var content: some View {
-        switch state.mode {
+    @ViewBuilder var content: some View {
+        switch shownMode {
         case .hidden: EmptyView()
         case .notice: if let n = activity.notice { notice(n) }
         case .live: if let rec = activity.recording { liveText(rec) }
@@ -619,19 +623,13 @@ extension IslandView {
 
 // Größe und Ecken je Zustand – ausgelagert, damit der Struct-Rumpf unter 350 Zeilen bleibt (0.8.0).
 extension IslandView {
-    fileprivate var size: CGSize {
-        switch state.mode {
+    var size: CGSize {
+        switch shownMode {
         case .hidden: state.layout.notch?.size ?? CGSize(width: IslandGeometry.pillSize.width, height: 0)
         case .compact: state.layout.compact.size
         case .wide: state.layout.wide.size
         case .band: state.layout.band.size
-        case .expanded:
-            IslandController.bigFrame(layout: state.layout, small: activity.bigContent == .privacy,
-                                      chipRow: activity.showsChipRow, mirror: activity.mirrorActive,
-                                      weather: activity.bigContent == .weather,
-                                      shelf: activity.bigContent == .shelf, strip: activity.showsShelfStrip,
-                                      clipboard: activity.bigContent == .clipboard,
-                                      tall: IslandController.tallHeight(activity.bigContent))?.size ?? state.layout.expanded.size
+        case .expanded: IslandController.detachedSize(activity)   // nur schwebend (0.22.0), dieselbe Rechnung wie das Panel
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
         case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
@@ -641,7 +639,7 @@ extension IslandView {
     }
 
     fileprivate var corner: CGFloat {
-        switch state.mode {
+        switch shownMode {
         case .expanded, .message: 22
         case .notice, .live, .call, .shelfDrop: 16
         case .hidden, .compact, .wide, .band: 10

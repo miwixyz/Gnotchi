@@ -53,7 +53,7 @@ enum IslandGeometry {
     static let shelfDropSize = CGSize(width: 460, height: 84)
     static let shelfHeight: CGFloat = 160
     /// 0.21.0: Timer-Auswahl (Name + Start, Lineal, Voreinstellungen) und „Wach bleiben“ (Michael 06.11.: „Insel wird höher“).
-    static let timerPickerHeight: CGFloat = 200
+    static let timerPickerHeight: CGFloat = 160   // 0.22.0: schwebend ohne Notch-Streifen, Testbild 06.11.: 200 ließ ~55 pt leer
     static let awakeHeight: CGFloat = 220
     /// Zwischenablage groß (0.11.0): eine Reihe Karten unter der Leiste.
     static let clipboardHeight: CGFloat = 190

@@ -153,4 +153,7 @@ final class IslandPanel: NSPanel {
     }
     override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
+    /// Esc (0.22.0): kommt nur an, solange die Insel den Fokus hat – kein Tasten-Mithörer (G1, Spezifikation Offen 1).
+    var onEscape: (() -> Void)?
+    override func cancelOperation(_ sender: Any?) { onEscape?() }
 }

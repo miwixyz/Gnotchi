@@ -48,9 +48,12 @@ Freigabe nicht und fragt nie danach.
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
-- **Eine Sache groß (0.5):** Groß steht immer nur eine Sache, 460 pt breit. Oben eine Leiste mit
+- **Eine Sache groß (0.5):** Groß steht immer nur eine Sache. Oben eine Leiste mit
   Symbolen für alles, was läuft; ein Klick zeigt diese Sache groß. Dazu Timer, Spiegel und eine
-  **Stecknadel**, die die Insel offen hält (dann durchscheinend). Auf Wunsch: **Wiedergabe immer
+  **Stecknadel**, die die Insel offen hält.
+- **Schwebende große Insel (0.22):** Groß schwebt 8 pt unter Notch bzw. Pille in Glas, 600 pt breit,
+  verschiebbar (Lage gemerkt, Doppelklick setzt zurück). Klick daneben schließt sie. Ohne Ereignis-Mithörer
+  ([G48](docs/SECURE-DESIGN.md)). Auf Wunsch: **Wiedergabe immer
   groß** (andere Sachen als Glas-Karte über dem Player), **Wiedergabe-Knöpfe in der kleinen Insel**
   und **Aufklappen als Band** (seitlich breit in Menüleisten-Höhe statt nach unten).
 - **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne diese Freigabe. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren. **Ab 0.15** zeigt die Leertaste eine große Vorschau der markierten Karte.

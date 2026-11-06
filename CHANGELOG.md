@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unreleased]
+
+### Geändert
+- **Die große Insel schwebt.** Sie hängt nicht mehr an Notch oder Pille, sondern schwebt 8 Punkte darunter in durchscheinendem Glas mit runden Ecken und Schatten. Die kleine Insel bleibt dabei an der Notch stehen. Alle großen Ansichten sind jetzt gleich breit (600 Punkte), die Timer-Auswahl ist dadurch niedriger. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.
+- **Verschieben.** Zieh die große Insel an einer freien Stelle, wohin du willst. Gnotchi merkt sich die Stelle für alle Bildschirme. Doppelklick auf eine freie Stelle oder Rechtsklick → „Insel zurücksetzen“ holt sie zurück, nah an der alten Stelle rastet sie ein.
+- **Schließen.** Weiter durch Wegfahren mit der Maus, dabei zählt der Weg von der kleinen Insel hinüber mit, und nach dem Aufgehen bleiben 1,5 Sekunden, um sie zu erreichen. Neu: Ein Klick daneben schließt sie sofort, Esc im Namensfeld der Timer-Auswahl auch. Die Stecknadel hält sie weiter offen.
+
+### Intern
+- Zweites Panel je Bildschirm für groß (`IslandController+Detached`, `IslandView+Detached`, Rechnungen in `DetachedIsland`, 8 Tests). Fenster und Inselform rechnen mit derselben Funktion `IslandController.detachedSize`. Lage als Versatz `islandOffsetX/Y` in den Einstellungen. Die Lücke zwischen den Panels und „Klick daneben“ prüft eine Schleife über `NSEvent.mouseLocation` und `pressedMouseButtons`, nur solange die Maus außerhalb der Insel ist. Kein Ereignis-Mithörer, keine neue Freigabe. SECURE-DESIGN G48.
+
 ## [0.21.0] — 2026-11-06
 
 Die Musik steht jetzt auch auf dem Sperrbildschirm, der Mac bleibt auf Wunsch wach, und der Timer hat eine neue Auswahl. 0.20.0 ist nicht einzeln erschienen.

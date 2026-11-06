@@ -20,8 +20,9 @@ ein Update bereitliegt. In der großen Insel wählst du, wo der Ton herauskommt.
 **Klein:** Läuft etwas, zeigt die Insel links neben der Notch das Cover und rechts einen kleinen
 Pegel. Der Pegel ist nur eine Animation, Gnotchi misst dafür keinen Ton.
 
-**Groß:** Bleib mit der Maus auf der kleinen Insel, dann geht sie auf. Du siehst Cover, App, Titel,
-Interpret, die Tasten und den Fortschritt. Fährst du wieder weg, wird sie klein.
+**Groß:** Bleib mit der Maus auf der kleinen Insel, dann geht die große Insel auf. Sie schwebt ab 0.22
+knapp unter der Notch bzw. Pille, die kleine Insel bleibt dabei stehen. Du siehst Cover, App, Titel,
+Interpret, die Tasten und den Fortschritt. Fährst du wieder weg, schließt sie sich.
 
 Wie lange du darauf bleiben musst, stellst du unter „Aufklappen nach“ ein. Ab Werk sind es
 0,6 Sekunden, damit ein flüchtiges Überfahren nichts auslöst. Hältst du die Maustaste gedrückt,
@@ -158,7 +159,10 @@ gerade klein zu sehen ist. Oben steht eine Leiste mit kleinen Symbolen für alle
 Termin, Timer, Kopfhörer, Updates). Ein Klick auf ein Symbol zeigt diese Sache groß. Rechts in der Leiste
 stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofon und Kamera.
 
-- **Stecknadel:** Die Insel bleibt offen, auch wenn die Maus weggeht, und wird durchscheinend. Ein zweiter Klick löst sie wieder.
+- **Schwebend (ab 0.22):** Die große Insel hängt nicht mehr an der Notch, sondern schwebt mit kleinem Abstand darunter, in durchscheinendem Glas und für alle Ansichten gleich breit. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.
+- **Schließen:** Fährst du mit der Maus weg, schließt sie sich. Der Weg von der kleinen Insel hinüber zählt mit, und nach dem Aufgehen hast du 1,5 Sekunden Zeit, sie zu erreichen. Ein Klick daneben schließt sie sofort. Esc schließt sie, wenn du gerade im Namensfeld der Timer-Auswahl tippst.
+- **Verschieben:** Zieh die große Insel an einer freien Stelle (nicht auf Knöpfen, Reglern oder Kacheln) dorthin, wo du sie haben willst. Gnotchi merkt sich die Stelle für alle Bildschirme. Wird eine Ansicht höher, wächst die Insel nach unten und bleibt im Bild. Zurück unter die Notch: Doppelklick auf eine freie Stelle, Rechtsklick → „Insel zurücksetzen“ oder nah an die alte Stelle ziehen, dort rastet sie ein.
+- **Stecknadel:** Die Insel bleibt offen, auch wenn die Maus weggeht oder du daneben klickst. Ein zweiter Klick löst sie wieder.
 - **Wiedergabe immer groß** (Einstellungen): Die Musik bleibt immer die große Ansicht. Ein Klick auf Termin, Timer oder Update legt diese Sache als Glas-Karte über Cover und Titel, die Knöpfe rechts bleiben frei.
 - **Wiedergabe-Knöpfe in der kleinen Insel** (Einstellungen): Pause/Wiedergabe und Weiter stehen dauerhaft in der kleinen Insel.
 - **Aufklappen als Band** (Einstellungen): Die Insel wird nicht nach unten groß, sondern seitlich zu einem Band in Menüleisten-Höhe. Links die Musik, rechts im Wechsel Wiedergabe, Termin und Timer. Ein Klick links öffnet die große Insel.
@@ -324,7 +328,7 @@ Gnotchi hat ein Symbol in der Menüleiste. Ein Klick darauf öffnet das Menü mi
 erreichst du Gnotchi über dieses Symbol.
 
 Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit „Einstellungen …“ und
-„Hilfe …“. Die Insel klappt dabei nicht auf.
+„Hilfe …“, bei verschobener großer Insel dazu „Insel zurücksetzen“. Die Insel klappt dabei nicht auf.
 
 ## Berechtigungen
 
