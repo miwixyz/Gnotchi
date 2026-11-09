@@ -4,8 +4,10 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.23.0] — 2026-11-09
+
 ### Geändert
-- **Wach bleiben: Mausbewegung nach Tageszeit.** Im Zeitplan-Fenster (etwa Mo–Fr 9–18 Uhr) bleibt der Mac wach und der Zeiger bewegt sich, damit Teams und Slack dich als aktiv zeigen. Neu unter **Außerhalb**: **Wach, Bildschirm aus**. Dann bleibt der Mac auch abends und am Wochenende wach, der Bildschirm darf aber schlafen. Unter **Von Hand** wählst du **Ohne Maus** oder **Mit Maus** für das Einschalten über die Tasse oder eine Dauer. Die Ansicht ist dafür neu geordnet: Beschriftung links, Auswahl rechts, gewählte Tage weiß gefüllt.
+- **Wach bleiben: Mausbewegung nach Tageszeit.** Im Zeitplan-Fenster (etwa Mo–Fr 9–18 Uhr) bleibt der Mac wach und der Zeiger bewegt sich, damit Teams und Slack dich als aktiv zeigen. Neu unter **Außerhalb**: **Wach, Bildschirm aus**. Dann bleibt der Mac auch abends und am Wochenende wach, der Bildschirm darf aber schlafen. Unter **Von Hand** wählst du **Ohne Maus** oder **Mit Maus** für das Einschalten über die Tasse oder eine Dauer. Die Ansicht ist dafür neu geordnet und auch auf hellem Hintergrund gut lesbar.
 - Hattest du den Zeitplan schon ohne „Status in Teams/Slack aktiv halten“ an, bewegt sich der Zeiger im Zeitfenster ab jetzt. Willst du das nicht, schalte den Zeitplan aus und nutze die Dauer-Knöpfe.
 
 ### Behoben

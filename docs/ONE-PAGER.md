@@ -57,7 +57,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Fünfzehn Minuten vor deinem nächsten Termin steht er in der Notch, mit Uhrzeit und Restzeit. Dafür
   braucht es [Kalli](https://github.com/miwixyz/Kalli) ab 0.12.0.
 - Den Timer startest du im Menü oder in der Insel. Namen eintippen, Zeit am Lineal ziehen oder einfach 1, 5, 10, 25, 45 Minuten oder eine Stunde wählen. Die Restzeit steht in der Notch und in der Menüleiste. Ist er um, blinkt die Notch orange, bis du klickst.
-- Soll der Mac nicht einschlafen, klickst du auf die Kaffeetasse. Für eine bis vier Stunden, bis du wieder ausschaltest, oder nach Zeitplan, etwa Montag bis Freitag von 9 bis 18 Uhr. Und wenn Teams oder Slack dich nicht auf „abwesend“ setzen sollen: Hast du vier Minuten nichts angefasst, rückt der Zeiger einen Punkt zur Seite und gleich wieder zurück.
+- Soll der Mac nicht einschlafen, klickst du auf die Kaffeetasse. Für eine bis vier Stunden, bis du wieder ausschaltest, oder nach Zeitplan, etwa Montag bis Freitag von 9 bis 18 Uhr. Im Zeitplan hält Gnotchi auch Teams und Slack auf „aktiv“: Hast du vier Minuten nichts angefasst, rückt der Zeiger einen Punkt zur Seite und gleich wieder zurück. Abends und am Wochenende kann der Mac trotzdem wach bleiben, dann ohne Zeiger, und der Bildschirm geht nach der eingestellten Zeit aus.
 - Vor einem Anruf kurz in den Spiegel schauen: Das Kamera-Symbol in der großen Insel zeigt dein Bild.
   Die Kamera ist aus, sobald die Insel zuklappt.
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer
