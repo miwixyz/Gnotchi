@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.22.0</title>
-            <pubDate>Fri, 06 Nov 2026 20:15:25 +0100</pubDate>
+            <title>0.23.0</title>
+            <pubDate>Mon, 09 Nov 2026 10:48:16 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>196</sparkle:version>
-            <sparkle:shortVersionString>0.22.0</sparkle:shortVersionString>
+            <sparkle:version>200</sparkle:version>
+            <sparkle:shortVersionString>0.23.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Die große Insel schwebt.</b> Sie hängt nicht mehr an Notch oder Pille, sondern schwebt 8 Punkte darunter in durchscheinendem Glas mit runden Ecken und Schatten. Die kleine Insel bleibt dabei an der Notch stehen. Alle großen Ansichten sind jetzt gleich breit (600 Punkte), die Timer-Auswahl ist dadurch niedriger. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.</li><li><b>Verschieben.</b> Zieh die große Insel an einer freien Stelle, wohin du willst. Gnotchi merkt sich die Stelle für alle Bildschirme. Doppelklick auf eine freie Stelle oder Rechtsklick → „Insel zurücksetzen“ holt sie zurück, nah an der alten Stelle rastet sie ein.</li><li><b>Schließen.</b> Weiter durch Wegfahren mit der Maus, dabei zählt der Weg von der kleinen Insel hinüber mit, und nach dem Aufgehen bleiben 1,5 Sekunden, um sie zu erreichen. Neu: Ein Klick daneben schließt sie sofort, Esc im Namensfeld der Timer-Auswahl auch. Die Stecknadel hält sie weiter offen.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.22.0/Gnotchi-0.22.0.zip" length="7504464" type="application/octet-stream" sparkle:edSignature="XMbvA6enEdGHlfcMjzbGVfSr7CIYVAawL/ARkMHiGFglePthKDYi8wpLcqFU70pb4q4DmAATks5B0Q/IUHqOAg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Wach bleiben: Mausbewegung nach Tageszeit.</b> Im Zeitplan-Fenster (etwa Mo–Fr 9–18 Uhr) bleibt der Mac wach und der Zeiger bewegt sich, damit Teams und Slack dich als aktiv zeigen. Neu unter <b>Außerhalb</b>: <b>Wach, Bildschirm aus</b>. Dann bleibt der Mac auch abends und am Wochenende wach, der Bildschirm darf aber schlafen. Unter <b>Von Hand</b> wählst du <b>Ohne Maus</b> oder <b>Mit Maus</b> für das Einschalten über die Tasse oder eine Dauer. Die Ansicht ist dafür neu geordnet und auch auf hellem Hintergrund gut lesbar.</li><li>Hattest du den Zeitplan schon ohne „Status in Teams/Slack aktiv halten“ an, bewegt sich der Zeiger im Zeitfenster ab jetzt. Willst du das nicht, schalte den Zeitplan aus und nutze die Dauer-Knöpfe.</li></ul><h3>Behoben</h3><ul><li><b>Beenden von außen räumt jetzt auf.</b> Wurde Gnotchi von außen beendet (etwa mit <code>kill</code> im Terminal), lief der Hilfsprozess für die Mediensteuerung bis zum nächsten Gnotchi-Start weiter. Jetzt beendet Gnotchi ihn mit, wie beim normalen „Beenden“.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.23.0/Gnotchi-0.23.0.zip" length="7514246" type="application/octet-stream" sparkle:edSignature="5sou3sbCG+It/2Or06bnBeXeyhmolz0GygwzQt17FkEee8l+f9o4apN59dHm0EF/D1O+UxoNKmddY1MfWYfwCw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: lnVbQt2gMpSykEfxL3NdkL4ISVPMbUyOcBljd/YbMBILypbTt5YK9pkvNOKFxCz44h9dilOnuOqnm3Wt9BThAw==
-length: 2220
+edSignature: Nloy7mFWN5AspRRgZmkYC2hRu9G/LOMIKUqhMzcUM8t1gcQo9EGCAOCLLXrL6tSdGgs/ecC7RDdIQfYWh6YdAw==
+length: 2269
 -->
