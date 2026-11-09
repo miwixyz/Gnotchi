@@ -184,7 +184,8 @@ struct AwakeView: View {
             row("Außerhalb") {
                 choice(awake.outside, off: "Normal schlafen", on: "Wach, Bildschirm aus") { awake.outside = $0 }
             }
-            row("Von Hand") {
+            // „Ohne Zeitplan“ statt „Von Hand“ (Michael 09.11.: „Was heißt von Hand?“) – gilt für Tasse und Dauer-Knöpfe.
+            row("Ohne Zeitplan") {
                 choice(awake.nudge, off: "Ohne Maus", on: "Mit Maus") { awake.nudge = $0 }
                 if awake.needsHelper, helperTrusted == false {
                     Text(verbatim: "Freigabe fehlt").font(.system(size: 11))
@@ -196,11 +197,11 @@ struct AwakeView: View {
         .padding(.horizontal, 16)
     }
 
-    /// Eine Zeile im Raster: Beschriftung 72 pt breit, dann die Bedienung, links bündig.
+    /// Eine Zeile im Raster: Beschriftung 90 pt breit (passt „Ohne Zeitplan“), dann die Bedienung, links bündig.
     private func row(_ title: String, @ViewBuilder content: () -> some View) -> some View {
         HStack(spacing: 6) {
             Text(verbatim: title).font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.8))
-                .frame(width: 72, alignment: .leading)
+                .lineLimit(1).frame(width: 90, alignment: .leading)
             content()
             Spacer(minLength: 0)
         }

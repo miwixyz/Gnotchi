@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Geändert
+- **Wach bleiben:** Die Zeile „Von Hand“ heißt jetzt **Ohne Zeitplan**. Sie gilt, wenn du selbst über die Tasse oder eine Dauer einschaltest.
+
 ## [0.23.0] — 2026-11-09
 
 ### Geändert

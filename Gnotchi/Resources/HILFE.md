@@ -194,7 +194,7 @@ Ab 0.21 hält Gnotchi den Mac auf Wunsch wach. In der großen Insel auf das **Ka
 - Die große Tasse schaltet ein und aus. Daneben wählst du eine Dauer: **1 Std.**, **2 Std.**, **4 Std.** oder **Bis aus**.
 - **Zeitplan:** Schalter an, Tage antippen (ab Werk Mo–Fr) und unter **Uhrzeit** von – bis in 15-Minuten-Schritten wählen (ab Werk 9:00–18:00). Im Zeitfenster bleibt der Mac wach **mit Mausbewegung** (siehe unten).
 - **Außerhalb:** **Normal schlafen** oder **Wach, Bildschirm aus**. Mit dem zweiten bleibt der Mac auch abends und an den freien Tagen wach, aber ohne Mausbewegung. Der Bildschirm geht dann nach der Systemzeit aus.
-- **Von Hand:** **Ohne Maus** oder **Mit Maus**. Gilt, wenn du über die Tasse oder eine Dauer einschaltest. Ohne Maus bleibt nur der Mac wach.
+- **Ohne Zeitplan:** **Ohne Maus** oder **Mit Maus**. Gilt, wenn du selbst einschaltest, über die Tasse oder eine Dauer (1, 2, 4 Std., Bis aus). Ohne Maus bleibt nur der Mac wach.
 - Schaltest du von Hand aus, bleibt es bis zum nächsten Wechsel aus: im Zeitfenster bis zu dessen Ende, außerhalb bis zum nächsten Fensterbeginn.
 - Ohne Mausbewegung schläft der Mac nicht ein, der Bildschirm darf trotzdem nach der Systemzeit ausgehen.
 

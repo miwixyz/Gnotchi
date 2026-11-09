@@ -18,7 +18,7 @@ final class AwakeRenderTests: XCTestCase {
         let awake = StayAwake(defaults: defaults)
         awake.schedule = schedule
         awake.nudge = true
-        // Längste Zeile: Warnung neben „Von Hand“.
+        // Längste Zeile: Warnung neben „Ohne Zeitplan“.
         let content = AwakeView(awake: awake, helperTrusted: false).padding(.top, 6)
         let fit = NSHostingView(rootView: content.frame(width: DetachedIsland.width))
         let needed = fit.fittingSize.height
