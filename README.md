@@ -64,8 +64,10 @@ Freigabe nicht und fragt nie danach.
   steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“). **Ab 0.21** hat
   die große Insel eine neue Auswahl: Namensfeld mit Start, Lineal zum Ziehen, 1m bis 1h.
 - **Wach bleiben (0.21):** Kaffeetasse in der großen Insel. Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis aus
-  oder nach Zeitplan (Tage, von–bis). Optional bleibt der Status in Teams/Slack „aktiv“: Nach 4 Minuten ohne Eingabe
-  bewegt das Hilfsprogramm „Gnotchi Mitteilungen“ den Zeiger um einen Punkt hin und zurück ([G47](docs/SECURE-DESIGN.md)).
+  oder nach Zeitplan (Tage, von–bis). Im Zeitfenster bleibt der Status in Teams/Slack „aktiv“: Nach 4 Minuten ohne
+  Eingabe bewegt das Hilfsprogramm „Gnotchi Mitteilungen“ den Zeiger um einen Punkt hin und zurück
+  ([G47](docs/SECURE-DESIGN.md)). Außerhalb des Fensters (abends, Wochenende) auf Wunsch wach ohne Bewegung, der
+  Bildschirm darf dann schlafen. Von Hand eingeschaltet: Bewegung wählbar.
 - **Spiegel (0.5):** dein Kamerabild gespiegelt in der großen Insel, etwa vor einem Anruf. Die
   Kamera läuft nur, solange der Spiegel zu sehen ist.
 - **Mitteilungen und Anrufe (0.6):** Mitteilungen ausgewählter Apps erscheinen in der Notch statt oben rechts,

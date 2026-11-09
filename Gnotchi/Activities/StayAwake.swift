@@ -5,10 +5,12 @@ import OSLog
 
 /// Wach bleiben (0.21.0, specs/2026-11-06-gnotchi-0.21.0-wachbleiben-timer.md, G47).
 ///
-/// Aktiv, wenn von Hand an (für eine Dauer oder „bis aus“) **oder** Zeitplan an und jetzt im Zeitfenster. Dann hält
-/// eine Energie-Zusicherung den Mac wach (`PreventUserIdleSystemSleep`, ohne Freigabe). Mit „Status in Teams/Slack
-/// aktiv halten“ bittet Gnotchi das Hilfsprogramm jede Minute um eine winzige Mausbewegung (`nudge`); ob es sich
-/// bewegt (≥ 4 Min. Leerlauf), entscheidet das Hilfsprogramm. Einstellungen in UserDefaults, nur lokal.
+/// Aktiv, wenn von Hand an (für eine Dauer oder „bis aus“) **oder** Zeitplan an und jetzt im Zeitfenster **oder**
+/// Zeitplan an mit „Außerhalb wach bleiben“. Dann hält eine Energie-Zusicherung den Mac wach
+/// (`PreventUserIdleSystemSleep`, ohne Freigabe – der Bildschirm darf dabei schlafen). Mausbewegung (`.mouse`) nur im
+/// Zeitfenster und von Hand mit „mit Maus“ (Michael 09.11.): dann bittet Gnotchi das Hilfsprogramm jede Minute um eine
+/// winzige Bewegung (`nudge`); ob es sich bewegt (≥ 4 Min. Leerlauf), entscheidet das Hilfsprogramm. Erst die Bewegung
+/// hält auch den Bildschirm an. Einstellungen in UserDefaults, nur lokal.
 @MainActor
 @Observable
 final class StayAwake: NotchPart {
@@ -22,21 +24,32 @@ final class StayAwake: NotchPart {
 
     enum Key {
         static let schedule = "awakeSchedule", days = "awakeDays", from = "awakeFrom", to = "awakeTo", nudge = "awakeNudge"
+        static let outside = "awakeOutside"
     }
 
+    /// aus · wach ohne Maus (Bildschirm darf schlafen) · wach mit Mausbewegung.
+    enum Mode: Equatable { case off, quiet, mouse }
+
     @ObservationIgnored private let defaults: UserDefaults
-    var schedule: Bool { didSet { defaults.set(schedule, forKey: Key.schedule); update() } }
+    var schedule: Bool { didSet { defaults.set(schedule, forKey: Key.schedule); onNudgeChange(); update() } }
+    /// Mit Zeitplan: außerhalb des Fensters wach bleiben, ohne Maus. Ab Werk aus.
+    var outside: Bool { didSet { defaults.set(outside, forKey: Key.outside); update() } }
     var days: Set<Int> { didSet { defaults.set(days.sorted(), forKey: Key.days); update() } }
     /// Minuten seit Mitternacht, 15-Min.-Schritte, `from < to` (kein Fenster über Mitternacht).
     var from: Int { didSet { defaults.set(from, forKey: Key.from); update() } }
     var to: Int { didSet { defaults.set(to, forKey: Key.to); update() } }
+    /// Von Hand eingeschaltet mit Mausbewegung (Schlüssel aus 0.21.0, damals für alles). Der Zeitplan bewegt immer.
     var nudge: Bool { didSet { defaults.set(nudge, forKey: Key.nudge); onNudgeChange(); update() } }
+
+    /// Hilfsprogramm nötig, sobald sich die Maus bewegen kann.
+    var needsHelper: Bool { nudge || schedule }
 
     /// Von Hand an bis zu diesem Zeitpunkt (`.distantFuture` = bis aus). Nicht gespeichert: nach Neustart aus.
     private(set) var manualUntil: Date?
     /// Von Hand aus im Zeitfenster: Zeitplan schweigt bis hierhin (Ende des heutigen Fensters).
     private(set) var suppressedUntil: Date?
-    private(set) var isActive = false
+    private(set) var mode = Mode.off
+    var isActive: Bool { mode != .off }
 
     /// Hilfsprogramm starten/stoppen (AppModel → applyNotchSetting).
     @ObservationIgnored var onNudgeChange: () -> Void = {}
@@ -50,6 +63,7 @@ final class StayAwake: NotchPart {
         self.defaults = defaults
         schedule = defaults.object(forKey: Key.schedule) as? Bool ?? false
         nudge = defaults.object(forKey: Key.nudge) as? Bool ?? false
+        outside = defaults.object(forKey: Key.outside) as? Bool ?? false
         let (f, t) = Self.validWindow(from: defaults.object(forKey: Key.from), to: defaults.object(forKey: Key.to))
         from = f
         to = t
@@ -65,12 +79,10 @@ final class StayAwake: NotchPart {
         update(now: now)
     }
 
-    /// Von Hand aus. Im Zeitfenster schweigt der Zeitplan bis zu dessen Ende heute.
+    /// Von Hand aus. Der Zeitplan schweigt bis zum nächsten Wechsel (Fensterende bzw. nächster Fensterbeginn).
     func turnOff(now: Date = Date()) {
         manualUntil = nil
-        if schedule, Self.inWindow(now, days: days, from: from, to: to) {
-            suppressedUntil = Self.windowEnd(now, to: to)
-        }
+        if let s = plan.suppressAfterOff(now) { suppressedUntil = s }
         update(now: now)
     }
 
@@ -79,7 +91,8 @@ final class StayAwake: NotchPart {
         guard isActive else { return nil }
         let now = Date()
         if let m = manualUntil, m > now { return m }
-        return Self.windowEnd(now, to: to)
+        if plan.inWindow(now) { return Self.windowEnd(now, to: to) }
+        return plan.nextStart(after: now) ?? .distantFuture
     }
 
     // MARK: NotchPart
@@ -97,7 +110,7 @@ final class StayAwake: NotchPart {
         timer?.invalidate()
         timer = nil
         setAssertion(false)
-        isActive = false
+        mode = .off
     }
 
     // MARK: Regeln (getestet)
@@ -113,11 +126,48 @@ final class StayAwake: NotchPart {
         calendar.date(bySettingHour: to / 60, minute: to % 60, second: 0, of: now) ?? now
     }
 
-    nonisolated static func isActive(now: Date, manualUntil: Date?, schedule: Bool, inWindow: Bool, suppressedUntil: Date?) -> Bool {
-        if let manualUntil, manualUntil > now { return true }
-        if let suppressedUntil, suppressedUntil > now { return false }
-        return schedule && inWindow
+    /// Zeitplan-Einstellungen als Wert, damit die Regeln ohne Instanz testbar sind.
+    struct Plan {
+        var on: Bool, outside: Bool, days: Set<Int>, from: Int, to: Int
+
+        func inWindow(_ now: Date, calendar: Calendar = .current) -> Bool {
+            StayAwake.inWindow(now, days: days, from: from, to: to, calendar: calendar)
+        }
+
+        /// Von Hand schlägt alles (mit/ohne Maus nach Wahl), dann „von Hand aus“, dann Zeitplan: im Fenster mit Maus,
+        /// außerhalb mit „Außerhalb wach bleiben“ ohne Maus.
+        func mode(now: Date, manualUntil: Date?, manualNudge: Bool, suppressedUntil: Date?,
+                  calendar: Calendar = .current) -> Mode {
+            if let manualUntil, manualUntil > now { return manualNudge ? .mouse : .quiet }
+            if let suppressedUntil, suppressedUntil > now { return .off }
+            guard on else { return .off }
+            if inWindow(now, calendar: calendar) { return .mouse }
+            return outside ? .quiet : .off
+        }
+
+        /// Nächster Fensterbeginn NACH `now` (heute oder an einem der nächsten 7 Tage). nil = keine Tage gewählt.
+        func nextStart(after now: Date, calendar: Calendar = .current) -> Date? {
+            let today = calendar.startOfDay(for: now)
+            for offset in 0...7 {
+                guard let day = calendar.date(byAdding: .day, value: offset, to: today),
+                      days.contains(calendar.component(.weekday, from: day)),
+                      let start = calendar.date(bySettingHour: from / 60, minute: from % 60, second: 0, of: day),
+                      start > now else { continue }
+                return start
+            }
+            return nil
+        }
+
+        /// Wie lange „von Hand aus“ den Zeitplan stumm schaltet. nil = es läuft gerade nichts vom Zeitplan.
+        func suppressAfterOff(_ now: Date, calendar: Calendar = .current) -> Date? {
+            guard on else { return nil }
+            if inWindow(now, calendar: calendar) { return StayAwake.windowEnd(now, to: to, calendar: calendar) }
+            guard outside else { return nil }
+            return nextStart(after: now, calendar: calendar) ?? .distantFuture
+        }
     }
+
+    var plan: Plan { Plan(on: schedule, outside: outside, days: days, from: from, to: to) }
 
     nonisolated static func validDays(_ raw: Any?) -> Set<Int> {
         guard let list = raw as? [Int] else { return defaultDays }
@@ -140,15 +190,14 @@ final class StayAwake: NotchPart {
     private func update(now: Date = Date()) {
         if let m = manualUntil, m <= now { manualUntil = nil }
         if let s = suppressedUntil, s <= now { suppressedUntil = nil }
-        let active = Self.isActive(now: now, manualUntil: manualUntil, schedule: schedule,
-                                   inWindow: Self.inWindow(now, days: days, from: from, to: to),
-                                   suppressedUntil: suppressedUntil)
-        if active != isActive {
-            isActive = active
-            Self.log.notice("Wach bleiben \(active ? "an" : "aus", privacy: .public)")
+        let next = plan.mode(now: now, manualUntil: manualUntil, manualNudge: nudge, suppressedUntil: suppressedUntil)
+        if next != mode {
+            mode = next
+            let text = next == .off ? "aus" : next == .quiet ? "an, ohne Maus" : "an, mit Maus"
+            Self.log.notice("Wach bleiben \(text, privacy: .public)")
         }
-        setAssertion(active && timer != nil)
-        guard active, nudge, timer != nil else { return }
+        setAssertion(isActive && timer != nil)
+        guard mode == .mouse, timer != nil else { return }
         // Jede Minute höchstens einmal fragen; das Hilfsprogramm prüft Leerlauf und Abstand selbst (G47).
         if let lastNudge, now.timeIntervalSince(lastNudge) < 55 { return }
         lastNudge = now

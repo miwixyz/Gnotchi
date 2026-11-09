@@ -4,11 +4,16 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Geändert
+- **Wach bleiben: Mausbewegung nach Tageszeit.** Im Zeitplan-Fenster (etwa Mo–Fr 9–18 Uhr) bleibt der Mac wach und der Zeiger bewegt sich, damit Teams und Slack dich als aktiv zeigen. Neu unter **Außerhalb**: **Wach, Bildschirm aus**. Dann bleibt der Mac auch abends und am Wochenende wach, der Bildschirm darf aber schlafen. Unter **Von Hand** wählst du **Ohne Maus** oder **Mit Maus** für das Einschalten über die Tasse oder eine Dauer. Die Ansicht ist dafür neu geordnet: Beschriftung links, Auswahl rechts, gewählte Tage weiß gefüllt.
+- Hattest du den Zeitplan schon ohne „Status in Teams/Slack aktiv halten“ an, bewegt sich der Zeiger im Zeitfenster ab jetzt. Willst du das nicht, schalte den Zeitplan aus und nutze die Dauer-Knöpfe.
+
 ### Behoben
 - **Beenden von außen räumt jetzt auf.** Wurde Gnotchi von außen beendet (etwa mit `kill` im Terminal), lief der Hilfsprozess für die Mediensteuerung bis zum nächsten Gnotchi-Start weiter. Jetzt beendet Gnotchi ihn mit, wie beim normalen „Beenden“.
 
 ### Intern
 - SIGTERM, SIGINT und SIGHUP gehen über `NSApp.terminate` (`TerminationSignals`, 2 Tests). Gemessen an der Testkopie: vorher 10 von 10 Läufen mit verwaistem `mediaremote-adapter.pl`, danach 0 von 10.
+- Wach bleiben: Regeln in `StayAwake.Plan` (Modus aus/ohne Maus/mit Maus, nächster Fensterbeginn, Stummschalten nach „von Hand aus“), 4 neue Tests und ein Höhentest der Ansicht. SECURE-DESIGN G47 ergänzt.
 
 ## [0.22.0] — 2026-11-06
 

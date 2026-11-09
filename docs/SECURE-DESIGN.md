@@ -1171,6 +1171,13 @@ nur aus Klicks (G29, G30).
 - **Prüfung (06.11.):** `rafter-code-review` ohne Fund (Bewegung fest, vier Bedingungen vor jeder Bewegung, Leser im
   Hilfsprogramm erst nach Filter mit `notes: true`, Schema strikt), `rafter secrets .` ohne Fund. `rafter run` Scan `000555d1` auf
   `05f93e2` (06.11., vom Guthaben): keine Funde.
+- **Änderung 09.11. (Michael): Mausbewegung je Phase.** Zeitplan-Fenster = immer mit Bewegung; neuer Schalter
+  „Außerhalb wach bleiben“ (`awakeOutside`, ab Werk aus) = wach ohne Bewegung; `awakeNudge` gilt nur noch für das
+  Einschalten von Hand. **Folge für G47:** Wer den Zeitplan einschaltet, bekommt die Bewegung ohne eigenen Schalter,
+  und das Hilfsprogramm startet dann (`StayAwake.needsHelper` = Hand-Schalter oder Zeitplan). Bestand: ein Zeitplan
+  aus 0.21/0.22 ohne Teams-Schalter bewegt ab jetzt im Fenster – im CHANGELOG genannt. Unverändert: Befehl ohne
+  Inhalt, 1 pt, ≥ 4 Min. Leerlauf, nie gesperrt, ≤ 1/60 s; außerhalb des Fensters (`.quiet`) geht kein `nudge` raus
+  (Regel `StayAwake.Plan.mode`, getestet).
 
 ### G48 – Schwebende große Insel: Mauslage statt Ereignis-Mithörer (neu, 2026-11-06, 0.22.0)
 - **Was:** Die große Insel schwebt im eigenen Panel, verschiebbar (Spec

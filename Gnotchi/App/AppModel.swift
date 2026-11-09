@@ -90,7 +90,7 @@ final class AppModel {
             NotchFeature(part: FamilyUpdateLink(activity: activity)) { $0.familyUpdates },
             // 0.6.0 (G28–G30): startet das Hilfsprogramm mit der Bedienungshilfen-Freigabe, nicht Gnotchi selbst.
             // 0.21.0 (G47): auch nur für die Mausbewegung von „Wach bleiben“ – dann liest es nichts (`notes: false`).
-            NotchFeature(part: NotifyLink(activity: activity, prefs: prefs)) { [awake] in $0.notifications || awake?.nudge == true },
+            NotchFeature(part: NotifyLink(activity: activity, prefs: prefs)) { [awake] in $0.notifications || awake?.needsHelper == true },
             // 0.7.0 (G31): einziger Netzzugriff außer Updates, nur bei eingeschaltetem Wetter.
             NotchFeature(part: WeatherLink(activity: activity, prefs: prefs)) { $0.weather },
             // 0.8.0 (G32): Ziehen erkennen ohne Freigabe, Verweise statt Kopien.

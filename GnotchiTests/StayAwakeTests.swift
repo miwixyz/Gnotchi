@@ -33,16 +33,66 @@ final class StayAwakeTests: XCTestCase {
     }
 
     func testManualBeatsScheduleAndOffSuppresses() {
-        let now = date("2026-11-06T10:00:00")
-        XCTAssertTrue(StayAwake.isActive(now: now, manualUntil: now.addingTimeInterval(60), schedule: false, inWindow: false,
-                                         suppressedUntil: nil))
-        XCTAssertFalse(StayAwake.isActive(now: now, manualUntil: now, schedule: false, inWindow: false, suppressedUntil: nil),
-                       "Dauer abgelaufen")
-        XCTAssertTrue(StayAwake.isActive(now: now, manualUntil: nil, schedule: true, inWindow: true, suppressedUntil: nil))
-        XCTAssertFalse(StayAwake.isActive(now: now, manualUntil: nil, schedule: true, inWindow: true,
-                                          suppressedUntil: now.addingTimeInterval(3600)), "von Hand aus im Fenster")
-        XCTAssertFalse(StayAwake.isActive(now: now, manualUntil: nil, schedule: false, inWindow: true, suppressedUntil: nil),
-                       "Zeitplan aus")
+        // Fr 06.11. 10:00 liegt im Fenster Mo–Fr 9–18, 19:00 außerhalb.
+        let inside = date("2026-11-06T10:00:00"), evening = date("2026-11-06T19:00:00")
+        var now = inside
+        func mode(manual: Date? = nil, nudge: Bool = false, schedule: Bool = false, inWindow: Bool = false,
+                  outside: Bool = false, suppressed: Date? = nil) -> StayAwake.Mode {
+            now = inWindow ? inside : evening
+            let plan = StayAwake.Plan(on: schedule, outside: outside, days: StayAwake.defaultDays, from: 540, to: 1080)
+            return plan.mode(now: now, manualUntil: manual, manualNudge: nudge, suppressedUntil: suppressed,
+                             calendar: calendar)
+        }
+        let later = evening.addingTimeInterval(3600)
+        XCTAssertEqual(mode(manual: later), .quiet, "von Hand ohne Maus: Bildschirm darf schlafen")
+        XCTAssertEqual(mode(manual: later, nudge: true), .mouse, "von Hand mit Maus")
+        XCTAssertEqual(mode(manual: evening), .off, "Dauer abgelaufen")
+        XCTAssertEqual(mode(manual: later, schedule: true, inWindow: true), .quiet, "von Hand gewählt schlägt Zeitplan")
+        XCTAssertEqual(mode(schedule: true, inWindow: true), .mouse, "Zeitfenster = mit Maus, auch ohne Hand-Schalter")
+        XCTAssertEqual(mode(schedule: true, inWindow: true, suppressed: later), .off, "von Hand aus im Fenster")
+        XCTAssertEqual(mode(schedule: false, inWindow: true), .off, "Zeitplan aus")
+        XCTAssertEqual(mode(schedule: true, outside: true), .quiet, "außerhalb wach, ohne Maus")
+        XCTAssertEqual(mode(schedule: true), .off, "außerhalb ohne Schalter: normal schlafen")
+        XCTAssertEqual(mode(schedule: false, outside: true), .off, "„Außerhalb“ gilt nur mit Zeitplan")
+        XCTAssertEqual(mode(schedule: true, outside: true, suppressed: later), .off, "von Hand aus außerhalb")
+    }
+
+    func testNextWindowStart() {
+        // Mo–Fr 9–18; 06.11.2026 = Freitag
+        func next(_ s: String, _ d: Set<Int> = StayAwake.defaultDays) -> Date? {
+            StayAwake.Plan(on: true, outside: false, days: d, from: 540, to: 1080).nextStart(after: date(s), calendar: calendar)
+        }
+        XCTAssertEqual(next("2026-11-06T08:00:00"), date("2026-11-06T09:00:00"), "heute vor dem Fenster")
+        XCTAssertEqual(next("2026-11-06T18:30:00"), date("2026-11-09T09:00:00"), "Freitagabend → Montag")
+        XCTAssertEqual(next("2026-11-06T10:00:00"), date("2026-11-09T09:00:00"), "im Fenster → nächstes")
+        XCTAssertEqual(next("2026-11-07T12:00:00"), date("2026-11-09T09:00:00"), "Samstag → Montag")
+        XCTAssertEqual(next("2026-11-06T18:30:00", [6]), date("2026-11-13T09:00:00"), "nur Freitag → eine Woche")
+        XCTAssertNil(next("2026-11-06T10:00:00", []), "keine Tage")
+    }
+
+    /// Von Hand aus: im Fenster bis zu dessen Ende, außerhalb (mit „Außerhalb wach“) bis zum nächsten Fensterbeginn.
+    func testOffSuppressesUntilNextPhase() {
+        func off(_ s: String, schedule: Bool = true, outside: Bool = true, days: Set<Int> = StayAwake.defaultDays) -> Date? {
+            StayAwake.Plan(on: schedule, outside: outside, days: days, from: 540, to: 1080)
+                .suppressAfterOff(date(s), calendar: calendar)
+        }
+        XCTAssertEqual(off("2026-11-06T10:00:00"), date("2026-11-06T18:00:00"))
+        XCTAssertEqual(off("2026-11-06T19:00:00"), date("2026-11-09T09:00:00"))
+        XCTAssertNil(off("2026-11-06T19:00:00", outside: false), "außerhalb ohne Schalter: nichts zu unterdrücken")
+        XCTAssertNil(off("2026-11-06T10:00:00", schedule: false))
+        XCTAssertEqual(off("2026-11-06T19:00:00", days: []), .distantFuture, "ohne Tage: aus bis zum nächsten Einschalten")
+    }
+
+    func testHelperNeededForManualMouseOrSchedule() {
+        let defaults = UserDefaults(suiteName: "StayAwakeTests-\(UUID().uuidString)")!
+        let awake = StayAwake(defaults: defaults)
+        XCTAssertFalse(awake.needsHelper)
+        awake.schedule = true
+        XCTAssertTrue(awake.needsHelper, "Zeitplan bewegt die Maus")
+        awake.schedule = false
+        awake.nudge = true
+        XCTAssertTrue(awake.needsHelper, "von Hand mit Maus")
+        XCTAssertFalse(awake.outside, "ab Werk aus")
     }
 
     func testTurnOnOffFlow() {

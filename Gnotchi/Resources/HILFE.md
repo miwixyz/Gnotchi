@@ -192,10 +192,13 @@ ein kurzer Hinweis und ein Ton. Den Ton wählst du unter **Timer → Ton** oder 
 
 Ab 0.21 hält Gnotchi den Mac auf Wunsch wach. In der großen Insel auf das **Kaffeetassen-Symbol** klicken:
 - Die große Tasse schaltet ein und aus. Daneben wählst du eine Dauer: **1 Std.**, **2 Std.**, **4 Std.** oder **Bis aus**.
-- **Zeitplan:** Schalter an, Tage antippen (ab Werk Mo–Fr) und **von – bis** in 15-Minuten-Schritten (ab Werk 9:00–18:00). Schaltest du im Zeitfenster von Hand aus, bleibt es bis zum Ende des Fensters heute aus.
-- Solange es an ist, schläft der Mac nicht ein. Der Bildschirm darf trotzdem nach der Systemzeit ausgehen.
+- **Zeitplan:** Schalter an, Tage antippen (ab Werk Mo–Fr) und unter **Uhrzeit** von – bis in 15-Minuten-Schritten wählen (ab Werk 9:00–18:00). Im Zeitfenster bleibt der Mac wach **mit Mausbewegung** (siehe unten).
+- **Außerhalb:** **Normal schlafen** oder **Wach, Bildschirm aus**. Mit dem zweiten bleibt der Mac auch abends und an den freien Tagen wach, aber ohne Mausbewegung. Der Bildschirm geht dann nach der Systemzeit aus.
+- **Von Hand:** **Ohne Maus** oder **Mit Maus**. Gilt, wenn du über die Tasse oder eine Dauer einschaltest. Ohne Maus bleibt nur der Mac wach.
+- Schaltest du von Hand aus, bleibt es bis zum nächsten Wechsel aus: im Zeitfenster bis zu dessen Ende, außerhalb bis zum nächsten Fensterbeginn.
+- Ohne Mausbewegung schläft der Mac nicht ein, der Bildschirm darf trotzdem nach der Systemzeit ausgehen.
 
-**Status in Teams/Slack aktiv halten:** Teams, Slack und Co. zeigen dich als „abwesend“, wenn du eine Weile nichts eingibst. Ist der Schalter an, bewegt Gnotchi den Zeiger um einen Punkt hin und zurück, sobald du 4 Minuten nichts eingegeben hast, höchstens einmal pro Minute. Arbeitest du, passiert nichts. Dadurch bleibt auch der Bildschirm an. Die Bewegung macht das Hilfsprogramm „Gnotchi Mitteilungen“, es braucht dafür seine Freigabe unter **Gerätesteuerung und Datenzugriff → Bedienungshilfen**. Ist „Mitteilungen“ aus, startet Gnotchi es trotzdem, nur für die Bewegung. Mitteilungen liest es dann nicht. Bei gesperrtem Bildschirm bewegt sich nichts.
+**Mausbewegung (Status in Teams/Slack aktiv):** Teams, Slack und Co. zeigen dich als „abwesend“, wenn du eine Weile nichts eingibst. Mit Mausbewegung schiebt Gnotchi den Zeiger um einen Punkt hin und zurück, sobald du 4 Minuten nichts eingegeben hast, höchstens einmal pro Minute. Arbeitest du, passiert nichts. Dadurch bleibt auch der Bildschirm an. Die Bewegung macht das Hilfsprogramm „Gnotchi Mitteilungen“, es braucht dafür seine Freigabe unter **Gerätesteuerung und Datenzugriff → Bedienungshilfen**. Ist „Mitteilungen“ aus, startet Gnotchi es trotzdem, nur für die Bewegung. Mitteilungen liest es dann nicht. Bei gesperrtem Bildschirm bewegt sich nichts.
 
 ## Spiegel
 
