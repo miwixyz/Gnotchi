@@ -44,6 +44,8 @@ final class AppModel {
     /// Beobachter-Token der Beenden-Meldung. Lebt so lange wie die App; aufgehoben statt `_ =`,
     /// damit klar ist, dass die Anmeldung gewollt bestehen bleibt.
     @ObservationIgnored private var terminateObserver: NSObjectProtocol?
+    /// SIGTERM/SIGINT/SIGHUP → geordnetes Beenden (TerminationSignals). Gehalten, sonst sofort wieder weg.
+    @ObservationIgnored private var signalSources: [DispatchSourceSignal] = []
     /// Messpunkt Fokus bei Mitteilungen (0.16.0), nur Protokoll.
     @ObservationIgnored private var focusProbe: FocusProbe?
 
@@ -127,12 +129,18 @@ final class AppModel {
         // Startwert). Startet die Insel hier, zeichnet sich ihr NSHostingView mitten darin → Absturz „precondition
         // failure: setting value during update“ (24.10. im Debugger gemessen, traf auch das veröffentlichte 0.10.0).
         DispatchQueue.main.async { [weak self] in self?.applyNotchSetting() }
-        // Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
+        installQuitHandling()
+    }
+
+    /// Beim Beenden den perl-Kindprozess und den Rückfall sauber stoppen, nicht verwaisen lassen.
+    private func installQuitHandling() {
         terminateObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.stopNotch() }
         }
+        // SIGTERM von außen löst willTerminate sonst nicht aus → Adapter verwaist (Task 22.10.).
+        signalSources = TerminationSignals.install { _ in NSApp.terminate(nil) }
     }
 
     /// Bild-Testkopie (G45, nur Debug-Build): nur Fenster + Befehlskanal. Kein Updater, keine Insel, kein Adapter und vor

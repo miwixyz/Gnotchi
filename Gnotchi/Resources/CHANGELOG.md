@@ -4,6 +4,12 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Behoben
+- **Beenden von außen räumt jetzt auf.** Wurde Gnotchi von außen beendet (etwa mit `kill` im Terminal), lief der Hilfsprozess für die Mediensteuerung bis zum nächsten Gnotchi-Start weiter. Jetzt beendet Gnotchi ihn mit, wie beim normalen „Beenden“.
+
+### Intern
+- SIGTERM, SIGINT und SIGHUP gehen über `NSApp.terminate` (`TerminationSignals`, 2 Tests). Gemessen an der Testkopie: vorher 10 von 10 Läufen mit verwaistem `mediaremote-adapter.pl`, danach 0 von 10.
+
 ## [0.22.0] — 2026-11-06
 
 ### Geändert
