@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.25.0</title>
-            <pubDate>Fri, 13 Nov 2026 14:21:39 +0100</pubDate>
+            <title>0.26.0</title>
+            <pubDate>Fri, 13 Nov 2026 20:10:54 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>206</sparkle:version>
-            <sparkle:shortVersionString>0.25.0</sparkle:shortVersionString>
+            <sparkle:version>209</sparkle:version>
+            <sparkle:shortVersionString>0.26.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Bewegung wie in den anderen Apps der Familie.</b> In den Einstellungen gleitet die Markierung zum gewählten Reiter und dehnt sich dabei kurz, ein weicher Schatten zeigt, über welchem Reiter die Maus steht. In der Timer-Auswahl der Insel gleitet die helle Markierung zur gewählten Zeit. Die Wiedergabe-Knöpfe in der Insel und am Plattenspieler federn beim Drücken kurz nach, und unter der Maus liegt ein heller Schatten, der von Knopf zu Knopf gleitet. Dieselbe Optik haben Porter, Tippi, TippAI und Kalli.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.25.0/Gnotchi-0.25.0.zip" length="7549783" type="application/octet-stream" sparkle:edSignature="A1TKZa4G4Go8vnlL/yIQVi/ejH3w9p+swhl5Uggf2p2bDIHxRO17ZUuH2U6QDZEs4jk31fZRpSUCAG7ft9X2Aw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Musik auf dem Schreibtisch ist jetzt ein echtes macOS-Widget.</b> Es sieht aus wie Uhr und Kalender: gedämpft, wenn ein Fenster davor liegt (das Cover dann in Graustufen), farbig, wenn der Schreibtisch aktiv ist. Rechtsklick auf den Schreibtisch → „Widgets bearbeiten …“ → „Gnotchi“, dann eine Größe ablegen. Klein zeigt Cover und Titel, Mittel und Groß zusätzlich Zurück, Wiedergabe/Pause und Weiter. Die Darstellung heißt in den Einstellungen „Widget“ statt „Karte“. Ecke, Größe und Verschieben in Gnotchi entfallen, die Größe wählst du beim Hinzufügen. Ein Klick aufs Cover holt die Musik-App nicht mehr nach vorne, das kann ein Widget nicht. Der Plattenspieler bleibt, wie er war.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.26.0/Gnotchi-0.26.0.zip" length="7591712" type="application/octet-stream" sparkle:edSignature="76jed7SOb46O3PqaBVpN+1atjy1QTeG+qL9sQgzUMYYbbGajV+NrPeRijMA8Ls1IhgOHp7tT8e/KPnJLrTCMBg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: gol1zNZZE930YhbcOr8Rn8cQQCXVCGfi3b3CtNrNUa8bzmA52ks0qYjEasx8k2S4XVh8oosk7WHMo7qELGdYBQ==
-length: 1726
+edSignature: IEBMtlid1GuiyUzsOXsvoQxrqwUE4q+OUFDBYB+Ac/YO7vRX2vRMpoX+o0KvMu0CgcGwH2F3KWdIlye7TT5NBQ==
+length: 1935
 -->
