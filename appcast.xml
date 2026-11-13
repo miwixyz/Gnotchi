@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.23.0</title>
-            <pubDate>Mon, 09 Nov 2026 10:48:16 +0100</pubDate>
+            <title>0.24.0</title>
+            <pubDate>Fri, 13 Nov 2026 08:36:35 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>200</sparkle:version>
-            <sparkle:shortVersionString>0.23.0</sparkle:shortVersionString>
+            <sparkle:version>204</sparkle:version>
+            <sparkle:shortVersionString>0.24.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Wach bleiben: Mausbewegung nach Tageszeit.</b> Im Zeitplan-Fenster (etwa Mo–Fr 9–18 Uhr) bleibt der Mac wach und der Zeiger bewegt sich, damit Teams und Slack dich als aktiv zeigen. Neu unter <b>Außerhalb</b>: <b>Wach, Bildschirm aus</b>. Dann bleibt der Mac auch abends und am Wochenende wach, der Bildschirm darf aber schlafen. Unter <b>Von Hand</b> wählst du <b>Ohne Maus</b> oder <b>Mit Maus</b> für das Einschalten über die Tasse oder eine Dauer. Die Ansicht ist dafür neu geordnet und auch auf hellem Hintergrund gut lesbar.</li><li>Hattest du den Zeitplan schon ohne „Status in Teams/Slack aktiv halten“ an, bewegt sich der Zeiger im Zeitfenster ab jetzt. Willst du das nicht, schalte den Zeitplan aus und nutze die Dauer-Knöpfe.</li></ul><h3>Behoben</h3><ul><li><b>Beenden von außen räumt jetzt auf.</b> Wurde Gnotchi von außen beendet (etwa mit <code>kill</code> im Terminal), lief der Hilfsprozess für die Mediensteuerung bis zum nächsten Gnotchi-Start weiter. Jetzt beendet Gnotchi ihn mit, wie beim normalen „Beenden“.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.23.0/Gnotchi-0.23.0.zip" length="7514246" type="application/octet-stream" sparkle:edSignature="5sou3sbCG+It/2Or06bnBeXeyhmolz0GygwzQt17FkEee8l+f9o4apN59dHm0EF/D1O+UxoNKmddY1MfWYfwCw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Ablage: Stapel.</b> Ziehst du mehrere Dateien auf einmal auf die Insel, liegen sie als <b>eine Kachel</b> in der Ablage: Symbol der ersten Datei, eine Zahl daran und „Name + 2“ darunter. Beim Herausziehen kommen alle Dateien des Stapels mit. Rechtsklick → <b>Stapel auflösen</b> macht wieder einzelne Kacheln daraus. Im Finder zeigen, Teilen, AirDrop und Entfernen gelten für den ganzen Stapel. Was schon vorher in der Ablage lag, bleibt einzeln.</li></ul><h3>Geändert</h3><ul><li><b>Wach bleiben:</b> Die Zeile „Von Hand“ heißt jetzt <b>Ohne Zeitplan</b>. Sie gilt, wenn du selbst über die Tasse oder eine Dauer einschaltest.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.24.0/Gnotchi-0.24.0.zip" length="7523125" type="application/octet-stream" sparkle:edSignature="Z4I5czm9eudP3Eqm2LfqAVYd22UBj8HNES0dkwiJ9Rg+Kgu5OqeNH4ktX+T5WMgi1ojJzJcg+gyXjbrDKooWBg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: Nloy7mFWN5AspRRgZmkYC2hRu9G/LOMIKUqhMzcUM8t1gcQo9EGCAOCLLXrL6tSdGgs/ecC7RDdIQfYWh6YdAw==
-length: 2269
+edSignature: zUzL19R1B9W1SH0ZLWQOj2Sk2bmqN3OuhhrYCy32AU3w8EgeMek0KGYTiVCnQdzUVXo6HSoA0LNzVwg3pZ8pBQ==
+length: 1851
 -->
