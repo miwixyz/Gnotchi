@@ -82,7 +82,7 @@ struct ShelfBig: View {
         VStack(alignment: .leading, spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(items) { item in ShelfTile(item: item, link: link) }
+                    ForEach(ShelfStore.stacks(items)) { stack in ShelfTile(stack: stack, link: link) }
                 }
                 .padding(.vertical, 2)
             }
@@ -141,7 +141,7 @@ struct ShelfStrip: View {
                 .frame(width: 18)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(items) { item in ShelfTile(item: item, link: link, compact: true) }
+                    ForEach(ShelfStore.stacks(items)) { stack in ShelfTile(stack: stack, link: link, compact: true) }
                 }
             }
         }
@@ -166,17 +166,25 @@ struct ShelfMini: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(verbatim: "Ablage öffnen, \(items.count)"))
-            ForEach(items.prefix(Self.shown)) { item in
-                let url = link.url(for: item)
-                Image(nsImage: url.map { NSWorkspace.shared.icon(forFile: $0.path) } ?? NSImage())
+            let stacks = ShelfStore.stacks(items)
+            ForEach(stacks.prefix(Self.shown)) { stack in
+                let urls = stack.items.compactMap { link.url(for: $0) }
+                let name = stack.items.count > 1 ? "\(stack.items[0].name) + \(stack.items.count - 1)" : stack.items[0].name
+                Image(nsImage: urls.first.map { NSWorkspace.shared.icon(forFile: $0.path) } ?? NSImage())
                     .resizable().interpolation(.high).frame(width: 20, height: 20)
-                    .overlay(DragSource(url: url, onEnded: { moved in if moved { link.draggedOut(item) } },
-                                        menu: { link.menu(for: item, anchor: $0) }))
-                    .help(item.name)
-                    .accessibilityLabel(Text(verbatim: item.name))
+                    .overlay(alignment: .bottomTrailing) {
+                        if stack.items.count > 1 {
+                            Text(verbatim: "\(stack.items.count)").font(.system(size: 8, weight: .bold)).foregroundStyle(.white)
+                                .padding(.horizontal, 3).background(Capsule().fill(Color.accentColor)).offset(x: 4, y: 3)
+                        }
+                    }
+                    .overlay(DragSource(urls: urls, onEnded: { moved in if moved { link.draggedOut(stack.items) } },
+                                        menu: { link.menu(for: stack.items, anchor: $0) }))
+                    .help(name)
+                    .accessibilityLabel(Text(verbatim: name))
             }
-            if items.count > Self.shown {
-                Text(verbatim: "+\(items.count - Self.shown)").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+            if stacks.count > Self.shown {
+                Text(verbatim: "+\(stacks.count - Self.shown)").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
             }
         }
     }
@@ -184,28 +192,41 @@ struct ShelfMini: View {
 
 /// Eine Kachel: Symbol + Name. Ziehen und Rechtsklick übernimmt eine AppKit-Ansicht (SwiftUI meldet nicht, ob ein
 /// Ziehen angekommen ist – das braucht „nach dem Rausziehen entfernen“). × entfernt nur aus der Ablage.
+/// Stapel (0.24): eine Kachel für alle zusammen abgelegten Dateien – Symbol der ersten mit Anzahl, Ziehen nimmt alle mit.
 struct ShelfTile: View {
-    let item: ShelfStore.Item
+    let stack: ShelfStore.Stack
     let link: ShelfLink
     /// Kleine Kachel für die Reihe unter der großen Sache.
     var compact = false
     @State private var hovered = false
 
     var body: some View {
-        let url = link.url(for: item)
+        let items = stack.items
+        let first = items[0]
+        let urls = items.compactMap { link.url(for: $0) }
+        let size: CGFloat = compact ? 30 : 48
         ZStack(alignment: .topTrailing) {
             VStack(spacing: compact ? 2 : 4) {
-                Image(nsImage: url.map { NSWorkspace.shared.icon(forFile: $0.path) } ?? NSImage())
-                    .resizable().interpolation(.high).frame(width: compact ? 30 : 48, height: compact ? 30 : 48)
-                Text(verbatim: item.name).font(.system(size: compact ? 10 : 11, weight: .medium)).lineLimit(compact ? 1 : 2)
+                Image(nsImage: urls.first.map { NSWorkspace.shared.icon(forFile: $0.path) } ?? NSImage())
+                    .resizable().interpolation(.high).frame(width: size, height: size)
+                    .background(alignment: .center) {
+                        // Angedeuteter Stapel dahinter, damit man vor dem Ziehen sieht: mehrere Dateien.
+                        if items.count > 1 {
+                            RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.18))
+                                .frame(width: size * 0.8, height: size * 0.8).offset(x: 4, y: -4)
+                        }
+                    }
+                    .overlay(alignment: .bottomTrailing) { if items.count > 1 { badge(items.count) } }
+                Text(verbatim: items.count > 1 ? "\(first.name) + \(items.count - 1)" : first.name)
+                    .font(.system(size: compact ? 10 : 11, weight: .medium)).lineLimit(compact ? 1 : 2)
                     .multilineTextAlignment(.center).frame(width: compact ? 62 : 84)
             }
             .frame(width: compact ? 68 : 92, height: compact ? 56 : 98)
             .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(hovered ? 0.14 : 0.06)))
-            .overlay(DragSource(url: url, onEnded: { moved in if moved { link.draggedOut(item) } },
-                                menu: { link.menu(for: item, anchor: $0) }))
+            .overlay(DragSource(urls: urls, onEnded: { moved in if moved { link.draggedOut(items) } },
+                                menu: { link.menu(for: items, anchor: $0) }))
             if hovered {
-                Button { link.remove(item) } label: {
+                Button { link.remove(items) } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 15)).foregroundStyle(.white, .black.opacity(0.6))
                 }
                 .buttonStyle(.plain).padding(3)
@@ -213,8 +234,17 @@ struct ShelfTile: View {
             }
         }
         .onHover { hovered = $0 }
+        .help(items.count > 1 ? "\(items.count) Dateien – zusammen herausziehen. Rechtsklick: Stapel auflösen" : first.name)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: item.name))
+        .accessibilityLabel(Text(verbatim: items.count > 1 ? "Stapel, \(items.count) Dateien: \(first.name) und weitere"
+                                                         : first.name))
+    }
+
+    private func badge(_ n: Int) -> some View {
+        Text(verbatim: "\(n)").font(.system(size: compact ? 9 : 11, weight: .bold)).foregroundStyle(.white)
+            .padding(.horizontal, compact ? 4 : 5).padding(.vertical, 1)
+            .background(Capsule().fill(Color.accentColor))
+            .offset(x: compact ? 5 : 6, y: compact ? 3 : 4)
     }
 }
 
@@ -278,7 +308,7 @@ struct DragSource: NSViewRepresentable {
             // Messpunkt (23.10.): was das Ziel meldet (1 = kopiert, 16 = verschoben) – nur die Zahl, nie Name/Pfad.
             // Achtung: Bei gleichnamiger Datei am Ziel meldet der Finder „kopiert“ und legt nichts an (dupFNErr, gemessen).
             Logger(subsystem: "dev.mwlr.gnotchi", category: "ablage")
-                .notice("Rausgezogen, Ziel meldet Übernahme \(operation.rawValue, privacy: .public)")
+                .notice("Rausgezogen, \(session.draggingPasteboard.pasteboardItems?.count ?? 0, privacy: .public) Datei(en), Ziel meldet Übernahme \(operation.rawValue, privacy: .public)")
             onEnded(operation != [])
         }
     }

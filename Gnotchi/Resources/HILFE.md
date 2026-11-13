@@ -259,12 +259,14 @@ Space und ziehst sie dort wieder heraus.
 
 - **Rausziehen:** aus der Reihe unter der großen Insel oder – bei „Aufklappen als: Band“ – direkt aus dem Band
   (die kleinen Symbole neben dem Titel). Danach verschwindet sie aus der Ablage (abschaltbar).
+- **Stapel (ab 0.24):** Mehrere Dateien, die du in einem Zug ablegst, werden eine Kachel mit einer Zahl daran. Ziehst
+  du sie heraus, kommen alle mit. Rechtsklick → **Stapel auflösen** macht wieder einzelne Kacheln daraus.
 - **Alle auf einmal (ab 0.18):** In der vollen Ablage unten links **„Alle ziehen“** greifen und ans Ziel ziehen. Erscheint
   ab zwei Dateien.
 - **Zurückholen (ab 0.18):** Nach dem Rausziehen steht kurz „Rausgezogen“ mit einem Knopf **„Zurückholen“**. Für den
   Fall, dass am Ziel nichts angekommen ist, etwa weil der Finder dort schon eine gleichnamige Datei hat.
-- **Volle Ablage:** Klick auf das Ablage-Symbol. Rechtsklick auf eine Datei: Im Finder zeigen, Teilen …, AirDrop,
-  Entfernen. Unten für alle: Alle ziehen, Teilen, AirDrop, ZIP, ZIP mit Passwort, Leeren.
+- **Volle Ablage:** Klick auf das Ablage-Symbol. Rechtsklick auf eine Datei oder einen Stapel: Im Finder zeigen, Teilen …, AirDrop,
+  Entfernen, bei Stapeln auch Stapel auflösen. Unten für alle: Alle ziehen, Teilen, AirDrop, ZIP, ZIP mit Passwort, Leeren.
 - **ZIP** landet als „Ablage.zip“ in deinem Downloads-Ordner und auch in der Ablage. **Mit Passwort** ist es mit
   AES-256 verschlüsselt; öffnen lässt es sich mit Keka, The Unarchiver oder 7-Zip, nicht per Doppelklick auf dem Mac.
 - **Bildschirmfotos automatisch (ab 0.10):** Einstellungen → Ablage → „Bildschirmfotos automatisch ablegen“. Jedes neue

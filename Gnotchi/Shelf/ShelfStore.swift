@@ -16,6 +16,27 @@ final class ShelfStore {
         let name: String
         /// Automatisch abgelegtes Bildschirmfoto (0.16.0): wann. Nur solche Einträge laufen ab; nil = selbst abgelegt.
         var screenshotAt: Date?
+        /// Stapel (0.24, Michael 13.11.: „drei Dateien reinziehen, die drei wieder woanders hinbringen“): in einem
+        /// Zug abgelegte Dateien teilen diese Kennung, zeigen sich als eine Kachel und ziehen zusammen raus. nil = einzeln.
+        var stack: UUID?
+    }
+
+    /// Eine Kachel: ein einzelner Eintrag oder ein Stapel, in der Reihenfolge des ersten Eintrags.
+    struct Stack: Identifiable, Equatable {
+        let items: [Item]
+        var id: UUID { items[0].id }
+    }
+
+    /// Einträge zu Kacheln: gleiche Stapel-Kennung → eine Kachel (auch wenn sie nicht nebeneinander liegen).
+    nonisolated static func stacks(_ items: [Item]) -> [Stack] {
+        var order: [UUID] = []
+        var groups: [UUID: [Item]] = [:]
+        for item in items {
+            let key = item.stack ?? item.id
+            if groups[key] == nil { order.append(key) }
+            groups[key, default: []].append(item)
+        }
+        return order.compactMap { groups[$0].map(Stack.init) }
     }
 
     nonisolated static let maxItems = 50
@@ -47,16 +68,18 @@ final class ShelfStore {
     /// Nur existierende Datei-URLs; Doppelte (gleicher aufgelöster Pfad) und alles über 50 fallen weg.
     /// Liefert die Zahl der neu abgelegten.
     /// `screenshotAt`: nur für automatisch abgelegte Bildschirmfotos (0.16.0, laufen ab).
+    /// `stacked`: mehrere in einem Zug abgelegte Dateien bilden einen Stapel (0.24).
     @discardableResult
-    func add(_ urls: [URL], screenshotAt: Date? = nil) -> Int {
+    func add(_ urls: [URL], screenshotAt: Date? = nil, stacked: Bool = false) -> Int {
         var added = 0
+        var fresh: [Int] = []
         for url in urls where url.isFileURL && items.count < Self.maxItems {
             let path = url.standardizedFileURL.resolvingSymlinksInPath().path
             guard FileManager.default.fileExists(atPath: path), !contains(url),
                   let mark = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil),
                   mark.count <= Self.maxBookmark else { continue }
             let item = Item(id: UUID(), bookmark: mark, name: Self.cleanName(url.lastPathComponent),
-                            screenshotAt: screenshotAt)
+                            screenshotAt: screenshotAt, stack: nil)
             // Eigene Kopie: nach dem Lesezeichen erneut prüfen – tauscht die App sie zwischen Prüfung und Lesezeichen
             // gegen einen Link, zeigte der Eintrag sonst nach draußen (Review 23.10.).
             if let copies, let own = Self.copyFolder(of: url, in: copies) {
@@ -64,10 +87,25 @@ final class ShelfStore {
                       isValidCopy(target, in: own) else { continue }
             }
             items.append(item)
+            fresh.append(items.count - 1)
             added += 1
+        }
+        if stacked && fresh.count > 1 {
+            let stack = UUID()
+            for i in fresh { items[i].stack = stack }
         }
         if added > 0 { save() }
         return added
+    }
+
+    /// Stapel auflösen: die Einträge bleiben, jeder wieder eine eigene Kachel.
+    func unstack(_ stack: UUID) {
+        var changed = false
+        for i in items.indices where items[i].stack == stack {
+            items[i].stack = nil
+            changed = true
+        }
+        if changed { save() }
     }
 
     /// Liegt (gleicher aufgelöster Pfad) schon in der Ablage.
@@ -221,6 +259,7 @@ final class ShelfStore {
         let list = items.map { item -> [String: Any] in
             var d: [String: Any] = ["id": item.id.uuidString, "bookmark": item.bookmark.base64EncodedString(), "name": item.name]
             if let at = item.screenshotAt { d["shot"] = at.timeIntervalSince1970 }
+            if let stack = item.stack { d["stack"] = stack.uuidString }
             return d
         }
         guard let data = try? JSONSerialization.data(withJSONObject: ["v": 1, "items": list]) else { return }
@@ -240,7 +279,9 @@ final class ShelfStore {
             guard let idText = d["id"] as? String, let id = UUID(uuidString: idText),
                   let b64 = d["bookmark"] as? String, let mark = Data(base64Encoded: b64), !mark.isEmpty,
                   mark.count <= maxBookmark, let name = d["name"] as? String else { return nil }
-            return Item(id: id, bookmark: mark, name: cleanName(name), screenshotAt: shotDate(d["shot"]))
+            // Stapel optional (0.24): fehlt oder keine UUID → einzeln, der Eintrag bleibt.
+            let stack = (d["stack"] as? String).flatMap(UUID.init(uuidString:))
+            return Item(id: id, bookmark: mark, name: cleanName(name), screenshotAt: shotDate(d["shot"]), stack: stack)
         }
     }
 

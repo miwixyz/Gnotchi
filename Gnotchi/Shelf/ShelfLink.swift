@@ -125,7 +125,7 @@ final class ShelfLink: NotchPart {
     /// `failed`: Versprechen, die nichts Brauchbares geliefert haben (nur Zahl ins Protokoll).
     func drop(_ urls: [URL], failed: Int = 0) {
         let already = urls.filter(store.contains).count
-        let n = store.add(urls)
+        let n = store.add(urls, stacked: true)
         publish()
         store.cleanCopies()
         Self.log.notice("\(n, privacy: .public) abgelegt, \(failed, privacy: .public) Versprechen gescheitert")
@@ -259,8 +259,16 @@ final class ShelfLink: NotchPart {
     /// Zuletzt rausgezogen, für „Zurückholen“ (nur im Speicher, bis zum nächsten Rausziehen).
     @ObservationIgnored private var lastDragged: [ShelfStore.Item] = []
 
-    func remove(_ item: ShelfStore.Item) {
-        store.remove(item.id)
+    func remove(_ item: ShelfStore.Item) { remove([item]) }
+
+    /// Kachel entfernen: bei einem Stapel alle seine Einträge.
+    func remove(_ items: [ShelfStore.Item]) {
+        for item in items { store.remove(item.id) }
+        publish()
+    }
+
+    func unstack(_ stack: UUID) {
+        store.unstack(stack)
         publish()
     }
 
@@ -323,17 +331,24 @@ final class ShelfLink: NotchPart {
         s.perform(withItems: urls)
     }
 
-    /// Rechtsklick-Menü einer Kachel.
-    func menu(for item: ShelfStore.Item, anchor: NSView) -> NSMenu? {
-        guard let url = url(for: item) else { return nil }
+    /// Rechtsklick-Menü einer Kachel (bei einem Stapel gilt alles für alle seine Dateien).
+    func menu(for item: ShelfStore.Item, anchor: NSView) -> NSMenu? { menu(for: [item], anchor: anchor) }
+
+    func menu(for items: [ShelfStore.Item], anchor: NSView) -> NSMenu? {
+        let urls = items.compactMap(url(for:))
+        guard !urls.isEmpty else { return nil }
         let m = NSMenu()
-        m.addItem(ClosureMenuItem(title: "Im Finder zeigen") { [weak self] in self?.reveal([url]) })
+        m.addItem(ClosureMenuItem(title: "Im Finder zeigen") { [weak self] in self?.reveal(urls) })
         m.addItem(ClosureMenuItem(title: "Teilen …") {
-            NSSharingServicePicker(items: [url]).show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
+            NSSharingServicePicker(items: urls).show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
         })
-        m.addItem(ClosureMenuItem(title: "AirDrop") { [weak self] in self?.airDrop([url]) })
+        m.addItem(ClosureMenuItem(title: "AirDrop") { [weak self] in self?.airDrop(urls) })
         m.addItem(.separator())
-        m.addItem(ClosureMenuItem(title: "Aus der Ablage entfernen") { [weak self] in self?.remove(item) })
+        if items.count > 1, let stack = items.first?.stack {
+            m.addItem(ClosureMenuItem(title: "Stapel auflösen") { [weak self] in self?.unstack(stack) })
+        }
+        m.addItem(ClosureMenuItem(title: items.count > 1 ? "\(items.count) Dateien aus der Ablage entfernen"
+                                                          : "Aus der Ablage entfernen") { [weak self] in self?.remove(items) })
         return m
     }
 
