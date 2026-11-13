@@ -119,6 +119,7 @@ final class AppModel {
         updater = Updater()
         updater?.onPendingChange = { [weak self] _ in self?.syncOwnUpdate() }
         Self.log.notice("Start")
+        WidgetRestart.afterUpdate()   // 0.26.1: alter Widget-Prozess nach Update zeigte nur den Platzhalter
         #if DEBUG
         ClipboardKeysProbe.runIfRequested()
         #endif

@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.26.1] — 2026-11-13
+
+### Behoben
+- **Das Schreibtisch-Widget bleibt nach einem Update nicht mehr grau.** Nach dem Update auf 0.26.0 zeigte es nur einen grauen Platzhalter statt der Musik, weil der Widget-Prozess der alten Fassung weiterlief. Gnotchi beendet ihn jetzt beim ersten Start einer neuen Version, macOS startet das Widget dann aus der neuen Fassung.
+
+### Intern
+- `WidgetRestart`: einmal je Version, nur der eigene Widget-Pfad, nur derselbe Nutzer, nur vor Gnotchi gestartet (SECURE-DESIGN G49). 3 neue Tests, einer davon liest die Prozessliste am echten System, 686 Tests.
+
 ## [0.26.0] — 2026-11-13
 
 ### Geändert

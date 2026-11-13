@@ -96,3 +96,37 @@ final class DesktopMusicTests: XCTestCase {
         XCTAssertNil(WidgetWire.coverImage(png), "breiter als 512 px")
     }
 }
+
+final class WidgetRestartTests: XCTestCase {
+    private let path = "/Applications/Gnotchi.app/Contents/PlugIns/GnotchiWidget.appex/Contents/MacOS/GnotchiWidget"
+
+    func testOnlyOlderOwnWidgetOfSameUser() {
+        let procs = [
+            WidgetRestart.Proc(pid: 10, path: path, uid: 501, start: 100),            // alt → beenden
+            WidgetRestart.Proc(pid: 11, path: path, uid: 501, start: 300),            // nach Gnotchi gestartet → bleibt
+            WidgetRestart.Proc(pid: 12, path: path, uid: 502, start: 100),            // anderer Nutzer → bleibt
+            WidgetRestart.Proc(pid: 13, path: path + "X", uid: 501, start: 100),      // anderer Pfad → bleibt
+            WidgetRestart.Proc(pid: 14, path: "/tmp/GnotchiWidget", uid: 501, start: 100),
+            WidgetRestart.Proc(pid: 1, path: path, uid: 501, start: 0),               // launchd nie
+        ]
+        XCTAssertEqual(WidgetRestart.stale(procs, widgetPath: path, uid: 501, ownPid: 20, ownStart: 200), [10])
+    }
+
+    func testNeverOwnProcess() {
+        let procs = [WidgetRestart.Proc(pid: 20, path: path, uid: 501, start: 100)]
+        XCTAssertEqual(WidgetRestart.stale(procs, widgetPath: path, uid: 501, ownPid: 20, ownStart: 200), [])
+    }
+}
+
+/// Liest die Prozessliste am echten System (libproc) – Pfad, Nutzer, Startzeit des eigenen Prozesses.
+final class WidgetRestartSystemTests: XCTestCase {
+    func testReadsOwnProcess() throws {
+        let me = try XCTUnwrap(WidgetRestart.info(getpid()))
+        let exe = try XCTUnwrap(Bundle.main.executableURL).resolvingSymlinksInPath().path
+        XCTAssertEqual(me.path, exe)
+        XCTAssertEqual(me.uid, getuid())
+        XCTAssertLessThan(me.start, Date().timeIntervalSince1970)
+        XCTAssertGreaterThan(me.start, Date().timeIntervalSince1970 - 3600)
+        XCTAssertTrue(WidgetRestart.allProcs().contains(me))
+    }
+}

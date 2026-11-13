@@ -1220,6 +1220,11 @@ nur aus Klicks (G29, G30).
   Grenzen, Schema · R Knopf protokolliert · I Titel auf der Platte (siehe G14 oben) · D Riesen-/Bombendateien →
   Obergrenzen vor dem Lesen bzw. Dekodieren; FIFO als Befehlsdatei blockiert, braucht aber Team-Signatur/Freigabe ·
   E Widget in der Sandbox ohne Netz, Befehle nur die drei festen.
+- **Alter Widget-Prozess nach Update (0.26.1, `WidgetRestart`):** Beim ersten Start einer neuen Version beendet
+  Gnotchi mit SIGTERM nur Prozesse, deren Programmdatei exakt die eigene `GnotchiWidget.appex/Contents/MacOS/GnotchiWidget`
+  ist, die demselben Nutzer gehören und vor Gnotchi gestartet sind (nie PID ≤ 1, nie sich selbst). Einmal je Version
+  (Merker in den Einstellungen). Keine Eingabe von außen; schlimmster Fall ist ein Widget-Neustart, den macOS selbst
+  übernimmt. Restrisiko: PID-Wiederverwendung zwischen Lesen und `kill` (Millisekunden, gleicher Nutzer).
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 
