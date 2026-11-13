@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.26.0</title>
-            <pubDate>Fri, 13 Nov 2026 20:10:54 +0100</pubDate>
+            <title>0.26.1</title>
+            <pubDate>Fri, 13 Nov 2026 20:34:30 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>209</sparkle:version>
-            <sparkle:shortVersionString>0.26.0</sparkle:shortVersionString>
+            <sparkle:version>211</sparkle:version>
+            <sparkle:shortVersionString>0.26.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Musik auf dem Schreibtisch ist jetzt ein echtes macOS-Widget.</b> Es sieht aus wie Uhr und Kalender: gedämpft, wenn ein Fenster davor liegt (das Cover dann in Graustufen), farbig, wenn der Schreibtisch aktiv ist. Rechtsklick auf den Schreibtisch → „Widgets bearbeiten …“ → „Gnotchi“, dann eine Größe ablegen. Klein zeigt Cover und Titel, Mittel und Groß zusätzlich Zurück, Wiedergabe/Pause und Weiter. Die Darstellung heißt in den Einstellungen „Widget“ statt „Karte“. Ecke, Größe und Verschieben in Gnotchi entfallen, die Größe wählst du beim Hinzufügen. Ein Klick aufs Cover holt die Musik-App nicht mehr nach vorne, das kann ein Widget nicht. Der Plattenspieler bleibt, wie er war.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.26.0/Gnotchi-0.26.0.zip" length="7591712" type="application/octet-stream" sparkle:edSignature="76jed7SOb46O3PqaBVpN+1atjy1QTeG+qL9sQgzUMYYbbGajV+NrPeRijMA8Ls1IhgOHp7tT8e/KPnJLrTCMBg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Das Schreibtisch-Widget bleibt nach einem Update nicht mehr grau.</b> Nach dem Update auf 0.26.0 zeigte es nur einen grauen Platzhalter statt der Musik, weil der Widget-Prozess der alten Fassung weiterlief. Gnotchi beendet ihn jetzt beim ersten Start einer neuen Version, macOS startet das Widget dann aus der neuen Fassung.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.26.1/Gnotchi-0.26.1.zip" length="7596339" type="application/octet-stream" sparkle:edSignature="vL/vSNBnGmApKFgzgEMLFFc6B67SPJBReAz+Gk+RV4ASxUUiYrLdLoLY5ETyU88Ci/892Zf7Vck9IICgnPhuDw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: IEBMtlid1GuiyUzsOXsvoQxrqwUE4q+OUFDBYB+Ac/YO7vRX2vRMpoX+o0KvMu0CgcGwH2F3KWdIlye7TT5NBQ==
-length: 1935
+edSignature: 0dWkkVyyLvq6myzPElKawpLlgCLoRJsQQCcs+6CIlbDydlSFFk2bZZK7gGVZGaCEXzHXkvp9BuGLrU2MEwKrAg==
+length: 1538
 -->
