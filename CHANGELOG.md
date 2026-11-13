@@ -2,10 +2,10 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.24.0] — 2026-11-13
 
 ### Neu
-- **Ablage: Stapel.** Ziehst du mehrere Dateien auf einmal auf die Insel, liegen sie als **eine Kachel** in der Ablage: Symbol der ersten Datei, eine Zahl daran und „Name + 2“ darunter. Ziehst du die Kachel heraus, kommen alle Dateien des Stapels mit. Rechtsklick → **Stapel auflösen** macht wieder einzelne Kacheln daraus. Im Finder zeigen, Teilen, AirDrop und Entfernen gelten für den ganzen Stapel. Was schon vorher in der Ablage lag, bleibt einzeln.
+- **Ablage: Stapel.** Ziehst du mehrere Dateien auf einmal auf die Insel, liegen sie als **eine Kachel** in der Ablage: Symbol der ersten Datei, eine Zahl daran und „Name + 2“ darunter. Beim Herausziehen kommen alle Dateien des Stapels mit. Rechtsklick → **Stapel auflösen** macht wieder einzelne Kacheln daraus. Im Finder zeigen, Teilen, AirDrop und Entfernen gelten für den ganzen Stapel. Was schon vorher in der Ablage lag, bleibt einzeln.
 
 ### Geändert
 - **Wach bleiben:** Die Zeile „Von Hand“ heißt jetzt **Ohne Zeitplan**. Sie gilt, wenn du selbst über die Tasse oder eine Dauer einschaltest.

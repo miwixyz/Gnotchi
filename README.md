@@ -86,7 +86,8 @@ Freigabe nicht und fragt nie danach.
   Passwort). Verweise statt Kopien, ohne Freigabe. Ab 0.9.1 auch Fotos direkt aus der Fotos-App, ab 0.9.2
   Anhänge aus Outlook und aus Gmail im Browser (jeweils als Kopie, die beim Entfernen gelöscht wird).
   Ab 0.10 kopiert das Rausziehen immer (das Original bleibt). **Ab 0.18** „Alle ziehen“ (alle Dateien in einem Zug)
-  und „Zurückholen“ nach dem Rausziehen, falls am Ziel nichts angekommen ist.
+  und „Zurückholen“ nach dem Rausziehen, falls am Ziel nichts angekommen ist. **Ab 0.24** werden mehrere in einem Zug
+  abgelegte Dateien ein **Stapel**: eine Kachel mit Anzahl, die zusammen herausgezogen wird (Rechtsklick löst ihn auf).
 - **Bildschirmfotos in die Ablage (0.10):** Jedes neue Bildschirmfoto von macOS oder CleanShot (auch in iCloud Drive)
   landet von selbst in der Ablage und lässt sich gleich in Chat, Mail oder Dokument ziehen. Ab Werk aus; Fotos auf dem
   Schreibtisch brauchen einmal macOS' Zugriffsfreigabe, iCloud-Fotos erscheinen bis zu einer Minute verzögert.
