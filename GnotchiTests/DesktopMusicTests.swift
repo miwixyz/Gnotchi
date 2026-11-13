@@ -1,8 +1,7 @@
 import AppKit
-import SwiftUI
 import XCTest
 
-/// 0.15.0 Musik auf dem Schreibtisch: Sichtbarkeit, Lage, Bild (nur ERFUNDENE Titel, G16).
+/// Musik auf dem Schreibtisch: Sichtbarkeit (0.15.0) und Widget-Format (0.26.0) – nur ERFUNDENE Titel (G16).
 @MainActor
 final class DesktopMusicTests: XCTestCase {
 
@@ -26,60 +25,74 @@ final class DesktopMusicTests: XCTestCase {
         XCTAssertNil(DesktopMusicLink.nextPausedSince(hasInfo: false, playing: false, current: first, now: t0))
     }
 
-    private let area = CGRect(x: 0, y: 80, width: 1470, height: 840)   // sichtbarer Bereich ohne Dock/Menüleiste
-    private var size: CGSize { DesktopMusicLink.windowSize(.medium) }
+    // MARK: - Widget (0.26.0, G49)
 
-    func testCornersAndFlushInset() {
-        let pad = DesktopMusicLink.pad
-        let bl = DesktopMusicLink.frame(corner: .bottomLeft, inset: CGSize(width: 24, height: 24), size: size, in: area)
-        XCTAssertEqual(bl.minX + pad, 24, "Inhalt 24 vom linken Rand")
-        XCTAssertEqual(bl.minY + pad, 80 + 24)
-        // Michael: „ganz in die rechte untere Ecke“ – Inhalt bündig, Schattenrand ragt hinaus.
-        let flush = DesktopMusicLink.frame(corner: .bottomRight, inset: .zero, size: size, in: area)
-        XCTAssertEqual(flush.maxX - pad, area.maxX)
-        XCTAssertEqual(flush.minY + pad, area.minY, "bündig unten im erlaubten Bereich")
+    private func info(title: String = "Erfundener Titel", playing: Bool = true) -> NowPlayingInfo {
+        NowPlayingInfo(title: title, artist: "Muster-Band", album: "Testalbum", appBundleID: nil, isPlaying: playing,
+                       duration: 200, elapsedAtStamp: 10, stamp: Date(), rate: 0, contentID: nil, artworkBase64: nil)
     }
 
-    /// Ziehen → Ecke + Abstand merken → neu platzieren = dieselbe Stelle (auch nach Bildschirmwechsel stabil).
-    func testAnchorRoundTrip() {
-        for origin in [CGPoint(x: 1200, y: 60), CGPoint(x: 40, y: 600), CGPoint(x: 700, y: 300), CGPoint(x: 1180, y: 620)] {
-            let window = CGRect(origin: origin, size: size)
-            let (corner, inset) = DesktopMusicLink.anchor(for: window, in: area)
-            let back = DesktopMusicLink.frame(corner: corner, inset: inset, size: size, in: area)
-            XCTAssertEqual(back.origin.x, origin.x, accuracy: 0.01, "\(origin)")
-            XCTAssertEqual(back.origin.y, origin.y, accuracy: 0.01, "\(origin)")
-        }
+    func testNowIsBuiltAndClipped() throws {
+        let now = DesktopWidgetFeed.makeNow(info: info(title: String(repeating: "x", count: 1000)), hasCover: true)
+        XCTAssertEqual(now.title.count, WidgetWire.maxText)
+        XCTAssertEqual(now.subtitle, "Muster-Band · Testalbum")
+        XCTAssertTrue(now.playing)
+        let data = try JSONEncoder().encode(now)
+        XCTAssertEqual(WidgetWire.decodeNow(data), now, "hin und zurück gleich")
     }
 
-    /// Über den Rand hinaus gezogen → zurück in den sichtbaren Bereich (Inhalt bündig).
-    func testDraggedBeyondEdgeIsClamped() {
-        let window = CGRect(origin: CGPoint(x: 1400, y: 20), size: size)   // rechts unten, halb über dem Dock
-        let (corner, inset) = DesktopMusicLink.anchor(for: window, in: area)
-        XCTAssertEqual(corner, .bottomRight)
-        XCTAssertEqual(inset, .zero)
+    func testNowRejectsOversizeAndUnknownVersion() throws {
+        var now = DesktopWidgetFeed.makeNow(info: info(), hasCover: false)
+        now.v = 2
+        XCTAssertNil(WidgetWire.decodeNow(try JSONEncoder().encode(now)), "fremde Fassung")
+        XCTAssertNil(WidgetWire.decodeNow(Data(repeating: 0x20, count: WidgetWire.maxJSON + 1)), "zu groß")
+        XCTAssertNil(WidgetWire.decodeNow(Data("kein json".utf8)))
+        // Zu lange Felder von außen werden beim Lesen gekürzt.
+        let long = #"{"v":1,"title":"\#(String(repeating: "a", count: 2000))","subtitle":"b","playing":false,"hasCover":false}"#
+        XCTAssertEqual(WidgetWire.decodeNow(Data(long.utf8))?.title.count, WidgetWire.maxText)
     }
 
-    func testRenderDesktopMusic() throws {
-        let model = NowPlayingModel()
-        let artwork = NSImage(size: NSSize(width: 300, height: 300), flipped: false) { rect in
+    func testCommandMustBeFreshAndKnown() throws {
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        let cmd = WidgetWire.Command(id: UUID(), action: .playPause, at: t0.timeIntervalSince1970)
+        let data = try JSONEncoder().encode(cmd)
+        XCTAssertEqual(WidgetWire.decodeCommand(data, now: t0.addingTimeInterval(1)), cmd)
+        XCTAssertNil(WidgetWire.decodeCommand(data, now: t0.addingTimeInterval(3.5)), "zu alt")
+        XCTAssertNil(WidgetWire.decodeCommand(data, now: t0.addingTimeInterval(-5)), "aus der Zukunft")
+        let bad = #"{"v":1,"id":"\#(UUID().uuidString)","action":"quit","at":\#(t0.timeIntervalSince1970)}"#
+        XCTAssertNil(WidgetWire.decodeCommand(Data(bad.utf8), now: t0), "nur die drei Aktionen")
+        XCTAssertNil(WidgetWire.decodeCommand(Data(repeating: 0x20, count: WidgetWire.maxCommand + 1), now: t0))
+    }
+
+    func testCommandRunsOnlyOnce() {
+        var handled: [UUID] = []
+        let id = UUID()
+        XCTAssertTrue(DesktopWidgetFeed.accept(id, handled: &handled))
+        XCTAssertFalse(DesktopWidgetFeed.accept(id, handled: &handled), "derselbe Befehl nie zweimal")
+        for _ in 0..<40 { _ = DesktopWidgetFeed.accept(UUID(), handled: &handled) }
+        XCTAssertEqual(handled.count, 32, "Gedächtnis begrenzt")
+    }
+
+    func testCoverIsSmallPngAndWidgetAcceptsIt() throws {
+        let big = NSImage(size: NSSize(width: 1000, height: 600), flipped: false) { rect in
             NSGradient(colors: [.systemPink, .systemOrange])?.draw(in: rect, angle: 60)
             return true
         }
-        model.setPreviewState(info: NowPlayingInfo(title: "Erfundener Titel", artist: "Muster-Band", album: "Testalbum",
-                                                   appBundleID: nil, isPlaying: true, duration: 200, elapsedAtStamp: 10,
-                                                   stamp: Date(), rate: 0, contentID: nil, artworkBase64: nil),
-                              artwork: artwork)
-        let size = DesktopMusicLink.windowSize(.medium)
-        let view = ZStack {
-            LinearGradient(colors: [.teal, .indigo], startPoint: .top, endPoint: .bottom)   // „Schreibtisch“
-            DesktopMusicView(media: model, cover: Preferences.DesktopSize.medium.cover, hovering: true)
-        }
-        .frame(width: size.width, height: size.height)
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 2
-        let cg = try XCTUnwrap(renderer.cgImage)
-        guard let dir = ProcessInfo.processInfo.environment["GNOTCHI_RENDER_DIR"], !dir.isEmpty else { return }
-        let png = try XCTUnwrap(NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]))
-        try png.write(to: URL(fileURLWithPath: dir).appendingPathComponent("gnotchi-island-desktop-music.png"))
+        let png = try XCTUnwrap(DesktopWidgetFeed.png(big))
+        let image = try XCTUnwrap(WidgetWire.coverImage(png))
+        XCTAssertEqual(image.width, 256)
+        XCTAssertLessThanOrEqual(image.height, 256)
+        // Kein PNG → abgelehnt.
+        let rep = try XCTUnwrap(NSBitmapImageRep(data: png))
+        let jpeg = try XCTUnwrap(rep.representation(using: .jpeg, properties: [:]))
+        XCTAssertNil(WidgetWire.coverImage(jpeg))
+    }
+
+    func testCoverRejectsHugeDeclaredSize() throws {
+        let rep = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 600, pixelsHigh: 10, bitsPerSample: 8,
+                                                 samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                                 colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        let png = try XCTUnwrap(rep.representation(using: .png, properties: [:]))
+        XCTAssertNil(WidgetWire.coverImage(png), "breiter als 512 px")
     }
 }

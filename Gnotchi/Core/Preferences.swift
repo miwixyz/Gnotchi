@@ -11,16 +11,12 @@ final class Preferences {
         static let notchMedia = "notchMedia"
         /// 0.15.0 Musik auf dem Schreibtisch: Schalter (ab Werk aus), Ecke, Größe.
         static let desktopMusic = "desktopMusic"
-        static let desktopMusicCorner = "desktopMusicCorner"
-        static let desktopMusicSize = "desktopMusicSize"
         /// 0.17.0: Darstellung (Karte | Plattenspieler) und Bildschirm des Plattenspielers.
         static let desktopMusicStyle = "desktopMusicStyle"
         static let desktopMusicScreen = "desktopMusicScreen"
         static let desktopMusicNeon = "desktopMusicNeon"
         static let desktopMusicTonearm = "desktopMusicTonearm"
         /// Abstand des Covers zur gewählten Ecke (nach dem Ziehen), x/y in Punkten.
-        static let desktopMusicInsetX = "desktopMusicInsetX"
-        static let desktopMusicInsetY = "desktopMusicInsetY"
         /// 0.20.0 Musik auf dem Sperrbildschirm (ab Werk aus) und „Titel verbergen“.
         static let lockScreenMusic = "lockScreenMusic"
         static let lockScreenHideTitle = "lockScreenHideTitle"
@@ -106,11 +102,7 @@ final class Preferences {
     var notchMedia: Bool { didSet { defaults.set(notchMedia, forKey: Key.notchMedia) } }
     /// 0.15.0: Cover + Titel hinter allen Fenstern auf dem Schreibtisch. Ab Werk **aus** (neue Bildschirmfläche).
     var desktopMusic: Bool { didSet { defaults.set(desktopMusic, forKey: Key.desktopMusic) } }
-    var desktopMusicCorner: DesktopCorner {
-        didSet { defaults.set(desktopMusicCorner.rawValue, forKey: Key.desktopMusicCorner) }
-    }
-    var desktopMusicSize: DesktopSize { didSet { defaults.set(desktopMusicSize.rawValue, forKey: Key.desktopMusicSize) } }
-    /// 0.17.0 (Michael 27.10.): Darstellung, ab Werk Karte.
+    /// 0.17.0 (Michael 27.10.): Darstellung, ab Werk Karte – seit 0.26.0 das echte Widget (G49).
     var desktopMusicStyle: DesktopStyle { didSet { defaults.set(desktopMusicStyle.rawValue, forKey: Key.desktopMusicStyle) } }
     /// Bildschirm des Plattenspielers als UUID (CGDisplay, übersteht Neustarts); leer = Hauptbildschirm.
     var desktopMusicScreen: String { didSet { defaults.set(desktopMusicScreen, forKey: Key.desktopMusicScreen) } }
@@ -119,34 +111,12 @@ final class Preferences {
     /// Start/Stopp-Knopf am Plattenspieler (0.17.2, vorher Tonarm anfassen; Schlüssel bleibt), ab Werk aus – sonst pausiert
     /// ein Klick aus Versehen.
     var desktopMusicTonearm: Bool { didSet { defaults.set(desktopMusicTonearm, forKey: Key.desktopMusicTonearm) } }
-    /// Abstand des Covers zur Ecke – frei per Ziehen (Michael 26.10.: „ganz in die rechte untere Ecke“). Lage relativ zur
-    /// nächsten Ecke, damit sie beim Bildschirmwechsel in derselben Ecke bleibt.
-    var desktopMusicInset: CGSize {
-        didSet {
-            defaults.set(Double(desktopMusicInset.width), forKey: Key.desktopMusicInsetX)
-            defaults.set(Double(desktopMusicInset.height), forKey: Key.desktopMusicInsetY)
-        }
-    }
     /// 0.20.0: Karte auf dem Sperrbildschirm (G46). Ab Werk **aus** – jeder am gesperrten Mac sieht und steuert sie.
     var lockScreenMusic: Bool { didSet { defaults.set(lockScreenMusic, forKey: Key.lockScreenMusic) } }
     /// Nur Musiknote und Knöpfe, kein Cover, kein Text (Michael 06.11.). Ab Werk aus.
     var lockScreenHideTitle: Bool { didSet { defaults.set(lockScreenHideTitle, forKey: Key.lockScreenHideTitle) } }
-    static let desktopMusicDefaultInset = CGSize(width: 24, height: 24)
-
-    enum DesktopCorner: String, CaseIterable { case bottomLeft, bottomRight, topLeft, topRight }
-    /// 0.17.0: Karte in der Ecke (0.15.0) oder Plattenspieler mittig mit Farbverlauf.
+    /// 0.17.0: Karte (seit 0.26.0 echtes Widget, G49) oder Plattenspieler mittig mit Farbverlauf.
     enum DesktopStyle: String, CaseIterable { case card, turntable }
-    /// Covergröße in Punkten.
-    enum DesktopSize: String, CaseIterable {
-        case small, medium, large
-        var cover: CGFloat {
-            switch self {
-            case .small: 120
-            case .medium: 180
-            case .large: 260
-            }
-        }
-    }
 
     /// Wie lange die Maus über der kleinen Insel bleiben muss, bevor sie aufgeht (Michael, 18.10.:
     /// „damit das Überfahren nicht zu schnell auslöst und stört“). Wirkt sofort, ohne Neustart.
@@ -311,9 +281,6 @@ final class Preferences {
         // nicht „aus“.
         notchMedia = defaults.object(forKey: Key.notchMedia) as? Bool ?? true
         desktopMusic = defaults.object(forKey: Key.desktopMusic) as? Bool ?? false
-        desktopMusicCorner = defaults.string(forKey: Key.desktopMusicCorner).flatMap(DesktopCorner.init(rawValue:)) ?? .bottomLeft
-        desktopMusicSize = defaults.string(forKey: Key.desktopMusicSize).flatMap(DesktopSize.init(rawValue:)) ?? .medium
-        desktopMusicInset = Self.validInset(defaults)
         (desktopMusicStyle, desktopMusicScreen) = (Self.validStyle(defaults), Self.validScreen(defaults))
         ((desktopMusicNeon, desktopMusicTonearm), (lockScreenMusic, lockScreenHideTitle)) = (Self.turntableFlags(defaults), Self.lockFlags(defaults))
         expandDelay = Self.validExpandDelay(defaults.object(forKey: Key.expandDelay))
@@ -443,12 +410,6 @@ final class Preferences {
 
     nonisolated static func validStyle(_ defaults: UserDefaults) -> DesktopStyle {
         defaults.string(forKey: Key.desktopMusicStyle).flatMap(DesktopStyle.init(rawValue:)) ?? .card
-    }
-
-    nonisolated static func validInset(_ defaults: UserDefaults) -> CGSize {
-        let x = defaults.object(forKey: Key.desktopMusicInsetX) as? Double
-        let y = defaults.object(forKey: Key.desktopMusicInsetY) as? Double
-        return CGSize(width: max(0, min(x ?? 24, 4000)), height: max(0, min(y ?? 24, 4000)))
     }
 
     /// Nur Werte aus der Auswahl; alles andere → ab Werk (30 Min.).

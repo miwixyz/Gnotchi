@@ -232,7 +232,7 @@ struct TurntableView: View {
             .rotation3DEffect(.degrees(22), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
             .shadow(color: .black.opacity(0.5), radius: 18, x: 8, y: 14)
             .padding(.bottom, deckWidth * Self.sleeveLift)   // steht auf Höhe der Füße
-            .onTapGesture { DesktopMusicView.bringToFront(media.info?.appBundleID) }
+            .onTapGesture { DesktopMusicLink.bringToFront(media.info?.appBundleID) }
     }
 
     private func deck(playing: Bool) -> some View {

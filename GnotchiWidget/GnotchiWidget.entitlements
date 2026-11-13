@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Schreibtisch-Widget (0.26.0, docs/SECURE-DESIGN.md G49): genau ZWEI Berechtigungen.
+	     1. App Sandbox – WidgetKit verlangt sie für Erweiterungen.
+	     2. Genau Gnotchis App-Gruppe (Team-Präfix, mit Developer ID ohne Profil – gemessen 13.11.):
+	        Titel/Cover lesen, Knopfbefehl ablegen. Kein Netz, keine Dateien außerhalb der Gruppe. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>LTKJ6Z2VYB.dev.mwlr.gnotchi</string>
+	</array>
+</dict>
+</plist>

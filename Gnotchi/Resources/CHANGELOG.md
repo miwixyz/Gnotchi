@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unreleased]
+
+### Geändert
+- **Musik auf dem Schreibtisch ist jetzt ein echtes macOS-Widget.** Es sieht aus wie Uhr und Kalender: gedämpft, wenn ein Fenster davor liegt (das Cover dann in Graustufen), farbig, wenn der Schreibtisch aktiv ist. Rechtsklick auf den Schreibtisch → „Widgets bearbeiten …“ → „Gnotchi“, dann eine Größe ablegen. Klein zeigt Cover und Titel, Mittel und Groß zusätzlich Zurück, Wiedergabe/Pause und Weiter. Die Darstellung heißt in den Einstellungen „Widget“ statt „Karte“. Ecke, Größe und Verschieben in Gnotchi entfallen, die Größe wählst du beim Hinzufügen. Ein Klick aufs Cover holt die Musik-App nicht mehr nach vorne, das kann ein Widget nicht. Der Plattenspieler bleibt, wie er war.
+
+### Intern
+- Neues Ziel `GnotchiWidget` (WidgetKit, Sandbox) und App-Gruppe `LTKJ6Z2VYB.dev.mwlr.gnotchi` für App und Widget. Gnotchi schreibt nur den aktuellen Titel und ein auf 256 px verkleinertes Cover hinein und löscht beides, sobald nichts läuft oder Gnotchi endet. Knöpfe: Befehl im Gruppen-Ordner + Darwin-Weckruf, nur frisch, nur einmal, nur drei Aktionen (SECURE-DESIGN G49). Positivliste und `release.sh` prüfen die neue Berechtigung an App und Widget.
+- `scripts/widget-only.sh`: Bei `make dev` und `make install` meldet nur die benutzte Kopie das Widget an (macOS nahm sonst eine alte Kopie aus dem Build-Ordner).
+- `make install` brach seit 0.11.0 ab, weil das Hook-Programm „Gnotchi Claude“ nicht signiert wurde, behoben.
+- 6 neue Tests für Datenformat, Grenzen und doppelte Befehle, Tests der alten Fensterlage entfernt, 683 Tests.
+
 ## [0.25.0] — 2026-11-13
 
 ### Geändert

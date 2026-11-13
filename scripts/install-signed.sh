@@ -49,6 +49,22 @@ if [ -d "$HELPER" ]; then
     done
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HELPER"
 fi
+# Hook-Programm „Gnotchi Claude“ (0.9.0, G34) – fehlte hier bis 0.26.0, `make install` brach deshalb ab
+# („code has no resources but signature indicates they must be present“, 13.11.). Wie in dev-signed.sh.
+HOOK="$STAGE/Gnotchi.app/Contents/Helpers/Gnotchi Claude.app"
+if [ -d "$HOOK" ]; then
+    for part in "$HOOK"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --timestamp --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HOOK"
+fi
+# Schreibtisch-Widget (0.26.0, G49): eigene, kleinstmögliche Berechtigungen (Sandbox + App-Gruppe), vor der App.
+WIDGET="$STAGE/Gnotchi.app/Contents/PlugIns/GnotchiWidget.appex"
+if [ -d "$WIDGET" ]; then
+    codesign --force --options runtime --timestamp --entitlements GnotchiWidget/GnotchiWidget.entitlements \
+        --sign "$IDENTITY" "$WIDGET"
+fi
 # Ab 0.11.0 (G38): Profil einbetten + Berechtigungen mit ausgeschriebener App-Kennung (scripts/profile.sh).
 . scripts/profile.sh
 gnotchi_embed_profile "$STAGE/Gnotchi.app"
@@ -64,5 +80,7 @@ if [ -e /Applications/Gnotchi.app ]; then
     mv /Applications/Gnotchi.app "$STAGE/Gnotchi-alt.app"
 fi
 ditto "$STAGE/Gnotchi.app" /Applications/Gnotchi.app
+# 0.26.0 (G49): nur /Applications meldet das Widget an (Altfassung und Testkopien abgemeldet).
+sh scripts/widget-only.sh /Applications/Gnotchi.app
 open /Applications/Gnotchi.app
 echo "✓ /Applications/Gnotchi.app ($(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' /Applications/Gnotchi.app/Contents/Info.plist))"

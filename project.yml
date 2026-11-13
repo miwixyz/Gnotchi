@@ -74,6 +74,10 @@ targets:
         copy:
           destination: wrapper
           subpath: Contents/Helpers
+      # Schreibtisch-Widget (0.26.0, docs/SECURE-DESIGN.md G49): echte WidgetKit-Erweiterung unter Contents/PlugIns.
+      - target: GnotchiWidget
+        embed: true
+        codeSign: true
     settings:
       base:
         INFOPLIST_FILE: Gnotchi/Resources/Info.plist
@@ -112,6 +116,27 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.mitteilungen
         ENABLE_HARDENED_RUNTIME: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+
+  # Schreibtisch-Widget (0.26.0, G49): Sandbox + nur Gnotchis App-Gruppe. Liest Titel/Cover, legt Knopfbefehle ab.
+  # Format = dieselbe Datei wie in Gnotchi (WidgetWire).
+  GnotchiWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: GnotchiWidget
+        excludes:
+          - Info.plist
+          - GnotchiWidget.entitlements
+      - path: Gnotchi/Media/WidgetWire.swift
+    settings:
+      base:
+        PRODUCT_NAME: GnotchiWidget
+        INFOPLIST_FILE: GnotchiWidget/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.widget
+        CODE_SIGN_ENTITLEMENTS: GnotchiWidget/GnotchiWidget.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
 

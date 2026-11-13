@@ -80,6 +80,12 @@ if [ -d "$HOOK" ]; then
     done
     codesign --force --options runtime --sign "$IDENTITY" "$HOOK"
 fi
+# 2b. Schreibtisch-Widget (0.26.0, G49): eigene, kleinstmögliche Berechtigungen (Sandbox + App-Gruppe), vor der App.
+WIDGET="$APP/Contents/PlugIns/GnotchiWidget.appex"
+if [ -d "$WIDGET" ]; then
+    codesign --force --options runtime --entitlements GnotchiWidget/GnotchiWidget.entitlements \
+        --sign "$IDENTITY" "$WIDGET"
+fi
 # 3. Die App zuletzt, als einzige mit Gnotchis Berechtigungen (Apple Events, Kamera, Schlüsselbund-Gruppe).
 # Ab 0.11.0 (G38): Profil einbetten + Berechtigungen mit ausgeschriebener App-Kennung (scripts/profile.sh).
 . scripts/profile.sh
@@ -107,5 +113,7 @@ if pgrep -x Gnotchi >/dev/null; then
     pkill -x Gnotchi || true
 fi
 sleep 1
+# 0.26.0 (G49): nur diese Testkopie meldet das Widget an (sonst nimmt macOS eine alte Kopie).
+sh scripts/widget-only.sh "$APP"
 open "$APP" --args "$@"
 echo "✓ Testversion gestartet: $APP"

@@ -218,7 +218,16 @@ echo "${SIGN_INFO}" | grep -q "TeamIdentifier=LTKJ6Z2VYB" \
 #   bricht das Release ab.
 # Geparst mit Python/plistlib statt grep (ugrep-Lehre, siehe Appcast-Prüfung unten).
 . scripts/entitlement-gate.sh
-gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events com.apple.security.device.camera keychain-access-groups"
+gate_check "${APP_PATH}" "${BUNDLE}" "com.apple.security.automation.apple-events com.apple.security.device.camera keychain-access-groups com.apple.security.application-groups"
+# 0.26.0 (G49): App-Gruppe an App UND Widget = GENAU Gnotchis Gruppe.
+for part in "${APP_PATH}" "${APP_PATH}/Contents/PlugIns/GnotchiWidget.appex"; do
+    [ -d "${part}" ] || fail "Fehlt im Bundle: ${part#${APP_PATH}/}"
+    AG="$(codesign -d --entitlements - --xml "${part}" 2>/dev/null | python3 -c '
+import plistlib, sys
+print(" ".join(plistlib.loads(sys.stdin.buffer.read()).get("com.apple.security.application-groups", [])))')"
+    [ "${AG}" = "LTKJ6Z2VYB.dev.mwlr.gnotchi" ] \
+        || fail "App-Gruppe unerwartet an ${part##*/}: '${AG}' (erwartet genau LTKJ6Z2VYB.dev.mwlr.gnotchi, G49)"
+done
 # 0.11.0 (G38): Schlüsselbund-Gruppe = GENAU Gnotchis eigene, und das Profil, das sie freigibt, ist eingebettet
 # (ohne Profil beendet amfid die App beim Start mit -413).
 KC_GROUPS="$(codesign -d --entitlements - --xml "${APP_PATH}" 2>/dev/null | python3 -c '

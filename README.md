@@ -33,9 +33,9 @@ Freigabe nicht und fragt nie danach.
 
 - **Medien aus jeder Quelle**, die macOS als laufende Wiedergabe meldet: Spotify, Musik und
   Browser wie Safari, Edge oder Helium (auch Videos).
-- **Auf dem Schreibtisch (0.15, ab Werk aus):** Cover, Titel und Interpret hinter allen Fenstern, frei verschiebbar,
-  Knöpfe beim Drüberfahren, nach 10 Minuten Pause weg. Gleiche Daten wie die Insel, keine Freigabe
-  ([G44](docs/SECURE-DESIGN.md)).
+- **Auf dem Schreibtisch (0.15, ab Werk aus):** ab 0.26 ein echtes macOS-Widget in drei Größen, sieht aus wie Uhr und
+  Kalender (gedämpft/farbig wie das System), Mittel und Groß mit Knöpfen, nach 10 Minuten Pause leer. Gleiche Daten wie
+  die Insel ([G44](docs/SECURE-DESIGN.md), [G49](docs/SECURE-DESIGN.md)).
 - **Plattenspieler (0.17, ab Werk aus):** dieselbe Anzeige als drehender Plattenspieler mittig auf einem wählbaren
   Bildschirm, Tonarm wandert mit dem Titel, Farbverlauf aus dem Cover unter den Schreibtisch-Symbolen, optional
   Neonschrift „Now Playing“ und Start/Pause über den Start/Stopp-Knopf am Gerät. Gezeichnet aus KI-Fotos (Ebenen, gemessene Perspektive).

@@ -98,7 +98,7 @@ extension SettingsView {
                     // 0.17.0 (Michael 27.10.): zweite Darstellung derselben Anzeige.
                     row("Darstellung") {
                         Picker("", selection: $prefs.desktopMusicStyle) {
-                            Text("Karte").tag(Preferences.DesktopStyle.card)
+                            Text("Widget").tag(Preferences.DesktopStyle.card)
                             Text("Plattenspieler").tag(Preferences.DesktopStyle.turntable)
                         }
                         .labelsHidden().pickerStyle(.segmented).fixedSize()
@@ -121,38 +121,13 @@ extension SettingsView {
                     toggleRow("Start/Stopp-Knopf bedienen (unten links am Plattenspieler)", isOn: $prefs.desktopMusicTonearm)
                         .onChange(of: prefs.desktopMusicTonearm) { model.applyNotchSetting() }
                 }
-                if prefs.desktopMusic && prefs.desktopMusicStyle == .card {
-                    row("Ecke") {
-                        // Ecke wählen = Sprung mit Standardabstand (gezogene Lage wird ersetzt).
-                        Picker("", selection: Binding(get: { prefs.desktopMusicCorner }, set: { corner in
-                            prefs.desktopMusicCorner = corner
-                            prefs.desktopMusicInset = Preferences.desktopMusicDefaultInset
-                            model.applyNotchSetting()
-                        })) {
-                            Text("Unten links").tag(Preferences.DesktopCorner.bottomLeft)
-                            Text("Unten rechts").tag(Preferences.DesktopCorner.bottomRight)
-                            Text("Oben links").tag(Preferences.DesktopCorner.topLeft)
-                            Text("Oben rechts").tag(Preferences.DesktopCorner.topRight)
-                        }
-                        .labelsHidden().frame(width: 160)
-                    }
-                    row("Größe") {
-                        Picker("", selection: $prefs.desktopMusicSize) {
-                            Text("Klein").tag(Preferences.DesktopSize.small)
-                            Text("Mittel").tag(Preferences.DesktopSize.medium)
-                            Text("Groß").tag(Preferences.DesktopSize.large)
-                        }
-                        .labelsHidden().pickerStyle(.segmented).frame(width: 200)
-                        .onChange(of: prefs.desktopMusicSize) { model.applyNotchSetting() }
-                    }
-                }
                 note(prefs.desktopMusicStyle == .turntable
                      ? "Plattenspieler mittig, dahinter ein Farbverlauf aus dem Cover, unter deinen Schreibtisch-Symbolen. "
                        + "Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. Drüberfahren zeigt die "
                        + "Knöpfe, Klick auf die Hülle holt die App."
-                     : "Liegt hinter allen Fenstern, nur auf dem Hauptbildschirm. Mit der Maus verschiebbar, "
-                       + "auch bündig in die Ecke. Sichtbar, solange Musik spielt oder pausiert, nach 10 Minuten Pause weg. "
-                       + "Drüberfahren zeigt die Knöpfe, Klick aufs Cover holt die App.",
+                     : "Ein echtes macOS-Widget wie Uhr und Kalender: Rechtsklick auf den Schreibtisch → „Widgets bearbeiten …“ "
+                       + "→ „Gnotchi“, Größe wählen und ablegen. Zeigt Titel und Cover, solange Musik spielt oder pausiert, "
+                       + "nach 10 Minuten Pause leer. Mittel und Groß mit Knöpfen.",
                      symbol: "photo.on.rectangle", color: FamilyTheme.textSecondary)
                 // 0.20.0 (G46): Sperrbildschirm, ab Werk aus. Ohne SkyLight-Funktionen ausgegraut.
                 toggleRow("Auf dem Sperrbildschirm zeigen", isOn: $prefs.lockScreenMusic)

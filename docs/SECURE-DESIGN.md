@@ -51,6 +51,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G42 | – (neu, 0.12.0) | Einfügen: Hilfsprogramm drückt nur ⌘V, ohne Inhalt, nur nach Doppelklick/↵, ohne Hilfsprogramm nur kopieren |
 | G44 | – (neu, 0.15.0) | Musik auf dem Schreibtisch: dieselben Fremddaten wie die Insel, nur Anzeige, Klick holt nur laufende App |
 | G43 | – (neu, 0.13.0) | Geheimnisse erkennen: feste Muster, ganze Kopie, verdeckt, lose Einträge nach 5 Min. weg, Sammlungen nie automatisch |
+| G49 | – (neu, 0.26.0) | Schreibtisch-Widget: nur aktueller Titel im Gruppen-Ordner, Knöpfe nur als frischer Befehl aus dem Ordner |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1193,6 +1194,32 @@ nur aus Klicks (G29, G30).
 - **STRIDE:** S – · T kaputter Versatz in den Einstellungen → geprüft, Rückfall Grundlage · R – · I keine neuen Daten ·
   D Schleife läuft nur außerhalb der Insel bei offener Insel, endet beim Zuklappen oder Wiedereintritt · E keine neue
   Freigabe, kein neuer Prozess, kein Netz.
+
+### G49 – Schreibtisch-Widget: Gruppen-Ordner, Weckruf, frischer Befehl (neu, 2026-11-13, 0.26.0)
+- **Was:** Die Darstellung „Karte“ von G44 ist jetzt ein echtes WidgetKit-Widget (Spec
+  `specs/2026-11-13-gnotchi-0.26.0-schreibtisch-widget.md`). Gnotchi schreibt den **aktuellen** Titel (`WidgetWire.Now`:
+  Titel, „Interpret · Album“, spielt ja/nein) und ein auf 256 px neu gezeichnetes PNG in den Ordner der App-Gruppe
+  `LTKJ6Z2VYB.dev.mwlr.gnotchi`, das Widget liest und zeigt es an.
+- **Neue Berechtigungen:** App `com.apple.security.application-groups` (genau diese Gruppe). Widget-Erweiterung genau
+  `com.apple.security.app-sandbox` + dieselbe Gruppe, eigene Signatur von innen nach außen (`dev-signed.sh`,
+  `install-signed.sh`), Positivliste in `entitlement-gate.sh` (Paket **und** Programmdatei), `release.sh` prüft die
+  Gruppe an App und Widget genau. Kein Netz, kein Prozess, keine Bedienungshilfen.
+- **G14 gelockert:** Titel und Cover liegen jetzt auf der Platte – nur der aktuelle Titel, kein Verlauf. Gelöscht, sobald
+  nichts läuft (nach 10 Min. Pause), die Funktion aus ist, der Plattenspieler gewählt wird oder Gnotchi endet
+  (`stopNotch` → `stop()` → `clear()`, gemessen). macOS legt gezeichnete Widgets ohnehin selbst ab.
+- **Fremddaten (G4–G6):** Lesen mit Obergrenze (JSON ≤ 16 KB, Befehl ≤ 1 KB, Cover ≤ 512 KB), Schema-Fassung `v == 1`,
+  Texte auf 300 Zeichen gekürzt, Anzeige nur `Text(verbatim:)`. Cover nur PNG, Kopf **vor** dem Dekodieren geprüft
+  (≤ 512 px je Seite). Schreiben atomar (ein Symlink im Ordner wird ersetzt, nicht verfolgt).
+- **Knöpfe (G13):** Der `AppIntent` im Widget (`isDiscoverable = false`, nicht in Kurzbefehlen) legt
+  `{id, action, at}` in den Gruppen-Ordner und sendet eine Darwin-Mitteilung. Die Mitteilung kann jeder senden – sie ist
+  nur ein Weckruf. Gnotchi liest dann die Befehlsdatei (nur Programme mit Michaels Team-Signatur oder mit ausdrücklicher
+  Freigabe für den Ordner kommen hinein, gemessen), löscht sie, nimmt nur `previous`/`playPause`/`next`, nur höchstens
+  3 s alt, nur einmal je Kennung (32 gemerkt), nur solange das Widget beliefert wird. Protokoll nur die Aktion.
+- **Protokoll (G8):** nur Aktion bzw. Fehlerart beim Lesen, Stufe `notice`. Nie Titel, nie Pfade.
+- **STRIDE:** S gefälschter Weckruf → nur Lesen, Befehl fehlt oder ist alt · T manipulierte Dateien → nur Anzeige,
+  Grenzen, Schema · R Knopf protokolliert · I Titel auf der Platte (siehe G14 oben) · D Riesen-/Bombendateien →
+  Obergrenzen vor dem Lesen bzw. Dekodieren; FIFO als Befehlsdatei blockiert, braucht aber Team-Signatur/Freigabe ·
+  E Widget in der Sandbox ohne Netz, Befehle nur die drei festen.
 
 ## Bedrohungsmodell (STRIDE, je Grenze)
 

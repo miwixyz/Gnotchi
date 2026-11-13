@@ -28,6 +28,10 @@ gate_allowed_for() {   # $1 = Pfad relativ zur App
         Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app*) echo "" ;;
         Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc*) echo "" ;;
         Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc*) echo "" ;;
+        # 0.26.0 (G49): Schreibtisch-Widget – Sandbox (WidgetKit verlangt sie) und genau Gnotchis App-Gruppe.
+        # Paket und seine Programmdatei (die Prüfung sieht beide einzeln, gemessen 13.11.) – genau diese zwei Pfade.
+        Contents/PlugIns/GnotchiWidget.appex|Contents/PlugIns/GnotchiWidget.appex/Contents/MacOS/GnotchiWidget)
+            echo "com.apple.security.app-sandbox com.apple.security.application-groups" ;;
         *) echo "" ;;
     esac
 }
