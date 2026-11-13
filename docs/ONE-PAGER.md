@@ -26,7 +26,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   hinziehen, wo sie dich nicht stört. Ein Klick daneben schließt sie.
 - Das funktioniert mit Spotify, Musik und mit Videos in Safari, Edge oder Helium. Egal, in
   welchem Fenster sie gerade liegen.
-- Wer mag, legt Cover und Titel zusätzlich auf den Schreibtisch, hinter alle Fenster, und schiebt sie mit der Maus in eine Ecke.
+- Wer mag, legt Cover und Titel als Widget auf den Schreibtisch, neben Uhr und Kalender. Es sieht genauso aus wie die beiden.
 - Oder es steht ein Plattenspieler auf dem Schreibtisch. Die Platte dreht sich, der Tonarm wandert mit dem Lied nach innen, und dahinter leuchtet der Bildschirm in den Farben des Covers. Auf Wunsch steht „Now Playing“ in Neon darüber.
 - Ist der Mac gesperrt, zeigt Gnotchi die Musik jetzt auch dort, wenn du willst: Cover, Titel und die drei Knöpfe zwischen Uhr und Anmeldung. Klick aufs Cover, dann wird es groß. Sollen andere nicht sehen, was du hörst, blendest du den Titel aus.
 - Über dem Titel steht, welche App spielt. Läuft der Ton woanders, sagt die Insel es dir: „Auf

@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.26.0] — 2026-11-13
 
 ### Geändert
 - **Musik auf dem Schreibtisch ist jetzt ein echtes macOS-Widget.** Es sieht aus wie Uhr und Kalender: gedämpft, wenn ein Fenster davor liegt (das Cover dann in Graustufen), farbig, wenn der Schreibtisch aktiv ist. Rechtsklick auf den Schreibtisch → „Widgets bearbeiten …“ → „Gnotchi“, dann eine Größe ablegen. Klein zeigt Cover und Titel, Mittel und Groß zusätzlich Zurück, Wiedergabe/Pause und Weiter. Die Darstellung heißt in den Einstellungen „Widget“ statt „Karte“. Ecke, Größe und Verschieben in Gnotchi entfallen, die Größe wählst du beim Hinzufügen. Ein Klick aufs Cover holt die Musik-App nicht mehr nach vorne, das kann ein Widget nicht. Der Plattenspieler bleibt, wie er war.
