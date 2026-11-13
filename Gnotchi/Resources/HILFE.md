@@ -181,7 +181,7 @@ dazu auf Wunsch ein Name wie „Tee“, höchstens 30 Zeichen). Der Name steht i
 ein Timer läuft, steht die Restzeit neben dem Menüleisten-Symbol, pausiert mit „‖“ davor.
 Oder in der großen Insel auf das Timer-Symbol klicken: Oben gibst du auf Wunsch einen Namen ein und startest mit
 **Start** oder ↵. Darunter stellst du die Zeit mit **−** und **+** oder ziehst am Lineal, ganz unten stehen
-1m, 5m, 10m, 25m, 45m und 1h. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
+1m, 5m, 10m, 25m, 45m und 1h; die helle Markierung gleitet zur gewählten Zeit. Der Timer läuft in der Insel mit, groß mit Pause und Stopp. Es läuft immer nur ein Timer; ein
 neuer ersetzt den alten.
 
 Ist die Zeit um, **pulsiert die Insel orange, bis du sie anklickst**, und der Ton wiederholt sich höchstens

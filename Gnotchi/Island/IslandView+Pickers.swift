@@ -85,11 +85,16 @@ struct TimerPicker: View {
                 }
                 RoundButton(symbol: "plus", label: "Eine Minute mehr") { minutes = CountdownTimer.stepCustom(value, up: true) }
             }
-            HStack(spacing: 6) {
-                ForEach(Self.presets, id: \.self) { m in
-                    IslandPill(text: Self.presetLabel(m), selected: m == value) { minutes = m }
-                        .accessibilityLabel(Text(verbatim: "\(m) Minuten"))
-                }
+            // Porter-Optik (13.11.2026): die helle Auswahl gleitet zwischen den Voreinstellungen.
+            SlidingPicker(Self.presets, selection: Binding(get: { value }, set: { minutes = $0 }),
+                          height: 26, track: false, spacing: 6, segmentPadding: 0,
+                          palette: SlidingPickerPalette(selectedText: .white, text: .white.opacity(0.85),
+                                                        ghost: .white, ghostOpacity: 0.08,
+                                                        pillFill: .white.opacity(0.18))) { m, _ in
+                Text(verbatim: Self.presetLabel(m)).font(.system(size: 12, weight: .semibold))
+                    .frame(maxWidth: .infinity, minHeight: 26)
+                    .background(Capsule().fill(.white.opacity(0.10)))
+                    .accessibilityLabel(Text(verbatim: "\(m) Minuten"))
             }
         }
         .padding(.horizontal, 16)

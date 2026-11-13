@@ -27,6 +27,9 @@ struct PlayerButtons: View {
             button(isPlaying ? "pause.fill" : "play.fill", label: isPlaying ? "Pause" : "Wiedergabe") { model.playPause() }
             button("forward.fill", label: "Weiter") { model.next() }
         }
+        // Porter-Optik (13.11.2026): weicher heller Schatten gleitet unter dem Zeiger von Knopf
+        // zu Knopf, Drücken staucht das Symbol.
+        .glassGhostHost(tint: .white, opacity: 0.14)
         // Ohne Animation-Transaktion springt das Symbol; `.replace` braucht sie zum Überblenden.
         .animation(.snappy, value: isPlaying)
         .animation(.snappy, value: model.extras)
@@ -41,7 +44,8 @@ struct PlayerButtons: View {
                 .contentShape(Rectangle())
                 .contentTransition(.symbolEffect(.replace))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glassPress)
+        .glassGhostItem()
         .accessibilityLabel(Text(verbatim: label))
     }
 }

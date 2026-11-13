@@ -42,6 +42,8 @@ Freigabe nicht und fragt nie danach.
 - **Sperrbildschirm (0.21, ab Werk aus):** Cover, Titel, Fortschritt und Zurück/Wiedergabe/Weiter bei gesperrtem Mac,
   zwischen Uhr und Anmeldung; Klick aufs Cover zeigt es groß. „Titel verbergen“ lässt nur die Knöpfe stehen. Nutzt eine
   nicht offizielle Fensterebene von macOS, ohne Freigabe ([G46](docs/SECURE-DESIGN.md)).
+- **Bewegung der App-Familie (0.25):** Wiedergabe-Knöpfe federn beim Drücken nach, ein heller Schatten gleitet unter der Maus
+  von Knopf zu Knopf; Reiter der Einstellungen und Timer-Zeiten mit gleitender Markierung, wie in Porter, Tippi und Kalli.
 - **Shuffle (0.17):** bei Spotify und Musik in der großen Insel und am Plattenspieler, per AppleScript nur auf Klick
   ([G7](docs/SECURE-DESIGN.md)). Ein Favoriten-Herz fehlt noch (Musik ignoriert den Befehl bei Apple-Music-Titeln,
   Spotify erlaubt ihn nicht).

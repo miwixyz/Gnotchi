@@ -70,26 +70,19 @@ struct SettingsView: View {
     }
 
     /// Reiterleiste oben (Symbol über Titel), wie die Einstellungen von Safari und Mail.
+    /// Porter-Optik (13.11.2026): die Auswahl-Platte gleitet auf zwei Federn zum neuen Reiter,
+    /// ein Hover-Schatten gleitet über die übrigen.
     private var tabBar: some View {
-        HStack(spacing: 2) {
-            ForEach(Tab.allCases) { t in
-                Button { tab = t } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: t.symbol).font(.system(size: 17, weight: .medium)).frame(height: 20)
-                        Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1).fixedSize()
-                    }
-                    // Breite nach Text statt fest 74 pt: „Zwischenablage“ war abgeschnitten (Fensterbild 28.10., G45).
-                    .padding(.horizontal, 6)
-                    .frame(minWidth: 62, minHeight: 48, maxHeight: 48)
-                    .foregroundStyle(tab == t ? FamilyTheme.accent : FamilyTheme.textSecondary)
-                    .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(tab == t ? FamilyTheme.accent.opacity(0.14) : .clear))
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(t.title))
-                .accessibilityAddTraits(tab == t ? .isSelected : [])
+        SlidingPicker(Tab.allCases, selection: $tab, height: 48, cornerRadius: 9, track: false,
+                      segmentPadding: 6) { t, _ in
+            VStack(spacing: 3) {
+                Image(systemName: t.symbol).font(.system(size: 17, weight: .medium)).frame(height: 20)
+                Text(t.title).font(FamilyTheme.font(.caption, weight: .medium)).lineLimit(1).fixedSize()
             }
+            // Breite nach Text statt fest 74 pt: „Zwischenablage“ war abgeschnitten (Fensterbild 28.10., G45).
+            .frame(minWidth: 50, maxHeight: 48)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(t.title))
         }
         .padding(.top, FamilyTheme.Space.m)
         .frame(maxWidth: .infinity)

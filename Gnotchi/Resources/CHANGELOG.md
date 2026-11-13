@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.25.0] — 2026-11-13
+
+### Geändert
+- **Bewegung wie in den anderen Apps der Familie.** In den Einstellungen gleitet die Markierung zum gewählten Reiter und dehnt sich dabei kurz, ein weicher Schatten zeigt, über welchem Reiter die Maus steht. In der Timer-Auswahl der Insel gleitet die helle Markierung zur gewählten Zeit. Die Wiedergabe-Knöpfe in der Insel und am Plattenspieler federn beim Drücken kurz nach, und unter der Maus liegt ein heller Schatten, der von Knopf zu Knopf gleitet. Dieselbe Optik haben Porter, Tippi, TippAI und Kalli.
+
+### Intern
+- Neue Datei `Gnotchi/UI/GlassEffects.swift` (gleich in Tippi und TippAI): `SlidingPicker` mit Farbsatz für dunkle Flächen, `glassGhostHost`/`glassGhostItem`, `GlassPressStyle`. 2 neue Tests (`GlassEffectsTests`), 681 Tests.
+
 ## [0.24.0] — 2026-11-13
 
 ### Neu
