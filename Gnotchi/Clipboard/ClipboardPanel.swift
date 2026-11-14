@@ -481,6 +481,9 @@ struct ClipboardPanelView: View {
             if link.canPaste { Button("Einfügen") { state.pick(entry, plain: false) } }
             Button("Kopieren") { state.pick(entry, plain: false, paste: false) }
             Button("Als reinen Text kopieren") { state.pick(entry, plain: true, paste: false) }
+            if store?.imageText(entry) != nil {
+                Button("Text aus Bild kopieren") { link.copyImageText(entry) }
+            }
             Button(isPinned(entry) ? "Lösen" : "Anheften") { try? store?.togglePinned(entry) }
             Menu("Zu Sammlung") {
                 ForEach((store?.collections() ?? []).filter { !$0.isPinned && !$0.isVault }, id: \.id) { c in

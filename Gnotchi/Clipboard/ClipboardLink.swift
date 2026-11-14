@@ -19,6 +19,8 @@ final class ClipboardLink: NotchPart {
 
     @ObservationIgnored private let activity: ActivityModel
     @ObservationIgnored private let prefs: Preferences
+    /// G50: Texterkennung in Bildern, eine Hintergrund-Aufgabe zur Zeit.
+    @ObservationIgnored private let imageTextIndexer = ImageTextIndexer()
     @ObservationIgnored private let pasteboard: NSPasteboard
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var lastChange = 0
@@ -67,7 +69,13 @@ final class ClipboardLink: NotchPart {
         do {
             store = try ClipboardStore(directory: ClipboardStore.defaultDirectory, key: ClipboardKeys.mainKey())
             startProblem = nil
-            if let store { ClipThumbnails.prewarm(store) }
+            if let store {
+                ClipThumbnails.prewarm(store)
+                store.imageTextEnabled = prefs.clipboardImageText
+                // Schalter wurde ausgeschaltet, während die Zwischenablage aus war → Bildtext jetzt löschen (G50).
+                if !prefs.clipboardImageText { store.clearImageTexts() }
+                imageTextIndexer.run(store)
+            }
         } catch {
             startProblem = String(localized: "Verlauf konnte nicht geöffnet werden (\(String(describing: error))).")
             Self.log.error("Start fehlgeschlagen: \(String(describing: error), privacy: .public)")
@@ -93,6 +101,7 @@ final class ClipboardLink: NotchPart {
     }
 
     func stop() {
+        imageTextIndexer.cancel()
         timer?.invalidate()
         timer = nil
         if let hotKeyID { HotKeyCenter.shared.unregister(hotKeyID) }
@@ -141,6 +150,7 @@ final class ClipboardLink: NotchPart {
             do {
                 let entry = try store.add(payload, kind: kind, source: source)
                 ClipThumbnails.prewarm(store, entries: [entry])
+                imageTextIndexer.run(store)
                 // Erkanntes Geheimnis (G43): System-Zwischenablage zum Ablauf leeren, wenn bis dahin unverändert.
                 if store.secretKind(entry) != nil { scheduleSensitiveClear(change, after: ClipboardStore.secretLifetime) }
             } catch {
@@ -176,6 +186,25 @@ final class ClipboardLink: NotchPart {
         write(payload, plain: plain, concealed: secret)
         store.touch(entry)
         if secret { scheduleSensitiveClear(pasteboard.changeCount, after: ClipboardStore.secretLifetime) }
+    }
+
+    /// „Text aus Bild kopieren“ (G50): nur reiner Text, wie jede eigene Kopie nicht erneut in den Verlauf.
+    func copyImageText(_ entry: ClipEntry) {
+        guard let store, let text = store.imageText(entry) else { return }
+        write(ClipPayload(formats: [], plain: text), plain: true, concealed: false)
+        store.touch(entry)
+    }
+
+    /// Schalter „Text in Bildern erkennen“: an → offene Bilder erkennen, aus → Erkennung stoppen, Bildtext löschen.
+    func applyImageTextSetting() {
+        guard let store else { return }
+        store.imageTextEnabled = prefs.clipboardImageText
+        if prefs.clipboardImageText {
+            imageTextIndexer.run(store)
+        } else {
+            imageTextIndexer.cancel()
+            store.clearImageTexts()
+        }
     }
 
     /// Tresor-Eintrag: Touch ID (bzw. 5 Min. Wiederverwendung), vertraulich markiert, nach 60 s geleert (G39).

@@ -23,6 +23,9 @@ final class ClipEntry {
     var sealedTitle: Data?
     /// Schlüsselgebundener Fingerabdruck (HMAC) zum Erkennen erneuter Kopien – verrät ohne Schlüssel nichts.
     var fingerprint: Data?
+    /// Erkannter Bildtext (G50), AES-GCM mit dem Verlauf-Schlüssel. `nil` = noch nicht erkannt, Chiffrat von `""` =
+    /// erledigt ohne verwertbaren Text (auch bei Fehler oder erkanntem Geheimnis) – wird nie erneut gerechnet.
+    var sealedOCR: Data?
     var byteCount: Int = 0
     @Relationship(inverse: \ClipCollection.entries) var collections: [ClipCollection]? = []
 

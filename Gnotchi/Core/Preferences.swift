@@ -81,6 +81,7 @@ final class Preferences {
         static let clipboardSecrets = "clipboardSecrets"
         static let clipboardSecretsSince = "clipboardSecretsSince"
         static let clipboardSecretsOffered = "clipboardSecretsOffered"
+        static let clipboardImageText = "clipboardImageText"
     }
 
     /// G25: höchstens so viele ausgeschlossene Apps, je Kennung höchstens so lang.
@@ -225,6 +226,8 @@ final class Preferences {
             if clipboardSecrets != oldValue { clipboardSecretsSince = clipboardSecrets ? Date() : nil }
         }
     }
+    /// G50: Text in Bildern erkennen und durchsuchbar machen (lokal, verschlüsselt). Ab Werk an.
+    var clipboardImageText: Bool { didSet { defaults.set(clipboardImageText, forKey: Key.clipboardImageText) } }
     var clipboardSecretsSince: Date? { didSet { defaults.set(clipboardSecretsSince, forKey: Key.clipboardSecretsSince) } }
     /// Anzahl gespeicherter Geheimnisse beim letzten „Später“/Verschieben – das Angebot kommt erst bei mehr wieder.
     var clipboardSecretsOffered: Int { didSet { defaults.set(clipboardSecretsOffered, forKey: Key.clipboardSecretsOffered) } }
@@ -321,6 +324,7 @@ final class Preferences {
         clipboardNotchFirst = defaults.object(forKey: Key.clipboardNotchFirst) as? Bool ?? true
         clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
         clipboardSecrets = defaults.object(forKey: Key.clipboardSecrets) as? Bool ?? true
+        clipboardImageText = defaults.object(forKey: Key.clipboardImageText) as? Bool ?? true
         clipboardSecretsOffered = max(0, defaults.integer(forKey: Key.clipboardSecretsOffered))
         // Erster Start mit 0.13.0 (oder Wert fehlt): ab jetzt zählen, nie rückwirkend sofort löschen.
         let since = defaults.object(forKey: Key.clipboardSecretsSince) as? Date

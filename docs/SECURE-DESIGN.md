@@ -52,6 +52,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G44 | – (neu, 0.15.0) | Musik auf dem Schreibtisch: dieselben Fremddaten wie die Insel, nur Anzeige, Klick holt nur laufende App |
 | G43 | – (neu, 0.13.0) | Geheimnisse erkennen: feste Muster, ganze Kopie, verdeckt, lose Einträge nach 5 Min. weg, Sammlungen nie automatisch |
 | G49 | – (neu, 0.26.0) | Schreibtisch-Widget: nur aktueller Titel im Gruppen-Ordner, Knöpfe nur als frischer Befehl aus dem Ordner |
+| G50 | – (neu, unveröffentlicht) | Bildtext-Suche: lokal mit Vision, verschlüsselt wie G38, Geheimnis-Zeilen → kein Text, seriell im Hintergrund, nie Tresor |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1429,3 +1430,41 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
       umgesetzt) und `rafter run` (18.10., Scan `c4fa8f06`, Standardmodus): 1 Warnung R-33E2F
       `release.sh` „curl in Interpreter“ – Fehlalarm (Feed wurde nur als Daten geparst), trotzdem
       umgestellt auf Datei laden, dann parsen
+
+### G50 – Bildtext-Suche: lokal, verschlüsselt, Geheimnisse ohne Text (neu, 2026-11-14, unveröffentlicht)
+- **Was:** Bild-Einträge (`.image`, `.file` mit mitkopiertem Bild) bekommen einmalig eine Texterkennung mit Apple Vision
+  (`VNRecognizeTextRequest`, `.accurate`, `de-DE`/`en-US`/`es-ES`). Die Suche findet sie darüber, das Kontextmenü bietet
+  „Text aus Bild kopieren“. Schalter „Text in Bildern erkennen“, **ab Werk an** (nichts verlässt den Mac). Spec und
+  `rafter-secure-design`-Antworten: `specs/2026-11-14-gnotchi-bildtext-suche.md`.
+- **Speicher (wie G38):** neues optionales Feld `ClipEntry.sealedOCR`, AES-GCM mit dem Verlauf-Schlüssel, AAD = ID.
+  Klartext nur im Speicher. `nil` = offen, Chiffrat von `""` = erledigt ohne Text – auch bei keinem Text, Dekodier- oder
+  Vision-Fehler, damit nichts bei jedem Start neu gerechnet wird. Höchstens 20 000 Zeichen. Migration an einer echten
+  Datei im Schema von 0.26.1 gemessen (14.11.): Altbestand bleibt, Bild wird danach erkannt und gefunden. Rückweg ebenfalls gemessen: 0.26.1 öffnet einen Store mit
+  `sealedOCR` ohne Fehler, Altbestand vollständig (Downgrade gefahrlos).
+- **Geheimnisse:** Ganzer Text, jede Zeile und jedes Stück einer Zeile (getrennt an Leerraum, `=`, `:`, `,`, `;`,
+  Anführungszeichen) gehen durch `SecretDetector` (G43-Muster). Ein Treffer → **kein** Text gespeichert, das Bild
+  bleibt. **Restrisiko (hingenommen):** umbrochene oder verlesene Schlüssel passen auf kein Muster und werden
+  durchsuchbar gespeichert – verschlüsselt, nur in Gnotchis Suche.
+- **Nie:** Tresor-Einträge (G39), erkannte Geheimnisse (G43), die verwiesene Datei bei `.file` (G40). Suche und Kopieren
+  nur bei `!isVault`, ohne Geheimnis-Art, mit eingeschaltetem Schalter.
+- **Rechenlast (Vorfall 0.17.1):** nie im Öffnen-Pfad. `ImageTextIndexer`: eine Aufgabe zur Zeit,
+  `Task.detached(priority: .background)`, seriell, Bild vorher per ImageIO auf ≤ 2 560 px Kante verkleinert, Ergebnis
+  stapelweise (10) auf dem Hauptthread gespeichert. Zurückgeschrieben wird nur für Einträge, die es noch gibt, und nur
+  bei eingeschaltetem Schalter (Löschen/Abräumen/Zurücksetzen dazwischen). Gemessen (MacBook M5, Akku, 14.11.,
+  Gnotchis `ImageText.recognize` über 92 echte Bilder aus dem Vault): 66 s gesamt, Median 0,13 s, ohne das erste Bild
+  höchstens 0,32 s (auch 4536×5670 px), 75 von 92 mit Text. Der **erste** Aufruf in einem neuen Prozess wartet
+  50–57 s (macOS lädt das Erkennungsmodell, nur ~7 s Rechenzeit) – nach jedem Gnotchi-Start einmal, im Hintergrund.
+- **Schalter aus:** Erkennung stoppt, alle `sealedOCR` werden gelöscht. Wieder an → neu erkennen. Auch wenn er ausgeschaltet
+  wurde, während die Zwischenablage aus war: dann beim nächsten Start.
+- **„In Tresor“ löscht den Bildtext** (`moveToVault`): Er ist mit dem Verlauf-Schlüssel verschlüsselt und wäre am
+  Tresor-Eintrag ohne Touch ID lesbar. Fund `/code-audit` 14.11., Test `testMoveToVaultDropsImageText`, Gegenprobe ohne
+  Fix rot.
+- **Keine neue Fläche:** kein Netz, kein Prozess, keine Berechtigung; Bilddaten sind die gespeicherten G37-Formate, ImageIO
+  wie bei den Vorschaubildern (G40). „Text aus Bild kopieren“ schreibt nur `public.utf8-plain-text` und wird wie jede
+  eigene Kopie nicht erneut aufgenommen.
+- **Protokoll (G8):** nur Anzahl Bilder, Dauer und Anzahl mit Text; nie Text oder Länge je Bild; Vision-Fehler ohne
+  Fehlertext.
+- **STRIDE:** *T* präpariertes Bild → nur ImageIO + Vision im Prozess, Ergebnis reiner Text, nie gerendert. *I* Bildtext
+  macht Bilder sichtbarer über die Suche → Geheimnis-Filter, Tresor nie, `sharingType = .none` unverändert, Chiffrat
+  auf der Platte. *D* große/viele Bilder → Verkleinern, seriell, `.background`, einmal je Eintrag, Textdeckel.
+  *S/R/E* nicht berührt.

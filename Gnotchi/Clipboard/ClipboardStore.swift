@@ -24,8 +24,12 @@ final class ClipboardStore {
     @ObservationIgnored private var titles: [UUID: String] = [:]
     /// 0.13.0 (G43): erkannte Art je Eintrag, nur im Speicher, immer zusammen mit `payloads` gefüllt und geleert.
     @ObservationIgnored private var secretKinds: [UUID: String] = [:]
+    /// G50: erkannter Bildtext, nur im Speicher entschlüsselt (`""` = erledigt ohne Text).
+    @ObservationIgnored private var ocrTexts: [UUID: String] = [:]
     /// Erkennung an seit … (nil = aus). Für Altbestand zählt die Restzeit frühestens ab hier (G43).
     var secretsSince: Date? { didSet { revision += 1 } }
+    /// G50: erkannten Bildtext durchsuchen und anbieten (Schalter „Text in Bildern erkennen“). Aus → Suche ohne Bildtext.
+    var imageTextEnabled = true { didSet { revision += 1 } }
     static var secretLifetime: TimeInterval {
         #if DEBUG
         // Mess-Schalter nur in der Testfassung (wie debugVaultOpenSeconds):
@@ -88,7 +92,8 @@ final class ClipboardStore {
         if let title = titles[entry.id], title.localizedStandardContains(needle) { return true }
         if let kind = secretKind(entry) { return kind.localizedStandardContains(needle) }
         guard !entry.isVault, let plain = payloads[entry.id]?.plain else { return false }
-        return plain.localizedStandardContains(needle)
+        if plain.localizedStandardContains(needle) { return true }
+        return imageText(entry)?.localizedStandardContains(needle) ?? false
     }
 
     func collections() -> [ClipCollection] {
@@ -260,6 +265,7 @@ final class ClipboardStore {
         payloads.removeAll()
         titles.removeAll()
         secretKinds.removeAll()
+        ocrTexts.removeAll()
         try save()
     }
 
@@ -330,6 +336,7 @@ final class ClipboardStore {
         payloads[id] = nil
         titles[id] = nil
         secretKinds[id] = nil
+        ocrTexts[id] = nil
     }
 
     // MARK: - Sammlungen
@@ -395,8 +402,11 @@ final class ClipboardStore {
         entry.sealedPayload = try ClipCrypto.sealPayload(payload, key: vaultKey, id: entry.id)
         entry.isVault = true
         entry.fingerprint = nil
+        // G50: Bildtext liegt mit dem Verlauf-Schlüssel vor – im Tresor wäre er sonst ohne Touch ID lesbar.
+        entry.sealedOCR = nil
         payloads[entry.id] = nil
         secretKinds[entry.id] = nil
+        ocrTexts[entry.id] = nil
         try setTitleUnsaved(entry, title)
         entry.collections = [collection]
         try save()
@@ -422,6 +432,7 @@ final class ClipboardStore {
             guard !entry.isVault, let sealed = entry.sealedPayload else { continue }
             if let payload = try? ClipCrypto.openPayload(sealed, key: key, id: entry.id) {
                 remember(payload, for: entry.id)
+                if let ocr = entry.sealedOCR { ocrTexts[entry.id] = try? ClipCrypto.openString(ocr, key: key, id: entry.id) }
             } else {
                 broken += 1
             }
@@ -432,5 +443,60 @@ final class ClipboardStore {
     private func save() throws {
         try context.save()
         revision += 1
+    }
+}
+
+// MARK: - Bildtext (G50)
+
+// Gleiche Datei, damit die privaten Felder (Schlüssel, Kontext, Caches) privat bleiben.
+extension ClipboardStore {
+    /// Erkannter Text eines Bildes – nie für Tresor oder Geheimnisse, nur bei eingeschaltetem Schalter, nie leer.
+    func imageText(_ entry: ClipEntry) -> String? {
+        guard imageTextEnabled, !entry.isVault, secretKind(entry) == nil,
+              let text = ocrTexts[entry.id], !text.isEmpty else { return nil }
+        return text
+    }
+
+    /// Bilder ohne Erkennung: (ID, Bilddaten). Nur gespeicherte G37-Bildformate, nie Tresor, nie Geheimnisse.
+    func pendingImageText() -> [(UUID, Data)] {
+        let all = (try? context.fetch(FetchDescriptor<ClipEntry>(predicate: #Predicate { !$0.isVault }))) ?? []
+        return all
+            .filter { ($0.kind == .image || $0.kind == .file) && $0.sealedOCR == nil && secretKind($0) == nil }
+            .sorted { $0.lastUsedAt > $1.lastUsedAt }
+            .compactMap { entry in
+                guard let data = payloads[entry.id]?.formats
+                    .first(where: { ClipboardCapture.imageTypes.contains($0.type) })?.data else { return nil }
+                return (entry.id, data)
+            }
+    }
+
+    /// Ergebnis der Erkennung speichern – nur für Einträge, die es noch gibt, und nur bei eingeschaltetem Schalter
+    /// (Löschen, Abräumen oder Zurücksetzen können währenddessen gelaufen sein). Ein `save` für den ganzen Stapel.
+    func storeImageTexts(_ results: [UUID: String]) {
+        guard imageTextEnabled, !results.isEmpty,
+              let all = try? context.fetch(FetchDescriptor<ClipEntry>(predicate: #Predicate { !$0.isVault })) else { return }
+        var changed = false
+        for entry in all {
+            guard let text = results[entry.id], entry.sealedOCR == nil,
+                  let sealed = try? ClipCrypto.sealString(text, key: key, id: entry.id) else { continue }
+            entry.sealedOCR = sealed
+            ocrTexts[entry.id] = text
+            changed = true
+        }
+        if changed { try? save() }
+    }
+
+    /// Schalter aus: allen erkannten Bildtext löschen (kürzeste Aufbewahrung). Wieder an → neu erkennen.
+    func clearImageTexts() {
+        guard let all = try? context.fetch(FetchDescriptor<ClipEntry>()) else { return }
+        var changed = false
+        for entry in all where entry.sealedOCR != nil {
+            entry.sealedOCR = nil
+            changed = true
+        }
+        ocrTexts.removeAll()
+        guard changed else { return }
+        // Nicht still schlucken: Die Einstellung verspricht „gelöscht“ (G50). Nur der Grund, nie Inhalt (G8).
+        do { try save() } catch { Self.log.error("Bildtext löschen fehlgeschlagen: \(String(describing: error), privacy: .public)") }
     }
 }

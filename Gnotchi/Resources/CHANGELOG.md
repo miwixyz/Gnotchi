@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Text in Bildern ist durchsuchbar.** Gnotchi liest Text aus kopierten Bildern und Bildschirmfotos, direkt auf deinem Mac und im Hintergrund. Suchst du im Verlauf nach einem Wort, findest du auch das Bild, in dem es steht. Rechtsklick auf ein Bild → „Text aus Bild kopieren“. Der erkannte Text liegt verschlüsselt wie der übrige Verlauf. Bilder, in denen Gnotchi einen Schlüssel oder ein Token erkennt, bleiben ohne Text. Tresor-Einträge werden nie gelesen. Abschalten unter Einstellungen → Zwischenablage → „Text in Bildern erkennen“, dabei wird der erkannte Text gelöscht.
+
+### Intern
+- Neues Feld `sealedOCR` am Verlaufseintrag (leichte Migration, an einer echten Datei aus 0.26.1 geprüft), `ImageText` + `ImageTextIndexer` (seriell, Hintergrund, stapelweises Speichern), SECURE-DESIGN G50. 12 neue Tests, 698 Tests. Gemessen an 92 echten Bildern: Median 0,13 s je Bild; der erste Aufruf nach dem Start wartet rund 50 s auf das Erkennungsmodell von macOS.
+- Tests: `@testable import Gnotchi` aus drei Testdateien entfernt, `make test` lief seit dem 29.10. nicht mehr durch.
+
 ## [0.26.1] — 2026-11-13
 
 ### Behoben

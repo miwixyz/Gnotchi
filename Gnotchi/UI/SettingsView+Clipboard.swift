@@ -56,6 +56,14 @@ extension SettingsView {
                      : "Aus: Kopierte Schlüssel landen lesbar im Verlauf und bleiben bis zu 30 Tage.",
                      symbol: prefs.clipboardSecrets ? "key" : "exclamationmark.triangle",
                      color: prefs.clipboardSecrets ? FamilyTheme.textSecondary : .orange)
+                // G50: ab Werk an.
+                toggleRow("Text in Bildern erkennen", isOn: $prefs.clipboardImageText)
+                    .onChange(of: prefs.clipboardImageText) { link?.applyImageTextSetting() }
+                note(prefs.clipboardImageText
+                     ? "Bilder im Verlauf werden auf diesem Mac nach Text durchsucht, verschlüsselt gespeichert und sind "
+                       + "über die Suche auffindbar. Bilder mit erkanntem Schlüssel bleiben ohne Text."
+                     : "Aus: Bilder sind nur über ihren Titel auffindbar, erkannter Text wurde gelöscht.",
+                     symbol: "text.viewfinder", color: FamilyTheme.textSecondary)
                 note("Reagiert das Kürzel nicht, belegt es eine andere App (z. B. PastePal) – dann ein anderes wählen.",
                      symbol: "keyboard", color: FamilyTheme.textSecondary)
             }
