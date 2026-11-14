@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.27.0] — 2026-11-14
 
 ### Neu
 - **Text in Bildern ist durchsuchbar.** Gnotchi liest Text aus kopierten Bildern und Bildschirmfotos, direkt auf deinem Mac und im Hintergrund. Suchst du im Verlauf nach einem Wort, findest du auch das Bild, in dem es steht. Rechtsklick auf ein Bild → „Text aus Bild kopieren“. Der erkannte Text liegt verschlüsselt wie der übrige Verlauf. Bilder, in denen Gnotchi einen Schlüssel oder ein Token erkennt, bleiben ohne Text. Tresor-Einträge werden nie gelesen. Abschalten unter Einstellungen → Zwischenablage → „Text in Bildern erkennen“, dabei wird der erkannte Text gelöscht.

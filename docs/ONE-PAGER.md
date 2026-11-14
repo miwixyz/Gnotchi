@@ -50,7 +50,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Hat eine meiner anderen Apps ein Update bereit (Tippi, Kalli, Qotti, Seam), steht es in der
   Notch, bis es installiert ist. Ein Klick, und das Update-Fenster ist offen. Dafür braucht jede
   App eine neue Version. Kalli kommt zuerst.
-- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber. Ein Doppelklick in der Liste fügt den Eintrag gleich in deine App ein. Die Liste klappt direkt aus der Notch herunter, und ein kopierter Farbcode erscheint dort als Farbfläche.
+- Gnotchi merkt sich, was du kopierst, wenn du es einschaltest. ⌃< öffnet am Rand eine Liste mit Suche, in der Notch liegen die letzten Kopien als Kacheln. Was du öfter brauchst, heftest du an oder sortierst es in Sammlungen. Passwörter und Schlüssel kommen in den Tresor, den nur Touch ID öffnet. Deine Sammlungen aus PastePal holst du über einen Import herüber. Ein Doppelklick in der Liste fügt den Eintrag gleich in deine App ein. Die Liste klappt direkt aus der Notch herunter, und ein kopierter Farbcode erscheint dort als Farbfläche. Die Suche findet auch Text in Bildern, etwa auf einem Bildschirmfoto, und Angeheftetes steht im Verlauf immer oben. Wer die Liste lieber an der Maus hat, stellt das so ein.
 - Wer Qotti nutzt, bekommt eine kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex
   bei 80 und bei 95 Prozent steht. Im Band steht der Stand dauerhaft.
 - Spotify soll in die Notch, Safari aber nicht: Jede Wiedergabe-App hat ihren eigenen Schalter.
@@ -101,7 +101,7 @@ Von Claude Code erfährt Gnotchi nur, in welchem Projekt gerade gearbeitet wird,
 und wie die Antwort anfängt. Deine Eingaben und deine Dateien sieht es nicht. Erlauben oder ablehnen
 kann Gnotchi nichts, das bleibt bei dir in der Sitzung.
 
-Den Verlauf der Zwischenablage speichert Gnotchi nur verschlüsselt, und den Schlüssel bekommt keine andere App. Kopien aus Passwort-Apps landen gar nicht erst darin. Kopierst du einen API-Schlüssel, zeigt Gnotchi ihn nur als Punkte und löscht ihn nach fünf Minuten wieder. Den Tresor öffnet nur dein Finger oder dein Passwort. Der Verlauf bleibt auf deinem Mac.
+Den Verlauf der Zwischenablage speichert Gnotchi nur verschlüsselt, und den Schlüssel bekommt keine andere App. Kopien aus Passwort-Apps landen gar nicht erst darin. Kopierst du einen API-Schlüssel, zeigt Gnotchi ihn nur als Punkte und löscht ihn nach fünf Minuten wieder. Text, den Gnotchi in Bildern erkennt, liegt genauso verschlüsselt, und Bilder mit einem Schlüssel darin bekommen gar keinen. Den Tresor öffnet nur dein Finger oder dein Passwort. Der Verlauf bleibt auf deinem Mac.
 
 Der Code ist offen. Jede dieser Aussagen lässt sich dort und im Sicherheitsentwurf nachprüfen.
 
