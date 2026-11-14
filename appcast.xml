@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.26.1</title>
-            <pubDate>Fri, 13 Nov 2026 20:34:30 +0100</pubDate>
+            <title>0.27.0</title>
+            <pubDate>Sat, 14 Nov 2026 14:21:43 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>211</sparkle:version>
-            <sparkle:shortVersionString>0.26.1</sparkle:shortVersionString>
+            <sparkle:version>216</sparkle:version>
+            <sparkle:shortVersionString>0.27.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Das Schreibtisch-Widget bleibt nach einem Update nicht mehr grau.</b> Nach dem Update auf 0.26.0 zeigte es nur einen grauen Platzhalter statt der Musik, weil der Widget-Prozess der alten Fassung weiterlief. Gnotchi beendet ihn jetzt beim ersten Start einer neuen Version, macOS startet das Widget dann aus der neuen Fassung.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.26.1/Gnotchi-0.26.1.zip" length="7596339" type="application/octet-stream" sparkle:edSignature="vL/vSNBnGmApKFgzgEMLFFc6B67SPJBReAz+Gk+RV4ASxUUiYrLdLoLY5ETyU88Ci/892Zf7Vck9IICgnPhuDw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Text in Bildern ist durchsuchbar.</b> Gnotchi liest Text aus kopierten Bildern und Bildschirmfotos, direkt auf deinem Mac und im Hintergrund. Suchst du im Verlauf nach einem Wort, findest du auch das Bild, in dem es steht. Rechtsklick auf ein Bild → „Text aus Bild kopieren“. Der erkannte Text liegt verschlüsselt wie der übrige Verlauf. Bilder, in denen Gnotchi einen Schlüssel oder ein Token erkennt, bleiben ohne Text. Tresor-Einträge werden nie gelesen. Abschalten unter Einstellungen → Zwischenablage → „Text in Bildern erkennen“, dabei wird der erkannte Text gelöscht.</li><li><b>Angeheftetes steht im Verlauf oben.</b> Was du anheftest (Stern), bleibt im Verlauf an erster Stelle, egal wie alt es ist, in der Notch-Reihe unter der Überschrift „Angeheftet“. Darunter folgt der Rest wie gewohnt nach Zeit. Lösen schiebt den Eintrag zurück an seinen Platz.</li><li><b>Große Ansicht am Mauszeiger.</b> Unter Einstellungen → Zwischenablage → „Große Ansicht“ gibt es neben Rechts, Links und Unten jetzt „Maus“. Die Ansicht öffnet dann dort, wo der Mauszeiger steht, und rückt am Bildschirmrand so weit nach innen, dass sie ganz sichtbar bleibt.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.27.0/Gnotchi-0.27.0.zip" length="7614965" type="application/octet-stream" sparkle:edSignature="Kv4qF6hI+avE5i66X/M8UwiaZV09/1DyOZY7sPFMEqNoa62ixQLY3aJB1u92mcZ1zHqp79qEDs22kbD43kBMCw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 0dWkkVyyLvq6myzPElKawpLlgCLoRJsQQCcs+6CIlbDydlSFFk2bZZK7gGVZGaCEXzHXkvp9BuGLrU2MEwKrAg==
-length: 1538
+edSignature: Kfg579aUXiB6f1Y1/ChSljoS0jZ86nFSj2mQTGlUW77FqwbPRiGVX1RDP6hnMfLI0gqv1tsK1dYUzR5L+m7XAA==
+length: 2397
 -->
