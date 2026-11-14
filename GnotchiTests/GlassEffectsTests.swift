@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Rechenteile der Porter-Optik: Richtung eines Wechsels und Feder je Kante der Pille.
 final class GlassEffectsTests: XCTestCase {

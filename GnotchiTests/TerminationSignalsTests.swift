@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Signal von außen → geordnetes Beenden (perl-Adapter darf nicht verwaisen, Task 22.10./Fix 09.11.).
 /// Der echte SIGTERM-Fall ist nur am Prozess prüfbar (Schleife im Sichttest-Profil); hier der Mechanismus,

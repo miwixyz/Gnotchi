@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// 0.22.0 abgekoppelte große Insel: Lage, Einrasten, Fläche gegen Zuklappen.
 final class DetachedIslandTests: XCTestCase {
