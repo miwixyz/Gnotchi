@@ -39,6 +39,8 @@ final class ClipEntry {
     var kind: ClipKind { ClipKind(rawValue: kindRaw) ?? .text }
     /// In keiner Sammlung (auch nicht „Angeheftet“) → läuft nach 30 Tagen bzw. jenseits von 1 000 ab.
     var isLoose: Bool { (collections ?? []).isEmpty }
+    /// In der Sammlung „Angeheftet“ – steht im Verlauf immer oben (wie Hikidashi, Michael 14.11.).
+    var isPinned: Bool { (collections ?? []).contains(where: \.isPinned) }
 }
 
 @Model

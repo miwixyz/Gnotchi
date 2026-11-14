@@ -29,16 +29,17 @@ extension SettingsView {
                 toggleRow("Zuerst aus der Notch", isOn: $prefs.clipboardNotchFirst)
                 note(prefs.clipboardNotchFirst
                      ? "Das Kürzel klappt die Zwischenablage aus der Notch herunter. Nochmal drücken oder „Mehr“ öffnet die "
-                       + "große Ansicht am Rand, ein drittes Mal schließt."
-                     : "Das Kürzel öffnet direkt die große Ansicht am Rand.",
+                       + "große Ansicht am Rand oder an der Maus, ein drittes Mal schließt."
+                     : "Das Kürzel öffnet direkt die große Ansicht am Rand oder an der Maus.",
                      symbol: "rectangle.topthird.inset.filled", color: FamilyTheme.textSecondary)
                 row("Große Ansicht") {
                     Picker("", selection: $prefs.clipboardPanelEdge) {
                         Text("Rechts").tag(Preferences.PanelEdge.right)
                         Text("Links").tag(Preferences.PanelEdge.left)
                         Text("Unten").tag(Preferences.PanelEdge.bottom)
+                        Text("Maus").tag(Preferences.PanelEdge.pointer)
                     }
-                    .labelsHidden().pickerStyle(.segmented).frame(width: 220)
+                    .labelsHidden().pickerStyle(.segmented).frame(width: 280)
                 }
                 row("Mitlesen") {
                     if prefs.isClipboardPaused {

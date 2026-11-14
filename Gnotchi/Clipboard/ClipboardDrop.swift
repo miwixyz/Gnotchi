@@ -108,7 +108,7 @@ extension ClipboardPanelView {
         } else {
             // Flach und lazy (gemessen 27.10., Strg+< verzögert): Vorher war nur die Tagesgruppe lazy, innerhalb
             // eines Tages entstanden alle Kärtchen auf einmal – bei 310 Einträgen von zwei Tagen ~90 % der Wartezeit.
-            let labels = Dictionary(uniqueKeysWithValues: ClipDays.group(list).compactMap { g in
+            let labels = Dictionary(uniqueKeysWithValues: ClipDays.group(list, pinnedFirst: state.collection == nil).compactMap { g in
                 g.entries.first.map { ($0.id, g.label) }
             })
             ScrollViewReader { proxy in

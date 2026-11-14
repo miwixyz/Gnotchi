@@ -52,7 +52,9 @@ final class ClipboardPanelController {
         if edge == .notch {
             (frame, topInset) = Self.dropFrame(IslandGeometry.metrics(of: screen))
         } else {
-            frame = Self.frame(edge: edge, in: screen.visibleFrame)
+            frame = edge == .pointer
+                ? Self.pointerFrame(mouse: NSEvent.mouseLocation, in: screen.visibleFrame)
+                : Self.frame(edge: edge, in: screen.visibleFrame)
         }
         let p = panel ?? makePanel()
         panel = p
@@ -106,7 +108,7 @@ final class ClipboardPanelController {
     nonisolated static func frame(edge: Preferences.PanelEdge, in area: CGRect) -> CGRect {
         let inset: CGFloat = 8
         switch edge {
-        case .right:
+        case .right, .pointer:
             return CGRect(x: area.maxX - sideWidth - inset, y: area.minY + inset, width: sideWidth,
                           height: area.height - 2 * inset)
         case .left:
@@ -114,6 +116,18 @@ final class ClipboardPanelController {
         case .bottom, .notch:
             return CGRect(x: area.minX + inset, y: area.minY + inset, width: area.width - 2 * inset, height: bottomHeight)
         }
+    }
+
+    nonisolated static let pointerHeight: CGFloat = 520
+
+    /// Am Mauszeiger: obere linke Ecke an der Maus, ganz im sichtbaren Bereich (rechts/unten an die Kante geschoben).
+    nonisolated static func pointerFrame(mouse: CGPoint, in area: CGRect) -> CGRect {
+        let inset: CGFloat = 8
+        let width = min(sideWidth, area.width - 2 * inset)
+        let height = min(pointerHeight, area.height - 2 * inset)
+        let x = min(max(mouse.x, area.minX + inset), area.maxX - inset - width)
+        let top = min(max(mouse.y, area.minY + inset + height), area.maxY - inset)
+        return CGRect(x: x, y: top - height, width: width, height: height)
     }
 
     nonisolated static let dropSize = CGSize(width: 680, height: 230)
@@ -519,9 +533,7 @@ struct ClipboardPanelView: View {
 
     // MARK: Aktionen
 
-    private func isPinned(_ entry: ClipEntry) -> Bool {
-        (entry.collections ?? []).contains(where: \.isPinned)
-    }
+    private func isPinned(_ entry: ClipEntry) -> Bool { entry.isPinned }
 
     func drop(_ ids: [String], on collection: ClipCollection) -> Bool {
         guard let store else { return false }

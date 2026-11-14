@@ -234,7 +234,8 @@ final class Preferences {
 
     /// Wo die große Ansicht sitzt. `notch` (0.14.0) ist nur intern die heruntergeklappte Stufe – gespeichert wird
     /// nur rechts/links/unten; ob zuerst aus der Notch, entscheidet `clipboardNotchFirst` (Michael 26.10.).
-    enum PanelEdge: String, CaseIterable { case right, left, bottom, notch }
+    /// `pointer` (Michael 14.11., aus Hikidashi): große Ansicht dort, wo die Maus steht.
+    enum PanelEdge: String, CaseIterable { case right, left, bottom, notch, pointer }
     /// 0.14.0: ⌃< klappt zuerst aus der Notch herunter; nochmal ⌃< oder „Mehr“ → große Ansicht am Rand. Ab Werk an.
     var clipboardNotchFirst: Bool { didSet { defaults.set(clipboardNotchFirst, forKey: Key.clipboardNotchFirst) } }
 

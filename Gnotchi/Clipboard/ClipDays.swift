@@ -10,15 +10,25 @@ enum ClipDays {
     }
 
     /// Einträge sind schon nach `lastUsedAt` absteigend sortiert; die Reihenfolge bleibt erhalten.
-    static func group(_ entries: [ClipEntry], now: Date = Date(), calendar: Calendar = .current) -> [Group] {
+    /// `pinnedFirst`: führende angeheftete Einträge (Verlauf, Michael 14.11.) bilden eine eigene Gruppe „Angeheftet“.
+    static func group(_ entries: [ClipEntry], pinnedFirst: Bool = false, now: Date = Date(),
+                      calendar: Calendar = .current) -> [Group] {
         var groups: [Group] = []
+        var rest = entries[...]
+        if pinnedFirst {
+            let pinned = Array(entries.prefix(while: \.isPinned))
+            if !pinned.isEmpty {
+                groups.append(Group(id: .distantFuture, label: String(localized: "Angeheftet"), entries: pinned))
+                rest = entries.dropFirst(pinned.count)
+            }
+        }
         var currentDay: Date?
         var bucket: [ClipEntry] = []
         func flush() {
             guard let day = currentDay, !bucket.isEmpty else { return }
             groups.append(Group(id: day, label: label(for: day, now: now, calendar: calendar), entries: bucket))
         }
-        for entry in entries {
+        for entry in rest {
             let day = calendar.startOfDay(for: entry.lastUsedAt)
             if day != currentDay {
                 flush()

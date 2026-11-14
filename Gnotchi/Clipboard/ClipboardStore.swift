@@ -73,6 +73,7 @@ final class ClipboardStore {
     // MARK: - Lesen
 
     /// Verlauf (`collection == nil`: alle Nicht-Tresor-Einträge) oder eine Sammlung, neueste zuerst, gefiltert.
+    /// Im Verlauf steht Angeheftetes zuerst, danach der Rest nach Zeit.
     func entries(in collection: ClipCollection? = nil, matching query: String = "") -> [ClipEntry] {
         _ = revision
         let base: [ClipEntry]
@@ -82,9 +83,13 @@ final class ClipboardStore {
             base = (try? context.fetch(FetchDescriptor<ClipEntry>(predicate: #Predicate { !$0.isVault }))) ?? []
         }
         let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pinnedFirst = collection == nil
         return base
             .filter { needle.isEmpty || matches($0, needle) }
-            .sorted { $0.lastUsedAt > $1.lastUsedAt }
+            .sorted { a, b in
+                if pinnedFirst, a.isPinned != b.isPinned { return a.isPinned }
+                return a.lastUsedAt > b.lastUsedAt
+            }
     }
 
     /// Suche: Titel immer, Inhalt nur außerhalb des Tresors (G39). Erkannte Geheimnisse nur über die Art (G43).
