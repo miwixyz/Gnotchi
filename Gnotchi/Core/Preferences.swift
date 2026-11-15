@@ -44,6 +44,17 @@ final class Preferences {
         static let playerFirst = "playerFirst"
         /// 0.5.0 Wiedergabe-Knöpfe in der kleinen Insel.
         static let compactControls = "compactControls"
+        /// 0.28.0 Tasten-Ring um die große Insel: Hauptschalter und eingeschaltete Tasten (nur bekannte Kennungen).
+        static let ring = "ring"
+        static let ringButtons = "ringButtons"
+        /// 0.28.0 Mikrofon-Taste immer zeigen (sonst nur im Meeting).
+        static let ringMicAlways = "ringMicAlways"
+        /// 0.28.0 Batterie in der Ruhe-Insel.
+        static let batteryIdle = "batteryIdle"
+        /// 0.29.0 Meeting-Leiser (G53): Schalter, Anteil, Meeting-Apps (nur Namen).
+        static let meetingDuck = "meetingDuck"
+        static let meetingDuckPercent = "meetingDuckPercent"
+        static let meetingApps = "meetingApps"
         /// 0.5.0 Aufklappen als Band.
         static let bandStyle = "bandStyle"
         /// Medienfilter: nur Bundle-IDs (G25).
@@ -158,6 +169,43 @@ final class Preferences {
 
     /// Wiedergabe-Knöpfe (Pause/Wiedergabe, Weiter) dauerhaft in der kleinen Insel (0.5.0). Ab Werk aus.
     var compactControls: Bool { didSet { defaults.set(compactControls, forKey: Key.compactControls) } }
+
+    /// Tasten-Ring (0.28.0): Werkzeuge als runde Tasten um die große Insel. Ab Werk an; aus = die alte Symbolleiste.
+    var ring: Bool { didSet { defaults.set(ring, forKey: Key.ring) } }
+
+    /// Eingeschaltete Ring-Tasten (0.28.0). Gespeichert als Liste von Kennungen; fehlt sie, gelten die Standardtasten.
+    private(set) var ringButtons: Set<RingButton> {
+        didSet { defaults.set(ringButtons.map(\.rawValue).sorted(), forKey: Key.ringButtons) }
+    }
+
+    /// Mikrofon-Taste immer zeigen (0.28.0). Ab Werk aus: Sie erscheint nur, solange eine App das Mikrofon nutzt.
+    var ringMicAlways: Bool { didSet { defaults.set(ringMicAlways, forKey: Key.ringMicAlways) } }
+
+    /// Batterie (Prozent, Laden) in der Ruhe-Insel (0.28.0). Ab Werk aus; auf Macs ohne Batterie wirkungslos.
+    var batteryIdle: Bool { didSet { defaults.set(batteryIdle, forKey: Key.batteryIdle) } }
+
+    /// Meeting-Leiser (0.29.0): Spotify und Musik leiser, solange eine Meeting-App das Mikrofon nutzt. Ab Werk aus.
+    var meetingDuck: Bool { didSet { defaults.set(meetingDuck, forKey: Key.meetingDuck) } }
+    /// Auf wie viel Prozent der Lautstärke gesenkt wird (20, 30 oder 50).
+    var meetingDuckPercent: Int { didSet { defaults.set(meetingDuckPercent, forKey: Key.meetingDuckPercent) } }
+    /// Namen der Apps, die als Meeting zählen (so zeigt macOS sie an).
+    private(set) var meetingApps: [String] { didSet { defaults.set(meetingApps, forKey: Key.meetingApps) } }
+
+    func setMeetingApp(_ name: String, on: Bool) {
+        var list = meetingApps.filter { $0 != name }
+        if on { list.append(name) }
+        let valid = DuckLogic.validApps(list) ?? []
+        if valid != meetingApps { meetingApps = valid }
+    }
+
+    func isRingButtonOn(_ b: RingButton) -> Bool { b.alwaysOn || ringButtons.contains(b) }
+
+    func setRingButton(_ b: RingButton, on: Bool) {
+        guard !b.alwaysOn else { return }
+        var s = ringButtons
+        if on { s.insert(b) } else { s.remove(b) }
+        if s != ringButtons { ringButtons = s }
+    }
 
     /// Aufklappen als Band (0.5.0): seitlich breit in Menüleisten-Höhe statt nach unten. Ab Werk aus (Insel).
     var bandStyle: Bool { didSet { defaults.set(bandStyle, forKey: Key.bandStyle) } }
@@ -301,6 +349,13 @@ final class Preferences {
         timerAlarm = defaults.object(forKey: Key.timerAlarm) as? Bool ?? true
         playerFirst = defaults.object(forKey: Key.playerFirst) as? Bool ?? false
         compactControls = defaults.object(forKey: Key.compactControls) as? Bool ?? false
+        ring = defaults.object(forKey: Key.ring) as? Bool ?? true
+        ringButtons = RingButton.valid(defaults.object(forKey: Key.ringButtons)) ?? RingButton.defaults
+        ringMicAlways = defaults.object(forKey: Key.ringMicAlways) as? Bool ?? false
+        batteryIdle = defaults.object(forKey: Key.batteryIdle) as? Bool ?? false
+        meetingDuck = defaults.object(forKey: Key.meetingDuck) as? Bool ?? false
+        meetingDuckPercent = DuckLogic.validPercent(defaults.object(forKey: Key.meetingDuckPercent))
+        meetingApps = DuckLogic.validApps(defaults.object(forKey: Key.meetingApps)) ?? DuckLogic.defaultMeetingApps
         bandStyle = defaults.object(forKey: Key.bandStyle) as? Bool ?? false
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
         notifications = defaults.object(forKey: Key.notifications) as? Bool ?? false

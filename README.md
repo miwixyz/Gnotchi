@@ -47,6 +47,15 @@ Freigabe nicht und fragt nie danach.
 - **Shuffle (0.17):** bei Spotify und Musik in der großen Insel und am Plattenspieler, per AppleScript nur auf Klick
   ([G7](docs/SECURE-DESIGN.md)). Ein Favoriten-Herz fehlt noch (Musik ignoriert den Befehl bei Apple-Music-Titeln,
   Spotify erlaubt ihn nicht).
+- **Tasten um die Insel (0.28):** Die Werkzeuge der großen Insel sitzen als runde Glas-Tasten links, rechts und unten
+  um sie herum: Timer, Wach bleiben, Spiegel, Wetter, Ablage, Zwischenablage, Anheften, Einstellungen; ab Werk aus
+  zusätzlich **Mikrofon stumm** (ohne Freigabe, beim Beenden wieder laut), **Bildschirmfoto** (öffnet die Screenshot-App)
+  und **Geschwindigkeitstest** (System-Programm `networkQuality`, nur auf Klick). Ein Schalter je Taste, ohne Tasten
+  gilt wieder die kleine Leiste. Dazu **Batterie in der Ruhe-Insel** (ab Werk aus).
+- **Meeting-Leiser (0.29, ab Werk aus):** Nutzt eine gewählte Meeting-App (Teams, Zoom, FaceTime, Webex, Slack, weitere
+  wählbar) das Mikrofon, wird **Spotify und Musik** leiser und danach wieder auf die alte Lautstärke zurückgeblendet.
+  Die ursprüngliche Lautstärke bleibt gemerkt, auch über Abstürze; eigene Änderungen während des Meetings gelten.
+  Braucht die Automation-Erlaubnis für Spotify bzw. Musik, die Gnotchi nie mitten im Meeting erfragt.
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
@@ -196,9 +205,11 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
 
 ## Datenschutz
 
-- **Nichts verlässt den Mac** außer der Update-Prüfung (Sparkle, bei GitHub) und – nur bei eingeschaltetem
-  Wetter – der Abfrage bei Open-Meteo: dorthin gehen nur der gewählte Ort (gerundete Koordinaten) und bei der
-  Ortssuche der eingetippte Name, nie dein Standort ([G31](docs/SECURE-DESIGN.md)).
+- **Nichts verlässt den Mac** außer der Update-Prüfung (Sparkle, bei GitHub), – nur bei eingeschaltetem
+  Wetter – der Abfrage bei Open-Meteo (dorthin gehen nur der gewählte Ort in gerundeten Koordinaten und bei der
+  Ortssuche der eingetippte Name, nie dein Standort, [G31](docs/SECURE-DESIGN.md)) und – nur auf deinen Klick auf
+  „Geschwindigkeitstest“ (0.28, ab Werk aus) – dem Test gegen Apples Server, höchstens 20 Sekunden lang
+  ([G51](docs/SECURE-DESIGN.md)).
 - Titel, Interpret und Cover bleiben im Arbeitsspeicher. Gnotchi speichert sie nicht, schreibt sie
   nicht ins Protokoll und lädt keine Cover-Adressen aus dem Netz. Ins Protokoll kommen nur
   Zustandswechsel und die Kennung der Quell-App.

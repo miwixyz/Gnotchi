@@ -162,11 +162,18 @@ extension SettingsView {
         }
     }
 
+    /// Apps zur Auswahl der Meeting-Apps: die Standardliste, schon gewählte und Apps, die in diesem Lauf das Mikrofon genutzt haben.
+    var meetingAppChoices: [String] {
+        Array(Set(DuckLogic.defaultMeetingApps).union(prefs.meetingApps).union(model.activity.micAppsSeen)).sorted()
+    }
+
     @ViewBuilder var activitiesTab: some View {
         @Bindable var prefs = prefs
         card("Anzeigen") {
             toggleRow("Rotation", isOn: $prefs.liveRotation)
                 .onChange(of: prefs.liveRotation) { model.applyNotchSetting() }
+            toggleRow("Batterie in der Ruhe-Insel", isOn: $prefs.batteryIdle)
+                .onChange(of: prefs.batteryIdle) { model.applyNotchSetting() }
             toggleRow("Kopfhörer-Hinweis", isOn: $prefs.headphoneNotice)
                 .onChange(of: prefs.headphoneNotice) { model.applyNotchSetting() }
             toggleRow("Kopfhörer-Aktivität", isOn: $prefs.headphoneActivity)
@@ -194,6 +201,69 @@ extension SettingsView {
                      : "Zeigt laufende Claude-Code-Sitzungen: arbeitet, wartet auf Erlaubnis, fertig. Trägt dafür "
                        + "eigene Hooks in ~/.claude/settings.json ein; aus entfernt genau diese.",
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
+            }
+        }
+        // 0.28.0 Tasten-Ring: Werkzeuge als runde Tasten um die große Insel. Ein Schalter je Taste.
+        card("Tasten um die Insel") {
+            toggleRow("Tasten um die große Insel", isOn: $prefs.ring)
+                .onChange(of: prefs.ring) { model.applyNotchSetting() }
+            if prefs.ring {
+                ForEach(RingButton.allCases.filter { !$0.alwaysOn }, id: \.self) { b in
+                    toggleRow(b.label, isOn: Binding(
+                        get: { prefs.isRingButtonOn(b) },
+                        set: { on in
+                            prefs.setRingButton(b, on: on)
+                            // Mirror und Ablage sind harmlos und gehören zur Taste; Wetter (Netz) und Zwischenablage
+                            // (liest mit) schaltest du bewusst in ihrem Reiter ein.
+                            if on, b == .mirror { prefs.mirror = true }
+                            if on, b == .shelf { prefs.shelf = true }
+                            model.applyNotchSetting()
+                        }))
+                }
+                if prefs.isRingButtonOn(.mic) {
+                    toggleRow("Mikrofon-Taste immer zeigen", isOn: $prefs.ringMicAlways)
+                        .onChange(of: prefs.ringMicAlways) { model.applyNotchSetting() }
+                    note("Ohne den Schalter erscheint die Taste nur, solange eine App das Mikrofon nutzt, und bleibt, solange es stumm ist.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                if prefs.isRingButtonOn(.weather) && !prefs.weather {
+                    note("Wetter ist aus: Die Taste erscheint, sobald du es im Reiter „Wetter“ einschaltest.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                if prefs.isRingButtonOn(.clipboard) && !prefs.clipboard {
+                    note("Zwischenablage ist aus: Die Taste erscheint, sobald du sie im Reiter „Zwischenablage“ einschaltest.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                note("Anheften und Einstellungen sind immer da. Ohne die Tasten steht wieder die kleine Symbolleiste in der Insel.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
+            }
+        }
+        // 0.29.0 Meeting-Leiser (G53): Spotify und Musik leiser, solange eine gewählte App das Mikrofon nutzt.
+        card("Meeting-Leiser") {
+            toggleRow("Musik im Meeting leiser", isOn: $prefs.meetingDuck)
+                .onChange(of: prefs.meetingDuck) { model.applyNotchSetting() }
+            if prefs.meetingDuck {
+                row("Leiser auf") {
+                    Picker("Leiser auf", selection: $prefs.meetingDuckPercent) {
+                        ForEach(DuckLogic.percentChoices, id: \.self) { Text(verbatim: "\($0) % der Lautstärke").tag($0) }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                    .onChange(of: prefs.meetingDuckPercent) { model.applyNotchSetting() }
+                }
+                ForEach(meetingAppChoices, id: \.self) { name in
+                    toggleRow(name, isOn: Binding(
+                        get: { prefs.meetingApps.contains(name) },
+                        set: { prefs.setMeetingApp(name, on: $0); model.applyNotchSetting() }))
+                }
+                note("Gilt für Spotify und Musik. Tippi-Diktat zählt nicht. Für Google Meet im Browser wähle den Browser (er erscheint hier, sobald er das Mikrofon genutzt hat). Gnotchi merkt sich die ursprüngliche Lautstärke und stellt sie nach dem Meeting, beim Beenden und beim Start wieder her; änderst du sie selbst, gilt dein Wert. Dafür läuft die Mikrofon-Erkennung, auch wenn „Mikrofon & Kamera anzeigen“ aus ist; die Punkte in der Insel erscheinen dann trotzdem.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
+                ForEach([AppleScriptSource.spotify, AppleScriptSource.music], id: \.self) { id in
+                    if !AppleScriptSource.automationAllowed(id) {
+                        note("\(AppleScriptSource.appName(id)): Gnotchi darf die Lautstärke noch nicht ändern. macOS fragt beim ersten Spulen (Spotify) bzw. beim ersten Shuffle-Klick (Musik); bis dahin bleibt diese App unverändert.",
+                             symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                    }
+                }
             }
         }
         card("Timer und Spiegel") {

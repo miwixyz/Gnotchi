@@ -53,6 +53,9 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G43 | – (neu, 0.13.0) | Geheimnisse erkennen: feste Muster, ganze Kopie, verdeckt, lose Einträge nach 5 Min. weg, Sammlungen nie automatisch |
 | G49 | – (neu, 0.26.0) | Schreibtisch-Widget: nur aktueller Titel im Gruppen-Ordner, Knöpfe nur als frischer Befehl aus dem Ordner |
 | G50 | – (neu, unveröffentlicht) | Bildtext-Suche: lokal mit Vision, verschlüsselt wie G38, Geheimnis-Zeilen → kein Text, seriell im Hintergrund, nie Tresor |
+| G51 | – (neu, 0.28.0) | Geschwindigkeitstest: fester Pfad `/usr/bin/networkQuality`, feste Argumente, keine Shell, nur auf Klick, Zeit- und Ausgabegrenze; Netz nur während des Laufs |
+| G52 | – (neu, 0.28.0) | Mikrofon stumm: Core Audio ohne Freigabe, Zustand aus dem Gerät, beim Beenden entstummen; Tasten-Ring ohne neue Freigabe, Batterie über IOKit ohne Freigabe |
+| G53 | – (neu, 0.29.0) | Meeting-Leiser: Lautstärke von Spotify/Musik per AppleScript nur bei bereits erlaubter Steuerung, feste IDs, gemerkter Ursprungswert, Wiederherstellung bei Ende/Beenden/Start, eigene Änderung gilt |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1468,3 +1471,68 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
   macht Bilder sichtbarer über die Suche → Geheimnis-Filter, Tresor nie, `sharingType = .none` unverändert, Chiffrat
   auf der Platte. *D* große/viele Bilder → Verkleinern, seriell, `.background`, einmal je Eintrag, Textdeckel.
   *S/R/E* nicht berührt.
+
+### G51 – Geschwindigkeitstest: ein Systemprogramm, nur auf Klick (neu, 2026-11-15, 0.28.0)
+- **Was:** Ring-Taste „Geschwindigkeitstest“ (ab Werk aus) startet `/usr/bin/networkQuality -c -M 20` und zeigt Download,
+  Upload, Latenz und Antwortfähigkeit in der großen Insel. Spec: `specs/2026-11-15-gnotchi-0.28.0-tasten-ring.md` (A3).
+- **Prozess:** `Process` mit **festem absolutem Pfad**, **festen Argumenten** (keine Nutzereingabe, keine Shell, kein
+  `PATH`), Eingang und Fehlerausgabe auf `/dev/null`. Ein Lauf gleichzeitig (`state == .running` → zweiter Start wird
+  ignoriert). **Zeitgrenze** 60 s (`terminate`), `-M 20` begrenzt die Messzeit (gemessen 15.11.: ohne `-M` 45 s und über
+  1 GB Datenverkehr). **Ausgabegrenze** 64 KB: Überschreitung beendet den Prozess und meldet einen Fehler.
+- **Auswertung:** JSON, nur vier Felder (`dl_throughput`, `ul_throughput`, `base_rtt`, `responsiveness`), nur endliche,
+  nicht negative Zahlen bis 1 Tbit/s; alles andere → „Kein Ergebnis“. Angezeigt wird nur, was `parse` liefert, per
+  `Text(verbatim:)`.
+- **Netz (neu, eine Ausnahme von „nichts verlässt den Mac“):** Apples Testserver (`*.aaplimg.com`), **nur während eines
+  vom Nutzer gestarteten Laufs**, bis zu 20 s. Das Ergebnis steht nur im Arbeitsspeicher, nichts wird gespeichert oder
+  protokolliert. README und Hilfe nennen den Verkehr.
+- **STRIDE:** S Server-Antwort gefälscht → nur Zahlen im Anzeige-Bereich, kein Code · T – · R – · I Apple sieht Ihre
+  IP und den Test (wie bei „Systemeinstellungen → Netzwerkqualität“) · D hängender Prozess → Zeitgrenze 60 s ·
+  E keine neue Freigabe, kein Aufruf mit Nutzerdaten.
+
+### G52 – Tasten-Ring: keine neue Freigabe; Mikrofon stumm, Bildschirmfoto, Batterie (neu, 2026-11-15, 0.28.0)
+- **Ring:** reine Darstellung und Plätze (`Ring`, getestet). Die Tasten benutzen vorhandene Funktionen; **kein** neuer
+  Ereignis-Mithörer (G1/G48): Die Zuklapp-Fläche kommt aus Rechnungen, nicht aus Ereignissen. Gespeichert wird nur eine
+  Liste fester Kennungen (`ringButtons`, unbekannte Werte fallen weg, getestet).
+- **Mikrofon stumm:** Standard-Eingabegerät über Core Audio, Eigenschaft „Stumm“, sonst Eingangslautstärke 0, sonst nicht
+  nutzbar. **Gemessen 15.11. (MacBook, nur lesend):** eingebautes Mikrofon hat beides, setzbar; das iPhone-Mikrofon
+  (Continuity) keins. Keine Freigabe nötig (Eigenschaft des Geräts). Zustand kommt aus dem Gerät (Property-Listener nur
+  am Standard-Eingang und dessen Stumm/Lautstärke, nur solange die Taste gebraucht wird, Umhängen nur beim Gerätewechsel).
+  **Nie stumm hängen lassen:** `setActive(false)` (Taste aus, Beenden über `stopNotch`) stellt wieder laut, **nur** wenn
+  Gnotchi stummgeschaltet hat; fremdes Stummschalten (Systemeinstellungen) bleibt. Gerätewechsel vergisst die eigene
+  Stummschaltung. **Restrisiko:** Stürzt Gnotchi ab, bleibt das Mikrofon stumm (Zustand liegt im Gerät, nicht in Gnotchi);
+  die Taste erscheint beim nächsten Start wieder und zeigt „stumm“. Ein Tippi-Diktat bei stummem Mikrofon nimmt Stille auf.
+- **Bildschirmfoto:** öffnet die **Screenshot-App** des Systems (`NSWorkspace`); Gnotchi bekommt keine
+  Bildschirmaufnahme-Freigabe und startet kein `screencapture`.
+- **Batterie (Ruhe-Insel):** `IOPSCopyPowerSourcesInfo` plus `IOPSNotificationCreateRunLoopSource`, **ohne Freigabe**, nur
+  die eingebaute Batterie, nur Prozent und Ladezustand, nur Arbeitsspeicher. Zubehör-Akkus (Bluetooth) bewusst nicht.
+- **Einstellungen:** „Mikrofon-Taste immer zeigen“ und „Batterie in der Ruhe-Insel“ ab Werk aus. Neue Tasten mit
+  Nebenwirkung (Mikrofon, Bildschirmfoto, Geschwindigkeitstest) ab Werk aus.
+- **STRIDE:** S – · T `defaults write` mit Fremdwerten → Positivliste · R – · I Batterie und Mikrofonzustand nur lokal ·
+  D Listener-Last gemessen klein (ein Eintrag je Gerät) · E Mikrofon-Zustand ändern nur auf Klick, Rückweg beim Beenden.
+
+### G53 – Meeting-Leiser: fremde Lautstärke ändern, nie leise hängen lassen (neu, 2026-11-15, 0.29.0)
+- **Was:** Nutzt eine gewählte Meeting-App das Mikrofon (Teams, Zoom, FaceTime, Webex, Slack ab Werk in der Liste, weitere
+  wählbar), senkt Gnotchi die Lautstärke von **Spotify und Musik** auf 20/30/50 % und blendet sie danach zurück. Ab Werk aus.
+  Spec: `specs/2026-11-15-gnotchi-lautstaerkemixer-meeting-leiser.md` Stufe 1. Kein Tap, kein Mitschnitt, keine neue Freigabe.
+- **Auslöser:** `PrivacyMonitor` kennt die Mikrofon-Apps schon (Core Audio, ohne Freigabe). Verglichen wird der **Anzeigename**
+  genau (ohne Groß/Klein, kein Teilstring) mit der Liste. Eine fremde App, die sich „Microsoft Teams“ nennt, könnte die Musik
+  leiser machen – mehr nicht (nur eine Lautstärke, kein Datenfluss).
+- **AppleScript:** Skript nur aus den **festen Bundle-IDs** `com.spotify.client`/`com.apple.Music`, der Wert ist eine auf
+  0…100 begrenzte Ganzzahl; keine Nutzereingabe im Skript. 3-s-Zeitgrenze, `if … is running`, startet nie eine App. **Nur wenn
+  macOS die Steuerung schon erlaubt hat** (`AEDeterminePermissionToAutomateTarget(askUserIfNeeded: false)`): kein Dialog
+  mitten im Meeting. Fehlt die Erlaubnis, bleibt diese App unverändert, die Einstellungen sagen es.
+- **Nie leise hängen lassen:** Erst **merken** (Bundle-ID → [vorher, gesenkt] in den Einstellungen, geprüft: nur Spotify/Musik,
+  0…100, gesenkt ≤ vorher), dann senken. Wiederherstellen: Meeting zu Ende, Schalter aus, **Beenden** (synchron), **nächster
+  Start**. Ein Wächter prüft alle 5 s, solange ein Meeting läuft **oder** etwas gemerkt ist (läuft der Player nicht, bleibt
+  es gemerkt, bis er wieder läuft). **Ändert Michael die Lautstärke selbst** (weiter als ±3 vom gesenkten Wert), gilt sein
+  Wert; Gnotchi überschreibt ihn nie.
+- **Nie auf 0:** Gesenkt wird höchstens bis 1, bei 0 oder 1 nichts (das wäre stumm, nicht leiser; Fund des Tests).
+- **Restrisiko (hingenommen):** Stürzt Gnotchi im Meeting ab und Spotify bleibt leise, stellt der nächste Start wieder her;
+  bis dahin bleibt es leise. Spotify Connect (Ton auf anderem Gerät): `sound volume` wirkt auf den Spotify-Client, ob auch auf
+  das Zielgerät, ist **nicht gemessen**. Mehrere Ausgabegeräte (Mac mini: Teams auf eigenem Lautsprecher) werden noch
+  **nicht** unterschieden, die Spec-Regel „nur bei gleichem Gerät“ folgt nach der Messung am Mac mini.
+- **Persistenz:** Neu gespeichert werden die gewählten Meeting-**Namen** (`meetingApps`, höchstens 32, geprüft) und die
+  gemerkte Lautstärke (`meetingDuckSaved`). Welche Apps in diesem Lauf das Mikrofon genutzt haben (`micAppsSeen`, für die
+  Auswahl), steht nur im Arbeitsspeicher.
+- **STRIDE:** S Name gefälscht → s. o. · T Fremdwerte in den Einstellungen → geprüft, Rückfall · R – · I keine neuen Daten
+  nach außen · D Wächter 5 s, nur mit Meeting oder gemerktem Wert, AppleScript nur bei laufender App · E keine neue Freigabe.

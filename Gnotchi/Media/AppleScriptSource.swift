@@ -374,3 +374,45 @@ extension AppleScriptSource {
         return ExtraState(shuffle: item.booleanValue)
     }
 }
+
+// MARK: - Lautstärke von Spotify und Musik (0.29.0, Meeting-Leiser, G53)
+
+/// Spotify und Musik: `sound volume` 0…100. Gleiche Regeln wie Shuffle und Spulen: feste Bundle-IDs (nie der übergebene
+/// Wert im Skript), 3-s-Zeitgrenze, nur wenn macOS die Steuerung schon erlaubt hat (`mayRead` – nie ein Dialog mitten im
+/// Meeting), läuft die App nicht, passiert nichts und sie wird nicht gestartet.
+extension AppleScriptSource {
+    enum VolumeAction: Equatable, Sendable { case read, set(Int) }
+
+    nonisolated static func volumeScript(_ action: VolumeAction, bundleID: String) -> String {
+        guard let id = supported.first(where: { $0 == bundleID }) else { return "" }
+        var set = ""
+        if case .set(let v) = action { set = "set sound volume to \(min(100, max(0, v)))\n" }
+        return "if application id \"\(id)\" is running then\ntell application id \"\(id)\"\n\(timed("\(set)return sound volume"))\nend tell\nend if"
+    }
+
+    /// Antwort `sound volume` als ganze Zahl 0…100; alles andere (App läuft nicht, Fehler) → nil.
+    nonisolated static func volumeValue(from d: NSAppleEventDescriptor) -> Int? {
+        guard [typeSInt16, typeSInt32, typeSInt64].contains(d.descriptorType) else { return nil }
+        let v = Int(d.int32Value)
+        return (0...100).contains(v) ? v : nil
+    }
+
+    func volume(_ action: VolumeAction, bundleID: String) async -> Int? {
+        guard let id = Self.supported.first(where: { $0 == bundleID }), mayRead(id) else { return nil }
+        let source = Self.volumeScript(action, bundleID: id)
+        guard !source.isEmpty else { return nil }
+        return await withCheckedContinuation { (cont: CheckedContinuation<Int?, Never>) in
+            queue.async {
+                let (out, _) = Self.isRunning(id) ? Self.execute(source) : (nil, nil)
+                cont.resume(returning: out.flatMap(Self.volumeValue(from:)))
+            }
+        }
+    }
+
+    /// Blockierend, für das Beenden: dort bleibt keine Zeit, auf eine Warteschlange zu warten.
+    nonisolated static func volumeSync(_ action: VolumeAction, bundleID: String) -> Int? {
+        guard let id = supported.first(where: { $0 == bundleID }), automationAllowed(id), isRunning(id) else { return nil }
+        let (out, _) = execute(volumeScript(action, bundleID: id))
+        return out.flatMap(volumeValue(from:))
+    }
+}

@@ -25,7 +25,7 @@ final class IslandState {
 /// Titel/Interpret kommen von beliebigen Websites → nur `Text(verbatim:)` (SECURE-DESIGN G5).
 struct IslandView: View {
     @Environment(NowPlayingModel.self) private var model
-    @Environment(ActivityModel.self) private var activity
+    @Environment(ActivityModel.self) var activity
     @Environment(\.colorScheme) private var systemScheme   // System, nicht die erzwungene Insel-Dunkelheit (0.16.0)
     let state: IslandState
     let onHover: (Bool) -> Void
@@ -39,6 +39,8 @@ struct IslandView: View {
     var onExpandFull: () -> Void = {}
     var detached = false   // 0.22.0: schwebende große Insel im eigenen Panel (IslandView+Detached)
     var onDetached: (DetachedEvent) -> Void = { _ in }
+    /// Ring-Tasten, die Fenster oder Apps öffnen (0.28.0: Einstellungen, Bildschirmfoto): der Controller führt sie aus.
+    var onRingAction: (RingButton) -> Void = { _ in }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -125,18 +127,19 @@ struct IslandView: View {
                             current: activity.highlightedChip,
                             event: activity.upcomingEvent, headphones: activity.headphones,
                             mediaApp: model.info?.appBundleID, privacy: activity.privacy, quota: activity.quotaLine,
-                            mirror: activity.mirrorEnabled ? activity.mirrorActive : nil,
-                            timerButton: activity.timer == nil ? activity.timerPickerActive : nil,
-                            weather: activity.weather.map { ($0, activity.weatherActive) },
+                            mirror: activity.ringShown ? nil : (activity.mirrorEnabled ? activity.mirrorActive : nil),
+                            timerButton: activity.ringShown || activity.timer != nil ? nil : activity.timerPickerActive,
+                            weather: activity.ringShown ? nil : activity.weather.map { ($0, activity.weatherActive) },
                             onWeather: { activity.selectWeather() },
-                            shelf: activity.shelfItems.isEmpty ? nil : (activity.shelfItems.count, activity.shelfActive),
+                            shelf: activity.ringShown || activity.shelfItems.isEmpty ? nil : (activity.shelfItems.count, activity.shelfActive),
                             onShelf: { activity.selectShelf() },
-                            clipboard: activity.clipboard == nil ? nil : activity.clipboardActive, onClipboard: { activity.selectClipboard() },
+                            clipboard: activity.ringShown || activity.clipboard == nil ? nil : activity.clipboardActive, onClipboard: { activity.selectClipboard() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
-                            awake: activity.awake.map { ($0.isActive, activity.awakePageActive) },
+                            awake: activity.ringShown ? nil : activity.awake.map { ($0.isActive, activity.awakePageActive) },
                             onAwake: { activity.selectAwake() },
-                            pinned: activity.pinned, onPin: { activity.togglePin() }, unread: activity.unread)
+                            pinned: activity.pinned, onPin: { activity.togglePin() }, showPin: !activity.ringShown,
+                            unread: activity.unread)
                         .padding(EdgeInsets(top: (state.layout.notch?.height ?? 0) + 8, leading: 16, bottom: 0, trailing: 16))
                 }
                 big(topInset: chips ? 0 : nil)
@@ -478,6 +481,7 @@ extension IslandView {
                 privacyCompact
             } else if activity.hasIdleContent {
                 IdleCompact(weather: activity.weather, shelfCount: activity.shelfItems.count, unread: activity.compactUnreadTotal,
+                            battery: activity.showsBattery ? activity.battery.status : nil,
                             pill: pill,
                             height: state.layout.compact.height)
             }
@@ -578,6 +582,8 @@ extension IslandView {
         case .shelf:
             shelfBig(topInset: topInset)
         case .clipboard: ClipboardBig.island(activity.clipboard, top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6)
+        case .speedtest:
+            SpeedTestCard(speed: activity.speed, onAgain: { activity.speed.start() }).padding(.top, top + 6).transition(.opacity)
         case .none:
             EmptyView()
         }

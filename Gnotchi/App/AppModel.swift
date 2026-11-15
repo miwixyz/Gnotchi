@@ -48,6 +48,8 @@ final class AppModel {
     @ObservationIgnored private var signalSources: [DispatchSourceSignal] = []
     /// Messpunkt Fokus bei Mitteilungen (0.16.0), nur Protokoll.
     @ObservationIgnored private var focusProbe: FocusProbe?
+    /// Meeting-Leiser (0.29.0, G53): Spotify/Musik leiser, solange eine Meeting-App das Mikrofon nutzt.
+    @ObservationIgnored let ducker = MeetingDucker()
 
     /// Legt ein Test ein AppModel an, startet es weder Sparkle noch den Medien-Adapter (er startete perl,
     /// der Rückfall schickte Apple Events) und räumt nicht in ~/.claude/settings.json auf: Die Tests prüfen
@@ -83,7 +85,7 @@ final class AppModel {
                                                 activityOn: { [prefs] in prefs.headphoneActivity })) {
                 $0.headphoneNotice || $0.headphoneActivity
             },
-            NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera },
+            NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera || $0.meetingDuck },   // der Meeting-Leiser braucht die Mikrofon-Erkennung
             NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: QottiLink(activity: activity)) { $0.qottiQuota },
@@ -107,6 +109,7 @@ final class AppModel {
             NotchFeature(part: LockScreenMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.lockScreenMusic },
         ] + Self.optionalFeatures(kalli: kalli, awake: awake) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
+        activity.onPrivacyChange = { [ducker] apps in ducker.micAppsChanged(apps) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
         self.makeIsland = makeIsland
         awake?.onNudgeChange = { [weak self] in self?.applyNotchSetting() }
@@ -165,12 +168,19 @@ final class AppModel {
         activity.timerAlarmEnabled = prefs.timerAlarm
         activity.playerFirst = prefs.playerFirst
         activity.compactControls = prefs.compactControls
+        activity.ringEnabled = prefs.ring
+        activity.ringOn = prefs.ringButtons
+        activity.ringMicAlways = prefs.ringMicAlways
+        activity.batteryIdle = prefs.batteryIdle
         activity.quietIsland = prefs.quietIsland
         activity.compactUnread = prefs.compactUnread
         activity.bandStyle = prefs.bandStyle
         if !prefs.playerFirst { activity.overlayActivity = nil }
         syncOwnUpdate()
         guard allowStart else { return }
+        activity.mic.setActive(prefs.ring && prefs.isRingButtonOn(.mic))   // Beobachter nur, solange die Taste gebraucht wird
+        activity.battery.setActive(prefs.batteryIdle)
+        ducker.configure(enabled: prefs.meetingDuck, percent: prefs.meetingDuckPercent, apps: Set(prefs.meetingApps))
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })
         guard !wanted.isEmpty else { return stopNotch() }
         for i in runningFeatures.subtracting(wanted).sorted() {
@@ -248,6 +258,9 @@ final class AppModel {
         }
         for i in runningFeatures.sorted() { features[i].part.stop() }
         runningFeatures.removeAll()
+        ducker.shutdown()   // beim Beenden: gesenkte Lautstärke wiederherstellen (G53)
+        activity.battery.setActive(false)
+        activity.mic.setActive(false)   // beim Beenden: hat Gnotchi das Mikrofon stummgeschaltet, wird es wieder laut (G52)
     }
 }
 

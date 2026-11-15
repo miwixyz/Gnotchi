@@ -42,6 +42,13 @@ enum DetachedIsland {
         return CGRect(x: x, y: y, width: w, height: h)
     }
 
+    /// Insel-Rechteck innerhalb des äußeren Rechtecks (Insel plus Ring, ohne Schattenrand): seitlich und unten die
+    /// Randzugabe des Rings abziehen, oben bündig (0.28.0).
+    nonisolated static func islandRect(outer: CGRect, margins: Ring.Margins) -> CGRect {
+        CGRect(x: outer.minX + margins.side, y: outer.minY + margins.bottom,
+               width: max(0, outer.width - 2 * margins.side), height: max(0, outer.height - margins.bottom))
+    }
+
     /// Versatz aus der losgelassenen Lage; nah an der Grundlage → 0 (Einrasten).
     nonisolated static func offset(island: CGRect, compact: CGRect) -> CGSize {
         let top = baseTop(compact: compact)
@@ -50,9 +57,9 @@ enum DetachedIsland {
     }
 
     /// Fläche, über der die Insel offen bleibt: kleine Insel, große Insel und – nur in der Grundlage – die Lücke dazwischen.
-    nonisolated static func zones(compact: CGRect, island: CGRect?) -> [CGRect] {
+    nonisolated static func zones(compact: CGRect, island: CGRect?, ring: [CGRect] = []) -> [CGRect] {
         guard let island else { return [compact] }
-        var result = [compact, island]
+        var result = [compact, island] + ring
         if island.maxY <= compact.minY, island.minX <= compact.midX, compact.midX <= island.maxX {
             let left = max(compact.minX, island.minX), right = min(compact.maxX, island.maxX)
             result.append(CGRect(x: left, y: island.maxY, width: right - left, height: compact.minY - island.maxY))
@@ -103,5 +110,13 @@ extension IslandController {
                          shelf: activity.bigContent == .shelf, strip: activity.showsShelfStrip,
                          clipboard: activity.bigContent == .clipboard, tall: tallHeight(activity.bigContent))
         return CGSize(width: DetachedIsland.width, height: r?.height ?? IslandGeometry.expandedSize.height)
+    }
+
+    /// Insel, Ring-Tasten und Randzugabe (0.28.0) – von Panel und Ansicht gemeinsam benutzt.
+    @MainActor
+    static func ringLayout(_ activity: ActivityModel) -> RingLayout {
+        let island = detachedSize(activity)
+        let buttons = activity.ringButtons
+        return RingLayout(island: island, buttons: buttons, margins: Ring.margins(buttons: buttons, island: island))
     }
 }

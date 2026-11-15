@@ -162,6 +162,7 @@ extension ActivityModel {
         weatherActive = false
         shelfActive = false
         clipboardActive = false
+        speedtestActive = false
     }
 
     /// „12:34“, pausiert „‖ 12:34“.

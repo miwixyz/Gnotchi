@@ -11,21 +11,27 @@ extension IslandView {
     @ViewBuilder var detachedIsland: some View {
         if state.mode == .expanded {
             let shape = RoundedRectangle(cornerRadius: DetachedIsland.corner, style: .continuous)
-            ZStack(alignment: .top) {
-                shape.fill(.clear)
-                    .contentShape(shape)
-                    .onTapGesture(count: 2) { onDetached(.reset) }
-                    .gesture(DragGesture(minimumDistance: 3)
-                        .onChanged { _ in onDetached(.dragChanged) }
-                        .onEnded { _ in onDetached(.dragEnded) })
-                content.clipShape(shape)   // nur der Inhalt – ein Zuschnitt des Glases nähme ihm den Lichtrand
+            let ring = IslandController.ringLayout(activity)
+            ZStack(alignment: .topLeading) {
+                ZStack(alignment: .top) {
+                    shape.fill(.clear)
+                        .contentShape(shape)
+                        .onTapGesture(count: 2) { onDetached(.reset) }
+                        .gesture(DragGesture(minimumDistance: 3)
+                            .onChanged { _ in onDetached(.dragChanged) }
+                            .onEnded { _ in onDetached(.dragEnded) })
+                    content.clipShape(shape)   // nur der Inhalt – ein Zuschnitt des Glases nähme ihm den Lichtrand
+                }
+                .frame(width: size.width, height: size.height)
+                // Tönung IM Glas statt Schwarz darüber: Lesbarkeit über hellem Schreibtisch, Brechung und Rand bleiben.
+                .glassEffect(.regular.tint(.black.opacity(DetachedIsland.glassTint)), in: shape)
+                .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
+                .onHover(perform: onHover)
+                .id(state.hoverEpoch)
+                .offset(x: ring.margins.side)
+                ringLayer(ring)
             }
-            .frame(width: size.width, height: size.height)
-            // Tönung IM Glas statt Schwarz darüber: Lesbarkeit über hellem Schreibtisch, Brechung und Rand bleiben.
-            .glassEffect(.regular.tint(.black.opacity(DetachedIsland.glassTint)), in: shape)
-            .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
-            .onHover(perform: onHover)
-            .id(state.hoverEpoch)
+            .frame(width: ring.outerSize.width, height: ring.outerSize.height, alignment: .topLeading)
             .padding(DetachedIsland.pad)
             // Feder aus Richtung Pille, auch wenn die Insel verschoben ist (Entschieden 9).
             .transition(.scale(scale: 0.4, anchor: state.anchor).combined(with: .opacity))

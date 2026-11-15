@@ -158,7 +158,10 @@ final class KalliEventsTests: XCTestCase {
         model.selectMirror()
         XCTAssertFalse(model.mirrorActive, "Schalter aus → nie an")
         model.setMirrorEnabled(true)
-        XCTAssertTrue(model.showsChipRow, "Spiegel-Symbol braucht die Leiste")
+        XCTAssertTrue(model.ringButtons.contains(.mirror), "0.28.0: Das Spiegel-Symbol sitzt im Tasten-Ring")
+        model.ringEnabled = false
+        XCTAssertTrue(model.showsChipRow, "ohne Ring braucht das Spiegel-Symbol die Leiste")
+        model.ringEnabled = true
         model.selectMirror()
         XCTAssertEqual(model.bigContent, .mirror)
         model.select(.event)

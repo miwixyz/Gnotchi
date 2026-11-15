@@ -107,6 +107,23 @@ Gnotchi weiß schon, **welche App das Mikrofon nutzt** (Core Audio, ohne Freigab
   problematisch. „Alles Stille“ → Freigabe fehlt (macOS liefert dann Nullen statt eines Fehlers). Hörtest bei `regeln`:
   Klingt Phase 1 wie das Original? Knackt der Übergang? Ist danach alles wieder normal?
 
+## Nachträge beim Bau von Stufe 1 (15.11., Michael: „mach weiter“ nach 0.28.0)
+
+Gebaut: **Meeting-Leiser** für Spotify und Musik (`MeetingDucker`, `DuckLogic`, G53), 18 neue Tests. Abweichungen vom Entwurf:
+
+- **Ohne Geräte-Regel.** Der Entwurf wollte ab Werk „nur leiser bei gleichem Ausgabegerät“. Das braucht das Ausgabegerät der
+  Meeting-App, und wie Teams über „Microsoft Teams Audio“ meldet, ist am MacBook nicht messbar. Eine ungeprüfte Regel würde
+  im Zweifel nie leiser machen. Stufe 1 senkt deshalb **immer**; die Geräte-Regel folgt nach der Messung am **Mac mini**.
+- **Kein Hinweis in der kleinen Insel** („Musik leiser, Meeting läuft“): nicht gebaut. Sichtbar ist es nur an der Musik und in den
+  Einstellungen.
+- **Auslöser sind Anzeige-Namen** (so meldet sie `PrivacyMonitor`), nicht Bundle-IDs. Ab Werk Teams, Zoom, FaceTime, Webex, Slack;
+  weitere aus den Apps, die in diesem Lauf das Mikrofon genutzt haben. **Tippi zählt nie**, weil sie nicht in der Liste steht.
+- **Keine Automation-Dialoge im Meeting:** Gnotchi steuert nur, wo macOS es schon erlaubt hat; sonst steht es in den
+  Einstellungen. Für Musik kommt die Erlaubnis beim ersten Shuffle-Klick, für Spotify beim ersten Spulen.
+- **Nicht gemessen:** der echte Ablauf mit Teams/Zoom, Spotify Connect (Ton auf anderem Gerät), Apple Music.
+  Die Skripte sind getestet (feste IDs, Begrenzung), der Ablauf mit einem Attrappen-Player.
+- **Noch offen:** Stufe 2 (Mixer), Geräte-Regel, Popover.
+
 ## Anforderungen aus Michaels Setup (15.11., nach dem Spike)
 
 Michael: Der Mixer muss **Browser, Apple Music und YouTube** abdecken. Am **Mac mini hängen mehrere Lautsprecher**:
@@ -147,6 +164,45 @@ Teams läuft nur über einen, die anderen sind für Musik. Das muss unterscheidb
 **Spike-Erweiterung:** `tools/tap-probe.swift liste` zeigt jetzt Ausgabegeräte und App-Namen je Audio-Prozess. Als
 Nächstes: `regeln` mit gerätespezifischem Tap und Wahl des Ausgabegeräts, gemessen **am Mac mini** mit Teams plus
 Musik auf getrennten Lautsprechern.
+
+## Darstellung des Mixers und Menüleisten-Menü (Michael 15.11., mit Screenshot des Vorbilds)
+
+Michael zeigte das Mixer-Fenster des Vorbilds (Menüleisten-Popover) und will „so eine Darstellung, nur schöner und
+moderner“, **auch über das Menü-Symbol**. Dazu: **AirPlay- und Bluetooth-Wiedergabe** der gerade wiedergebenden
+Medien-Programme sichtbar, und im Menü des Menü-Symbols ein **übersichtliches Menü aller Funktionen**.
+
+Aus dem Screenshot gelesen (nur Aufbau, nicht Optik oder Branding): oben Ausgabegerät mit Lautstärkeregler und Prozent,
+Gerät für Systemtöne, Mikrofon mit Gerät und Pegel; darunter eine Zeile je App (Symbol, Name, Menü „…“, Geräteauswahl
+„Standard“, Regler, Prozent, Stumm-Symbol); unten aufklappbar „Optionen“; oben eine Reiterleiste mit Symbolen für die
+Funktionsgruppen.
+
+**Entwurf, Gnotchi-eigen:**
+
+1. **Zwei Orte, eine Ansicht.** Der Mixer erscheint (a) groß in der Insel (Ring-Taste `mixer`) und (b) im
+   Menüleisten-Popover. Beide teilen sich dieselbe SwiftUI-Ansicht und dieselben Daten.
+2. **Kopf:** Ausgabegerät (Auswahl, Lautstärke, Prozent), Systemtöne-Gerät, Mikrofon (Gerät, Pegel, Stumm). Das ist
+   alles Standard-Core-Audio ohne Tap und ohne Freigabe.
+3. **Zeile je laufende App, nicht je Prozess** (Folgen 1 oben): Symbol, Name, **Gerät** (Auswahl, „Standard“ = bleibt
+   wie es ist; ein anderes Gerät nutzt die gemessene Umleitung), Regler, Prozent, Stumm. Nur Apps, die gerade Ton
+   ausgeben, kommen dazu.
+4. **AirPlay und Bluetooth sichtbar:** Je Zeile steht das Ausgabegerät mit Symbol nach Übertragungsart
+   (`kAudioDevicePropertyTransportType`: eingebaut, Bluetooth, AirPlay, USB). Das Gerät je Prozess ist ohne Freigabe
+   lesbar (gemessen 15.11.: Spotify, Apple Music, Helium → „MacBook Air-Lautsprecher“). Gnotchi kennt schon den
+   Wiedergabeweg des Players („Auf anderem Gerät“, AirPlay, Bluetooth, README). **Nicht gemessen:** AirPlay und Bluetooth
+   auf diesem MacBook; Spotify Connect ist **kein** Core-Audio-Gerät und erscheint nur als „Auf anderem Gerät“.
+5. **Optik: moderner statt Nachbau.** Gnotchi-Glas (`glassEffect`, Tönung `glassTint`), größere Regler mit Cover der
+   laufenden Musik an der Musik-Zeile, die Bewegung der App-Familie (federnde Regler, Schatten unter der Maus). Keine
+   Saturn-Marke, keine 1:1-Anordnung.
+6. **Menüleisten-Menü als Übersicht aller Funktionen.** Heute ist das Menü des Symbols eine einfache Liste (Timer,
+   Einstellungen, Hilfe, Update, Beenden). Entwurf: ein **Popover** (`MenuBarExtra` mit Fenster-Stil) mit Reiterleiste
+   nach Funktionsgruppen – **Jetzt läuft** (Musik-Karte), **Mixer**, **Timer und Wach bleiben**, **Ablage und
+   Zwischenablage**, **Wetter und Spiegel**, **Tasten** (Ring) – und unten Einstellungen, Hilfe, Beenden. Jede Funktion
+   aus der Insel ist von dort erreichbar, auch ohne die Insel aufzuklappen.
+
+**Folge für die Reihenfolge:** Das Menüleisten-Popover und die gemeinsame Mixer-Ansicht sind eigene Arbeit neben dem
+Ring und dem Meeting-Leiser. Vorschlag: 0.28.0 Ring, 0.29.0 Meeting-Leiser (Stufe 1), 0.30.0 Menüleisten-Popover als
+Übersicht, dann Mixer (Stufe 2) darin und in der Insel. **Offen für Michael:** Reihenfolge so recht? Soll das
+Popover vor dem Mixer kommen (es ist die Hülle, in die der Mixer passt)?
 
 ## Wohin damit? (Michael: „kann auch in einem anderen Programm sein, wo es am besten passt“)
 

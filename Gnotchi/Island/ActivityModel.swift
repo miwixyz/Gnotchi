@@ -110,6 +110,21 @@ final class ActivityModel {
     var playerFirst = false
     /// Einstellung „Wiedergabe-Knöpfe in der kleinen Insel“: Pause/Wiedergabe und Weiter dauerhaft (statt Pegel).
     var compactControls = false
+    /// Tasten-Ring (0.28.0): Werkzeuge als runde Tasten um die große Insel (aus = alte Leiste, Preferences.ring).
+    var ringEnabled = true
+    /// Vom Nutzer eingeschaltete Ring-Tasten (Preferences.ringButtons).
+    var ringOn: Set<RingButton> = RingButton.defaults
+    /// Mikrofon-Taste immer zeigen (sonst nur, solange eine App das Mikrofon nutzt oder es stumm ist).
+    var ringMicAlways = false
+    /// Mikrofon stumm (0.28.0, G52).
+    var mic = MicMute()
+    /// Batterie in der Ruhe-Insel (0.28.0): Schalter und Beobachter.
+    var batteryIdle = false
+    /// Apps, die in diesem Lauf das Mikrofon genutzt haben (nur Namen, nur Arbeitsspeicher): Auswahl der Meeting-Apps.
+    @ObservationIgnored var micAppsSeen: Set<String> = []
+    /// Meeting-Leiser (0.29.0): meldet, welche Apps das Mikrofon nutzen.
+    @ObservationIgnored var onPrivacyChange: (([String]) -> Void)?
+    var battery = BatteryMonitor()
     /// 0.16.0: ohne Hardware-Notch und ohne Live-Aktivität Menüleisten-Optik statt Schwarz (Preferences.quietIsland).
     var quietIsland = true
     /// Ungelesen-Zähler in der kleinen Insel (0.9.0, Michael 22.10.: ein-/ausschaltbar). Band und groß zeigen die Zahlen
@@ -145,6 +160,9 @@ final class ActivityModel {
     /// Zwischenablage (0.11.0, G37): läuft = Symbol in der Leiste; groß gezeigt = `clipboardActive`.
     var clipboard: ClipboardLink?
     var clipboardActive = false
+    /// Geschwindigkeitstest (0.28.0, G51): Ergebnis groß gezeigt, Zustand in `speed`.
+    var speedtestActive = false
+    var speed = SpeedTest()
 
     // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
 
@@ -198,7 +216,11 @@ final class ActivityModel {
 
     /// Ruhe-Insel (0.8.0, Michael 22.10.: „mit Inhalt“): Wetter an oder etwas in der Ablage → Insel bleibt da.
     /// 0.9.0: auch Ungelesen-Zahlen halten die Ruhe-Insel.
-    var hasIdleContent: Bool { weather != nil || !shelfItems.isEmpty || compactUnreadTotal > 0 }
+    /// 0.28.0: auch die Batterie (Schalter an, Mac mit eingebauter Batterie).
+    var hasIdleContent: Bool { weather != nil || !shelfItems.isEmpty || compactUnreadTotal > 0 || showsBattery }
+
+    /// Batterie in der Ruhe-Insel zeigen: Schalter an und eine eingebaute Batterie gelesen.
+    var showsBattery: Bool { batteryIdle && battery.status != nil }
 
     func setHeadphones(_ h: Headphones?) {
         if headphones != h { headphones = h }
@@ -281,7 +303,11 @@ final class ActivityModel {
     var quotaLine: String? { QottiLink.line(quota) }
 
     func setPrivacy(_ p: Privacy) {
-        if privacy != p { privacy = p }
+        if privacy != p {
+            privacy = p
+            for name in p.micApps where micAppsSeen.count < 32 { micAppsSeen.insert(name) }
+            onPrivacyChange?(p.micApps)
+        }
     }
 
     func clearNotice() {

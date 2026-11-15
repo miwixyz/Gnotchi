@@ -12,6 +12,8 @@ struct DetachedRuntime {
     var hideTasks: [CGDirectDisplayID: Task<Void, Never>] = [:]
     /// Ziehen: Mauslage und Panel-Ursprung beim Start.
     var drag: (mouse: CGPoint, origin: CGPoint)?
+    /// Ring-Tasten und Randzugabe der zuletzt gezeigten Insel (0.28.0), für Zuklapp-Fläche und Ziehen.
+    var ring: [CGDirectDisplayID: RingLayout] = [:]
 }
 
 /// Was die schwebende Insel an den Controller meldet (Ziehen auf freiem Hintergrund, Doppelklick, Esc).
@@ -37,7 +39,8 @@ extension IslandController {
                               onOpenUpdate: { [weak self] app in self?.openUpdate(app) },
                               onOpenEvent: { [weak self] in self?.openEvent() },
                               detached: true,
-                              onDetached: { [weak self] event in self?.detachedEvent(event, displayID: displayID) })
+                              onDetached: { [weak self] event in self?.detachedEvent(event, displayID: displayID) },
+                              onRingAction: { [weak self] b in self?.ringAction(b, displayID: displayID) })
             .environment(activity.media)
             .environment(activity)
         let host = ClickableHostingView(rootView: view)
@@ -47,23 +50,27 @@ extension IslandController {
         return p
     }
 
-    /// Insel-Rechteck (ohne Schattenrand) für den aktuellen Inhalt, nil = Bildschirm nicht mehr da.
-    func detachedIslandRect(_ entry: Entry, displayID: CGDirectDisplayID) -> CGRect? {
+    /// Insel-Rechteck und äußeres Rechteck mit Ring (beide ohne Schattenrand) für den aktuellen Inhalt, nil = Bildschirm
+    /// nicht mehr da. Der Ring gibt dem Panel seitlich und unten Platz (0.28.0); die Insel bleibt mittig unter der Pille.
+    func detachedRects(_ entry: Entry, displayID: CGDirectDisplayID) -> (island: CGRect, outer: CGRect, ring: RingLayout)? {
         guard let screen = NSScreen.screens.first(where: { $0.displayID == displayID }) else { return nil }
-        return DetachedIsland.frame(compact: entry.state.layout.compact, size: Self.detachedSize(activity),
-                                    offset: DetachedIsland.offset(), visible: screen.visibleFrame)
+        let ring = Self.ringLayout(activity)
+        let outer = DetachedIsland.frame(compact: entry.state.layout.compact, size: ring.outerSize,
+                                         offset: DetachedIsland.offset(), visible: screen.visibleFrame)
+        return (DetachedIsland.islandRect(outer: outer, margins: ring.margins), outer, ring)
     }
 
     /// Schwebende Insel an den Zustand der kleinen angleichen: groß → zeigen (und Lage/Größe nachführen), sonst
     /// schrumpfen lassen und nach der Animation ausblenden.
     func syncBig(_ id: CGDirectDisplayID) {
         guard let e = panels[id] else { return }
-        guard e.state.mode == .expanded, let island = detachedIslandRect(e, displayID: id) else { return hideBig(id) }
+        guard e.state.mode == .expanded, let rects = detachedRects(e, displayID: id) else { return hideBig(id) }
+        detached.ring[id] = rects.ring
         detached.hideTasks[id]?.cancel()
         detached.hideTasks[id] = nil
         e.big.allowsKey = activity.bigContent == .timerPicker
         if detached.drag == nil {
-            let panel = island.insetBy(dx: -DetachedIsland.pad, dy: -DetachedIsland.pad)
+            let panel = rects.outer.insetBy(dx: -DetachedIsland.pad, dy: -DetachedIsland.pad)
             if e.big.frame != panel { e.big.setFrame(panel, display: true) }
             if e.bigState.mode != .expanded {
                 e.bigState.anchor = DetachedIsland.growAnchor(compact: e.state.layout.compact, panel: panel)
@@ -135,9 +142,12 @@ extension IslandController {
     }
 
     private func zones(_ e: Entry, _ id: CGDirectDisplayID) -> [CGRect] {
+        let ring = detached.ring[id]
         let island = e.state.mode == .expanded && e.big.isVisible
-            ? e.big.frame.insetBy(dx: DetachedIsland.pad, dy: DetachedIsland.pad) : nil
-        return DetachedIsland.zones(compact: e.panel.frame, island: island)
+            ? DetachedIsland.islandRect(outer: e.big.frame.insetBy(dx: DetachedIsland.pad, dy: DetachedIsland.pad),
+                                        margins: ring?.margins ?? .zero) : nil
+        return DetachedIsland.zones(compact: e.panel.frame, island: island,
+                                    ring: island.map { Ring.zones(buttons: ring?.buttons ?? [], island: $0) } ?? [])
     }
 
     /// Zu wie bisher (`hover`): groß/Band → klein, Animation auslaufen lassen, Panel klein.
@@ -166,7 +176,8 @@ extension IslandController {
                                          y: start.origin.y + mouse.y - start.mouse.y))
         case .dragEnded:
             detached.drag = nil
-            let island = e.big.frame.insetBy(dx: DetachedIsland.pad, dy: DetachedIsland.pad)
+            let island = DetachedIsland.islandRect(outer: e.big.frame.insetBy(dx: DetachedIsland.pad, dy: DetachedIsland.pad),
+                                                   margins: detached.ring[id]?.margins ?? .zero)
             DetachedIsland.setOffset(DetachedIsland.offset(island: island, compact: e.state.layout.compact))
             syncBig(id)   // eingerastet bzw. in den sichtbaren Bereich zurück
         case .reset:
@@ -174,6 +185,22 @@ extension IslandController {
         case .escape:
             collapseTasks[id]?.cancel()
             Task { await self.collapse(id) }
+        }
+    }
+
+    /// Ring-Tasten, die Fenster oder andere Apps öffnen (0.28.0): Einstellungen, Bildschirmfoto. Die übrigen wirken im Modell.
+    func ringAction(_ b: RingButton, displayID id: CGDirectDisplayID) {
+        switch b {
+        case .settings:
+            openWindow(AppModel.WindowID.settings)
+        case .screenshot:
+            // Die Screenshot-App des Systems: Gnotchi bekommt keine Bildschirmaufnahme-Freigabe (G51/Spec A2).
+            NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: "/System/Applications/Utilities/Screenshot.app"),
+                                               configuration: NSWorkspace.OpenConfiguration())
+            collapseTasks[id]?.cancel()
+            Task { await self.collapse(id) }
+        default:
+            break
         }
     }
 

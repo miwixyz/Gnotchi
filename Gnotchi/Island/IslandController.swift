@@ -48,7 +48,7 @@ final class IslandController {
     /// Aufklapp-Verzögerung in Sekunden, bei jedem Überfahren neu gelesen (Einstellung wirkt sofort).
     private let expandDelay: @MainActor () -> TimeInterval
     /// Öffnet ein App-Fenster (Einstellungen, Hilfe) über AppModel – das Panel hat kein eigenes `openWindow`.
-    private let openWindow: @MainActor (String) -> Void
+    let openWindow: @MainActor (String) -> Void
     /// Klick auf ein Update (0.4.0): AppModel öffnet die echte App bzw. Sparkle (G24).
     let openUpdate: @MainActor (FamilyApp) -> Void
     /// Klick auf den Termin (0.5.0): Apple Kalender öffnen.

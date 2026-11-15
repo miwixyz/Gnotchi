@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht] — 0.28.0
+
+### Neu
+- **Tasten rund um die große Insel.** Die Werkzeuge (Timer, Wach bleiben, Spiegel, Wetter, Ablage, Zwischenablage) sitzen jetzt als runde Glas-Tasten links und rechts neben der schwebenden Insel, Anheften und Einstellungen unten. Eine laufende Sache zeigt einen Punkt (Timer läuft, Wach bleiben an, Spiegel offen), die Ablage eine Zahl. Der Weg von der Insel zu einer Taste klappt sie nicht zu. Die kleine Leiste in der Insel behält nur noch, was gerade läuft. Einstellungen → Aktivitäten → „Tasten um die Insel“: Hauptschalter und ein Schalter je Taste; ohne Tasten steht wieder die alte Leiste.
+- **Mikrofon stumm** (neue Taste, ab Werk aus). Schaltet das Standard-Mikrofon stumm oder wieder laut, ohne neue Freigabe. Die Taste erscheint nur, solange eine App das Mikrofon nutzt oder es stumm ist (oder immer, wenn du es wählst), und wird beim Stummschalten rot. Geht „Stumm“ bei einem Gerät nicht, nimmt Gnotchi die Eingangslautstärke 0; geht auch das nicht, gibt es keine Taste. **Beim Beenden von Gnotchi wird entstummt**, wenn Gnotchi es stummgeschaltet hat.
+- **Bildschirmfoto** (neue Taste, ab Werk aus). Öffnet die Screenshot-App des Systems. Gnotchi bekommt dafür keine Bildschirmaufnahme-Freigabe.
+- **Geschwindigkeitstest** (neue Taste, ab Werk aus). Startet auf Klick das System-Programm `networkQuality` (höchstens 20 Sekunden) und zeigt Download, Upload, Latenz und Antwortfähigkeit in der großen Insel. Das Ergebnis wird nicht gespeichert. Wichtig: Dabei geht Datenverkehr zu Apples Testservern, nur während des Tests.
+- **Batterie in der Ruhe-Insel** (Einstellungen → Aktivitäten, ab Werk aus). Prozent und Ladezustand, solange nichts anderes läuft. Nur auf Macs mit eingebauter Batterie, ohne Freigabe.
+
+- **Meeting-Leiser** (Einstellungen → Aktivitäten, ab Werk aus). Nutzt eine gewählte Meeting-App das Mikrofon (ab Werk in der Liste: Teams, Zoom, FaceTime, Webex, Slack; weitere wählbar, auch ein Browser für Google Meet), senkt Gnotchi die Lautstärke von **Spotify und Musik** auf 20, 30 oder 50 % und blendet sie nach dem Meeting zurück. Tippi-Diktat zählt nicht. Gnotchi merkt sich die ursprüngliche Lautstärke und stellt sie nach dem Meeting, beim Beenden und beim nächsten Start wieder her; änderst du die Lautstärke selbst, gilt dein Wert. Es fragt nie mitten im Meeting nach einer Erlaubnis: Fehlt sie für Spotify oder Musik, steht das in den Einstellungen. Noch nicht: Unterscheidung mehrerer Ausgabegeräte (Teams auf eigenem Lautsprecher).
+
+### Intern
+- `RingButtons` (Plätze, Randzugabe, Zuklapp-Flächen, Sichtbarkeit), `ActivityModel+Ring`, `IslandView+Ring`, `MicMute`, `SpeedTest`, `Battery`; das Panel der schwebenden Insel wächst um den Ring (`RingLayout`, eine Rechnung für Fenster und Ansicht). Meeting-Leiser: `MeetingDucker`, `DuckLogic`, Lautstärke über `AppleScriptSource` (feste Bundle-IDs, nur bei schon erlaubter Steuerung). 66 neue Tests seit 0.27.0, 767 Tests.
+- SECURE-DESIGN G53 (Meeting-Leiser: fremde Lautstärke ändern, nie leise hängen lassen), G51 (Geschwindigkeitstest: fester Pfad, feste Argumente, Zeit- und Ausgabegrenze) und G52 (Ring, Mikrofon, Bildschirmfoto, Batterie ohne neue Freigabe). `/code-audit` auf den Diff: Zeiger im Batterie-Rückruf nur noch schwach gehalten, Test-Prozess blockiert keinen Thread-Pool mehr und hinterlässt keinen Zombie, „Wach bleiben“ nur mit der Funktion.
+
 ## [0.27.0] — 2026-11-14
 
 ### Neu

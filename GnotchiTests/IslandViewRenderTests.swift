@@ -381,9 +381,9 @@ final class IslandViewRenderTests: XCTestCase {
         switch mode {
         case .message: panel = IslandController.messageFrame(layout: layout, note: activity.currentNote)
         case .expanded:
-            let s = IslandController.detachedSize(activity)
+            let s = IslandController.ringLayout(activity).outerSize   // 0.28.0: Insel plus Tasten-Ring
             panel = CGRect(origin: .zero, size: s).insetBy(dx: -DetachedIsland.pad, dy: -DetachedIsland.pad)
-            return (panel, CGSize(width: 680, height: panel.height))
+            return (panel, CGSize(width: max(680, panel.width + 20), height: panel.height))
         default: panel = IslandController.panelFrame(mode: mode, layout: layout) ?? layout.compact
         }
         let canvas = CGSize(width: mode == .band ? 1100 : (wide ? 680 : 520), height: wide ? 420 : 210)

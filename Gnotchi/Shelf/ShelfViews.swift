@@ -321,12 +321,16 @@ struct IdleCompact: View {
     let shelfCount: Int
     /// Ungelesen-Summe (0.9.0, G33); 0 = nichts.
     var unread = 0
+    /// Batterie (0.28.0): Symbol links, wenn sonst nichts dasteht; Prozent rechts.
+    var battery: BatteryStatus?
     let pill: Bool
     let height: CGFloat
 
     var body: some View {
         HStack(spacing: 6) {
-            if shelfCount > 0 {
+            if shelfCount == 0, weather == nil, let b = battery {
+                Image(systemName: b.symbol).font(.system(size: 12, weight: .semibold))
+            } else if shelfCount > 0 {
                 Image(systemName: "tray.full.fill").font(.system(size: 11, weight: .semibold))
                 if pill || weather == nil { Text(verbatim: "\(shelfCount)").font(.system(size: 11, weight: .semibold)) }
             } else if let w = weather {
@@ -341,6 +345,9 @@ struct IdleCompact: View {
                 }
                 Text(verbatim: WeatherBig.deg(w.temperature)).font(.system(size: 12, weight: .semibold))
             }
+            if let b = battery {
+                Text(verbatim: b.text).font(.system(size: 12, weight: .semibold)).monospacedDigit()
+            }
             if unread > 0 { UnreadDot(total: unread) }
         }
         // `.primary`: in der dunklen Insel weiß, in der ruhigen Insel (0.16.0) wie die Menüleiste.
@@ -354,6 +361,7 @@ struct IdleCompact: View {
 
     private var label: String {
         [weather.map { "Wetter \(WeatherBig.deg($0.temperature))" }, shelfCount > 0 ? "\(shelfCount) in der Ablage" : nil,
+         battery.map { "Batterie \($0.percent) Prozent" + ($0.charging ? ", lädt" : "") },
          unread > 0 ? "\(unread) ungelesen" : nil]
             .compactMap { $0 }.joined(separator: ", ")
     }

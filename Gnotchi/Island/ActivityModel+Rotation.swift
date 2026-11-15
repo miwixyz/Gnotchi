@@ -63,13 +63,14 @@ extension ActivityModel {
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
         case media, event, timer, timerPicker, awake, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf,
-             clipboard, none
+             clipboard, speedtest, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
                                        mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
                                        weather: Bool = false, shelf: Bool = false, clipboard: Bool = false,
-                                       awake: Bool = false, idle: BigContent = .none) -> BigContent {
+                                       awake: Bool = false, speedtest: Bool = false,
+                                       idle: BigContent = .none) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
         if weather { return .weather }
@@ -77,6 +78,7 @@ extension ActivityModel {
         if clipboard { return .clipboard }
         if timerPicker { return .timerPicker }
         if awake { return .awake }
+        if speedtest { return .speedtest }
         return switch current {
         case .event?: .event
         case .timer?: .timer
@@ -118,6 +120,7 @@ extension ActivityModel {
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
                                weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
                                clipboard: clipboardActive && clipboard != nil, awake: awakePageActive && awake != nil,
+                               speedtest: speedtestActive,
                                idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
     }
 
@@ -129,7 +132,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive { return nil }
+        if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive || speedtestActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -140,7 +143,7 @@ extension ActivityModel {
 
     var showsChipRow: Bool {
         Self.showsChipRow(items: chipItems.count, big: bigContent, privacy: privacy.isActive, quota: quotaLine != nil,
-                          fixedButtons: true)   // Timer-Symbol steht immer in der Leiste (0.5.0)
+                          fixedButtons: !ringShown)   // Timer-Symbol steht immer in der Leiste (0.5.0), mit Ring (0.28.0) im Ring
     }
 
     /// Klick auf ein Symbol der Leiste: diese Aktivität groß zeigen (der Takt steht, solange die Maus darauf ist).
@@ -152,6 +155,7 @@ extension ActivityModel {
         weatherActive = false
         shelfActive = false
         clipboardActive = false
+        speedtestActive = false
         // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
         if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
@@ -165,6 +169,7 @@ extension ActivityModel {
         weatherActive = false
         shelfActive = false
         clipboardActive = false
+        speedtestActive = false
     }
 
     /// Wetter groß (0.7.0): nur mit einer Vorhersage.
@@ -176,6 +181,7 @@ extension ActivityModel {
         awakePageActive = false
         shelfActive = false
         clipboardActive = false
+        speedtestActive = false
     }
 
     /// Kachelreihe der Ablage unter der großen Sache (Michael 22.10.: „schneller zugänglich“) – nicht, wenn die Ablage
@@ -187,6 +193,7 @@ extension ActivityModel {
         guard !shelfItems.isEmpty else { return }
         shelfActive = true
         clipboardActive = false
+        speedtestActive = false
         weatherActive = false
         mirrorActive = false
         timerPickerActive = false
@@ -198,6 +205,7 @@ extension ActivityModel {
     func selectClipboard() {
         guard clipboard != nil else { return }
         clipboardActive = true
+        speedtestActive = false
         weatherActive = false
         shelfActive = false
         mirrorActive = false
@@ -211,6 +219,7 @@ extension ActivityModel {
         awakePageActive = true
         timerPickerActive = false
         clipboardActive = false
+        speedtestActive = false
         weatherActive = false
         shelfActive = false
         mirrorActive = false
@@ -224,6 +233,7 @@ extension ActivityModel {
         if weatherActive { weatherActive = false }
         if shelfActive { shelfActive = false }
         if clipboardActive { clipboardActive = false }
+        if speedtestActive { speedtestActive = false }
         if overlayActivity != nil { overlayActivity = nil }
     }
 

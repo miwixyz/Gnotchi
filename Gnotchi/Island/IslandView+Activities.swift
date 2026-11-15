@@ -101,6 +101,8 @@ struct ChipRow: View {
     var onAwake: () -> Void = {}
     var pinned = false
     var onPin: () -> Void = {}
+    /// Stecknadel in der Leiste; mit Tasten-Ring (0.28.0) sitzt sie im Ring.
+    var showPin = true
     /// Ungelesen-Zahlen (0.9.0, G33) rechts in der Leiste.
     var unread: [NotifyWire.Badge] = []
 
@@ -154,7 +156,9 @@ struct ChipRow: View {
                 .accessibilityLabel(Text(verbatim: "Spiegel"))
                 .accessibilityAddTraits(mirror ? .isSelected : [])
             }
-            fixedButton(pinned ? "pin.fill" : "pin", label: pinned ? "Lösen" : "Anheften", selected: pinned, action: onPin)
+            if showPin {
+                fixedButton(pinned ? "pin.fill" : "pin", label: pinned ? "Lösen" : "Anheften", selected: pinned, action: onPin)
+            }
             Spacer(minLength: 0)
             if !unread.isEmpty { UnreadMini(badges: unread) }
             if let quota {
