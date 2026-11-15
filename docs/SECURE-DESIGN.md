@@ -57,6 +57,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G52 | – (neu, 0.28.0) | Mikrofon stumm: Core Audio ohne Freigabe, Zustand aus dem Gerät, beim Beenden entstummen; Tasten-Ring ohne neue Freigabe, Batterie über IOKit ohne Freigabe |
 | G53 | – (neu, 0.29.0) | Meeting-Leiser: Lautstärke von Spotify/Musik per AppleScript nur bei bereits erlaubter Steuerung, feste IDs, gemerkter Ursprungswert, Wiederherstellung bei Ende/Beenden/Start, eigene Änderung gilt |
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
+| G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
 
 ## Was Gnotchi ist und welche Macht es hat
@@ -1611,3 +1612,13 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
   privat · R kein Protokoll mit Inhalt, Zustand in der Zeile sichtbar · **I Hauptrisiko: Mithören** → ab Werk aus, nur bei Regler ≠ 100 %, nie
   gespeichert/gesendet/protokolliert, keine Analyse · D hängender Tap → zerstören statt weiterlaufen, Wächter bei fehlendem Ton · E die Freigabe ist
   die Erhöhung; sie gilt Gnotchi, kein Hilfsprogramm und kein Befehl von außen erreicht den Tap-Motor.
+
+### G56 – Ersatzquelle für Spotify/Musik (neu, 2026-11-15, 0.30.0)
+
+- **Anlass (gemessen 15.11.):** Spotify gab hörbar Ton aus, macOS führte als Now-Playing-Client aber einen pausierten Browser; die Insel zeigte nichts, die Medientaste ging an den Browser.
+- **Was:** Meldet der Adapter nichts Spielendes und ist Spotify oder Musik laut Core Audio hörbar (`kAudioProcessPropertyIsRunningOutput`, nur gelesen, keine Freigabe), fragt Gnotchi die App per AppleScript – derselbe Weg und dieselben Konstanten-Skripte wie der Rückfall G7.
+- **Grenzen:** nur die zwei festen Bundle-IDs · nur wenn die Automation für die App **schon erlaubt** ist (`AutomationStatus`, Zwischenspeicher, nie ein neuer Dialog, nie ein Start der App) · zwei Treffer in Folge (~3 s) · Prüfung im 3-s-Takt, nur solange Spotify/Musik laufen, Core Audio nicht auf dem Hauptthread · Ende, sobald der Adapter selbst Wiedergabe meldet, die App endet oder 10 s Pause · keine Inhalte im Protokoll.
+- **Neue Freigabe:** keine. **Zu messen:** Spotify spielen, Browser pausiert → Titel in der Insel, Medientaste.
+- **Erlaubnis (gemessen 15.11.):** `AEDeterminePermissionToAutomateTarget` hängt für Spotify immer, auch mit „nicht fragen“ (Chromium-App beantwortet den Vorab-Ruf nicht), und mit „fragen“ zeigt es aus dem Hintergrund keinen Dialog. Deshalb: Knopf „Spotify jetzt erlauben“ (Einstellungen → Wiedergabe) schickt einen harmlosen Lesebefehl (`player state`) – so fragt macOS. Ein echtes Ja oder Nein wird lokal gemerkt (`automationGranted.<id>`, UserDefaults, nie gesendet). Die Prüfung wartet höchstens 3 s, höchstens eine hängende je App, nicht laufende Apps werden gar nicht abgefragt.
+- **Merker veraltet (Fund /code-audit 15.11.):** Verweigert macOS später (-1743, z. B. Entzug in den Systemeinstellungen), vergisst Gnotchi die Zustimmung sofort und beendet den Ersatz (`onDenied` → `forget`); danach kein Wiederholen und kein Dialog. Nach einem `tccutil`-Reset ohne Verweigerung kann macOS beim nächsten Ersatz-Befehl einmal fragen – der Knopf ist dann der saubere Weg.
+

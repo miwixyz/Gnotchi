@@ -85,6 +85,28 @@ extension SettingsView {
             if prefs.notchMedia, let reason = model.nowPlaying.unavailableReason {
                 note(reason, symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
             }
+            // Ersatzquelle (G56): Spotify/Musik laufen, Gnotchi darf sie aber nicht fragen → Titel fehlt, wenn macOS ihn nicht meldet.
+            if prefs.notchMedia {
+                ForEach([AppleScriptSource.spotify, AppleScriptSource.music], id: \.self) { id in
+                    if !NSRunningApplication.runningApplications(withBundleIdentifier: id).isEmpty,
+                       !AutomationStatus.shared.isAllowed(id) {
+                        note("\(AppleScriptSource.appName(id)) läuft, aber Gnotchi darf die App nicht steuern. Meldet macOS den Titel nicht selbst (z. B. weil ein pausierter Browser davorsteht), bleibt die Notch leer.",
+                             symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                        Button("\(AppleScriptSource.appName(id)) jetzt erlauben") { AutomationStatus.shared.request(id) }
+                        if let code = AutomationStatus.shared.lastRequest[id], code != 0 {
+                            note(code == AppleScriptSource.deniedError
+                                 ? "macOS hat die Erlaubnis verweigert und fragt nicht noch einmal. Schalte sie in Systemeinstellungen → Datenschutz & Sicherheit → Automation unter Gnotchi für \(AppleScriptSource.appName(id)) ein."
+                                 : "macOS antwortete mit Code \(code) – ohne Erlaubnis.",
+                                 symbol: "info.circle", color: FamilyTheme.textSecondary)
+                            Button("Automation-Einstellungen öffnen") {
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if prefs.notchMedia, let other = model.nowPlaying.competingNotchApp {
                 note(IslandController.competingWarning(name: other),
                      symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
@@ -260,8 +282,9 @@ extension SettingsView {
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
                 ForEach([AppleScriptSource.spotify, AppleScriptSource.music], id: \.self) { id in
                     if !AutomationStatus.shared.isAllowed(id) {
-                        note("\(AppleScriptSource.appName(id)): Gnotchi darf die Lautstärke noch nicht ändern. macOS fragt beim ersten Spulen (Spotify) bzw. beim ersten Shuffle-Klick (Musik); bis dahin bleibt diese App unverändert.",
+                        note("\(AppleScriptSource.appName(id)): Gnotchi darf die App noch nicht steuern. Ohne diese Erlaubnis bleibt die Lautstärke unverändert, und Gnotchi zeigt den Titel nicht, wenn macOS ihn nicht selbst meldet. macOS fragt beim ersten Spulen (Spotify) bzw. Shuffle-Klick (Musik) – oder jetzt auf Klick (die App muss laufen).",
                              symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                        Button("\(AppleScriptSource.appName(id)) jetzt erlauben") { AutomationStatus.shared.request(id) }
                     }
                 }
             }

@@ -20,6 +20,7 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 - **Mixer auch in der Insel.** Neue Ring-Taste „Mixer“ (rechts, ab Werk an): Ein Klick zeigt Ausgabe, Mikrofon und die Apps mit Ton groß in der Insel, in zwei Spalten. Dieselben Regler wie im Menüleisten-Popover; die Abfrage läuft nur, solange einer von beiden den Mixer zeigt.
 
 ### Behoben
+- Spotify/Musik erscheinen in der Insel auch dann, wenn macOS sie nicht als „Wiedergabe“ meldet (z. B. weil ein pausierter Browser davorsteht): Gnotchi fragt die App dann selbst, sofern die Automation schon erlaubt ist.
 - **Gnotchi konnte dauerhaft einfrieren.** Die Abfrage „darf Gnotchi Spotify oder Musik steuern?“ (`AEDeterminePermissionToAutomateTarget`) lief auf dem Hauptthread und kann ohne Zeitgrenze blockieren; zweimal am 15.11. hing die ganze Insel darin, bis man Gnotchi beendete (Absturzbericht, Aufrufer `NowPlayingModel.refreshExtrasIfAllowed`, seit 0.17). Die Abfrage läuft jetzt nur noch im Hintergrund und liefert einen Zwischenspeicher (`AutomationStatus`); niemand wartet mehr darauf. **Dieser Fehler steckt auch in den veröffentlichten Fassungen bis 0.27.0.**
 
 ### Intern

@@ -30,8 +30,16 @@ final class NowPlayingModel {
 
     @ObservationIgnored private let adapter = MediaAdapter()
     /// G7: Spotify/Musik per AppleScript, solange der Adapter `unavailable` meldet; Spotify-Spulen immer.
-    @ObservationIgnored private let fallback = AppleScriptSource()
-    @ObservationIgnored private var usingFallback = false
+    @ObservationIgnored let fallback = AppleScriptSource()
+    @ObservationIgnored var usingFallback = false
+    /// Ersatzquelle läuft (NowPlayingModel+Assist): Adapter meldet nichts Spielendes, App ist hörbar.
+    @ObservationIgnored var assistActive = false
+    @ObservationIgnored var assistTimer: Timer?
+    @ObservationIgnored var assistCandidate: String?
+    @ObservationIgnored var assistChecking = false
+    @ObservationIgnored var assistPausedSince: Date?
+    /// Letzte Meldung des Adapters – nach Ende des Ersatzes wieder angezeigt.
+    @ObservationIgnored var adapterLast: NowPlayingInfo?
     /// Hinweis, solange der Rückfall läuft und nichts verweigert ist.
     @ObservationIgnored private var fallbackReason: String?
     /// Wartefrist für unvollständige Meldungen; läuft ab der ERSTEN unvollständigen Meldung.
@@ -72,8 +80,12 @@ final class NowPlayingModel {
     @ObservationIgnored private var lastRaw: NowPlayingInfo?
 
     init() {
-        adapter.onInfo = { [weak self] i in self?.receive(i) }
-        fallback.onInfo = { [weak self] i in self?.receive(i) }
+        adapter.onInfo = { [weak self] i in self?.receiveFromAdapter(i) }
+        fallback.onInfo = { [weak self] i in self?.receiveFromFallback(i) }
+        fallback.onDenied = { [weak self] ids in
+            ids.forEach { AutomationStatus.shared.forget($0) }
+            self?.endAssist()
+        }
         fallback.onBlocked = { [weak self] ids in
             guard let self, self.usingFallback else { return }
             self.unavailableReason = ids.isEmpty ? self.fallbackReason : Self.deniedReason(names: ids.map(AppleScriptSource.appName))
@@ -89,7 +101,7 @@ final class NowPlayingModel {
                 let wasFallback = self.usingFallback
                 self.unavailableReason = nil
                 self.usingFallback = false
-                self.fallback.stop()
+                if !self.assistActive { self.fallback.stop() }
                 // Titel des Rückfalls nicht stehen lassen, bis der Adapter selbst meldet.
                 if wasFallback { self.receive(nil) }
             }
@@ -101,7 +113,10 @@ final class NowPlayingModel {
         "Automation für \(names.joined(separator: " und ")) nicht erlaubt (Systemeinstellungen → Datenschutz → Automation)"
     }
 
-    func start() { adapter.start() }
+    func start() {
+        adapter.start()
+        startAssistWatch()
+    }
 
     func stop() {
         // unavailableReason bleibt absichtlich stehen: Der Hinweis gehört zum Adapter-Zustand, nicht zum Titel.
@@ -110,6 +125,7 @@ final class NowPlayingModel {
         pendingInfo = nil
         lastRaw = nil
         adapter.stop()
+        stopAssistWatch()
         fallback.stop()
         usingFallback = false
         apply(nil)
@@ -130,9 +146,9 @@ final class NowPlayingModel {
     func next() { route(.send(.next)) }
     func previous() { route(.send(.previous)) }
     func seek(to seconds: TimeInterval) {
-        switch Self.seekRoute(appBundleID: info?.appBundleID, usingFallback: usingFallback) {
+        switch Self.seekRoute(appBundleID: info?.appBundleID, usingFallback: fallbackActive) {
         case .adapter: adapter.perform(.seek(seconds))
-        case .appleScript where usingFallback: fallback.perform(.seek(seconds))
+        case .appleScript where fallbackActive: fallback.perform(.seek(seconds))
         case .appleScript:
             // Verweigert (-1743) oder gescheitert: dann doch der Adapter – lokal wirkt er, über Connect nicht.
             fallback.sendSeek(seconds, bundleID: info?.appBundleID ?? "") { [weak self] _ in
@@ -151,7 +167,7 @@ final class NowPlayingModel {
     }
 
     private func route(_ call: MediaAdapter.Call) {
-        if usingFallback { fallback.perform(call) } else { adapter.perform(call) }
+        if fallbackActive { fallback.perform(call) } else { adapter.perform(call) }
     }
 
     nonisolated static func isVisible(hasInfo: Bool, playing: Bool, pausedSince: Date?, now: Date) -> Bool {
@@ -164,7 +180,7 @@ final class NowPlayingModel {
     /// Unvollständige Meldungen (Browser, Livestream) warten höchstens 300 ms auf die vollständige.
     /// Die Frist startet nur bei der ersten; spätere ersetzen nur den Inhalt. Sonst würde eine
     /// Quelle, die schneller als alle 300 ms meldet (Livestream ohne Dauer), nie angezeigt.
-    private func receive(_ raw: NowPlayingInfo?) {
+    func receive(_ raw: NowPlayingInfo?) {
         lastRaw = raw
         if let id = raw?.appBundleID { seenApps = Self.noting(id, in: seenApps) }
         let new = Self.filtered(raw, isExcluded: isExcluded)

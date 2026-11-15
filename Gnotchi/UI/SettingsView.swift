@@ -41,21 +41,37 @@ struct SettingsView: View {
         }
     }
 
+    @State private var contentHeight: CGFloat = 400
+
+    /// Sichtbarer Bildschirm minus Titelleiste (~30), Reiterleiste (~90) und Rand zum Dock/Menüleiste.
+    static var maxContentHeight: CGFloat {
+        let screen = NSScreen.main?.visibleFrame.height ?? 800
+        return max(300, screen - 200)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             tabBar
-            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
-                switch tab {
-                case .general: generalTab
-                case .playback: playbackTab
-                case .activities: activitiesTab
-                case .notify: notifyCard
-                case .weather: weatherTab
-                case .shelf: shelfTab
-                case .clipboard: clipboardTab
+            // Höhe = Inhalt, aber höchstens der sichtbare Bildschirm (abzüglich Titelleiste und Reiter): sonst ragte
+            // das Fenster bei langen Reitern (Aktivitäten) unten heraus und war nicht veränderbar (Michael 15.11.).
+            ScrollView {
+                VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
+                    switch tab {
+                    case .general: generalTab
+                    case .playback: playbackTab
+                    case .activities: activitiesTab
+                    case .notify: notifyCard
+                    case .weather: weatherTab
+                    case .shelf: shelfTab
+                    case .clipboard: clipboardTab
+                    }
                 }
+                .padding(FamilyTheme.Space.l)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
             }
-            .padding(FamilyTheme.Space.l)
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(height: max(1, min(contentHeight, Self.maxContentHeight)))
         }
         .frame(width: 540)   // 0.11.0: sieben Reiter (vorher 440 bei sechs)
         .font(FamilyTheme.font(.body))

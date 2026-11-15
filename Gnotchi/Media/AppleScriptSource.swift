@@ -1,6 +1,7 @@
 import AppKit
 import CoreServices
 import OSLog
+import os
 
 /// Rückfall ohne Adapter (docs/SECURE-DESIGN.md G7): Spotify und Musik per AppleScript.
 /// Außerdem spult Spotify immer hierüber (`sendSeek`), auch während der Adapter läuft.
@@ -30,6 +31,8 @@ final class AppleScriptSource {
     /// Verweigerte Apps (Bundle-IDs), sobald keine erlaubte, laufende Quelle mehr bleibt; leer = kein Hinweis.
     /// Nur bei Änderung gemeldet.
     var onBlocked: (([String]) -> Void)?
+    /// macOS verweigert (-1743) während einer Abfrage: ID der App – der Ersatz vergisst dann die gemerkte Zustimmung.
+    var onDenied: (([String]) -> Void)?
 
     /// Eigene serielle Queue: Die erste Abfrage wartet auf den Automation-Dialog von macOS
     /// und darf den Hauptthread nicht blockieren.
@@ -159,6 +162,7 @@ final class AppleScriptSource {
             denied.formUnion(deniedNow)
             // G8: nur Bundle-IDs, nie Inhalte.
             Self.log.error("Automation verweigert für \(deniedNow.joined(separator: ","), privacy: .public)")
+            onDenied?(deniedNow)
             updateBlocked(running: Self.runningSupported())
         }
         active = best?.id
@@ -226,6 +230,14 @@ final class AppleScriptSource {
         guard isRunning(id) else { return StatusResult(fields: nil, error: nil, ran: false) }
         let (out, error) = execute(script(.stream, bundleID: id, statusTimeout: timed))
         return StatusResult(fields: out.flatMap(fields(from:)), error: error, ran: true)
+    }
+
+    /// Erlaubnis auf Klick: ein harmloser Lesebefehl an die laufende App – so zeigt macOS den Automation-Dialog zuverlässig
+    /// (gemessen 15.11.: `AEDeterminePermissionToAutomateTarget(…, true)` aus dem Hintergrund zeigte keinen Dialog und hing).
+    /// Blockiert bis zur Antwort: nie auf dem Hauptthread. 0 = erlaubt, sonst die AppleScript-Fehlernummer (-1743 verweigert).
+    nonisolated static func requestPermission(_ id: String) -> Int {
+        guard supported.contains(id), isRunning(id) else { return Int(procNotFound) }
+        return execute("tell application id \"\(id)\" to return player state").1 ?? 0
     }
 
     /// NSAppleScript ist nicht Sendable – deshalb hier, auf der Queue, erzeugt und nie geteilt.
@@ -436,6 +448,8 @@ final class AutomationStatus {
     nonisolated static let maxAge: TimeInterval = 10
 
     private(set) var allowed: [String: Bool] = [:]
+    /// Ergebnis der letzten Anforderung je App (OSStatus: 0 erlaubt, -1743 verweigert, -600 App läuft nicht) – für den Hinweis.
+    var lastRequest: [String: Int] = [:]
     @ObservationIgnored private var checkedAt: Date = .distantPast
     @ObservationIgnored private var refreshing = false
 
@@ -445,12 +459,40 @@ final class AutomationStatus {
         return allowed[id] ?? false
     }
 
+    /// Erlaubnis auf Klick anfordern (macOS zeigt den Dialog genau jetzt). Nur für die festen Apps und nur, wenn sie laufen –
+    /// sonst gäbe es keinen Dialog. Blockiert bis zur Antwort, deshalb nie auf dem Hauptthread; danach Zwischenspeicher neu.
+    func request(_ id: String) {
+        guard AppleScriptSource.supported.contains(id) else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let code = AppleScriptSource.requestPermission(id)
+            // Nur ein echtes Ja oder Nein wird gemerkt; „App läuft nicht“ (-600) ändert nichts.
+            if code == 0 { Self.remember(id, true) } else if code == AppleScriptSource.deniedError { Self.remember(id, false) }
+            Task { @MainActor in
+                AutomationStatus.shared.lastRequest[id] = code
+                AutomationStatus.shared.checkedAt = .distantPast
+                AutomationStatus.shared.refresh()
+            }
+        }
+    }
+
     func refresh() {
         guard !refreshing else { return }
         refreshing = true
         let ids = AppleScriptSource.supported
+        let previous = allowed
         DispatchQueue.global(qos: .utility).async {
-            let result = Dictionary(uniqueKeysWithValues: ids.map { ($0, AppleScriptSource.automationAllowed($0)) })
+            var result: [String: Bool] = [:]
+            for id in ids {
+                // Nicht laufende App: kein Aufruf (AEDeterminePermissionToAutomateTarget kann dort hängen), alter Stand bleibt.
+                let granted = Self.granted(id)
+                guard !NSRunningApplication.runningApplications(withBundleIdentifier: id).isEmpty else {
+                    result[id] = granted || (previous[id] ?? false)
+                    continue
+                }
+                // Gemessen 15.11.: Für Spotify hängt `AEDeterminePermissionToAutomateTarget` auch mit „nicht fragen“ (Chromium-App
+                // beantwortet den Vorab-Ruf nicht). Deshalb zählt zusätzlich die gemerkte Zustimmung aus „jetzt erlauben“.
+                result[id] = granted || Self.probe(id, fallback: previous[id] ?? false)
+            }
             Task { @MainActor in
                 let me = AutomationStatus.shared
                 me.allowed = result
@@ -458,5 +500,42 @@ final class AutomationStatus {
                 me.refreshing = false
             }
         }
+    }
+
+    /// Zustimmung aus „jetzt erlauben“, nur lokal gemerkt (UserDefaults, nie gesendet). Wird die Erlaubnis später in den
+    /// Systemeinstellungen entzogen, scheitert der Befehl mit -1743 (kein Dialog) und `denied` fängt das ab.
+    nonisolated static func granted(_ id: String) -> Bool { UserDefaults.standard.bool(forKey: "automationGranted.\(id)") }
+    nonisolated static func remember(_ id: String, _ value: Bool) { UserDefaults.standard.set(value, forKey: "automationGranted.\(id)") }
+
+    /// macOS hat verweigert oder entzogen: Merker löschen und Zwischenspeicher sofort auf „nein“ (kein Wiederholen, kein Dialog).
+    func forget(_ id: String) {
+        Self.remember(id, false)
+        allowed[id] = false
+    }
+
+    /// Die Abfrage kann ohne Zeitgrenze hängen (gemessen 15.11.): in eigener Warteschlange, höchstens 3 s abwarten, danach der
+    /// alte Stand. Je App höchstens eine hängende Abfrage gleichzeitig – sonst stauten sich Threads.
+    private nonisolated static let probing = OSAllocatedUnfairLock(initialState: Set<String>())
+    private nonisolated static let probeWait: TimeInterval = 3
+
+    private nonisolated static func probe(_ id: String, fallback: Bool) -> Bool {
+        let started = probing.withLock { $0.insert(id).inserted }
+        guard started else { return fallback }
+        let box = ProbeBox()
+        let done = DispatchSemaphore(value: 0)
+        DispatchQueue.global(qos: .utility).async {
+            let value = AppleScriptSource.automationAllowed(id)
+            box.set(value)
+            probing.withLock { _ = $0.remove(id) }
+            done.signal()
+        }
+        return done.wait(timeout: .now() + probeWait) == .success ? (box.get() ?? fallback) : fallback
+    }
+
+    private final class ProbeBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value: Bool?
+        func set(_ v: Bool) { lock.lock(); value = v; lock.unlock() }
+        func get() -> Bool? { lock.lock(); defer { lock.unlock() }; return value }
     }
 }
