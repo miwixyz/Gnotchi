@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.27.1] — unveröffentlicht
+
+### Behoben
+- **Gnotchi konnte dauerhaft einfrieren.** Die Abfrage „darf Gnotchi Spotify oder Musik steuern?“ (`AEDeterminePermissionToAutomateTarget`) lief auf dem Hauptthread und kann ohne Zeitgrenze blockieren. Zweimal am 15.11. hing die ganze Insel darin, bis man Gnotchi beendete (Absturzbericht, Aufrufer `NowPlayingModel.refreshExtrasIfAllowed`, seit 0.17). Die Abfrage läuft jetzt nur noch im Hintergrund und liefert einen Zwischenspeicher (`AutomationStatus`); niemand wartet mehr darauf.
+
 ## [0.27.0] — 2026-11-14
 
 ### Neu

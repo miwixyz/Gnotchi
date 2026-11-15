@@ -324,7 +324,7 @@ extension AppleScriptSource {
     /// nie einen Dialog). Vorher nur „in diesem Lauf schon erlaubt“ – nach einem Neustart war Shuffle dann „aus“, bis
     /// der erste Klick antwortete (Michael 27.10.: „Klick aufs Herz aktiviert Shuffle?“).
     func mayRead(_ bundleID: String) -> Bool {
-        consented.contains(bundleID) || Self.automationAllowed(bundleID)
+        consented.contains(bundleID) || AutomationStatus.shared.isAllowed(bundleID)   // nie blockierend auf dem Hauptthread
     }
 
     nonisolated static func automationAllowed(_ bundleID: String) -> Bool {
@@ -372,5 +372,42 @@ extension AppleScriptSource {
         guard d.descriptorType == typeAEList, d.numberOfItems == 1, let item = d.atIndex(1),
               [typeBoolean, typeTrue, typeFalse].contains(item.descriptorType) else { return nil }
         return ExtraState(shuffle: item.booleanValue)
+    }
+}
+
+// MARK: - Erlaubnis-Zwischenspeicher (15.11.)
+
+/// Ob macOS Gnotchi die Steuerung von Spotify/Musik erlaubt hat – **aus dem Zwischenspeicher**, nie blockierend. Die Abfrage selbst
+/// (`AEDeterminePermissionToAutomateTarget`) läuft nur auf einer Hintergrund-Warteschlange und höchstens alle 10 s neu. Grund (Fund
+/// 15.11., Absturzbericht): Die Abfrage kann ohne Zeitgrenze blockieren; auf dem Hauptthread fror die ganze Insel zehn Minuten ein.
+@MainActor
+@Observable
+final class AutomationStatus {
+    static let shared = AutomationStatus()
+    nonisolated static let maxAge: TimeInterval = 10
+
+    private(set) var allowed: [String: Bool] = [:]
+    @ObservationIgnored private var checkedAt: Date = .distantPast
+    @ObservationIgnored private var refreshing = false
+
+    /// Letzter bekannter Stand (unbekannt = nein). Stößt bei altem Stand eine Neuabfrage im Hintergrund an.
+    func isAllowed(_ id: String) -> Bool {
+        if Date().timeIntervalSince(checkedAt) > Self.maxAge { refresh() }
+        return allowed[id] ?? false
+    }
+
+    func refresh() {
+        guard !refreshing else { return }
+        refreshing = true
+        let ids = AppleScriptSource.supported
+        DispatchQueue.global(qos: .utility).async {
+            let result = Dictionary(uniqueKeysWithValues: ids.map { ($0, AppleScriptSource.automationAllowed($0)) })
+            Task { @MainActor in
+                let me = AutomationStatus.shared
+                me.allowed = result
+                me.checkedAt = Date()
+                me.refreshing = false
+            }
+        }
     }
 }

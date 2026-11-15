@@ -171,6 +171,7 @@ final class AppModel {
         if !prefs.playerFirst { activity.overlayActivity = nil }
         syncOwnUpdate()
         guard allowStart else { return }
+        AutomationStatus.shared.refresh()   // Zwischenspeicher füllen, bevor ein Hauptthread-Aufruf ihn braucht (nie blockierend)
         let wanted = Set(features.indices.filter { features[$0].isOn(prefs) })
         guard !wanted.isEmpty else { return stopNotch() }
         for i in runningFeatures.subtracting(wanted).sorted() {
