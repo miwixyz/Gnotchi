@@ -56,6 +56,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G51 | – (neu, 0.28.0) | Geschwindigkeitstest: fester Pfad `/usr/bin/networkQuality`, feste Argumente, keine Shell, nur auf Klick, Zeit- und Ausgabegrenze; Netz nur während des Laufs |
 | G52 | – (neu, 0.28.0) | Mikrofon stumm: Core Audio ohne Freigabe, Zustand aus dem Gerät, beim Beenden entstummen; Tasten-Ring ohne neue Freigabe, Batterie über IOKit ohne Freigabe |
 | G53 | – (neu, 0.29.0) | Meeting-Leiser: Lautstärke von Spotify/Musik per AppleScript nur bei bereits erlaubter Steuerung, feste IDs, gemerkter Ursprungswert, Wiederherstellung bei Ende/Beenden/Start, eigene Änderung gilt |
+| G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1536,3 +1537,28 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
   Auswahl), steht nur im Arbeitsspeicher.
 - **STRIDE:** S Name gefälscht → s. o. · T Fremdwerte in den Einstellungen → geprüft, Rückfall · R – · I keine neuen Daten
   nach außen · D Wächter 5 s, nur mit Meeting oder gemerktem Wert, AppleScript nur bei laufender App · E keine neue Freigabe.
+
+### G54 – Mixer und Menüleisten-Popover: Standard-Core-Audio, nur auf Klick (neu, 2026-11-15, 0.30.0)
+- **Was:** Das Menü des Menüleisten-Symbols ist ein Popover (Fenster-Stil) mit den Reitern **Mixer** und **Funktionen**. Der Mixer
+  zeigt Ausgabe, Systemtöne und Mikrofon (Gerät, Lautstärke, Stumm) und eine Zeile je App mit Ton samt Gerät und Übertragungsart
+  (eingebaut, Bluetooth, AirPlay, USB). Spec: `specs/2026-11-15-gnotchi-lautstaerkemixer-meeting-leiser.md` (Darstellung).
+- **Keine neue Freigabe, kein Tap:** nur öffentliche Core-Audio-Eigenschaften (Standardgeräte, Lautstärke, Stumm,
+  Prozessliste mit Ausgabegerät). Gemessen 15.11. am MacBook: Hauptkanal Lautstärke und Stumm des Lautsprechers setzbar; das
+  Ausgabegerät je Prozess ist ohne Freigabe lesbar. Geräte ohne Hauptkanal: Mittel aus Kanal 1/2 lesen, beide setzen.
+- **Ändern nur auf Klick oder Ziehen:** Lautstärke, Stumm und Standardgeräte (Ausgabe, Systemtöne, Eingabe). Ein Gerät wird nur
+  gesetzt, wenn es in der frischen Geräteliste steht (`MixerAudio.setDefault`). Werte werden auf 0…1 bzw. 0…100 begrenzt.
+- **App-Regler nur für Spotify und Musik:** AppleScript `sound volume` wie G53 (feste IDs, 3 s, nur bei schon erlaubter
+  Steuerung, nie ein Dialog). Beim Ziehen **höchstens ein Aufruf je App gleichzeitig, immer mit dem neuesten Wert** (kein Stau
+  von Apple Events). Alle anderen Apps zeigen nur ihr Gerät; ein Regler je App braucht Prozess-Taps und eine eigene Freigabe
+  (Mixer Stufe 2, Spike 15.11. bestanden).
+- **Abfrage nur bei sichtbarem Popover:** `MixerModel` pollt alle 1,5 s, **solange das Popover-Fenster sichtbar ist**
+  (`WindowVisibility`, KVO auf `NSWindow.isVisible`; SwiftUI meldet `onDisappear` bei Fenster-Menüs nicht zuverlässig). Kein
+  Dauer-Beobachter, kein Listener.
+- **Prozesse:** Nur Prozesse, die gerade Ton ausgeben, nur solche in einer App (kein Systemdienst), nicht Gnotchi selbst;
+  Prozesse derselben App werden zusammengefasst (höchstens 12 Zeilen). App-Namen aus dem lokalen Programmpaket, nie aus dem
+  Netz; Gerätenamen vergibt der Nutzer frei → `Text(verbatim:)`.
+- **Popover-Funktionen:** dieselben Aktionen wie der Ring (Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest), alle nur
+  auf Klick; Geschwindigkeitstest wie G51.
+- **Wegfall:** Tastenkürzel des alten Menüs (⌘, ⌘Q) gibt es im Fenster-Stil nicht mehr.
+- **STRIDE:** S – · T Fremdwerte → Begrenzung, Positivliste der Geräte · R – · I Namen laufender Apps nur lokal im Popover ·
+  D Abfrage nur bei sichtbarem Popover, AppleScript nur bei laufendem Player · E keine neue Freigabe.

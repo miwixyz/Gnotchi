@@ -56,6 +56,10 @@ Freigabe nicht und fragt nie danach.
   wählbar) das Mikrofon, wird **Spotify und Musik** leiser und danach wieder auf die alte Lautstärke zurückgeblendet.
   Die ursprüngliche Lautstärke bleibt gemerkt, auch über Abstürze; eigene Änderungen während des Meetings gelten.
   Braucht die Automation-Erlaubnis für Spotify bzw. Musik, die Gnotchi nie mitten im Meeting erfragt.
+- **Mixer im Menüleisten-Popover (0.30):** Ein Klick auf das Symbol öffnet Reiter **Mixer** (Ausgabe, Systemtöne, Mikrofon, eine
+  Zeile je App mit Ton und ihrem Gerät – eingebaut, Bluetooth, AirPlay, USB; Regler je App für Spotify und Musik) und
+  **Funktionen** (Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest, Status). Nur Standard-Core-Audio, ohne
+  Freigabe; der Mixer fragt nur ab, solange das Fenster offen ist.
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.

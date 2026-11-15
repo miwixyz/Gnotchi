@@ -124,6 +124,27 @@ Gebaut: **Meeting-Leiser** für Spotify und Musik (`MeetingDucker`, `DuckLogic`,
   Die Skripte sind getestet (feste IDs, Begrenzung), der Ablauf mit einem Attrappen-Player.
 - **Noch offen:** Stufe 2 (Mixer), Geräte-Regel, Popover.
 
+## Nachträge beim Bau des Popovers und Mixer-Teils (15.11.)
+
+Gebaut (0.30.0, G54): **Menüleisten-Popover** (`MenuBarExtra` im Fenster-Stil) mit den Reitern Mixer und Funktionen,
+**Mixer-Ansicht** (Ausgabe, Systemtöne, Mikrofon, Apps mit Ton, Gerät mit Übertragungsart), Regler je App **nur für Spotify und
+Musik** (AppleScript). Abweichungen und Grenzen:
+- **Regler je App für Browser und andere Apps fehlen** (Stufe 2, Prozess-Taps). Die Zeile zeigt Gerät und Art; ein Hinweis im
+  Mixer sagt es.
+- **Einstellungen je App „Standard“-Auswahl** (App auf anderes Gerät lenken) nicht gebaut.
+- **Reiter „Funktionen“ bewusst klein:** Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest, Status. Wetter-, Ablage-
+  und Zwischenablage-Ansichten bleiben in der Insel (dort ist die große Ansicht).
+- **Der Mixer fragt nur bei sichtbarem Popover ab** (`WindowVisibility`), weil `onDisappear` bei Fenster-Menüs nicht
+  zuverlässig kommt.
+- **Wegfall:** ⌘, und ⌘Q des alten Menüs.
+- **Am echten Symbol gesehen (Michael, 15.11.):** Erste Fassung zeigte Reiter und Fuß, aber leeren Inhalt (ScrollView ohne
+  Eigenhöhe im Fenster-Menü, Screenshot). Behoben mit gemessener Inhaltshöhe (`onGeometryChange`, höchstens 520 pt); danach
+  **„Ja, passt“**. Gefunden hat es Michaels Screenshot, nicht ein Test: Das Bild kam zuerst nur aus der Mixer-Ansicht allein.
+  Seitdem rendert `MixerTests.testRenderPopoverPictures` das ganze Popover.
+- **Nicht gemessen:** AirPlay und Bluetooth mit echten Geräten, mehrere Lautsprecher am Mac mini, ob der Mixer beim Schließen
+  aufhört zu messen (Aktivitätsanzeige). Das Mixer-Bild kommt aus einem Test mit erfundenen Werten
+  (`MixerTests.testRenderMixerPicture`).
+
 ## Anforderungen aus Michaels Setup (15.11., nach dem Spike)
 
 Michael: Der Mixer muss **Browser, Apple Music und YouTube** abdecken. Am **Mac mini hängen mehrere Lautsprecher**:
