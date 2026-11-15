@@ -163,6 +163,7 @@ extension ActivityModel {
         shelfActive = false
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
     }
 
     /// „12:34“, pausiert „‖ 12:34“.

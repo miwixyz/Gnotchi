@@ -259,12 +259,21 @@ extension SettingsView {
                 note("Gilt für Spotify und Musik. Tippi-Diktat zählt nicht. Für Google Meet im Browser wähle den Browser (er erscheint hier, sobald er das Mikrofon genutzt hat). Gnotchi merkt sich die ursprüngliche Lautstärke und stellt sie nach dem Meeting, beim Beenden und beim Start wieder her; änderst du sie selbst, gilt dein Wert. Dafür läuft die Mikrofon-Erkennung, auch wenn „Mikrofon & Kamera anzeigen“ aus ist; die Punkte in der Insel erscheinen dann trotzdem.",
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
                 ForEach([AppleScriptSource.spotify, AppleScriptSource.music], id: \.self) { id in
-                    if !AppleScriptSource.automationAllowed(id) {
+                    if !AutomationStatus.shared.isAllowed(id) {
                         note("\(AppleScriptSource.appName(id)): Gnotchi darf die Lautstärke noch nicht ändern. macOS fragt beim ersten Spulen (Spotify) bzw. beim ersten Shuffle-Klick (Musik); bis dahin bleibt diese App unverändert.",
                              symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                     }
                 }
             }
+        }
+        // Mixer Stufe 2 (G55): Regler je App über Prozess-Taps. Braucht „Audio-Aufnahme“, ab Werk aus.
+        card("Mixer") {
+            toggleRow("Lautstärke je App (Audio-Aufnahme)", isOn: $prefs.appVolume)
+                .onChange(of: prefs.appVolume) { model.applyNotchSetting() }
+            note(prefs.appVolume
+                 ? "Im Mixer (Menüleisten-Symbol) bekommt jede App mit Ton einen Regler von 0 bis 200 %. macOS fragt beim ersten Verschieben nach der Freigabe „Audio-Aufnahme“. Solange ein Regler nicht auf 100 % steht, hört Gnotchi den Ton dieser App im Arbeitsspeicher mit; bei 100 % endet das sofort. Gerätewechsel, Ausschalten und Beenden setzen alle Regler zurück."
+                 : "Aus: Regler gibt es nur für Spotify und Musik. Ein Regler je App braucht die Freigabe „Audio-Aufnahme“: Sie erlaubt Gnotchi, den Ton einer App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher, wird nicht gespeichert und nicht gesendet.",
+                 symbol: "info.circle", color: FamilyTheme.textSecondary)
         }
         card("Timer und Spiegel") {
             toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)

@@ -56,10 +56,15 @@ Freigabe nicht und fragt nie danach.
   wählbar) das Mikrofon, wird **Spotify und Musik** leiser und danach wieder auf die alte Lautstärke zurückgeblendet.
   Die ursprüngliche Lautstärke bleibt gemerkt, auch über Abstürze; eigene Änderungen während des Meetings gelten.
   Braucht die Automation-Erlaubnis für Spotify bzw. Musik, die Gnotchi nie mitten im Meeting erfragt.
+- **Mixer in der Insel (0.30):** Ring-Taste „Mixer“ zeigt dieselbe Ansicht groß in der Insel, in zwei Spalten (Ausgabe und Mikrofon links, Apps rechts).
 - **Mixer im Menüleisten-Popover (0.30):** Ein Klick auf das Symbol öffnet Reiter **Mixer** (Ausgabe, Systemtöne, Mikrofon, eine
   Zeile je App mit Ton und ihrem Gerät – eingebaut, Bluetooth, AirPlay, USB; Regler je App für Spotify und Musik) und
   **Funktionen** (Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest, Status). Nur Standard-Core-Audio, ohne
   Freigabe; der Mixer fragt nur ab, solange das Fenster offen ist.
+- **Lautstärke je App (0.30, ab Werk aus):** Im Mixer bekommt jede App mit Ton einen Regler von 0 bis 200 %, auch Browser,
+  FaceTime oder Teams (über einen Prozess-Tap, Freigabe „Audio-Aufnahme“). Gnotchi hört nur mit, solange ein Regler nicht auf 100 %
+  steht; sonst spielt die App direkt. Der Ton bleibt im Arbeitsspeicher, nichts wird gespeichert, gesendet oder protokolliert
+  ([G55](docs/SECURE-DESIGN.md)).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
@@ -198,7 +203,7 @@ Gnotchi installiert nur Updates, die mit Michaels Schlüssel signiert sind. Auch
 | **„Aus anderen Apps einfügen“** | nur, falls macOS beim Mitlesen der Zwischenablage nachfragt (0.11; auf macOS 27.0.1 fragte es nicht, gemessen 24.10.2026) | Verlauf der Zwischenablage ([G37](docs/SECURE-DESIGN.md)) |
 | **Anmeldeobjekt** | wenn du „Bei Anmeldung starten“ einschaltest und macOS eine Freigabe verlangt | Start nach dem Anmelden. Die Einstellungen zeigen dann „macOS wartet auf deine Freigabe“ mit einem Knopf dorthin. |
 
-Was Gnotchi **nicht** braucht: keine Freigabe „Gerätesteuerung und Datenzugriff“ (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon,
+Was Gnotchi **nicht** braucht: keine Freigabe „Gerätesteuerung und Datenzugriff“ (die bekommt nur das Hilfsprogramm, siehe oben), keine Bildschirmaufnahme, kein Mikrofon, die Freigabe „Audio-Aufnahme" nur, wenn du „Lautstärke je App" einschaltest (0.30, ab Werk aus; sie gilt für den Regler je App und wird erst beim ersten Ziehen gefragt),
 kein Bluetooth (die Kamera nur für den Spiegel, siehe oben). Ob eine App Mikrofon oder Kamera nutzt, liest es über Core Audio und
 CoreMediaIO ohne Freigabe (gemessen 20.10.2026: Kamera ohne Anfrage, beim Mikrofon nur eine stille
 Vorabprüfung von macOS, kein Dialog).

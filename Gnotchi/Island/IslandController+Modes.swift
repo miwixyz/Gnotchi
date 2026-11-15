@@ -80,6 +80,7 @@ extension IslandController {
         switch big {
         case .timerPicker: IslandGeometry.timerPickerHeight
         case .awake: IslandGeometry.awakeHeight
+        case .mixer: IslandGeometry.mixerHeight
         default: nil
         }
     }

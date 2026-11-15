@@ -28,6 +28,7 @@ extension IslandView {
         case .weather: activity.weather.map { Weather.symbol($0.code, day: $0.isDay) } ?? "cloud.sun"
         case .shelf: "tray.full.fill"
         case .clipboard: "doc.on.clipboard"
+        case .mixer: "slider.horizontal.3"
         case .pin: activity.pinned ? "pin.fill" : "pin"
         case .mic: activity.mic.isMuted ? "mic.slash.fill" : "mic.fill"
         case .screenshot: "camera.viewfinder"

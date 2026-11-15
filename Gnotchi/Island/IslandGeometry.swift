@@ -57,6 +57,8 @@ enum IslandGeometry {
     static let awakeHeight: CGFloat = 220
     /// Zwischenablage groß (0.11.0): eine Reihe Karten unter der Leiste.
     static let clipboardHeight: CGFloat = 190
+    /// Mixer groß (0.30.0): zwei Spalten (Ausgabe und Mikrofon links, Apps rechts) in der 600 pt breiten Insel.
+    static let mixerHeight: CGFloat = 330
     /// Kachelreihe unter der großen Sache (Michael 22.10.: „Rack schneller zugänglich“ → immer unten, sobald etwas liegt).
     static let shelfStripHeight: CGFloat = 70
     /// Hinweis-Streifen: Symbol, darunter-gestapelt Gerätename und Zustand – neben der Notch (40-pt-Flügel) passt

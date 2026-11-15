@@ -324,7 +324,7 @@ extension AppleScriptSource {
     /// nie einen Dialog). Vorher nur „in diesem Lauf schon erlaubt“ – nach einem Neustart war Shuffle dann „aus“, bis
     /// der erste Klick antwortete (Michael 27.10.: „Klick aufs Herz aktiviert Shuffle?“).
     func mayRead(_ bundleID: String) -> Bool {
-        consented.contains(bundleID) || Self.automationAllowed(bundleID)
+        consented.contains(bundleID) || AutomationStatus.shared.isAllowed(bundleID)   // nie blockierend auf dem Hauptthread
     }
 
     nonisolated static func automationAllowed(_ bundleID: String) -> Bool {
@@ -398,12 +398,17 @@ extension AppleScriptSource {
     }
 
     func volume(_ action: VolumeAction, bundleID: String) async -> Int? {
-        guard let id = Self.supported.first(where: { $0 == bundleID }), mayRead(id) else { return nil }
+        guard let id = Self.supported.first(where: { $0 == bundleID }) else { return nil }
         let source = Self.volumeScript(action, bundleID: id)
         guard !source.isEmpty else { return nil }
+        // Die Abfrage „darf Gnotchi steuern?“ (`AEDeterminePermissionToAutomateTarget`) kann **blockieren**: Am 15.11. hing der Hauptthread
+        // zweimal dauerhaft darin (Absturzberichte). Sie läuft deshalb **nirgends** mehr auf dem Hauptthread und auch nicht auf der
+        // AppleScript-Warteschlange (die sonst mitblockierte), sondern nur im Zwischenspeicher `AutomationStatus` (eigene Hintergrund-Abfrage).
+        guard consented.contains(id) || AutomationStatus.shared.isAllowed(id) else { return nil }
         return await withCheckedContinuation { (cont: CheckedContinuation<Int?, Never>) in
             queue.async {
-                let (out, _) = Self.isRunning(id) ? Self.execute(source) : (nil, nil)
+                guard Self.isRunning(id) else { return cont.resume(returning: nil) }
+                let (out, _) = Self.execute(source)
                 cont.resume(returning: out.flatMap(Self.volumeValue(from:)))
             }
         }
@@ -411,8 +416,47 @@ extension AppleScriptSource {
 
     /// Blockierend, für das Beenden: dort bleibt keine Zeit, auf eine Warteschlange zu warten.
     nonisolated static func volumeSync(_ action: VolumeAction, bundleID: String) -> Int? {
-        guard let id = supported.first(where: { $0 == bundleID }), automationAllowed(id), isRunning(id) else { return nil }
+        // Beim Beenden: nie auf die Abfrage warten, die blockieren kann. Nur, wenn der Zwischenspeicher „erlaubt“ kennt (wir haben vorher gesenkt).
+        guard let id = supported.first(where: { $0 == bundleID }), isRunning(id),
+              MainActor.assumeIsolated({ AutomationStatus.shared.allowed[id] == true }) else { return nil }
         let (out, _) = execute(volumeScript(action, bundleID: id))
         return out.flatMap(volumeValue(from:))
+    }
+}
+
+// MARK: - Erlaubnis-Zwischenspeicher (15.11.)
+
+/// Ob macOS Gnotchi die Steuerung von Spotify/Musik erlaubt hat – **aus dem Zwischenspeicher**, nie blockierend. Die Abfrage selbst
+/// (`AEDeterminePermissionToAutomateTarget`) läuft nur auf einer Hintergrund-Warteschlange und höchstens alle 10 s neu. Grund (Fund
+/// 15.11., Absturzbericht): Die Abfrage kann ohne Zeitgrenze blockieren; auf dem Hauptthread fror die ganze Insel zehn Minuten ein.
+@MainActor
+@Observable
+final class AutomationStatus {
+    static let shared = AutomationStatus()
+    nonisolated static let maxAge: TimeInterval = 10
+
+    private(set) var allowed: [String: Bool] = [:]
+    @ObservationIgnored private var checkedAt: Date = .distantPast
+    @ObservationIgnored private var refreshing = false
+
+    /// Letzter bekannter Stand (unbekannt = nein). Stößt bei altem Stand eine Neuabfrage im Hintergrund an.
+    func isAllowed(_ id: String) -> Bool {
+        if Date().timeIntervalSince(checkedAt) > Self.maxAge { refresh() }
+        return allowed[id] ?? false
+    }
+
+    func refresh() {
+        guard !refreshing else { return }
+        refreshing = true
+        let ids = AppleScriptSource.supported
+        DispatchQueue.global(qos: .utility).async {
+            let result = Dictionary(uniqueKeysWithValues: ids.map { ($0, AppleScriptSource.automationAllowed($0)) })
+            Task { @MainActor in
+                let me = AutomationStatus.shared
+                me.allowed = result
+                me.checkedAt = Date()
+                me.refreshing = false
+            }
+        }
     }
 }

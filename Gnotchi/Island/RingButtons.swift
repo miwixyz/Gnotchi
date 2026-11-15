@@ -7,6 +7,8 @@ import Foundation
 enum RingButton: String, CaseIterable, Sendable, Hashable {
     // Bisherige Werkzeug-Symbole der Leiste – nur der Ort ist neu.
     case timer, awake, mirror, weather, shelf, clipboard
+    /// Mixer groß in der Insel (0.30.0), ab Werk an.
+    case mixer
     case pin
     /// Neue Tasten mit Nebenwirkung (0.28.0): ab Werk aus.
     case mic, screenshot, speedtest
@@ -18,7 +20,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
     var side: Side {
         switch self {
         case .timer, .awake, .mirror: .left
-        case .weather, .shelf, .clipboard: .right
+        case .weather, .shelf, .clipboard, .mixer: .right
         case .pin, .mic, .screenshot, .speedtest: .bottomLeading
         case .settings: .bottomTrailing
         }
@@ -33,6 +35,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
         case .weather: "Wetter"
         case .shelf: "Ablage"
         case .clipboard: "Zwischenablage"
+        case .mixer: "Mixer"
         case .pin: "Anheften"
         case .mic: "Mikrofon stumm"
         case .screenshot: "Bildschirmfoto"

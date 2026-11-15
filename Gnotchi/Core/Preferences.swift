@@ -55,6 +55,8 @@ final class Preferences {
         static let meetingDuck = "meetingDuck"
         static let meetingDuckPercent = "meetingDuckPercent"
         static let meetingApps = "meetingApps"
+        /// 0.30.0 Mixer Stufe 2 (G55): Regler je App über Prozess-Taps (Freigabe „Audio-Aufnahme“). Ab Werk aus.
+        static let appVolume = "appVolume"
         /// 0.5.0 Aufklappen als Band.
         static let bandStyle = "bandStyle"
         /// Medienfilter: nur Bundle-IDs (G25).
@@ -188,6 +190,8 @@ final class Preferences {
     var meetingDuck: Bool { didSet { defaults.set(meetingDuck, forKey: Key.meetingDuck) } }
     /// Auf wie viel Prozent der Lautstärke gesenkt wird (20, 30 oder 50).
     var meetingDuckPercent: Int { didSet { defaults.set(meetingDuckPercent, forKey: Key.meetingDuckPercent) } }
+    /// Lautstärke je App über Prozess-Taps (Stufe 2). Ab Werk aus; braucht die Freigabe „Audio-Aufnahme“, erst beim ersten Ziehen gefragt.
+    var appVolume: Bool { didSet { defaults.set(appVolume, forKey: Key.appVolume) } }
     /// Namen der Apps, die als Meeting zählen (so zeigt macOS sie an).
     private(set) var meetingApps: [String] { didSet { defaults.set(meetingApps, forKey: Key.meetingApps) } }
 
@@ -354,6 +358,7 @@ final class Preferences {
         ringMicAlways = defaults.object(forKey: Key.ringMicAlways) as? Bool ?? false
         batteryIdle = defaults.object(forKey: Key.batteryIdle) as? Bool ?? false
         meetingDuck = defaults.object(forKey: Key.meetingDuck) as? Bool ?? false
+        appVolume = defaults.object(forKey: Key.appVolume) as? Bool ?? false
         meetingDuckPercent = DuckLogic.validPercent(defaults.object(forKey: Key.meetingDuckPercent))
         meetingApps = DuckLogic.validApps(defaults.object(forKey: Key.meetingApps)) ?? DuckLogic.defaultMeetingApps
         bandStyle = defaults.object(forKey: Key.bandStyle) as? Bool ?? false

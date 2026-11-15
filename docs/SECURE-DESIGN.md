@@ -57,6 +57,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G52 | – (neu, 0.28.0) | Mikrofon stumm: Core Audio ohne Freigabe, Zustand aus dem Gerät, beim Beenden entstummen; Tasten-Ring ohne neue Freigabe, Batterie über IOKit ohne Freigabe |
 | G53 | – (neu, 0.29.0) | Meeting-Leiser: Lautstärke von Spotify/Musik per AppleScript nur bei bereits erlaubter Steuerung, feste IDs, gemerkter Ursprungswert, Wiederherstellung bei Ende/Beenden/Start, eigene Änderung gilt |
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
+| G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1527,6 +1528,11 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
   Start**. Ein Wächter prüft alle 5 s, solange ein Meeting läuft **oder** etwas gemerkt ist (läuft der Player nicht, bleibt
   es gemerkt, bis er wieder läuft). **Ändert Michael die Lautstärke selbst** (weiter als ±3 vom gesenkten Wert), gilt sein
   Wert; Gnotchi überschreibt ihn nie.
+- **Nie blockieren (Fund 15.11., Absturzberichte):** `AEDeterminePermissionToAutomateTarget` hat keine Zeitgrenze und hing zweimal dauerhaft auf dem
+  Hauptthread (Aufrufer `NowPlayingModel.refreshExtrasIfAllowed`, seit 0.17; mein Mixer und der Leiser hätten dieselbe Stelle häufiger getroffen). Die
+  Abfrage läuft jetzt **nur** in `AutomationStatus` auf einer Hintergrund-Warteschlange und liefert einen Zwischenspeicher (unbekannt = nein);
+  `mayRead`, `volume`, `volumeSync` und die Einstellungen lesen nur noch daraus. Blockiert sie dauerhaft, bleibt die Steuerung aus, statt die
+  App einzufrieren. Beim Beenden wird nie auf sie gewartet.
 - **Nie auf 0:** Gesenkt wird höchstens bis 1, bei 0 oder 1 nichts (das wäre stumm, nicht leiser; Fund des Tests).
 - **Restrisiko (hingenommen):** Stürzt Gnotchi im Meeting ab und Spotify bleibt leise, stellt der nächste Start wieder her;
   bis dahin bleibt es leise. Spotify Connect (Ton auf anderem Gerät): `sound volume` wirkt auf den Spotify-Client, ob auch auf
@@ -1559,6 +1565,49 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
   Netz; Gerätenamen vergibt der Nutzer frei → `Text(verbatim:)`.
 - **Popover-Funktionen:** dieselben Aktionen wie der Ring (Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest), alle nur
   auf Klick; Geschwindigkeitstest wie G51.
+- **Mixer auch in der Insel (Michael 15.11.: „auch in der normalen Notch erreichbar“):** Ring-Taste „Mixer“ (rechts, ab Werk an) zeigt dieselbe Ansicht
+  groß in der Insel (`BigContent.mixer`, zwei Spalten, 330 pt hoch). **Ein** `MixerModel` für Popover und Insel; die Abfrage läuft, solange
+  mindestens einer von beiden ihn zeigt (`setVisible`, je Besitzer), sonst nicht. Keine neue Berechtigung.
 - **Wegfall:** Tastenkürzel des alten Menüs (⌘, ⌘Q) gibt es im Fenster-Stil nicht mehr.
 - **STRIDE:** S – · T Fremdwerte → Begrenzung, Positivliste der Geräte · R – · I Namen laufender Apps nur lokal im Popover ·
   D Abfrage nur bei sichtbarem Popover, AppleScript nur bei laufendem Player · E keine neue Freigabe.
+
+### G55 – Mixer Stufe 2: Prozess-Taps, die schwerste Freigabe (neu, 2026-11-15, 0.30.0)
+- **Was:** Einstellung „Lautstärke je App (Audio-Aufnahme)“, **ab Werk aus**. Eingeschaltet bekommt im Mixer jede App mit Ton einen Regler
+  von 0 bis 200 %. Ein **Prozess-Tap** (`AudioHardwareCreateProcessTap`, Geräte-Tap, privates Aggregat-Gerät) greift den Ton der App im
+  Arbeitsspeicher ab, schaltet das Original stumm und gibt ihn mit Verstärkung auf demselben Gerät wieder aus. Spec und
+  `rafter-secure-design`-Antworten: `specs/2026-11-15-gnotchi-mixer-stufe2.md`. Michael: „auch lauter“ (Weichbegrenzer).
+- **Die Freigabe:** „Audio-Aufnahme“ (TCC, `NSAudioCaptureUsageDescription`, Text im Einstellungs- und im macOS-Dialog nennt den Zweck).
+  Sie erlaubt Gnotchi, **den Ton jeder App mitzuhören**; es ist die weitreichendste Freigabe, die Gnotchi je angefragt hat. Deshalb: ab Werk aus,
+  nie automatisch, macOS fragt erst beim **ersten Ziehen** eines App-Reglers. **Zu messen (Mess-Fassung):** ob zusätzlich die Berechtigung
+  `com.apple.security.device.audio-input` nötig ist; wenn ja, Positivliste G12 und `entitlement-gate.sh` anpassen.
+- **Tap nur, solange er etwas tut:** Ein Tap existiert nur, solange der Regler **nicht auf 100 %** steht (Einrasten ±3 %, `MixerRows.snap`).
+  Bei 100 %, beim Ausschalten der Einstellung, bei Gerätewechsel und beim Beenden werden **alle** Taps zerstört, die App spielt wieder direkt.
+  Im Normalzustand hört Gnotchi **nichts** mit, auch bei eingeschalteter Einstellung. Höchstens 6 Taps gleichzeitig.
+- **Ton:** nur Arbeitsspeicher, nie in eine Datei, nie ins Netz, **nie protokolliert** (Protokoll nur Anzahl und OSStatus, nie App- oder
+  Gerätename, nie Pegel). Der Echtzeit-Rückruf kopiert und multipliziert (`TapMixer.render`, ohne Speicherzuweisung, ohne Sperre); er kennt
+  **keinen Pegel und kein Spektrum**. Einzige Auswertung: ein Wahrheitswert „kam je ein Wert ≠ 0?“ (`GainCell.sawSignal`), damit eine **fehlende
+  Freigabe** auffällt (macOS liefert dann Nullen statt eines Fehlers): Kommt innerhalb von 1,5 s nichts an, wird der Tap abgebaut und die Zeile
+  zeigt „Kein Ton angekommen: Prüfe die Freigabe“. Die App spielt dabei unverändert.
+- **Nie stumm hängen lassen:** Tap und Aggregat-Gerät gehören dem Prozess: **Beenden oder Absturz zerstört sie** (Beenden gemessen im Spike;
+  Absturz **in der Mess-Fassung zu messen**). Gerätewechsel (Standard-Ausgang, Geräteliste) und Wegfall der App-Prozesse zerstören den Tap sofort
+  (Core-Audio-Beobachter nur, solange Taps leben); eine Karenzzeit von 1 s nach dem eigenen Anlegen/Zerstören verhindert, dass die Meldung des
+  eigenen privaten Aggregat-Geräts den frischen Tap abbaut (`shouldReact`, getestet). Jeder Fehler beim Aufbau → kein Tap, App unverändert, Hinweis.
+- **Begrenzer (lauter):** Verstärkung 0…2. Bei g ≤ 1 nur Multiplikation (bitgenau skaliert, auch Spitzen über 1,0); darüber Weichbegrenzer ab
+  Amplitude 0,8 (`tanh`-Knie, nie ≥ 1,0, stetig, monoton – getestet). Lauter als das Quellmaterial gibt es nur mit Kompression bei lauten Stellen.
+- **Gerät:** Nur Apps, die auf **genau einem** bekannten Ausgabegerät spielen, bekommen einen Regler (sonst unklar, wohin der Ton muss). Kanalzahl-
+  Abgleich je Gerät (mono → Stereo und zurück, getrennte Puffer) getestet; **echte Geräte außer dem MacBook-Lautsprecher nicht gemessen**.
+- **Prozessliste ändert sich (neuer Browser-Tab, neuer Helfer):** Sonst zeigte der Regler 50 %, und die neue Quelle spielte mit 100 %. Bei jeder
+  Änderung der Prozessliste, solange ein Tap lebt, führt der Mixer das Ziel nach (`retargetTaps`, Tap nur bei geändertem Ziel neu). Fund
+  `/code-audit` 15.11.
+- **Gerätewechsel ist sichtbar:** Der Regler springt auf 100 % **mit Hinweis** „Gerät gewechselt …“ (`Failure.reset`), nicht still.
+  **Ohne Beobachter kein Tap:** Schlägt die Anmeldung der Core-Audio-Beobachter fehl, wird der Tap gar nicht erst behalten. Leeres Ziel → `noTarget`.
+- **Gemessen 15.11. (Michael, Mess-Fassung am MacBook): „Funktioniert“.** Der Regler je App arbeitet ohne die Berechtigung `device.audio-input`; die
+  Entitlements bleiben bei vier. Einzelbefunde zu Dialog, Gerätewechsel und Absturz nannte Michael nicht; sie gelten als nicht beanstandet, aber nicht
+  einzeln protokolliert.
+- **Zu messen (nur am echten System, Mess-Fassung):** Dialog und Text für Gnotchi; Verweigern; Absturz mit laufendem Tap (`kill -9`); Gerätewechsel;
+  Bluetooth/AirPlay/USB; Teams-Gerät (mono); kopiergeschützte Inhalte; drei Taps gleichzeitig (CPU).
+- **STRIDE:** S Ziele kommen aus Core Audio, nicht aus Eingaben · T Verstärkung auf 0…2 begrenzt, Prozess-IDs nur aus der aktuellen Liste, Aggregat
+  privat · R kein Protokoll mit Inhalt, Zustand in der Zeile sichtbar · **I Hauptrisiko: Mithören** → ab Werk aus, nur bei Regler ≠ 100 %, nie
+  gespeichert/gesendet/protokolliert, keine Analyse · D hängender Tap → zerstören statt weiterlaufen, Wächter bei fehlendem Ton · E die Freigabe ist
+  die Erhöhung; sie gilt Gnotchi, kein Hilfsprogramm und kein Befehl von außen erreicht den Tap-Motor.

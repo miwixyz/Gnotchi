@@ -6,40 +6,59 @@ import SwiftUI
 /// Regler je App nur für Spotify und Musik (AppleScript, wenn erlaubt). Gerätenamen vergibt der Nutzer frei → `verbatim`.
 struct MixerView: View {
     let model: MixerModel
+    /// In der Insel (600 pt breit): zwei Spalten, links Ausgabe und Mikrofon, rechts die Apps; im Popover untereinander.
+    var wide = false
 
     var body: some View {
-        VStack(spacing: 10) {
-            card("Ausgabe") {
-                deviceMenu(model.outputs, current: model.output.device) { model.selectOutput($0) }
-                volumeRow(model.output, mutedSymbol: "speaker.slash.fill", symbol: "speaker.wave.2.fill",
-                          onVolume: { model.setOutputVolume($0) }, onMute: { model.toggleOutputMute() })
-                if let sys = model.systemOutput, sys.id != model.output.device?.id || model.outputs.count > 1 {
-                    Divider().opacity(0.4)
-                    HStack {
-                        Label { Text(verbatim: "Systemtöne") } icon: { Image(systemName: "bell.fill") }
-                            .font(.system(size: 12)).foregroundStyle(FamilyTheme.textSecondary)
-                        Spacer(minLength: 8)
-                        deviceMenu(model.outputs, current: sys, compact: true) { model.selectSystemOutput($0) }
-                    }
+        if wide {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(spacing: 10) { outputCard; micCard }.frame(width: 270)
+                ScrollView { appsCard }.scrollIndicators(.hidden)
+            }
+            .frame(maxHeight: IslandGeometry.mixerHeight - 24)
+        } else {
+            VStack(spacing: 10) { outputCard; micCard; appsCard }
+        }
+    }
+
+    private var outputCard: some View {
+        card("Ausgabe") {
+            deviceMenu(model.outputs, current: model.output.device) { model.selectOutput($0) }
+            volumeRow(model.output, mutedSymbol: "speaker.slash.fill", symbol: "speaker.wave.2.fill",
+                      onVolume: { model.setOutputVolume($0) }, onMute: { model.toggleOutputMute() })
+            if let sys = model.systemOutput, sys.id != model.output.device?.id || model.outputs.count > 1 {
+                Divider().opacity(0.4)
+                HStack {
+                    Label { Text(verbatim: "Systemtöne").lineLimit(1) } icon: { Image(systemName: "bell.fill") }
+                        .font(.system(size: 12)).foregroundStyle(FamilyTheme.textSecondary)
+                        .fixedSize(horizontal: true, vertical: false)
+                    Spacer(minLength: 8)
+                    deviceMenu(model.outputs, current: sys, compact: true) { model.selectSystemOutput($0) }
                 }
             }
-            card("Mikrofon") {
-                deviceMenu(model.inputs, current: model.input.device, mic: true) { model.selectInput($0) }
-                volumeRow(model.input, mutedSymbol: "mic.slash.fill", symbol: "mic.fill",
-                          onVolume: { model.setInputVolume($0) }, onMute: { model.toggleInputMute() })
-            }
-            card("Apps mit Ton") {
-                if model.apps.isEmpty {
-                    Text(verbatim: "Gerade gibt keine App Ton aus.").font(.system(size: 12)).foregroundStyle(FamilyTheme.textSecondary)
-                } else {
-                    ForEach(Array(model.apps.enumerated()), id: \.element.id) { i, row in
-                        if i > 0 { Divider().opacity(0.4) }
-                        appRow(row)
-                    }
-                    if model.apps.contains(where: { $0.volume == nil }) {
-                        Text(verbatim: "Regler gibt es für Spotify und Musik. Für andere Apps folgt der Regler mit dem Mixer, der Ton mitschneidet (eigene Freigabe).")
-                            .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
-                    }
+        }
+    }
+
+    private var micCard: some View {
+        card("Mikrofon") {
+            deviceMenu(model.inputs, current: model.input.device, mic: true) { model.selectInput($0) }
+            volumeRow(model.input, mutedSymbol: "mic.slash.fill", symbol: "mic.fill",
+                      onVolume: { model.setInputVolume($0) }, onMute: { model.toggleInputMute() })
+        }
+    }
+
+    private var appsCard: some View {
+        card("Apps mit Ton") {
+            if model.apps.isEmpty {
+                Text(verbatim: "Gerade gibt keine App Ton aus.").font(.system(size: 12)).foregroundStyle(FamilyTheme.textSecondary)
+            } else {
+                ForEach(Array(model.apps.enumerated()), id: \.element.id) { i, row in
+                    if i > 0 { Divider().opacity(0.4) }
+                    appRow(row)
+                }
+                if !model.appVolumeEnabled, model.apps.contains(where: { $0.volume == nil }) {
+                    Text(verbatim: "Regler gibt es für Spotify und Musik. Für andere Apps: Einstellungen → Aktivitäten → „Lautstärke je App“ (braucht die Freigabe „Audio-Aufnahme“).")
+                        .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
                 }
             }
         }
@@ -83,7 +102,7 @@ struct MixerView: View {
             .font(.system(size: compact ? 12 : 13, weight: .medium))
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.quaternary.opacity(devices.count < 2 ? 0.25 : 0.55)))
-            .frame(maxWidth: compact ? 190 : .infinity, alignment: compact ? .trailing : .leading)
+            .frame(maxWidth: compact ? 140 : .infinity, alignment: compact ? .trailing : .leading)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
@@ -138,7 +157,30 @@ struct MixerView: View {
                     Text(verbatim: "\(v) %").font(.system(size: 12)).monospacedDigit().foregroundStyle(FamilyTheme.textSecondary)
                         .frame(width: 40, alignment: .trailing)
                 }
+            } else if model.appVolumeEnabled, row.canTap {
+                // Stufe 2 (G55): Regler je App über einen Tap, 0…200 %, nahe 100 % rastet er ein (dann kein Tap).
+                let percent = Int((row.gain * 100).rounded())
+                HStack(spacing: 10) {
+                    Image(systemName: percent > 100 ? "speaker.wave.3.fill" : "speaker.fill").font(.system(size: 11))
+                        .foregroundStyle(percent == 100 ? FamilyTheme.textSecondary : FamilyTheme.iris).frame(width: 20)
+                    Slider(value: Binding(get: { Double(percent) }, set: { model.setAppGain(row, percent: Int($0.rounded())) }), in: 0...200)
+                    Text(verbatim: "\(percent) %").font(.system(size: 12)).monospacedDigit().foregroundStyle(FamilyTheme.textSecondary)
+                        .frame(width: 40, alignment: .trailing)
+                }
             }
+            if let f = model.tapFailures[row.id] {
+                Text(verbatim: tapHint(f)).font(.system(size: 11)).foregroundStyle(FamilyTheme.warning)
+            }
+        }
+    }
+
+    private func tapHint(_ f: AppTapEngine.Failure) -> String {
+        switch f {
+        case .noSignal: "Kein Ton angekommen: Prüfe die Freigabe „Audio-Aufnahme“ (Systemeinstellungen → Datenschutz & Sicherheit). Die App spielt unverändert."
+        case .setup: "Regler nicht verfügbar. Die App spielt unverändert."
+        case .tooMany: "Zu viele Regler gleichzeitig (höchstens \(AppTapEngine.maxTaps)). Die App spielt unverändert."
+        case .noTarget: "Diese App gibt gerade keinen Ton aus. Die App spielt unverändert."
+        case .reset: "Gerät gewechselt: Der Regler wurde auf 100 % zurückgesetzt, die App spielt wieder direkt."
         }
     }
 

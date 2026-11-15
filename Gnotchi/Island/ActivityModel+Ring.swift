@@ -6,7 +6,7 @@ extension ActivityModel {
     /// Funktionen, die gerade etwas anbieten – dieselben Bedingungen wie früher in der Leiste: Wetter nur mit
     /// Vorhersage, Ablage nur mit Inhalt, Zwischenablage nur eingeschaltet, Spiegel nur mit Schalter.
     var ringAvailable: Set<RingButton> {
-        var s: Set<RingButton> = [.timer, .screenshot, .speedtest]
+        var s: Set<RingButton> = [.timer, .screenshot, .speedtest, .mixer]
         if awake != nil { s.insert(.awake) }   // wie die alte Leiste: nur, wenn „Wach bleiben“ da ist
         // Mikrofon: nur, wenn sich das Gerät stummschalten lässt, und – außer auf Wunsch immer – nur im Meeting
         // (eine App nutzt das Mikrofon) oder solange es stumm ist (sonst käme man nicht mehr heran).
@@ -37,6 +37,7 @@ extension ActivityModel {
         case .clipboard: clipboardActive
         case .pin: pinned
         case .speedtest: speedtestActive
+        case .mixer: mixerActive
         case .mic, .screenshot, .settings: false
         }
     }
@@ -49,7 +50,7 @@ extension ActivityModel {
         case .mirror: mirrorActive
         case .mic: mic.isMuted
         case .speedtest: speed.state == .running
-        case .weather, .shelf, .clipboard, .pin, .screenshot, .settings: false
+        case .weather, .shelf, .clipboard, .mixer, .pin, .screenshot, .settings: false
         }
     }
 
@@ -67,13 +68,27 @@ extension ActivityModel {
         case .pin: togglePin()
         case .mic: mic.toggle()
         case .speedtest: selectSpeedtest()
+        case .mixer: selectMixer()
         case .screenshot, .settings: break   // öffnen Fenster bzw. Apps: der Controller führt sie aus
         }
+    }
+
+    /// Mixer groß in der Insel (G54): derselbe wie im Popover.
+    func selectMixer() {
+        mixerActive = true
+        speedtestActive = false
+        mirrorActive = false
+        timerPickerActive = false
+        awakePageActive = false
+        weatherActive = false
+        shelfActive = false
+        clipboardActive = false
     }
 
     /// Geschwindigkeitstest groß zeigen und starten (G51): nur auf Klick, ein Lauf gleichzeitig.
     func selectSpeedtest() {
         speedtestActive = true
+        mixerActive = false
         mirrorActive = false
         timerPickerActive = false
         awakePageActive = false

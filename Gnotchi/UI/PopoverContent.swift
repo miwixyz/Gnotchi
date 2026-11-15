@@ -9,12 +9,14 @@ struct PopoverContent: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
     @AppStorage("popoverTab") private var tabRaw = Tab.mixer.rawValue
-    @State private var mixer: MixerModel
+    @State private var mixerOverride: MixerModel?
     /// Gemessene Höhe des Inhalts: Ein ScrollView hat im Fenster-Menü keine eigene Höhe und fiele auf null zusammen
     /// (Fund 15.11. am echten Symbol: Reiter und Fuß da, Inhalt leer).
     @State private var contentHeight: CGFloat = 0
 
-    init(mixer: MixerModel = MixerModel()) { _mixer = State(initialValue: mixer) }
+    /// Der Mixer gehört der App (`AppModel.mixer`), damit ein Regler je App das Popover überdauert; Tests geben einen eigenen mit.
+    init(mixer: MixerModel? = nil) { _mixerOverride = State(initialValue: mixer) }
+    private var mixer: MixerModel { mixerOverride ?? model.mixer }
 
     enum Tab: String, CaseIterable {
         case mixer, functions
@@ -42,7 +44,7 @@ struct PopoverContent: View {
         .padding(14)
         .frame(width: 360)
         // Der Mixer fragt nur ab, solange das Popover sichtbar ist (kein Dauer-Beobachter).
-        .background(WindowVisibility { visible in if visible { mixer.start() } else { mixer.stop() } })
+        .background(WindowVisibility { visible in mixer.setVisible("popover", visible) })
     }
 
     // MARK: Teile

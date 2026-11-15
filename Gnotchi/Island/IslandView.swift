@@ -582,6 +582,10 @@ extension IslandView {
         case .shelf:
             shelfBig(topInset: topInset)
         case .clipboard: ClipboardBig.island(activity.clipboard, top: (topInset ?? (state.layout.notch?.height ?? 0)) + 6)
+        case .mixer:
+            MixerView(model: activity.mixer, wide: true)
+                .padding(EdgeInsets(top: (topInset ?? (state.layout.notch?.height ?? 0)) + 8, leading: 12, bottom: 12, trailing: 12))
+                .transition(.opacity)
         case .speedtest:
             SpeedTestCard(speed: activity.speed, onAgain: { activity.speed.start() }).padding(.top, top + 6).transition(.opacity)
         case .none:

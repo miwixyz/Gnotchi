@@ -10,6 +10,13 @@ struct MixerAppRow: Equatable, Identifiable, Sendable {
     let bundleID: String?
     let devices: [OutputDevices.Device]
     var volume: Int?
+    /// Für den Regler je App (Stufe 2): Audio-Prozesse dieser App und Geräte-UID, wenn sie auf **genau einem** Gerät spielt.
+    var processes: [AudioObjectID] = []
+    var deviceUID: String?
+    /// Verstärkung des laufenden Taps (1 = unverändert).
+    var gain: Float = 1
+
+    var canTap: Bool { !processes.isEmpty && deviceUID != nil && devices.count == 1 }
 }
 
 enum MixerRows {
@@ -18,20 +25,29 @@ enum MixerRows {
     /// Nur Prozesse, die gerade Ton ausgeben, nur solche in einer App (kein Systemdienst), nicht Gnotchi selbst; Prozesse
     /// derselben App werden zusammengefasst, Geräte vereinigt. Sortiert nach Name.
     nonisolated static func rows(_ processes: [MixerAudio.Process], devices: [AudioObjectID: OutputDevices.Device],
-                                 ownPID: pid_t, name: (String) -> String?, bundle: (String) -> String?) -> [MixerAppRow] {
+                                 ownPID: pid_t, name: (String) -> String?, bundle: (String) -> String?,
+                                 uid: (AudioObjectID) -> String? = { _ in nil }) -> [MixerAppRow] {
         var order: [String] = []
-        var byApp: [String: (path: String, devices: [AudioObjectID])] = [:]
+        var byApp: [String: (path: String, devices: [AudioObjectID], processes: [AudioObjectID])] = [:]
         for p in processes where p.outputting && p.pid != ownPID {
             guard let app = PrivacyMonitor.outermostApp(path: p.path) else { continue }
-            if byApp[app] == nil { order.append(app); byApp[app] = (app, []) }
+            if byApp[app] == nil { order.append(app); byApp[app] = (app, [], []) }
+            byApp[app]?.processes.append(p.object)
             for d in p.devices where !(byApp[app]?.devices.contains(d) ?? false) { byApp[app]?.devices.append(d) }
         }
         let rows = order.compactMap { app -> MixerAppRow? in
             guard let entry = byApp[app], let n = name(app) else { return nil }
-            return MixerAppRow(id: app, name: n, bundleID: bundle(app), devices: entry.devices.compactMap { devices[$0] }, volume: nil)
+            let known = entry.devices.compactMap { devices[$0] }
+            var row = MixerAppRow(id: app, name: n, bundleID: bundle(app), devices: known, volume: nil)
+            row.processes = entry.processes
+            if known.count == 1, entry.devices.count == 1 { row.deviceUID = uid(entry.devices[0]) }
+            return row
         }
         return Array(rows.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }.prefix(maxRows))
     }
+
+    /// Regler nahe 100 % rastet auf 100 % ein (±3): Dann endet der Tap und die App spielt wieder direkt.
+    nonisolated static func snap(_ percent: Int) -> Int { abs(percent - 100) <= 3 ? 100 : min(200, max(0, percent)) }
 
     /// Prozent aus 0…1, begrenzt.
     nonisolated static func percent(_ v: Float?) -> Int? { v.map { Int((min(1, max(0, $0)) * 100).rounded()) } }
@@ -58,6 +74,11 @@ final class MixerModel {
     private(set) var apps: [MixerAppRow] = []
 
     @ObservationIgnored private let script: AppleScriptSource
+    /// Regler je App über Prozess-Taps (Stufe 2, G55). Gehört dem Mixer, lebt so lange wie die App (der Tap muss das Popover überdauern).
+    @ObservationIgnored let engine: AppTapEngine
+    /// Einstellung „Lautstärke je App“: ab Werk aus. Ohne sie gibt es keinen Tap und keine Freigabe-Anfrage.
+    private(set) var appVolumeEnabled = false
+    private(set) var tapFailures: [String: AppTapEngine.Failure] = [:]
     @ObservationIgnored private var task: Task<Void, Never>?
     /// Nach einer Eingabe kurz nicht überschreiben, damit der Regler beim Ziehen nicht zurückspringt.
     @ObservationIgnored private var holdUntil: Date = .distantPast
@@ -66,10 +87,24 @@ final class MixerModel {
     @ObservationIgnored private var pendingPlayer: [String: Int] = [:]
     @ObservationIgnored private var sendingPlayer: Set<String> = []
 
-    init(script: AppleScriptSource = AppleScriptSource(), interval: Duration = .milliseconds(1500)) {
+    init(script: AppleScriptSource = AppleScriptSource(), engine: AppTapEngine = AppTapEngine(),
+         interval: Duration = .milliseconds(1500)) {
         self.script = script
+        self.engine = engine
         self.interval = interval
+        engine.onProcessListChanged = { [weak self] in Task { await self?.retargetTaps() } }
     }
+
+    /// Wer den Mixer gerade zeigt (Popover, Insel): Er fragt ab, solange mindestens einer ihn zeigt.
+    @ObservationIgnored private var viewers: Set<String> = []
+
+    func setVisible(_ owner: String, _ visible: Bool) {
+        if visible { viewers.insert(owner) } else { viewers.remove(owner) }
+        if viewers.isEmpty { stop() } else { start() }
+    }
+
+    /// Fragt der Mixer gerade ab? (Tests)
+    var isPolling: Bool { task != nil }
 
     func start() {
         guard task == nil else { return }
@@ -93,15 +128,36 @@ final class MixerModel {
         output = endpoint(.output)
         input = endpoint(.input)
         systemOutput = MixerAudio.defaultDevice(.systemOutput).flatMap { OutputDevices.device($0) }
-        let byID = Dictionary(uniqueKeysWithValues: outputs.map { ($0.id, $0) })
-        var rows = MixerRows.rows(MixerAudio.audioProcesses(), devices: byID, ownPID: ProcessInfo.processInfo.processIdentifier,
-                                  name: { AppIcons.cleanName(FileManager.default.displayName(atPath: $0)) },
-                                  bundle: { Bundle(path: $0)?.bundleIdentifier })
+        var rows = currentRows()
         for i in rows.indices {
+            rows[i].gain = engine.gain(for: rows[i].id)
             guard let id = rows[i].bundleID, AppleScriptSource.supported.contains(id) else { continue }
             rows[i].volume = await script.volume(.read, bundleID: id)
         }
         if rows != apps { apps = rows }
+        if engine.failures != tapFailures { tapFailures = engine.failures }
+    }
+
+    /// Apps mit Ton jetzt (ohne Player-Lautstärken).
+    private func currentRows() -> [MixerAppRow] {
+        let byID = Dictionary(uniqueKeysWithValues: OutputDevices.list().map { ($0.id, $0) })
+        var rows = MixerRows.rows(MixerAudio.audioProcesses(), devices: byID, ownPID: ProcessInfo.processInfo.processIdentifier,
+                                  name: { AppIcons.cleanName(FileManager.default.displayName(atPath: $0)) },
+                                  bundle: { Bundle(path: $0)?.bundleIdentifier }, uid: { MixerAudio.deviceUID($0) })
+        for i in rows.indices { rows[i].gain = engine.gain(for: rows[i].id) }
+        return rows
+    }
+
+    /// Die Prozessliste hat sich geändert, während Regler laufen: Bekommt eine App neue Audio-Prozesse (neuer Browser-Tab), müssen
+    /// auch sie unter dem Regler liegen – sonst zeigte der Regler 50 % und die neue Quelle spielte mit 100 %. Tap neu aufbauen.
+    func retargetTaps() async {
+        guard appVolumeEnabled, engine.hasTaps else { return }
+        for row in currentRows() where row.canTap {
+            let g = engine.gain(for: row.id)
+            guard g != 1, let uid = row.deviceUID else { continue }
+            engine.setGain(g, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))   // nur bei geändertem Ziel neu gebaut
+        }
+        tapFailures = engine.failures
     }
 
     private func endpoint(_ which: MixerAudio.Selector) -> Endpoint {
@@ -171,6 +227,30 @@ final class MixerModel {
         holdUntil = .distantPast
         MixerAudio.setDefault(.input, id)
         Task { await refresh() }
+    }
+
+    /// Einstellung geändert. Aus: alle Taps sofort zerstört, die Apps spielen wieder direkt.
+    func setAppVolumeEnabled(_ on: Bool) {
+        guard on != appVolumeEnabled else { return }
+        appVolumeEnabled = on
+        if !on { releaseAll() }
+    }
+
+    /// Alle Regler je App zurück auf 100 % (Beenden, Einstellung aus, Gerätewechsel).
+    func releaseAll() {
+        engine.releaseAll()
+        for i in apps.indices where apps[i].gain != 1 { apps[i].gain = 1 }
+        tapFailures = engine.failures
+    }
+
+    /// Regler je App (Stufe 2): `percent` 0…200, 100 = kein Tap. Nur mit eingeschalteter Einstellung und für Apps auf genau einem Gerät.
+    func setAppGain(_ row: MixerAppRow, percent: Int) {
+        guard appVolumeEnabled, row.canTap, let uid = row.deviceUID else { return }
+        touch()
+        let snapped = MixerRows.snap(percent)   // nahe 100 %: genau 100 %, dann gibt es keinen Tap
+        engine.setGain(Float(snapped) / 100, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))
+        if let i = apps.firstIndex(where: { $0.id == row.id }) { apps[i].gain = engine.gain(for: row.id) }
+        tapFailures = engine.failures
     }
 
     /// Spotify/Musik: nur, wenn macOS die Steuerung erlaubt hat (kein Dialog); Wert 0…100.

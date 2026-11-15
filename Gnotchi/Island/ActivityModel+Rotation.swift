@@ -63,13 +63,13 @@ extension ActivityModel {
     /// die (pausierte) Musik.
     enum BigContent: Equatable {
         case media, event, timer, timerPicker, awake, alarm, headphones, claude, update(FamilyApp), privacy, mirror, weather, shelf,
-             clipboard, speedtest, none
+             clipboard, speedtest, mixer, none
     }
 
     nonisolated static func bigContent(current: LiveActivity?, privacy: Bool, hasMediaInfo: Bool,
                                        mirror: Bool = false, timerPicker: Bool = false, alarm: Bool = false,
                                        weather: Bool = false, shelf: Bool = false, clipboard: Bool = false,
-                                       awake: Bool = false, speedtest: Bool = false,
+                                       awake: Bool = false, speedtest: Bool = false, mixer: Bool = false,
                                        idle: BigContent = .none) -> BigContent {
         if alarm { return .alarm }
         if mirror { return .mirror }
@@ -79,6 +79,7 @@ extension ActivityModel {
         if timerPicker { return .timerPicker }
         if awake { return .awake }
         if speedtest { return .speedtest }
+        if mixer { return .mixer }
         return switch current {
         case .event?: .event
         case .timer?: .timer
@@ -120,7 +121,7 @@ extension ActivityModel {
                                mirror: mirrorActive, timerPicker: timerPickerActive, alarm: timerAlarm,
                                weather: weatherActive && weather != nil, shelf: shelfActive && !shelfItems.isEmpty,
                                clipboard: clipboardActive && clipboard != nil, awake: awakePageActive && awake != nil,
-                               speedtest: speedtestActive,
+                               speedtest: speedtestActive, mixer: mixerActive,
                                idle: !shelfItems.isEmpty ? .shelf : (weather != nil ? .weather : .none))
     }
 
@@ -132,7 +133,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
-        if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive || speedtestActive { return nil }
+        if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive || speedtestActive || mixerActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity
     }
@@ -156,6 +157,7 @@ extension ActivityModel {
         shelfActive = false
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
         // „Wiedergabe immer groß“: Klick auf eine andere Aktivität legt sie als Glas über den Player, erneut weg.
         if playerFirst { overlayActivity = item == .media || overlayActivity == item ? nil : item }
     }
@@ -170,6 +172,7 @@ extension ActivityModel {
         shelfActive = false
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
     }
 
     /// Wetter groß (0.7.0): nur mit einer Vorhersage.
@@ -182,6 +185,7 @@ extension ActivityModel {
         shelfActive = false
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
     }
 
     /// Kachelreihe der Ablage unter der großen Sache (Michael 22.10.: „schneller zugänglich“) – nicht, wenn die Ablage
@@ -194,6 +198,7 @@ extension ActivityModel {
         shelfActive = true
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
         weatherActive = false
         mirrorActive = false
         timerPickerActive = false
@@ -206,6 +211,7 @@ extension ActivityModel {
         guard clipboard != nil else { return }
         clipboardActive = true
         speedtestActive = false
+        mixerActive = false
         weatherActive = false
         shelfActive = false
         mirrorActive = false
@@ -220,6 +226,7 @@ extension ActivityModel {
         timerPickerActive = false
         clipboardActive = false
         speedtestActive = false
+        mixerActive = false
         weatherActive = false
         shelfActive = false
         mirrorActive = false
@@ -234,6 +241,7 @@ extension ActivityModel {
         if shelfActive { shelfActive = false }
         if clipboardActive { clipboardActive = false }
         if speedtestActive { speedtestActive = false }
+        if mixerActive { mixerActive = false }
         if overlayActivity != nil { overlayActivity = nil }
     }
 

@@ -163,6 +163,9 @@ final class ActivityModel {
     /// Geschwindigkeitstest (0.28.0, G51): Ergebnis groß gezeigt, Zustand in `speed`.
     var speedtestActive = false
     var speed = SpeedTest()
+    /// Mixer (0.30.0) groß in der Insel: derselbe Mixer wie im Popover, eine Instanz für die ganze App (Regler je App überdauern beides).
+    let mixer = MixerModel()
+    var mixerActive = false { didSet { mixer.setVisible("insel", mixerActive) } }
 
     // MARK: Mitteilungen und Anrufe (0.6.0, G29/G30) – Logik in ActivityModel+Notify.swift. Nie protokollieren.
 
