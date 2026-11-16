@@ -145,6 +145,13 @@ extension IslandController {
 /// aktiviert Gnotchi dabei nie (`nonactivatingPanel`, Muster der Zwischenablage). Fällt die Erlaubnis weg, während die
 /// Insel den Fokus hat, gibt sie ihn ab – sonst landeten Tasten weiter in der Insel statt in der Arbeits-App.
 final class IslandPanel: NSPanel {
+    /// Nie in Bildschirmfreigabe und -aufnahme (0.34.0, G58): Die Insel zeigt Mitteilungstexte, Claude-Befehle und Anrufernamen. Im Panel selbst
+    /// gesetzt, damit jedes Insel-Fenster (klein, groß, weitere Bildschirme) es hat und kein Aufrufer es vergessen kann.
+    override init(contentRect: NSRect, styleMask: NSWindow.StyleMask, backing: NSWindow.BackingStoreType, defer flag: Bool) {
+        super.init(contentRect: contentRect, styleMask: styleMask, backing: backing, defer: flag)
+        sharingType = .none
+    }
+
     var allowsKey = false {
         didSet {
             guard oldValue, !allowsKey, isKeyWindow else { return }

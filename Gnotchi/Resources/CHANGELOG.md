@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.34.0] — 2026-11-16
+
+### Geändert
+- **Die Insel ist in Bildschirmfreigabe und -aufnahme unsichtbar.** Teilst du den Bildschirm (Teams, Zoom, …), sehen die anderen die Insel nicht mehr, auch nicht Mitteilungstexte, Claude-Befehle oder Anrufernamen darin. Preis: Die Insel erscheint auch in deinen eigenen Bildschirmfotos und -aufnahmen nicht. Das Zwischenablage-Panel war schon so.
+
 ## [0.33.1] — 2026-11-16
 
 ### Behoben

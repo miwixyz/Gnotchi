@@ -1689,3 +1689,13 @@ wurden einzeln im Code nachgeprüft. Keine kritischen oder hohen Funde.
   Mikrofon-Kanäle enthalten (falscher Ton im Regler). Vermutung des Prüfers (~60 %), mit echtem Headset messen.
 - Randfall: Echte Geräteänderung innerhalb von 1 s nach dem Anlegen/Zerstören eines Taps wird ignoriert (Karenzzeit gegen das eigene Aggregat).
 
+### G58 – Insel unsichtbar in Bildschirmfreigabe und -aufnahme (neu, 2026-11-16, 0.34.0)
+
+- **Anlass:** Deep-Audit 16.11. Nur das Zwischenablage-Panel hatte `sharingType = .none` (G40). Die Insel zeigt Titel und Text von
+  Mitteilungen (G29), Claude-Befehle bis 120 Zeichen (G34) und Anrufernamen; bei Teams-/Zoom-Freigabe sah das Publikum sie.
+- **Was:** `IslandPanel` setzt `sharingType = .none` im eigenen `init`. Das gilt für jedes Insel-Fenster (klein, groß, weitere
+  Bildschirme); kein Aufrufer kann es vergessen. Getestet für beide Erzeugungswege.
+- **Preis:** Die Insel erscheint auch in eigenen Bildschirmfotos und -aufnahmen nicht mehr (Entscheidung Michael 16.11.). Nicht betroffen:
+  das Menüleisten-Fenster mit dem Mixer, das Zwischenablage-Panel (schon G40), Plattenspieler-/Sperrbildschirm-Fenster (zeigen nur Musik).
+- **Zu messen (nur am echten System):** Bildschirmfreigabe in Teams/Zoom starten, Insel aufklappen → bei den anderen unsichtbar.
+

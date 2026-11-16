@@ -58,6 +58,14 @@ final class RingActionsTests: XCTestCase {
         XCTAssertEqual(fake.mutedByDevice[7], true, "fremder Zustand wird nicht angetastet")
     }
 
+    @MainActor
+    func testIslandPanelIsHiddenFromScreenSharing() {
+        let small = IslandPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+        XCTAssertEqual(small.sharingType, .none, "Mitteilungstexte und Claude-Befehle gehören nicht in die Bildschirmfreigabe")
+        let big = IslandPanel(contentRect: NSRect(x: 0, y: 0, width: 100, height: 50), styleMask: [.borderless], backing: .buffered, defer: false)
+        XCTAssertEqual(big.sharingType, .none)
+    }
+
     func testMethodPrefersMuteThenVolume() {
         XCTAssertEqual(MicMuteMethod.choose(muteSettable: true, volumeSettable: true), .mute)
         XCTAssertEqual(MicMuteMethod.choose(muteSettable: false, volumeSettable: true), .volume)
