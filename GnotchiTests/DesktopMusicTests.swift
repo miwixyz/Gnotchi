@@ -125,6 +125,17 @@ final class WidgetRestartTests: XCTestCase {
         XCTAssertEqual(WidgetRestart.stale(procs, widgetPath: path, uid: 501, ownPid: 20, ownStart: 200), [10])
     }
 
+    func testWidgetWithDeletedBinaryIsFoundByName() {
+        let procs = [
+            WidgetRestart.Proc(pid: 10, path: "", uid: 501, start: 100, name: "GnotchiWidget"),   // Datei gelöscht → beenden
+            WidgetRestart.Proc(pid: 11, path: "", uid: 501, start: 300, name: "GnotchiWidget"),   // jünger als Gnotchi → bleibt
+            WidgetRestart.Proc(pid: 12, path: "", uid: 502, start: 100, name: "GnotchiWidget"),   // anderer Nutzer → bleibt
+            WidgetRestart.Proc(pid: 13, path: "", uid: 501, start: 100, name: "Safari"),          // anderer Name → bleibt
+            WidgetRestart.Proc(pid: 14, path: "/usr/bin/x", uid: 501, start: 100, name: "GnotchiWidget"),   // lesbarer fremder Pfad → bleibt
+        ]
+        XCTAssertEqual(WidgetRestart.stale(procs, widgetPath: path, uid: 501, ownPid: 20, ownStart: 200), [10])
+    }
+
     func testNeverOwnProcess() {
         let procs = [WidgetRestart.Proc(pid: 20, path: path, uid: 501, start: 100)]
         XCTAssertEqual(WidgetRestart.stale(procs, widgetPath: path, uid: 501, ownPid: 20, ownStart: 200), [])

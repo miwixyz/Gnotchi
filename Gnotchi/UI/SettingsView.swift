@@ -13,16 +13,17 @@ struct SettingsView: View {
     @AppStorage("settingsTab") private var tab: Tab = .general
 
     enum Tab: String, CaseIterable, Identifiable {
-        case general, playback, activities, notify, weather, shelf, clipboard
+        case general, playback, audio, activities, keys, notify, shelf, clipboard
         var id: Self { self }
 
         var title: String {
             switch self {
             case .general: "Allgemein"
             case .playback: "Wiedergabe"
+            case .audio: "Audio"
             case .activities: "Aktivitäten"
+            case .keys: "Tasten"
             case .notify: "Mitteilungen"
-            case .weather: "Wetter"
             case .shelf: "Ablage"
             case .clipboard: "Zwischenablage"
             }
@@ -32,9 +33,10 @@ struct SettingsView: View {
             switch self {
             case .general: "gearshape"
             case .playback: "music.note"
+            case .audio: "speaker.wave.2"
             case .activities: "square.stack.3d.up"
+            case .keys: "circle.grid.2x2"
             case .notify: "bell.badge"
-            case .weather: "cloud.sun"
             case .shelf: "tray.full"
             case .clipboard: "doc.on.clipboard"
             }
@@ -59,9 +61,10 @@ struct SettingsView: View {
                     switch tab {
                     case .general: generalTab
                     case .playback: playbackTab
+                    case .audio: audioTab
                     case .activities: activitiesTab
+                    case .keys: keysTab
                     case .notify: notifyCard
-                    case .weather: weatherTab
                     case .shelf: shelfTab
                     case .clipboard: clipboardTab
                     }
@@ -73,7 +76,7 @@ struct SettingsView: View {
             .scrollBounceBehavior(.basedOnSize)
             .frame(height: max(1, min(contentHeight, Self.maxContentHeight)))
         }
-        .frame(width: 540)   // 0.11.0: sieben Reiter (vorher 440 bei sechs)
+        .frame(width: 600)   // 0.31.0: acht Reiter (0.11.0: sieben bei 540, vorher 440 bei sechs)
         .font(FamilyTheme.font(.body))
         .foregroundStyle(FamilyTheme.textPrimary)
         .tint(FamilyTheme.accent)

@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Inhalte der Reiter (Michael 22.10.: „Einstellungsfenster zu lang, besser strukturieren“). Zuordnung nach Zweck:
-/// Allgemein (Start, Updates, Aufklappen) · Wiedergabe (Musik, Medienfilter) · Aktivitäten (was die Insel sonst zeigt,
-/// Timer, Spiegel) · Mitteilungen · Wetter.
+/// Allgemein (Start, Updates, Aufklappen) · Wiedergabe (Musik, Medienfilter) · Audio (Mixer, Meeting-Leiser) · Aktivitäten
+/// (was die Insel sonst zeigt) · Tasten (Ring, Timer, Spiegel, Wetter) · Mitteilungen · Ablage · Zwischenablage.
 extension SettingsView {
 
     @ViewBuilder var generalTab: some View {
@@ -185,6 +185,21 @@ extension SettingsView {
     }
 
     /// Apps zur Auswahl der Meeting-Apps: die Standardliste, schon gewählte und Apps, die in diesem Lauf das Mikrofon genutzt haben.
+    /// „Jetzt erlauben“ mit Rückmeldung: Vorher tat der Knopf bei nicht laufender App nichts sichtbar (Michael 16.11., Musik).
+    @ViewBuilder func allowButton(_ id: String) -> some View {
+        let name = AppleScriptSource.appName(id)
+        Button("\(name) jetzt erlauben") { AutomationStatus.shared.request(id) }
+            .buttonStyle(CardButtonStyle())
+        if let code = AutomationStatus.shared.lastRequest[id], code != 0 {
+            note(code == AppleScriptSource.notRunningError
+                 ? "\(name) läuft nicht. Starte die App und klicke dann noch einmal: macOS fragt nur, solange sie läuft."
+                 : code == AppleScriptSource.deniedError
+                 ? "macOS hat die Erlaubnis verweigert und fragt nicht noch einmal. Schalte sie in Systemeinstellungen → Datenschutz & Sicherheit → Automation unter Gnotchi für \(name) ein."
+                 : "macOS antwortete mit Code \(code) – ohne Erlaubnis.",
+                 symbol: "info.circle", color: FamilyTheme.textSecondary)
+        }
+    }
+
     var meetingAppChoices: [String] {
         Array(Set(DuckLogic.defaultMeetingApps).union(prefs.meetingApps).union(model.activity.micAppsSeen)).sorted()
     }
@@ -225,41 +240,11 @@ extension SettingsView {
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
             }
         }
-        // 0.28.0 Tasten-Ring: Werkzeuge als runde Tasten um die große Insel. Ein Schalter je Taste.
-        card("Tasten um die Insel") {
-            toggleRow("Tasten um die große Insel", isOn: $prefs.ring)
-                .onChange(of: prefs.ring) { model.applyNotchSetting() }
-            if prefs.ring {
-                ForEach(RingButton.allCases.filter { !$0.alwaysOn }, id: \.self) { b in
-                    toggleRow(b.label, isOn: Binding(
-                        get: { prefs.isRingButtonOn(b) },
-                        set: { on in
-                            prefs.setRingButton(b, on: on)
-                            // Mirror und Ablage sind harmlos und gehören zur Taste; Wetter (Netz) und Zwischenablage
-                            // (liest mit) schaltest du bewusst in ihrem Reiter ein.
-                            if on, b == .mirror { prefs.mirror = true }
-                            if on, b == .shelf { prefs.shelf = true }
-                            model.applyNotchSetting()
-                        }))
-                }
-                if prefs.isRingButtonOn(.mic) {
-                    toggleRow("Mikrofon-Taste immer zeigen", isOn: $prefs.ringMicAlways)
-                        .onChange(of: prefs.ringMicAlways) { model.applyNotchSetting() }
-                    note("Ohne den Schalter erscheint die Taste nur, solange eine App das Mikrofon nutzt, und bleibt, solange es stumm ist.",
-                         symbol: "info.circle", color: FamilyTheme.textSecondary)
-                }
-                if prefs.isRingButtonOn(.weather) && !prefs.weather {
-                    note("Wetter ist aus: Die Taste erscheint, sobald du es im Reiter „Wetter“ einschaltest.",
-                         symbol: "info.circle", color: FamilyTheme.textSecondary)
-                }
-                if prefs.isRingButtonOn(.clipboard) && !prefs.clipboard {
-                    note("Zwischenablage ist aus: Die Taste erscheint, sobald du sie im Reiter „Zwischenablage“ einschaltest.",
-                         symbol: "info.circle", color: FamilyTheme.textSecondary)
-                }
-                note("Anheften und Einstellungen sind immer da. Ohne die Tasten steht wieder die kleine Symbolleiste in der Insel.",
-                     symbol: "info.circle", color: FamilyTheme.textSecondary)
-            }
-        }
+    }
+
+    /// Audio (Michael 16.11.: „Menüstruktur unübersichtlich in einem zu langen Fenster“): alles, was Lautstärke betrifft.
+    @ViewBuilder var audioTab: some View {
+        @Bindable var prefs = prefs
         // 0.29.0 Meeting-Leiser (G53): Spotify und Musik leiser, solange eine gewählte App das Mikrofon nutzt.
         card("Meeting-Leiser") {
             toggleRow("Musik im Meeting leiser", isOn: $prefs.meetingDuck)
@@ -285,13 +270,15 @@ extension SettingsView {
                     if !AutomationStatus.shared.isAllowed(id) {
                         note("\(AppleScriptSource.appName(id)): Gnotchi darf die App noch nicht steuern. Ohne diese Erlaubnis bleibt die Lautstärke unverändert, und Gnotchi zeigt den Titel nicht, wenn macOS ihn nicht selbst meldet. macOS fragt beim ersten Spulen (Spotify) bzw. Shuffle-Klick (Musik) – oder jetzt auf Klick (die App muss laufen).",
                              symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
-                        Button("\(AppleScriptSource.appName(id)) jetzt erlauben") { AutomationStatus.shared.request(id) }
+                        allowButton(id)
                     }
                 }
             }
         }
         // Mixer Stufe 2 (G55): Regler je App über Prozess-Taps. Braucht „Audio-Aufnahme“, ab Werk aus.
         card("Mixer") {
+            note("Ausgabe- und Mikrofon-Favoriten legst du im Mixer selbst fest: Auswahlfeld öffnen, unten „Favoriten …“.",
+                 symbol: "star", color: FamilyTheme.textSecondary)
             toggleRow("Lautstärke je App (Audio-Aufnahme)", isOn: $prefs.appVolume)
                 .onChange(of: prefs.appVolume) { model.applyNotchSetting() }
             note(prefs.appVolume
@@ -300,6 +287,46 @@ extension SettingsView {
                  // swiftlint:disable:next line_length
                  : "Aus: Regler gibt es nur für Spotify und Musik. Ein Regler je App braucht die Freigabe „Audio-Aufnahme“: Sie erlaubt Gnotchi, den Ton einer App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher, wird nicht gespeichert und nicht gesendet.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
+        }
+    }
+
+    /// Tasten: die Werkzeuge um die große Insel samt ihren Einstellungen (Timer, Spiegel, Wetter).
+    @ViewBuilder var keysTab: some View {
+        @Bindable var prefs = prefs
+        // 0.28.0 Tasten-Ring: Werkzeuge als runde Tasten um die große Insel. Ein Schalter je Taste.
+        card("Tasten um die Insel") {
+            toggleRow("Tasten um die große Insel", isOn: $prefs.ring)
+                .onChange(of: prefs.ring) { model.applyNotchSetting() }
+            if prefs.ring {
+                ForEach(RingButton.allCases.filter { !$0.alwaysOn }, id: \.self) { b in
+                    toggleRow(b.label, isOn: Binding(
+                        get: { prefs.isRingButtonOn(b) },
+                        set: { on in
+                            prefs.setRingButton(b, on: on)
+                            // Mirror und Ablage sind harmlos und gehören zur Taste; Wetter (Netz) und Zwischenablage
+                            // (liest mit) schaltest du bewusst in ihrem Reiter ein.
+                            if on, b == .mirror { prefs.mirror = true }
+                            if on, b == .shelf { prefs.shelf = true }
+                            model.applyNotchSetting()
+                        }))
+                }
+                if prefs.isRingButtonOn(.mic) {
+                    toggleRow("Mikrofon-Taste immer zeigen", isOn: $prefs.ringMicAlways)
+                        .onChange(of: prefs.ringMicAlways) { model.applyNotchSetting() }
+                    note("Ohne den Schalter erscheint die Taste nur, solange eine App das Mikrofon nutzt, und bleibt, solange es stumm ist.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                if prefs.isRingButtonOn(.weather) && !prefs.weather {
+                    note("Wetter ist aus: Die Taste erscheint, sobald du es weiter unten bei „Wetter“ einschaltest.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                if prefs.isRingButtonOn(.clipboard) && !prefs.clipboard {
+                    note("Zwischenablage ist aus: Die Taste erscheint, sobald du sie im Reiter „Zwischenablage“ einschaltest.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                note("Anheften und Einstellungen sind immer da. Ohne die Tasten steht wieder die kleine Symbolleiste in der Insel.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
+            }
         }
         card("Timer und Spiegel") {
             toggleRow("Timer-Ablauf bis Klick anzeigen", isOn: $prefs.timerAlarm)
@@ -318,6 +345,7 @@ extension SettingsView {
             toggleRow("Spiegel in der Notch", isOn: $prefs.mirror)
                 .onChange(of: prefs.mirror) { model.applyNotchSetting() }
         }
+        weatherTab
     }
 
     @ViewBuilder var shelfTab: some View {

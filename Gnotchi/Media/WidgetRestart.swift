@@ -22,15 +22,23 @@ enum WidgetRestart {
         let uid: uid_t
         /// Startzeit, Sekunden seit 1970.
         let start: TimeInterval
+        /// Prozessname laut Kernel. Bleibt lesbar, wenn der Pfad es nicht ist (Programmdatei gelöscht).
+        var name: String = ""
     }
 
     /// Welche Prozesse sind alte Widget-Prozesse? Reine Logik, getestet.
     static func stale(_ procs: [Proc], widgetPath: String, uid: uid_t, ownPid: pid_t, ownStart: TimeInterval) -> [pid_t] {
         procs.filter {
-            $0.pid != ownPid && $0.pid > 1 && $0.uid == uid && ($0.path == widgetPath || isUpdateCopy($0.path)) && $0.start < ownStart
+            $0.pid != ownPid && $0.pid > 1 && $0.uid == uid && $0.start < ownStart
+                && ($0.path == widgetPath || isUpdateCopy($0.path) || isOrphanWidget($0))
         }
         .map(\.pid)
     }
+
+    /// Das Widget, dessen Programmdatei nach dem Update gelöscht ist (gemessen 16.11., 0.30.0 → 0.31.0): `proc_pidpath` liefert dann
+    /// nichts, der Pfadvergleich sieht den Prozess nie. Erkennbar am Kernel-Namen. Nur mit leerem Pfad, damit kein fremdes Programm
+    /// gleichen Namens mit lesbarem Pfad getroffen wird.
+    static func isOrphanWidget(_ p: Proc) -> Bool { p.path.isEmpty && p.name == "GnotchiWidget" }
 
     /// Das Widget aus dem Zwischenordner von Sparkle (0.30.1, gemessen 16.11.): Nach dem Update vom 13.11. lief der Widget-Prozess
     /// weiter aus `…/org.sparkle-project.Sparkle/Installation/…/Gnotchi.app`, nicht aus `/Applications`; der Pfadvergleich fand
@@ -68,12 +76,13 @@ enum WidgetRestart {
 
     static func info(_ pid: pid_t) -> Proc? {
         var buf = [CChar](repeating: 0, count: Int(MAXPATHLEN) * 4)
-        guard proc_pidpath(pid, &buf, UInt32(buf.count)) > 0 else { return nil }
+        let hasPath = proc_pidpath(pid, &buf, UInt32(buf.count)) > 0
         var bsd = proc_bsdinfo()
         let size = Int32(MemoryLayout<proc_bsdinfo>.size)
         guard proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsd, size) == size else { return nil }
         let start = TimeInterval(bsd.pbi_start_tvsec) + TimeInterval(bsd.pbi_start_tvusec) / 1_000_000
-        return Proc(pid: pid, path: URL(fileURLWithPath: String(cString: buf)).resolvingSymlinksInPath().path,
-                    uid: bsd.pbi_uid, start: start)
+        let name = withUnsafeBytes(of: &bsd.pbi_name) { String(cString: $0.bindMemory(to: CChar.self).baseAddress!) }
+        let path = hasPath ? URL(fileURLWithPath: String(cString: buf)).resolvingSymlinksInPath().path : ""
+        return Proc(pid: pid, path: path, uid: bsd.pbi_uid, start: start, name: name)
     }
 }

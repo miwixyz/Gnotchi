@@ -25,6 +25,8 @@ final class AppleScriptSource {
     nonisolated static let supported = [spotify, music]
     /// errAEEventNotPermitted: Nutzer hat die Automation für diese App verweigert.
     nonisolated static let deniedError = -1743
+    /// Die App läuft nicht (-600): Die Erlaubnis lässt sich nur anfordern, solange sie läuft.
+    nonisolated static let notRunningError = Int(procNotFound)
     private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "medien")
 
     var onInfo: ((NowPlayingInfo?) -> Void)?

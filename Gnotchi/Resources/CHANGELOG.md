@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.32.0] — 2026-11-16
+
+### Geändert
+- **Einstellungen neu geordnet.** Der Reiter „Aktivitäten“ war zu lang. Jetzt: **Audio** (neu: Mixer mit „Lautstärke je App“, Meeting-Leiser), **Aktivitäten** (was die Insel zeigt, Code & KI), **Tasten** (neu: Tasten um die Insel, Timer und Spiegel, Wetter; der Reiter „Wetter“ entfällt). Das Fenster ist dafür 60 pt breiter. Im Audio-Reiter steht, wie man Favoriten im Mixer festlegt.
+
+### Behoben
+- **„Musik jetzt erlauben“ tat nichts.** War die Musik-App nicht gestartet, blieb der Klick ohne Rückmeldung (macOS fragt nur bei laufender App). Der Knopf sagt jetzt „Musik läuft nicht. Starte die App und klicke dann noch einmal“ und nennt bei Ablehnung den Weg in die Systemeinstellungen.
+- **Widget nach einem Update.** Der alte Widget-Prozess blieb nach dem Update am Leben, weil sein Pfad nicht mehr lesbar ist (die Programmdatei wird gelöscht): Der Neustart fand ihn nie („0 alte Prozesse“), das Widget blieb ohne Musik. Der Prozess wird jetzt zusätzlich an seinem Namen erkannt (nur mit leerem Pfad, nur eigener Nutzer, nur älter als Gnotchi) und beendet.
+
 ## [0.31.0] — 2026-11-16
 
 ### Neu

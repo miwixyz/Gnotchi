@@ -60,7 +60,7 @@ struct MixerView: View {
                 }
                 if !model.appVolumeEnabled, model.apps.contains(where: { $0.volume == nil }) {
                     // swiftlint:disable:next line_length
-                    Text(verbatim: "Regler gibt es für Spotify und Musik. Für andere Apps: Einstellungen → Aktivitäten → „Lautstärke je App“ (braucht die Freigabe „Audio-Aufnahme“).")
+                    Text(verbatim: "Regler gibt es für Spotify und Musik. Für andere Apps: Einstellungen → Audio → „Lautstärke je App“ (braucht die Freigabe „Audio-Aufnahme“).")
                         .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
                 }
             }
