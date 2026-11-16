@@ -80,6 +80,14 @@ final class MixerTests: XCTestCase {
         if let v = model.output.volume { XCTAssertTrue((0...1).contains(v)) }
     }
 
+    func testGainCaptionExplainsHundredPercentAsOriginal() {
+        XCTAssertTrue(MixerView.gainCaption(percent: 100).contains("Original"))
+        XCTAssertTrue(MixerView.gainCaption(percent: 55).contains("leiser"))
+        XCTAssertTrue(MixerView.gainCaption(percent: 55).contains("100 % = Original"))
+        XCTAssertTrue(MixerView.gainCaption(percent: 150).contains("lauter"))
+        XCTAssertTrue(MixerView.gainCaption(percent: 0).contains("leiser"))
+    }
+
     func testStartStopIsIdempotent() {
         let model = MixerModel(interval: .seconds(3600))
         model.start()

@@ -171,6 +171,15 @@ struct MixerView: View {
         }
     }
 
+    /// Unter dem Regler je App (Stufe 2): sagt, dass 100 % „Original“ heißt und dass der Regler zusätzlich zur Systemlautstärke wirkt.
+    nonisolated static func gainCaption(percent: Int) -> String {
+        switch percent {
+        case 100: "Original, von Gnotchi nicht verändert"
+        case ..<100: "Von Gnotchi leiser gestellt · 100 % = Original"
+        default: "Von Gnotchi lauter gestellt · 100 % = Original"
+        }
+    }
+
     private func appRow(_ row: MixerAppRow) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
@@ -200,6 +209,7 @@ struct MixerView: View {
                     Text(verbatim: "\(v) %").font(.system(size: 12)).monospacedDigit().foregroundStyle(FamilyTheme.textSecondary)
                         .frame(width: 40, alignment: .trailing)
                 }
+                Text(verbatim: "Lautstärke im Player selbst").font(.system(size: 10)).foregroundStyle(FamilyTheme.textSecondary)
             } else if model.appVolumeEnabled, row.canTap {
                 // Stufe 2 (G55): Regler je App über einen Tap, 0…200 %, nahe 100 % rastet er ein (dann kein Tap).
                 let percent = Int((row.gain * 100).rounded())
@@ -210,6 +220,8 @@ struct MixerView: View {
                     Text(verbatim: "\(percent) %").font(.system(size: 12)).monospacedDigit().foregroundStyle(FamilyTheme.textSecondary)
                         .frame(width: 40, alignment: .trailing)
                 }
+                // Erklärung (Michael 16.11.: „Wo kommt bei Helium die Prozentanzeige her?“): Der Regler ist Gnotchis eigene Stufe.
+                Text(verbatim: Self.gainCaption(percent: percent)).font(.system(size: 10)).foregroundStyle(FamilyTheme.textSecondary)
             }
             if let f = model.tapFailures[row.id] {
                 Text(verbatim: tapHint(f)).font(.system(size: 11)).foregroundStyle(FamilyTheme.warning)

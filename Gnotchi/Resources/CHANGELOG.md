@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.32.2] — 2026-11-16
+
+### Geändert
+- **Mixer: Regler je App sind beschriftet.** Unter dem Regler steht jetzt, was er bedeutet: „Original, von Gnotchi nicht verändert“ bei 100 %, sonst „Von Gnotchi leiser (lauter) gestellt · 100 % = Original“. Der Regler ist Gnotchis eigene Stufe und wirkt zusätzlich zum Regler in der App (z. B. YouTube) und zur Systemlautstärke. Beim Regler für Spotify und Musik steht „Lautstärke im Player selbst“.
+
 ## [0.32.1] — 2026-11-16
 
 ### Behoben
