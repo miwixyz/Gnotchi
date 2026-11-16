@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.32.2</title>
-            <pubDate>Mon, 16 Nov 2026 10:52:43 +0100</pubDate>
+            <title>0.33.0</title>
+            <pubDate>Mon, 16 Nov 2026 11:24:46 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>231</sparkle:version>
-            <sparkle:shortVersionString>0.32.2</sparkle:shortVersionString>
+            <sparkle:version>233</sparkle:version>
+            <sparkle:shortVersionString>0.33.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Mixer: Regler je App sind beschriftet.</b> Unter dem Regler steht jetzt, was er bedeutet: „Original, von Gnotchi nicht verändert“ bei 100 %, sonst „Von Gnotchi leiser (lauter) gestellt · 100 % = Original“. Der Regler ist Gnotchis eigene Stufe und wirkt zusätzlich zum Regler in der App (z. B. YouTube) und zur Systemlautstärke. Beim Regler für Spotify und Musik steht „Lautstärke im Player selbst“.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.32.2/Gnotchi-0.32.2.zip" length="7846756" type="application/octet-stream" sparkle:edSignature="zUsB0oJu7LV3PGH2SUe8t11fFXnaqjnI8sgbVGJvprg3YMXVuqDSCjiIhZr03mRaGjDBKm9Iw1jX5mV9LlehCw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Regler für die Systemtöne im Mixer.</b> Unter „Systemtöne“ steht jetzt ein Regler (0 bis 100 %) für die Warnton-Lautstärke, also genau die „Warntonlautstärke“ aus Systemeinstellungen → Ton. Er gilt wie dort dauerhaft für den Mac, nicht nur für Gnotchi. Keine neue Freigabe. Auch im Mixer in der Insel.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.33.0/Gnotchi-0.33.0.zip" length="7850693" type="application/octet-stream" sparkle:edSignature="XnD/Lmw69A6QpRIaj4Zf102G0W6szc60Mze8g20FcY18ixQ+hJGoD9f2uVc2qgFVAa0WuU0zPO6edVb61i+3AQ=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: inyfTTQ83J8rqO2Pl5E3ChVOIv/yNnznlysSoDOTP+agQxUDon0AB4pyKjhrtnm5vmku1yNrXXAbtAzzDEmlCQ==
-length: 1632
+edSignature: cLkcNWAtK7U3Qxk4YofeueZeRdyocJrkYfsy34AMVSlB9iRs65SaDKRG6JV2E9joXiKouxlh46rVosQPhB6+AA==
+length: 1529
 -->
