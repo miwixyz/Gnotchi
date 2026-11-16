@@ -1640,3 +1640,52 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
 - **STRIDE:** S/T festes Skript, Wert begrenzt · R/I kein Protokoll mit Werten, nichts gesendet · D Zeitgrenze, nie Hauptthread ·
   E keine neue Freigabe. Zu messen: Regler ziehen → Systemeinstellungen → Ton zeigt denselben Wert.
 
+### Deep-Audit 16.11. (0.33.1): Ergebnis, behobene und offene Funde
+
+Drei unabhängige Prüfer (Korrektheit/Robustheit, Sicherheit, Performance/Stabilität) lasen den Code seit 0.27.0, nur lesend. Ihre Funde
+wurden einzeln im Code nachgeprüft. Keine kritischen oder hohen Funde.
+
+**Behoben in 0.33.1 (im Code bestätigt, mit Tests wo möglich):**
+- Tap-Motor: Stirbt nur ein Audio-Helfer der App (Browser-Tab zu), wird der Tap mit den übrigen Prozessen neu aufgebaut statt still
+  abgebaut (`trimmed`, getestet). Vorher fiel die App unbemerkt auf 100 % zurück.
+- Mikrofon-Stumm: Beim Wechsel des Standard-Mikrofons stellt Gnotchi das **alte** Gerät wieder laut, wenn es selbst es stumm gemacht hatte
+  (vorher blieb es stumm, die Zusage „beim Beenden wird entstummt“ griff dann nicht). Getestet mit zwei Geräten.
+- Mixer: Zeichnet nach den langsamen Abfragen nicht mehr mit altem Stand über (zweite `holdUntil`-Prüfung). Die Core-Audio-Abfrage läuft
+  nicht mehr auf dem Hauptthread (Nachbau-Messung des Prüfers: 60–70 ms je Durchlauf, Spitzen > 250 ms bei vielen Audio-Prozessen).
+- Automation entzogen (-1743) im Mixer-Pfad: Merker und Zwischenspeicher werden gelöscht, die Einstellungen zeigen nicht mehr „erlaubt“.
+- Widget: `hasCover` nur, wenn das Cover wirklich geschrieben ist; nie ein altes Cover zum neuen Titel. `clear()` läuft nicht mehr jede
+  Sekunde ohne Wirkung.
+- Meldung „Kein Ton angekommen“ nennt jetzt auch die Pause als häufigere Ursache. **Die Abbau-Frist (1,5 s) bleibt unverändert:** Sie ist die
+  Zusage „nie stumm hängen lassen“ (der Tap läuft mit `mutedWhenTapped`). Offen: Ob ein pausierender Player den Tap wegen der Frist
+  abbaut, ohne dass die Freigabe fehlt, ist Absicht, kein Fehler; ein Aufweichen braucht eine Messung mit echtem Gerät.
+
+**Dokumentabweichungen (Doku an den Code angepasst, Stand 16.11.):**
+- G39: Im Code ist `touchIDAuthenticationAllowableReuseDuration = 0` (`ClipboardKeys.swift:54`), nicht 300. Die 5 Minuten zählt Gnotchi
+  selbst (Angabe des Prüfers). Das Verhalten ist nicht schwächer als beschrieben.
+- G37: Es gibt **keinen Stundentakt** für das Abräumen. Abgeräumt wird beim Start und bei jedem neuen Eintrag (`prune`); ohne neue Kopie
+  bleiben abgelaufene Einträge liegen. `pruneSecrets` läuft alle 5 s.
+- G39 „beim Beenden geleert“ gilt nur für geordnetes Beenden, nicht nach Absturz, SIGKILL oder Stromausfall.
+
+**Offen, Produktentscheidung oder Messung nötig (nicht geändert):**
+- 🟡 **Insel in der Bildschirmfreigabe sichtbar:** Nur das Zwischenablage-Panel hat `sharingType = .none`. Die Insel zeigt bei Teams/Zoom-
+  Freigabe Mitteilungstexte, Claude-Befehle (bis 120 Zeichen) und Anrufernamen. Fix wäre `sharingType = .none` am Insel-Panel;
+  Preis: Die Insel erscheint auch in eigenen Screenshots und Aufnahmen nicht mehr. Entscheidung Michael.
+- 🟡 **Fehlender Schlüssel im Schlüsselbund:** `loadOrCreate` legt bei `errSecItemNotFound` still einen neuen Schlüssel an, auch wenn
+  schon Chiffrat im Verlauf liegt (z. B. Datenbank per Time Machine auf einen anderen Mac). Alle Einträge sind dann unlesbar, nur ein
+  Protokolleintrag. Fix: Nur anlegen, wenn der Speicher leer ist, sonst Problemmeldung. Berührt Schlüsselbund-Abläufe, vor dem Umbau mit
+  einer Mess-Fassung prüfen.
+- ⚪ Claude-Hook zeigt auf den absoluten Pfad des laufenden Programms, ohne Prüfung des Ortes (DMG, flüchtiger Pfad).
+- ⚪ `SecretDetector` erkennt nur die ganze getrimmte Kopie, nicht `"ghp_…"` oder `KEY=sk-…` (Bildtext zerlegt weiter; bewusste Entscheidung
+  vom 26.10.).
+- ⚪ Mitteilungs-Banner werden über den angezeigten App-Namen zugeordnet, nicht über die Absender-Kennung (Phishing in der Notch, knappes
+  Zeitfenster).
+- ⚪ Verschobene/gelöschte Verlaufseinträge bleiben als altes Chiffrat in SQLite-Freiseiten/WAL (kein `secure_delete`); Vermutung des
+  Prüfers, nicht an den Dateien gemessen.
+- ⚪ Zwischenablage-Formate werden synchron auf dem Hauptthread gelesen, die Größenprüfung folgt erst danach.
+- Performance-Backlog (Vermutung/Nachbau, nicht in der App gemessen): Zwischenablage-Suche holt je Tastendruck alle Einträge (~50 ms bei
+  1 000 Texten), Insel-Refresh bei jedem App-Wechsel (~29 ms), Tap-Aufbau auf dem Hauptthread, Start-Entschlüsselung des Verlaufs, ~14
+  Timer-Wakeups pro Sekunde im Ruhezustand.
+- **Nicht gemessen (Hardware nötig):** Hat das Ausgabegerät selbst Eingänge (USB-Headset, AirPods), könnte `inData` des Aggregats zuerst
+  Mikrofon-Kanäle enthalten (falscher Ton im Regler). Vermutung des Prüfers (~60 %), mit echtem Headset messen.
+- Randfall: Echte Geräteänderung innerhalb von 1 s nach dem Anlegen/Zerstören eines Taps wird ignoriert (Karenzzeit gegen das eigene Aggregat).
+

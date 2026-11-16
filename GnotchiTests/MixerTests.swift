@@ -239,6 +239,16 @@ extension MixerTests {
         XCTAssertFalse(engine.hasTaps)
     }
 
+    func testTrimmedKeepsSurvivorsAndDropsDeadProcesses() {
+        let target = AppTapEngine.Target(appID: "browser", processes: [1, 2, 3], deviceUID: "UID")
+        let t = AppTapEngine.trimmed(target, exists: { $0 != 2 })
+        XCTAssertEqual(t?.processes, [1, 3], "ein toter Helfer: Tap mit den übrigen neu aufbauen, nicht abbauen")
+        XCTAssertEqual(t?.appID, "browser")
+        XCTAssertEqual(t?.deviceUID, "UID")
+        XCTAssertNil(AppTapEngine.trimmed(target, exists: { _ in false }), "keine Reste: nichts mehr zu regeln")
+        XCTAssertEqual(AppTapEngine.trimmed(target, exists: { _ in true }), target)
+    }
+
     func testGainCellRampsFromLastToTarget() {
         let cell = GainCell()
         XCTAssertEqual(cell.ramp().0, 1)

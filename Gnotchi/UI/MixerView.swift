@@ -241,7 +241,7 @@ struct MixerView: View {
     private func tapHint(_ f: AppTapEngine.Failure) -> String {
         switch f {
         // swiftlint:disable:next line_length
-        case .noSignal: "Kein Ton angekommen: Prüfe die Freigabe „Audio-Aufnahme“ (Systemeinstellungen → Datenschutz & Sicherheit). Die App spielt unverändert."
+        case .noSignal: "Kein Ton angekommen, die App spielt unverändert. Pausiert sie nur, ziehe den Regler noch einmal; sonst die Freigabe „Audio-Aufnahme“ prüfen (Systemeinstellungen → Datenschutz & Sicherheit)."
         case .setup: "Regler nicht verfügbar. Die App spielt unverändert."
         case .tooMany: "Zu viele Regler gleichzeitig (höchstens \(AppTapEngine.maxTaps)). Die App spielt unverändert."
         case .noTarget: "Diese App gibt gerade keinen Ton aus. Die App spielt unverändert."

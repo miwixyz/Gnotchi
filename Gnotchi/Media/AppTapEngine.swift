@@ -181,8 +181,19 @@ final class AppTapEngine {
     }
 
     func processesChanged() {
-        for (id, l) in live where !l.target.processes.allSatisfy(processExists) { release(id) }
+        for (id, l) in live where !l.target.processes.allSatisfy(processExists) {
+            // Stirbt nur ein Audio-Helfer der App (Browser-Tab zu), bleibt der Regler: Tap mit den übrigen Prozessen neu aufbauen,
+            // mit der bisherigen Verstärkung. Ohne Reste gibt es nichts mehr zu regeln. Vorher fiel die App still auf 100 %
+            // zurück (Fund Deep-Audit 16.11.).
+            if let rest = Self.trimmed(l.target, exists: processExists) { setGain(gains[id] ?? 1, for: rest) } else { release(id) }
+        }
         if !live.isEmpty { onProcessListChanged?() }
+    }
+
+    /// Das Ziel ohne Prozesse, die es nicht mehr gibt; nil, wenn keiner übrig ist.
+    nonisolated static func trimmed(_ target: Target, exists: (AudioObjectID) -> Bool) -> Target? {
+        let alive = target.processes.filter(exists)
+        return alive.isEmpty ? nil : Target(appID: target.appID, processes: alive, deviceUID: target.deviceUID)
     }
 
     private final class Listener {

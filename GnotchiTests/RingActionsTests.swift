@@ -21,6 +21,43 @@ final class RingActionsTests: XCTestCase {
         func observe(device: UInt32?, _ handler: @escaping @MainActor () -> Void) -> AnyObject? { nil }
     }
 
+    /// Zwei Geräte mit eigenem Zustand (der einfache FakeMic hat nur einen).
+    private final class TwoMics: MicBackend {
+        var device: UInt32? = 7
+        var mutedByDevice: [UInt32: Bool] = [7: false, 8: false]
+        func defaultInput() -> UInt32? { device }
+        func canSetMute(_ d: UInt32) -> Bool { true }
+        func canSetVolume(_ d: UInt32) -> Bool { false }
+        func isMuted(_ d: UInt32) -> Bool? { mutedByDevice[d] }
+        func setMuted(_ d: UInt32, _ on: Bool) -> Bool { mutedByDevice[d] = on; return true }
+        func volume(_ d: UInt32) -> Float? { nil }
+        func setVolume(_ d: UInt32, _ v: Float) -> Bool { false }
+        func observe(device: UInt32?, _ handler: @escaping @MainActor () -> Void) -> AnyObject? { nil }
+    }
+
+    func testSwitchingInputDeviceRestoresTheOneWeMuted() {
+        let fake = TwoMics()
+        let mic = MicMute(backend: fake)
+        mic.setActive(true)
+        mic.toggle()
+        XCTAssertEqual(fake.mutedByDevice[7], true)
+        fake.device = 8   // Nutzer wechselt das Standard-Mikrofon
+        mic.refresh()
+        XCTAssertEqual(fake.mutedByDevice[7], false, "das alte Gerät bleibt nicht stumm zurück")
+        XCTAssertEqual(fake.mutedByDevice[8], false, "das neue Gerät hat Gnotchi nie angefasst")
+        XCTAssertEqual(mic.state, .unmuted)
+    }
+
+    func testSwitchingInputDeviceLeavesAlreadyMutedDeviceAlone() {
+        let fake = TwoMics()
+        fake.mutedByDevice[7] = true   // vom Nutzer selbst stumm gestellt, nicht von Gnotchi
+        let mic = MicMute(backend: fake)
+        mic.setActive(true)
+        fake.device = 8
+        mic.refresh()
+        XCTAssertEqual(fake.mutedByDevice[7], true, "fremder Zustand wird nicht angetastet")
+    }
+
     func testMethodPrefersMuteThenVolume() {
         XCTAssertEqual(MicMuteMethod.choose(muteSettable: true, volumeSettable: true), .mute)
         XCTAssertEqual(MicMuteMethod.choose(muteSettable: false, volumeSettable: true), .volume)
@@ -91,15 +128,16 @@ final class RingActionsTests: XCTestCase {
     }
 
     func testChangeOfDefaultDeviceForgetsOurMute() {
-        let fake = FakeMic()
+        let fake = TwoMics()
         let mic = MicMute(backend: fake)
         mic.setActive(true)
-        mic.toggle()
-        fake.device = 9   // anderes Mikrofon wird Standard
-        fake.muted = true
+        mic.toggle()                    // Gnotchi stummt Gerät 7
+        fake.device = 8                 // anderes Mikrofon wird Standard
+        fake.mutedByDevice[8] = true    // das neue ist von außen stumm (Systemeinstellungen)
         mic.refresh()
         mic.setActive(false)
-        XCTAssertTrue(fake.muted, "das neue Gerät hat nicht Gnotchi stummgeschaltet")
+        XCTAssertEqual(fake.mutedByDevice[8], true, "das neue Gerät hat nicht Gnotchi stummgeschaltet: bleibt, wie es ist")
+        XCTAssertEqual(fake.mutedByDevice[7], false, "das alte Gerät hat Gnotchi beim Wechsel wieder laut gestellt")
     }
 
     // MARK: Geschwindigkeitstest

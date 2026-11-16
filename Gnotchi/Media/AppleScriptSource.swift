@@ -422,7 +422,9 @@ extension AppleScriptSource {
         return await withCheckedContinuation { (cont: CheckedContinuation<Int?, Never>) in
             queue.async {
                 guard Self.isRunning(id) else { return cont.resume(returning: nil) }
-                let (out, _) = Self.execute(source)
+                let (out, error) = Self.execute(source)
+                // macOS hat die Steuerung entzogen (-1743): Merker und Zwischenspeicher löschen, sonst steht weiter „erlaubt“.
+                if error == Self.deniedError { Task { @MainActor in AutomationStatus.shared.forget(id) } }
                 cont.resume(returning: out.flatMap(Self.volumeValue(from:)))
             }
         }

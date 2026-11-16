@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.33.1] — 2026-11-16
+
+### Behoben
+- **Regler je App fiel still auf 100 % zurück**, wenn nur ein Audio-Helfer der App endete (z. B. ein Browser-Tab wurde geschlossen). Der Tap wird jetzt mit den übrigen Prozessen neu aufgebaut, der Regler bleibt.
+- **Mikrofon stumm:** Wechselst du das Standard-Mikrofon, stellt Gnotchi das vorige Gerät wieder laut, wenn es selbst es stumm gemacht hatte. Vorher blieb es stumm zurück.
+- **Mixer:** Regler springen beim Ziehen nicht mehr kurz zurück, wenn gerade eine langsame Abfrage (Spotify/Musik) fertig wird. Die Core-Audio-Abfrage läuft jetzt im Hintergrund statt im Hauptthread (weniger Ruckeln bei vielen Audio-Prozessen).
+- **Entzogene Automation:** Entziehst du Gnotchi in den Systemeinstellungen die Steuerung von Spotify/Musik, zeigen Einstellungen und Meeting-Leiser das jetzt an, statt weiter „erlaubt“ zu behaupten.
+- **Widget:** Es zeigt nie ein altes Cover zum neuen Titel; ein nicht geschriebenes Cover wird nicht mehr als vorhanden gemeldet. Gnotchi räumt die Widget-Dateien im Ruhezustand nicht mehr jede Sekunde auf.
+- Die Meldung „Kein Ton angekommen“ nennt jetzt auch die Pause als mögliche Ursache.
+
+### Intern
+- Deep-Audit mit drei unabhängigen Prüfern (Korrektheit, Sicherheit, Performance), Ergebnis und offene Punkte in `docs/SECURE-DESIGN.md` („Deep-Audit 16.11.“). Keine kritischen oder hohen Funde. 844 Tests.
+
 ## [0.33.0] — 2026-11-16
 
 ### Neu

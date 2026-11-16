@@ -15,6 +15,10 @@ final class DesktopWidgetFeed {
     private var last: WidgetWire.Now?
     private weak var lastArtwork: NSImage?
     private var listening = false
+    /// Liegt die Cover-Datei wirklich im Gruppen-Ordner? `hasCover` im Widget hängt daran, nicht am Vorhandensein des Bildes.
+    private var coverWritten = false
+    /// Schon aufgeräumt und seitdem nichts geschrieben? Dann tut `clear()` nichts (es lief jede Sekunde ohne Wirkung, Deep-Audit 16.11.).
+    private var cleared = false
     /// Schon ausgeführte Befehle (begrenzt) – derselbe Befehl löst nie zweimal aus.
     private var handled: [UUID] = []
 
@@ -38,20 +42,25 @@ final class DesktopWidgetFeed {
     /// `info == nil` → nichts anzeigen (Dateien weg).
     func publish(info: NowPlayingInfo?, artwork: NSImage?) {
         guard let info else { clear(); return }
-        let now = Self.makeNow(info: info, hasCover: artwork != nil)
-        if now == last && artwork === lastArtwork { return }
+        if Self.makeNow(info: info, hasCover: coverWritten) == last && artwork === lastArtwork { return }
         guard let dir = WidgetWire.container() else {
             Self.log.error("Widget: kein Gruppen-Ordner")
             return
         }
         let coverURL = dir.appendingPathComponent(WidgetWire.coverFile)
         if artwork !== lastArtwork {
+            coverWritten = false
+            try? FileManager.default.removeItem(at: coverURL)   // nie ein altes Cover zum neuen Titel stehen lassen
             if let artwork, let png = Self.png(artwork) {
-                try? png.write(to: coverURL, options: .atomic)
-            } else {
-                try? FileManager.default.removeItem(at: coverURL)
+                do {
+                    try png.write(to: coverURL, options: .atomic)
+                    coverWritten = true
+                } catch {
+                    Self.log.error("Widget: Cover schreiben fehlgeschlagen")
+                }
             }
         }
+        let now = Self.makeNow(info: info, hasCover: coverWritten)
         guard let data = try? JSONEncoder().encode(now) else { return }
         do {
             try data.write(to: dir.appendingPathComponent(WidgetWire.nowFile), options: .atomic)
@@ -61,13 +70,17 @@ final class DesktopWidgetFeed {
         }
         last = now
         lastArtwork = artwork
+        cleared = false
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetWire.kind)
     }
 
     func clear() {
+        if last == nil && cleared { return }
         let hadData = last != nil
         last = nil
         lastArtwork = nil
+        coverWritten = false
+        cleared = true
         guard let dir = WidgetWire.container() else { return }
         for name in [WidgetWire.nowFile, WidgetWire.coverFile, WidgetWire.commandFile] {
             try? FileManager.default.removeItem(at: dir.appendingPathComponent(name))

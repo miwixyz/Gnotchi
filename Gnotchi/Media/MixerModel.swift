@@ -139,29 +139,53 @@ final class MixerModel {
 
     func refresh() async {
         guard Date() >= holdUntil else { return }
-        outputs = OutputDevices.ordered(OutputDevices.list())
-        inputs = MixerAudio.inputDevices()
+        let snapshot = await readSystem()
+        guard Date() >= holdUntil else { return }   // inzwischen bedient: nicht mit altem Stand überschreiben
+        outputs = OutputDevices.ordered(snapshot.outputs)
+        inputs = snapshot.inputs
         output = endpoint(.output)
         input = endpoint(.input)
         systemOutput = MixerAudio.defaultDevice(.systemOutput).flatMap { OutputDevices.device($0) }
         // Nach dem await erneut gegen `holdUntil` prüfen: kein Zurückspringen mitten im Ziehen.
         if let alert = await SystemAlertVolume.read(), Date() >= holdUntil, alert != alertVolume { alertVolume = alert }
-        var rows = currentRows()
+        var rows = snapshot.rows
+        for i in rows.indices { rows[i].gain = engine.gain(for: rows[i].id) }
         for i in rows.indices {
             rows[i].gain = engine.gain(for: rows[i].id)
             guard let id = rows[i].bundleID, AppleScriptSource.supported.contains(id) else { continue }
             rows[i].volume = await script.volume(.read, bundleID: id)
         }
+        // Nach den Abfragen (je App bis 3 s) erneut prüfen: Wurde inzwischen am Regler gezogen, nicht mit altem Stand überschreiben.
+        guard Date() >= holdUntil else { return }
         if rows != apps { apps = rows }
         if engine.failures != tapFailures { tapFailures = engine.failures }
     }
 
-    /// Apps mit Ton jetzt (ohne Player-Lautstärken).
-    private func currentRows() -> [MixerAppRow] {
-        let byID = Dictionary(uniqueKeysWithValues: OutputDevices.list().map { ($0.id, $0) })
-        var rows = MixerRows.rows(MixerAudio.audioProcesses(), devices: byID, ownPID: ProcessInfo.processInfo.processIdentifier,
+    /// Was ein Durchlauf aus Core Audio und dem Dateisystem braucht. Wird **nicht** auf dem Hauptthread gelesen: Gemessen im Deep-Audit
+    /// 16.11. (Nachbau): 60–70 ms je Durchlauf, Spitzen über 250 ms bei vielen Audio-Prozessen – das ruckelte Regler und Insel.
+    private struct SystemSnapshot: Sendable {
+        let outputs: [OutputDevices.Device]
+        let inputs: [OutputDevices.Device]
+        let rows: [MixerAppRow]
+    }
+
+    private nonisolated static func readSystem(ownPID: pid_t) -> SystemSnapshot {
+        let outputs = OutputDevices.list()
+        let byID = Dictionary(uniqueKeysWithValues: outputs.map { ($0.id, $0) })
+        let rows = MixerRows.rows(MixerAudio.audioProcesses(), devices: byID, ownPID: ownPID,
                                   name: { AppIcons.cleanName(FileManager.default.displayName(atPath: $0)) },
                                   bundle: { Bundle(path: $0)?.bundleIdentifier }, uid: { MixerAudio.deviceUID($0) })
+        return SystemSnapshot(outputs: outputs, inputs: MixerAudio.inputDevices(), rows: rows)
+    }
+
+    private func readSystem() async -> SystemSnapshot {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        return await Task.detached(priority: .userInitiated) { Self.readSystem(ownPID: pid) }.value
+    }
+
+    /// Apps mit Ton jetzt (ohne Player-Lautstärken), mit der laufenden Verstärkung je App.
+    private func currentRows() async -> [MixerAppRow] {
+        var rows = await readSystem().rows
         for i in rows.indices { rows[i].gain = engine.gain(for: rows[i].id) }
         return rows
     }
@@ -170,7 +194,7 @@ final class MixerModel {
     /// auch sie unter dem Regler liegen – sonst zeigte der Regler 50 % und die neue Quelle spielte mit 100 %. Tap neu aufbauen.
     func retargetTaps() async {
         guard appVolumeEnabled, engine.hasTaps else { return }
-        for row in currentRows() where row.canTap {
+        for row in await currentRows() where row.canTap {
             let g = engine.gain(for: row.id)
             guard g != 1, let uid = row.deviceUID else { continue }
             engine.setGain(g, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))   // nur bei geändertem Ziel neu gebaut

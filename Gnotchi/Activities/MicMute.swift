@@ -95,7 +95,11 @@ final class MicMute {
     func refresh() {
         guard active else { return }
         let d = backend.defaultInput()
-        if d != device { mutedByUs = false; savedVolume = nil }
+        if d != device {
+            restoreIfMutedByUs()   // das alte Gerät nicht stumm zurücklassen (Fund Deep-Audit 16.11.)
+            mutedByUs = false
+            savedVolume = nil
+        }
         device = d
         guard let d else {
             method = .none
