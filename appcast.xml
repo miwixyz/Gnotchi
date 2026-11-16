@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.34.0</title>
-            <pubDate>Mon, 16 Nov 2026 11:52:09 +0100</pubDate>
+            <title>0.34.1</title>
+            <pubDate>Mon, 16 Nov 2026 12:23:18 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>237</sparkle:version>
-            <sparkle:shortVersionString>0.34.0</sparkle:shortVersionString>
+            <sparkle:version>239</sparkle:version>
+            <sparkle:shortVersionString>0.34.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Die Insel ist in Bildschirmfreigabe und -aufnahme unsichtbar.</b> Teilst du den Bildschirm (Teams, Zoom, …), sehen die anderen die Insel nicht mehr, auch nicht Mitteilungstexte, Claude-Befehle oder Anrufernamen darin. Preis: Die Insel erscheint auch in deinen eigenen Bildschirmfotos und -aufnahmen nicht. Das Zwischenablage-Panel war schon so.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.34.0/Gnotchi-0.34.0.zip" length="7853866" type="application/octet-stream" sparkle:edSignature="i90B0wYZKWnHWsoPhfUBxdlqh5buz15zp5Z6L9J2CNadd6l52HlEmNpUUVmLKT2E2YYwbar16tCVSRK7rnKdDg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Unlesbare Verlaufseinträge werden gemeldet.</b> Fehlt der Schlüssel für den Zwischenablage-Verlauf (zum Beispiel nach einem Umzug der Datenbank auf einen neuen Mac), legt Gnotchi wie bisher einen neuen an, und die älteren Einträge lassen sich nicht mehr lesen. Früher stand das nur im Protokoll. Jetzt zeigen die Einstellungen der Zwischenablage „n Einträge im Verlauf lassen sich nicht mehr lesen …“ und einen Knopf „Unlesbare Einträge entfernen“. Das Schlüsselbund-Verhalten selbst ist unverändert.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.34.1/Gnotchi-0.34.1.zip" length="7857609" type="application/octet-stream" sparkle:edSignature="dubSd6QES6/0MQfO9/bNnS/NiOLR25G3GDbDUV7++a6c3sAwZvH/77bSTQJEChbVbKa4O4RPWFQAMBpbhmZVCQ=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: NrI0r4y0YNkLY0pay9S1xM5GRXIDu1od91tJMAhaYar+MtXFeoYgAJAqe2aO6pCNXTvm5g7zKGdZ04G6+m2ZBA==
-length: 1562
+edSignature: oNUG7HV43X4o0BaCPHgUEn1bsWXbIWPu3eyQ5tD/FMAGn8dNp09d+dZJUpHm9OeeK1u/d5kZFWSMuyTHJHNAAQ==
+length: 1730
 -->
