@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.32.1</title>
-            <pubDate>Mon, 16 Nov 2026 10:26:42 +0100</pubDate>
+            <title>0.32.2</title>
+            <pubDate>Mon, 16 Nov 2026 10:52:43 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>229</sparkle:version>
-            <sparkle:shortVersionString>0.32.1</sparkle:shortVersionString>
+            <sparkle:version>231</sparkle:version>
+            <sparkle:shortVersionString>0.32.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Audio → Meeting-Leiser: „Musik jetzt erlauben“ wirkte kaputt.</b> Gemeint war die Apple-App „Musik“, nicht Spotify; sie lief nicht, und die Warnung samt Knopf stand trotzdem da. Jetzt erscheint Warnung und Knopf nur für eine <b>laufende</b> App, die Gnotchi noch nicht steuern darf. Läuft sie nicht, steht dort ein Hinweis ohne Knopf („Apple Musik läuft nicht, die Erlaubnis lässt sich erst anfordern, wenn sie läuft“). Der Name heißt jetzt „Apple Musik“, und eine alte Rückmeldung bleibt nach einem neuen Klick nicht stehen.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.32.1/Gnotchi-0.32.1.zip" length="7845536" type="application/octet-stream" sparkle:edSignature="vZiCbrVoBR9SMjg89/9KZweizQQ4eHo3h/k0dZOciVj8rjatq5K0fBLdKZOOCclo/E4Nro0Xmqt378Gm0jMKDw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Mixer: Regler je App sind beschriftet.</b> Unter dem Regler steht jetzt, was er bedeutet: „Original, von Gnotchi nicht verändert“ bei 100 %, sonst „Von Gnotchi leiser (lauter) gestellt · 100 % = Original“. Der Regler ist Gnotchis eigene Stufe und wirkt zusätzlich zum Regler in der App (z. B. YouTube) und zur Systemlautstärke. Beim Regler für Spotify und Musik steht „Lautstärke im Player selbst“.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.32.2/Gnotchi-0.32.2.zip" length="7846756" type="application/octet-stream" sparkle:edSignature="zUsB0oJu7LV3PGH2SUe8t11fFXnaqjnI8sgbVGJvprg3YMXVuqDSCjiIhZr03mRaGjDBKm9Iw1jX5mV9LlehCw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: gZUF3Q7AxNd2v/uo2XRIuobi01eiACnMuAnODYIbZrfG7C0qZ/z92JJcKMfX6mp9FZlaykfBHcmuDfJqSi/pAQ==
-length: 1764
+edSignature: inyfTTQ83J8rqO2Pl5E3ChVOIv/yNnznlysSoDOTP+agQxUDon0AB4pyKjhrtnm5vmku1yNrXXAbtAzzDEmlCQ==
+length: 1632
 -->
