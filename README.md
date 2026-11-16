@@ -57,6 +57,7 @@ Freigabe nicht und fragt nie danach.
   Die ursprüngliche Lautstärke bleibt gemerkt, auch über Abstürze; eigene Änderungen während des Meetings gelten.
   Braucht die Automation-Erlaubnis für Spotify bzw. Musik, die Gnotchi nie mitten im Meeting erfragt.
 - **Mixer in der Insel (0.30):** Ring-Taste „Mixer“ zeigt dieselbe Ansicht groß in der Insel, in zwei Spalten (Ausgabe und Mikrofon links, Apps rechts).
+- **Warnton-Lautstärke (0.33):** Unter „Systemtöne“ im Mixer steht ein Regler für die Warntonlautstärke des Systems (wie in Systemeinstellungen → Ton), ohne neue Freigabe.
 - **Favoriten im Mixer (0.31):** Im Auswahlfeld für Ausgabe und Mikrofon setzt „Favoriten …“ je Gerät einen Stern. Favoriten stehen als Tasten direkt darunter, ein Klick schaltet um (bis zu 6 je Liste; abgesteckte Geräte fehlen in der Reihe, bleiben aber Favorit).
 - **Mixer im Menüleisten-Popover (0.30):** Ein Klick auf das Symbol öffnet Reiter **Mixer** (Ausgabe, Systemtöne, Mikrofon, eine
   Zeile je App mit Ton und ihrem Gerät – eingebaut, Bluetooth, AirPlay, USB; Regler je App für Spotify und Musik) und

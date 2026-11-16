@@ -1622,3 +1622,21 @@ echtes System (fremder Client abgelehnt), Protokoll ohne Diktattext, Sichttest M
 - **Erlaubnis (gemessen 15.11.):** `AEDeterminePermissionToAutomateTarget` hängt für Spotify immer, auch mit „nicht fragen“ (Chromium-App beantwortet den Vorab-Ruf nicht), und mit „fragen“ zeigt es aus dem Hintergrund keinen Dialog. Deshalb: Knopf „Spotify jetzt erlauben“ (Einstellungen → Wiedergabe) schickt einen harmlosen Lesebefehl (`player state`) – so fragt macOS. Ein echtes Ja oder Nein wird lokal gemerkt (`automationGranted.<id>`, UserDefaults, nie gesendet). Die Prüfung wartet höchstens 3 s, höchstens eine hängende je App, nicht laufende Apps werden gar nicht abgefragt.
 - **Merker veraltet (Fund /code-audit 15.11.):** Verweigert macOS später (-1743, z. B. Entzug in den Systemeinstellungen), vergisst Gnotchi die Zustimmung sofort und beendet den Ersatz (`onDenied` → `forget`); danach kein Wiederholen und kein Dialog. Nach einem `tccutil`-Reset ohne Verweigerung kann macOS beim nächsten Ersatz-Befehl einmal fragen – der Knopf ist dann der saubere Weg.
 
+### G57 – Warnton-Lautstärke im Mixer (neu, 2026-11-16, 0.33.0)
+
+- **Was:** Unter „Systemtöne“ im Mixer steht ein Regler 0…100 % für die Warnton-Lautstärke (Systemeinstellungen → Ton →
+  „Warntonlautstärke“). Gelesen mit `alert volume of (get volume settings)`, gesetzt mit `set volume alert volume N`.
+- **Neue Freigabe:** keine. Beides sind Standardbefehle von AppleScript ohne Zielprogramm (`tell application` kommt nicht vor, getestet);
+  es gibt keinen Automation-Dialog. Entitlements bleiben bei vier.
+- **Eingabe:** Die Skripte sind feste Texte. Eingesetzt wird nur eine auf 0…100 begrenzte Ganzzahl (`clamp`, getestet auch mit
+  `Int.max`/`Int.min`); nie ein Wert aus Datei, Netz oder Eingabe. Kein `do shell script` (getestet).
+- **Hauptthread:** Lesen und Setzen laufen auf einer Hintergrund-Warteschlange, höchstens 3 s (`with timeout`). Beim Ziehen
+  höchstens ein Aufruf gleichzeitig, immer mit dem neuesten Wert. Der Mixer liest nur, solange er sichtbar ist.
+- **Fund /code-audit 16.11.:** NSAppleScript verträgt gleichzeitige Aufrufe nicht (gemessen: 320 Aufrufe aus 8 Threads, 1 Fehler). Lesen und
+  Setzen laufen deshalb über **eine** serielle Queue. Die Tests setzen nie die echte Lautstärke (Setter ist ersetzbar, `Recorder`).
+  Nach dem Lesen wird `holdUntil` erneut geprüft, der Regler springt beim Ziehen nicht zurück.
+- **Folge:** Der Regler ändert eine Systemeinstellung des Nutzers (dauerhaft, wie in den Systemeinstellungen), nicht nur für Gnotchi.
+  Es gibt keinen Rücksetz-Mechanismus beim Beenden; das ist gewollt, es ist dieselbe Einstellung wie in macOS.
+- **STRIDE:** S/T festes Skript, Wert begrenzt · R/I kein Protokoll mit Werten, nichts gesendet · D Zeitgrenze, nie Hauptthread ·
+  E keine neue Freigabe. Zu messen: Regler ziehen → Systemeinstellungen → Ton zeigt denselben Wert.
+

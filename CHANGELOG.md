@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.33.0] — 2026-11-16
+
+### Neu
+- **Regler für die Systemtöne im Mixer.** Unter „Systemtöne“ steht jetzt ein Regler (0 bis 100 %) für die Warnton-Lautstärke, also genau die „Warntonlautstärke“ aus Systemeinstellungen → Ton. Er gilt wie dort dauerhaft für den Mac, nicht nur für Gnotchi. Keine neue Freigabe. Auch im Mixer in der Insel.
+
 ## [0.32.2] — 2026-11-16
 
 ### Geändert

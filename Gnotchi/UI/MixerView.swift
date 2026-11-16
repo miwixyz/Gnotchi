@@ -36,6 +36,15 @@ struct MixerView: View {
                     Spacer(minLength: 8)
                     deviceMenu(model.outputs, current: sys, compact: true) { model.selectSystemOutput($0) }
                 }
+                if let alert = model.alertVolume {
+                    HStack(spacing: 10) {
+                        Image(systemName: "speaker.fill").font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary).frame(width: 20)
+                        Slider(value: Binding(get: { Double(alert) }, set: { model.setAlertVolume(Int($0.rounded())) }), in: 0...100)
+                            .accessibilityLabel(Text(verbatim: "Lautstärke der Systemtöne"))
+                        Text(verbatim: "\(alert) %").font(.system(size: 12)).monospacedDigit().foregroundStyle(FamilyTheme.textSecondary)
+                            .frame(width: 40, alignment: .trailing)
+                    }
+                }
             }
         }
     }

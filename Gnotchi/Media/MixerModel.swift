@@ -69,6 +69,12 @@ final class MixerModel {
 
     private(set) var output = Endpoint()
     private(set) var systemOutput: OutputDevices.Device?
+    /// Warnton-Lautstärke in Prozent (0.33.0, G57); nil, solange macOS keine meldet.
+    private(set) var alertVolume: Int?
+    @ObservationIgnored private var pendingAlert: Int?
+    /// Setzt die Warnton-Lautstärke wirklich; in Tests ersetzt, damit sie nie die echte Einstellung ändern.
+    @ObservationIgnored private let alertSetter: @Sendable (Int) async -> Bool
+    @ObservationIgnored private var sendingAlert = false
     private(set) var input = Endpoint()
     private(set) var outputs: [OutputDevices.Device] = []
     private(set) var inputs: [OutputDevices.Device] = []
@@ -93,7 +99,9 @@ final class MixerModel {
     @ObservationIgnored private var sendingPlayer: Set<String> = []
 
     init(script: AppleScriptSource = AppleScriptSource(), engine: AppTapEngine = AppTapEngine(),
-         interval: Duration = .milliseconds(1500), defaults: UserDefaults = .standard) {
+         interval: Duration = .milliseconds(1500), defaults: UserDefaults = .standard,
+         alertSetter: @escaping @Sendable (Int) async -> Bool = { await SystemAlertVolume.set($0) }) {
+        self.alertSetter = alertSetter
         self.defaults = defaults
         outputFavorites = MixerFavorites.load(.output, from: defaults)
         inputFavorites = MixerFavorites.load(.input, from: defaults)
@@ -136,6 +144,8 @@ final class MixerModel {
         output = endpoint(.output)
         input = endpoint(.input)
         systemOutput = MixerAudio.defaultDevice(.systemOutput).flatMap { OutputDevices.device($0) }
+        // Nach dem await erneut gegen `holdUntil` prüfen: kein Zurückspringen mitten im Ziehen.
+        if let alert = await SystemAlertVolume.read(), Date() >= holdUntil, alert != alertVolume { alertVolume = alert }
         var rows = currentRows()
         for i in rows.indices {
             rows[i].gain = engine.gain(for: rows[i].id)
@@ -291,5 +301,27 @@ final class MixerModel {
             }
             self?.sendingPlayer.remove(bundleID)
         }
+    }
+
+    /// Warnton-Lautstärke setzen. Beim Ziehen höchstens ein Aufruf gleichzeitig, immer mit dem neuesten Wert.
+    func setAlertVolume(_ percent: Int) {
+        let value = SystemAlertVolume.clamp(percent)
+        touch()
+        alertVolume = value
+        pendingAlert = value
+        guard !sendingAlert else { return }
+        sendingAlert = true
+        Task { [weak self] in
+            while let self, let next = self.pendingAlert.take() { _ = await self.alertSetter(next) }
+            self?.sendingAlert = false
+        }
+    }
+}
+
+private extension Optional {
+    /// Liest den Wert und setzt ihn auf nil (für die Warteschlange mit dem neuesten Wert).
+    mutating func take() -> Wrapped? {
+        defer { self = nil }
+        return self
     }
 }
