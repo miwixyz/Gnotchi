@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.34.1] — 2026-11-16
+
+### Neu
+- **Unlesbare Verlaufseinträge werden gemeldet.** Fehlt der Schlüssel für den Zwischenablage-Verlauf (zum Beispiel nach einem Umzug der Datenbank auf einen neuen Mac), legt Gnotchi wie bisher einen neuen an, und die älteren Einträge lassen sich nicht mehr lesen. Früher stand das nur im Protokoll. Jetzt zeigen die Einstellungen der Zwischenablage „n Einträge im Verlauf lassen sich nicht mehr lesen …“ und einen Knopf „Unlesbare Einträge entfernen“. Das Schlüsselbund-Verhalten selbst ist unverändert.
+
 ## [0.34.0] — 2026-11-16
 
 ### Geändert

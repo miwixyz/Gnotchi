@@ -18,6 +18,11 @@ extension SettingsView {
                 if let problem = link?.startProblem {
                     note(problem, symbol: "exclamationmark.triangle", color: .orange)
                 }
+                if let notice = link?.unreadableNotice {
+                    note(notice, symbol: "exclamationmark.triangle", color: .orange)
+                    Button("Unlesbare Einträge entfernen") { link?.removeUnreadable() }
+                        .buttonStyle(CardButtonStyle())
+                }
                 if NSPasteboard.general.accessBehavior == .alwaysDeny {
                     note("macOS verbietet Gnotchi das Lesen der Zwischenablage. Erlauben: Systemeinstellungen → Datenschutz & "
                          + "Sicherheit → Aus anderen Apps einfügen.", symbol: "hand.raised", color: .orange)

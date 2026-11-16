@@ -138,6 +138,47 @@ final class ClipboardTests: XCTestCase {
         XCTAssertEqual(store.entries().compactMap { store.payload($0)?.plain }, ["eins", "zwei"])
     }
 
+    func testUnreadableNoticeNamesTheCount() {
+        XCTAssertNil(ClipboardStore.unreadableNotice(count: 0), "alles lesbar: keine Meldung")
+        XCTAssertTrue(ClipboardStore.unreadableNotice(count: 1)?.contains("1 Eintrag im Verlauf lässt sich") == true)
+        XCTAssertTrue(ClipboardStore.unreadableNotice(count: 37)?.contains("37 Einträge") == true)
+        XCTAssertTrue(ClipboardStore.unreadableNotice(count: 2)?.contains("Schlüssel fehlt") == true)
+    }
+
+    func testEntriesSealedWithAnotherKeyAreReportedAndCanBeRemoved() throws {
+        let dir = FileManager.default.temporaryDirectory.appending(path: "gnotchi-keytest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let oldKey = SymmetricKey(size: .bits256)
+        do {
+            let store = try ClipboardStore(directory: dir, key: oldKey)
+            try store.add(text("alt eins"), kind: .text, source: nil)
+            try store.add(text("alt zwei"), kind: .text, source: nil)
+            XCTAssertEqual(store.unreadableCount, 0)
+        }
+        // Derselbe Ordner, aber ein anderer Schlüssel: das passiert, wenn der Schlüsselbund-Eintrag fehlt und Gnotchi einen neuen anlegt.
+        let store = try ClipboardStore(directory: dir, key: SymmetricKey(size: .bits256))
+        XCTAssertEqual(store.unreadableCount, 2, "beide alten Einträge sind nicht mehr lesbar")
+        let fresh = try store.add(text("neu"), kind: .text, source: nil)
+        XCTAssertEqual(store.payload(fresh)?.plain, "neu", "neue Kopien funktionieren")
+        XCTAssertEqual(store.removeUnreadable(), 2)
+        XCTAssertEqual(store.unreadableCount, 0)
+        XCTAssertEqual(store.entries().compactMap { store.payload($0)?.plain }, ["neu"], "nur der lesbare Eintrag bleibt")
+    }
+
+    func testReadableEntriesAreNeverReportedOrRemoved() throws {
+        let dir = FileManager.default.temporaryDirectory.appending(path: "gnotchi-keytest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let key = SymmetricKey(size: .bits256)
+        do {
+            let store = try ClipboardStore(directory: dir, key: key)
+            try store.add(text("bleibt"), kind: .text, source: nil)
+        }
+        let store = try ClipboardStore(directory: dir, key: key)
+        XCTAssertEqual(store.unreadableCount, 0)
+        XCTAssertEqual(store.removeUnreadable(), 0)
+        XCTAssertEqual(store.entries().count, 1)
+    }
+
     func testSearchFindsTitleAndContent() throws {
         let store = try ClipboardStore(directory: nil, key: SymmetricKey(size: .bits256))
         let entry = try store.add(text("DE12 3456"), kind: .text, source: nil)

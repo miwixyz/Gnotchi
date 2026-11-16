@@ -48,6 +48,9 @@ final class ClipboardLink: NotchPart {
     private(set) var store: ClipboardStore?
     /// Fehler beim Start (für die Einstellungen), nie mit Inhalt.
     private(set) var startProblem: String?
+    /// Hinweis auf nicht mehr lesbare Verlaufseinträge (fehlender Schlüssel), nil wenn alles lesbar ist.
+    var unreadableNotice: String? { store.flatMap { ClipboardStore.unreadableNotice(count: $0.unreadableCount) } }
+    func removeUnreadable() { store?.removeUnreadable() }
     /// Tresor gerade entsperrt (für die Anzeige, 5 Min.).
     private(set) var vaultUnlocked = false
 

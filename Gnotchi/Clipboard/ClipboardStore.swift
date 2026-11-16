@@ -11,11 +11,19 @@ import SwiftData
 @MainActor
 @Observable
 final class ClipboardStore {
+    // swiftlint:disable:previous type_body_length
+    // Verlauf, Sammlungen, Tresor und unlesbare Einträge brauchen in einer Klasse Zugriff auf `context`.
     static let maxLoose = 1_000
     static let maxAge: TimeInterval = 30 * 24 * 3600
 
     /// Steigt bei jeder Änderung – die Ansichten lesen ihn, um neu zu zeichnen.
     private(set) var revision = 0
+
+    /// Einträge im Verlauf, deren Inhalt sich nicht mehr entschlüsseln lässt (0.34.1, Deep-Audit 16.11.): Fehlte der Schlüssel im
+    /// Schlüsselbund (z. B. Datenbank per Time Machine auf einen anderen Mac), legt Gnotchi einen neuen an, und alles Ältere ist
+    /// unlesbar. Früher stand das nur im Protokoll. Jetzt zeigen die Einstellungen es an und bieten das Entfernen an.
+    private(set) var unreadableIDs: Set<UUID> = []
+    var unreadableCount: Int { unreadableIDs.count }
 
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let context: ModelContext
@@ -429,7 +437,7 @@ final class ClipboardStore {
 
     private func loadCaches() {
         guard let all = try? context.fetch(FetchDescriptor<ClipEntry>()) else { return }
-        var broken = 0
+        var broken: Set<UUID> = []
         for entry in all {
             if let sealed = entry.sealedTitle {
                 titles[entry.id] = try? ClipCrypto.openString(sealed, key: key, id: entry.id)
@@ -439,10 +447,22 @@ final class ClipboardStore {
                 remember(payload, for: entry.id)
                 if let ocr = entry.sealedOCR { ocrTexts[entry.id] = try? ClipCrypto.openString(ocr, key: key, id: entry.id) }
             } else {
-                broken += 1
+                broken.insert(entry.id)
             }
         }
-        if broken > 0 { Self.log.error("\(broken, privacy: .public) Einträge nicht entschlüsselbar") }
+        unreadableIDs = broken
+        if !broken.isEmpty { Self.log.error("\(broken.count, privacy: .public) Einträge nicht entschlüsselbar") }
+    }
+
+    /// Entfernt die unlesbaren Einträge des Verlaufs. Sie lassen sich ohne den alten Schlüssel nicht wiederherstellen. Liefert die Zahl.
+    @discardableResult
+    func removeUnreadable() -> Int {
+        guard let all = try? context.fetch(FetchDescriptor<ClipEntry>()) else { return 0 }
+        let doomed = all.filter { unreadableIDs.contains($0.id) && !$0.isVault }
+        for entry in doomed { forget(entry.id); context.delete(entry) }
+        unreadableIDs = []
+        try? save()
+        return doomed.count
     }
 
     private func save() throws {
@@ -503,5 +523,15 @@ extension ClipboardStore {
         guard changed else { return }
         // Nicht still schlucken: Die Einstellung verspricht „gelöscht“ (G50). Nur der Grund, nie Inhalt (G8).
         do { try save() } catch { Self.log.error("Bildtext löschen fehlgeschlagen: \(String(describing: error), privacy: .public)") }
+    }
+}
+
+/// Hinweistext zu nicht mehr lesbaren Verlaufseinträgen (0.34.1); nil, wenn alles lesbar ist. Reine Funktion, getestet.
+extension ClipboardStore {
+    nonisolated static func unreadableNotice(count: Int) -> String? {
+        guard count > 0 else { return nil }
+        let what = count == 1 ? "1 Eintrag im Verlauf lässt sich" : "\(count) Einträge im Verlauf lassen sich"
+        return "\(what) nicht mehr lesen. Das passiert, wenn der Schlüssel fehlt, zum Beispiel nach einem Umzug auf einen neuen Mac. "
+            + "Neue Kopien funktionieren normal."
     }
 }

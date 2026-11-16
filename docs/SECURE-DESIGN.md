@@ -1697,5 +1697,10 @@ wurden einzeln im Code nachgeprüft. Keine kritischen oder hohen Funde.
   Bildschirme); kein Aufrufer kann es vergessen. Getestet für beide Erzeugungswege.
 - **Preis:** Die Insel erscheint auch in eigenen Bildschirmfotos und -aufnahmen nicht mehr (Entscheidung Michael 16.11.). Nicht betroffen:
   das Menüleisten-Fenster mit dem Mixer, das Zwischenablage-Panel (schon G40), Plattenspieler-/Sperrbildschirm-Fenster (zeigen nur Musik).
-- **Zu messen (nur am echten System):** Bildschirmfreigabe in Teams/Zoom starten, Insel aufklappen → bei den anderen unsichtbar.
+- **Gemessen 16.11. (Michael, macOS 27.2.1, Mac mini):** QuickTime-Bildschirmaufnahme (ScreenCaptureKit) mit aufgeklappter Insel →
+  **Insel in der Aufnahme unsichtbar.** Damit wirkt `sharingType = .none` auf diesem System auch gegen ScreenCaptureKit.
+- **Vorbehalt:** Foren-Berichte (Apple Developer Forums, Thread 792152 und 808016) melden, dass `.none` ab macOS 15.4 von ScreenCaptureKit
+  nicht zuverlässig beachtet wird. Das Verhalten hängt von der macOS-Version ab und ist nur ein Hinweis an die Aufnahme-App, keine
+  Garantie. **Nicht gemessen:** Teams, Zoom und andere Apps mit eigener Aufnahmetechnik; ein anderer Mac mit anderer macOS-Version. Nach
+  einem macOS-Update erneut mit QuickTime prüfen.
 
