@@ -12,7 +12,7 @@ struct MixerView: View {
     var body: some View {
         if wide {
             HStack(alignment: .top, spacing: 10) {
-                VStack(spacing: 10) { outputCard; micCard }.frame(width: 270)
+                ScrollView { VStack(spacing: 10) { outputCard; micCard } }.scrollIndicators(.hidden).frame(width: 270)
                 ScrollView { appsCard }.scrollIndicators(.hidden)
             }
             .frame(maxHeight: IslandGeometry.mixerHeight - 24)
@@ -23,7 +23,8 @@ struct MixerView: View {
 
     private var outputCard: some View {
         card("Ausgabe") {
-            deviceMenu(model.outputs, current: model.output.device) { model.selectOutput($0) }
+            deviceMenu(model.outputs, current: model.output.device, list: .output) { model.selectOutput($0) }
+            favoritesRow(.output, current: model.output.device) { model.selectOutput($0) }
             volumeRow(model.output, mutedSymbol: "speaker.slash.fill", symbol: "speaker.wave.2.fill",
                       onVolume: { model.setOutputVolume($0) }, onMute: { model.toggleOutputMute() })
             if let sys = model.systemOutput, sys.id != model.output.device?.id || model.outputs.count > 1 {
@@ -41,7 +42,8 @@ struct MixerView: View {
 
     private var micCard: some View {
         card("Mikrofon") {
-            deviceMenu(model.inputs, current: model.input.device, mic: true) { model.selectInput($0) }
+            deviceMenu(model.inputs, current: model.input.device, mic: true, list: .input) { model.selectInput($0) }
+            favoritesRow(.input, current: model.input.device, mic: true) { model.selectInput($0) }
             volumeRow(model.input, mutedSymbol: "mic.slash.fill", symbol: "mic.fill",
                       onVolume: { model.setInputVolume($0) }, onMute: { model.toggleInputMute() })
         }
@@ -86,12 +88,23 @@ struct MixerView: View {
     }
 
     private func deviceMenu(_ devices: [OutputDevices.Device], current: OutputDevices.Device?, compact: Bool = false,
-                            mic: Bool = false, pick: @escaping (AudioObjectID) -> Void) -> some View {
+                            mic: Bool = false, list: MixerFavorites.List? = nil,
+                            pick: @escaping (AudioObjectID) -> Void) -> some View {
         Menu {
             ForEach(devices) { d in
                 Button { pick(d.id) } label: {
                     Label { Text(verbatim: d.name) } icon: { Image(systemName: d.id == current?.id ? "checkmark" : symbol(d, mic: mic)) }
                 }
+            }
+            if let list, devices.contains(where: { $0.uid != nil }) {
+                Divider()
+                Menu {
+                    ForEach(devices.filter { $0.uid != nil }) { d in
+                        Button { model.toggleFavorite(d, list) } label: {
+                            Label { Text(verbatim: d.name) } icon: { Image(systemName: model.isFavorite(d, list) ? "star.fill" : "star") }
+                        }
+                    }
+                } label: { Label { Text(verbatim: "Favoriten …") } icon: { Image(systemName: "star") } }
             }
         } label: {
             HStack(spacing: 6) {
@@ -110,6 +123,35 @@ struct MixerView: View {
         .menuIndicator(.hidden)
         .fixedSize(horizontal: compact, vertical: false)
         .disabled(devices.count < 2)
+    }
+
+    /// Favoriten als Tasten unter dem Auswahlfeld (0.31.0): ein Klick schaltet direkt um. Ohne Favoriten oder ohne angeschlossenes
+    /// Favoriten-Gerät steht hier nichts.
+    @ViewBuilder
+    private func favoritesRow(_ list: MixerFavorites.List, current: OutputDevices.Device?, mic: Bool = false,
+                              pick: @escaping (AudioObjectID) -> Void) -> some View {
+        let favorites = model.favorites(list)
+        if !favorites.isEmpty {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 6)], alignment: .leading, spacing: 6) {
+                ForEach(favorites) { d in
+                    let active = d.id == current?.id
+                    Button { pick(d.id) } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: symbol(d, mic: mic)).font(.system(size: 10))
+                            Text(verbatim: d.name).lineLimit(1).truncationMode(.tail)
+                        }
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(active ? Color.white : FamilyTheme.textPrimary)
+                        .padding(.horizontal, 8).padding(.vertical, 5)
+                        .frame(maxWidth: .infinity)
+                        .background(Capsule().fill(active ? FamilyTheme.accentFill : Color.primary.opacity(0.08)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(verbatim: d.name))
+                    .accessibilityAddTraits(active ? .isSelected : [])
+                }
+            }
+        }
     }
 
     private func volumeRow(_ e: MixerModel.Endpoint, mutedSymbol: String, symbol: String,

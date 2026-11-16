@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.31.0] — 2026-11-16
+
+### Neu
+- **Favoriten im Mixer.** Im Auswahlfeld für Ausgabe und für Mikrofon gibt es unten den Eintrag „Favoriten …“; dort setzt oder entfernst du je Gerät ein Häkchen (Stern). Favoriten erscheinen als Tasten direkt unter dem Auswahlfeld, ein Klick schaltet um, das aktive Gerät ist hervorgehoben. Bis zu 6 je Liste, in der Reihenfolge des Festlegens. Gemerkt wird die feste Geräte-Kennung: Ein gerade abgestecktes Gerät (z. B. das CalDigit) verschwindet aus der Reihe, bleibt Favorit und ist beim Anstecken wieder da. Gilt auch für den Mixer in der Insel; dessen linke Spalte scrollt, wenn die Favoriten sie höher machen.
+
+### Behoben
+- **Widget zeigte nach einem Update keine Musik.** Nach dem Update vom 13.11. lief der Widget-Prozess weiter aus dem Zwischenordner von Sparkle statt aus `/Applications`; der Neustart nach dem Update fand ihn wegen des Pfadvergleichs nicht („0 alte Prozesse“). Er beendet jetzt auch Widget-Prozesse aus diesem Zwischenordner (nur die genaue Programmdatei, nur ältere als Gnotchi).
+
 ## [0.30.0] — 2026-11-16
 
 *0.28.0 (Tasten-Ring) und 0.29.0 (Meeting-Leiser) sind nicht einzeln erschienen; dieses Release enthält beides, dazu den Mixer (0.30) und die Behebung des Einfrierens.*

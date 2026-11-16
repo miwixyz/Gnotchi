@@ -26,8 +26,18 @@ enum WidgetRestart {
 
     /// Welche Prozesse sind alte Widget-Prozesse? Reine Logik, getestet.
     static func stale(_ procs: [Proc], widgetPath: String, uid: uid_t, ownPid: pid_t, ownStart: TimeInterval) -> [pid_t] {
-        procs.filter { $0.pid != ownPid && $0.pid > 1 && $0.uid == uid && $0.path == widgetPath && $0.start < ownStart }
-            .map(\.pid)
+        procs.filter {
+            $0.pid != ownPid && $0.pid > 1 && $0.uid == uid && ($0.path == widgetPath || isUpdateCopy($0.path)) && $0.start < ownStart
+        }
+        .map(\.pid)
+    }
+
+    /// Das Widget aus dem Zwischenordner von Sparkle (0.30.1, gemessen 16.11.): Nach dem Update vom 13.11. lief der Widget-Prozess
+    /// weiter aus `…/org.sparkle-project.Sparkle/Installation/…/Gnotchi.app`, nicht aus `/Applications`; der Pfadvergleich fand
+    /// „0 alte Prozesse“ und das Widget zeigte keine Musik. Nur dieser genaue Ordner und genau diese Programmdatei.
+    static func isUpdateCopy(_ path: String) -> Bool {
+        path.contains("/org.sparkle-project.Sparkle/Installation/")
+            && path.hasSuffix("/Gnotchi.app/Contents/PlugIns/GnotchiWidget.appex/Contents/MacOS/GnotchiWidget")
     }
 
     /// Einmal je neuer Version beim Start aufrufen.

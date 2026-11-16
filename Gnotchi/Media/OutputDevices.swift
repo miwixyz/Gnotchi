@@ -11,6 +11,8 @@ enum OutputDevices {
         let id: AudioObjectID
         let name: String
         let transport: UInt32
+        /// Feste Geräte-UID (für Favoriten); nil, wenn macOS keine meldet.
+        var uid: String?
         var kind: Kind { OutputDevices.kind(transport: transport) }
     }
 
@@ -84,14 +86,16 @@ enum OutputDevices {
             guard outputStreamCount(id) > 0 else { return nil }
             let hidden: UInt32 = AudioRoute.scalar(id, kAudioDevicePropertyIsHidden) ?? 0
             guard hidden == 0, let name = cleanName(AudioRoute.string(id, kAudioObjectPropertyName)) else { return nil }
-            return Device(id: id, name: name, transport: AudioRoute.scalar(id, kAudioDevicePropertyTransportType) ?? 0)
+            return Device(id: id, name: name, transport: AudioRoute.scalar(id, kAudioDevicePropertyTransportType) ?? 0,
+                          uid: MixerAudio.deviceUID(id))
         }
     }
 
     /// Ein Gerät mit Name und Übertragungsart (auch ein verstecktes); nil ohne Namen.
     static func device(_ id: AudioObjectID) -> Device? {
         guard let name = cleanName(AudioRoute.string(id, kAudioObjectPropertyName)) else { return nil }
-        return Device(id: id, name: name, transport: AudioRoute.scalar(id, kAudioDevicePropertyTransportType) ?? 0)
+        return Device(id: id, name: name, transport: AudioRoute.scalar(id, kAudioDevicePropertyTransportType) ?? 0,
+                          uid: MixerAudio.deviceUID(id))
     }
 
     /// Aktuelles Standard-Ausgabegerät; nil, wenn macOS keins meldet.

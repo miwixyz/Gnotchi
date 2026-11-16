@@ -73,6 +73,10 @@ final class MixerModel {
     private(set) var outputs: [OutputDevices.Device] = []
     private(set) var inputs: [OutputDevices.Device] = []
     private(set) var apps: [MixerAppRow] = []
+    /// Favoriten-UIDs (0.31.0), je Liste in der Reihenfolge des Festlegens.
+    private(set) var outputFavorites: [String]
+    private(set) var inputFavorites: [String]
+    @ObservationIgnored private let defaults: UserDefaults
 
     @ObservationIgnored private let script: AppleScriptSource
     /// Regler je App über Prozess-Taps (Stufe 2, G55). Gehört dem Mixer, lebt so lange wie die App (der Tap muss das Popover überdauern).
@@ -89,7 +93,10 @@ final class MixerModel {
     @ObservationIgnored private var sendingPlayer: Set<String> = []
 
     init(script: AppleScriptSource = AppleScriptSource(), engine: AppTapEngine = AppTapEngine(),
-         interval: Duration = .milliseconds(1500)) {
+         interval: Duration = .milliseconds(1500), defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        outputFavorites = MixerFavorites.load(.output, from: defaults)
+        inputFavorites = MixerFavorites.load(.input, from: defaults)
         self.script = script
         self.engine = engine
         self.interval = interval
@@ -211,6 +218,23 @@ final class MixerModel {
         touch()
         input.muted = !muted
         MixerAudio.setMuted(id, scope: kAudioObjectPropertyScopeInput, !muted)
+    }
+
+    /// Die gerade angeschlossenen Favoriten der Liste, in Favoriten-Reihenfolge.
+    func favorites(_ list: MixerFavorites.List) -> [OutputDevices.Device] {
+        list == .output ? MixerFavorites.shown(outputFavorites, in: outputs) : MixerFavorites.shown(inputFavorites, in: inputs)
+    }
+
+    func isFavorite(_ d: OutputDevices.Device, _ list: MixerFavorites.List) -> Bool {
+        guard let uid = d.uid else { return false }
+        return (list == .output ? outputFavorites : inputFavorites).contains(uid)
+    }
+
+    func toggleFavorite(_ d: OutputDevices.Device, _ list: MixerFavorites.List) {
+        guard let uid = d.uid else { return }
+        let updated = MixerFavorites.toggled(list == .output ? outputFavorites : inputFavorites, uid: uid)
+        if list == .output { outputFavorites = updated } else { inputFavorites = updated }
+        MixerFavorites.save(updated, list, to: defaults)
     }
 
     func selectOutput(_ id: AudioObjectID) {
