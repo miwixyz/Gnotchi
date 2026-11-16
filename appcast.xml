@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.32.0</title>
-            <pubDate>Mon, 16 Nov 2026 10:08:05 +0100</pubDate>
+            <title>0.32.1</title>
+            <pubDate>Mon, 16 Nov 2026 10:26:42 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>227</sparkle:version>
-            <sparkle:shortVersionString>0.32.0</sparkle:shortVersionString>
+            <sparkle:version>229</sparkle:version>
+            <sparkle:shortVersionString>0.32.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Einstellungen neu geordnet.</b> Der Reiter „Aktivitäten“ war zu lang. Jetzt: <b>Audio</b> (neu: Mixer mit „Lautstärke je App“, Meeting-Leiser), <b>Aktivitäten</b> (was die Insel zeigt, Code &amp; KI), <b>Tasten</b> (neu: Tasten um die Insel, Timer und Spiegel, Wetter; der Reiter „Wetter“ entfällt). Das Fenster ist dafür 60 pt breiter. Im Audio-Reiter steht, wie man Favoriten im Mixer festlegt.</li></ul><h3>Behoben</h3><ul><li><b>„Musik jetzt erlauben“ tat nichts.</b> War die Musik-App nicht gestartet, blieb der Klick ohne Rückmeldung (macOS fragt nur bei laufender App). Der Knopf sagt jetzt „Musik läuft nicht. Starte die App und klicke dann noch einmal“ und nennt bei Ablehnung den Weg in die Systemeinstellungen.</li><li><b>Widget nach einem Update.</b> Der alte Widget-Prozess blieb nach dem Update am Leben, weil sein Pfad nicht mehr lesbar ist (die Programmdatei wird gelöscht): Der Neustart fand ihn nie („0 alte Prozesse“), das Widget blieb ohne Musik. Der Prozess wird jetzt zusätzlich an seinem Namen erkannt (nur mit leerem Pfad, nur eigener Nutzer, nur älter als Gnotchi) und beendet.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.32.0/Gnotchi-0.32.0.zip" length="7844971" type="application/octet-stream" sparkle:edSignature="HKEOrG615/eRKd1MJwWl+C2ntsJw9uGFBN79bmdx694gbTPzUvPeUZrvtYWV5xV3Dgi79saYRjNubGGa7+8uDA=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Audio → Meeting-Leiser: „Musik jetzt erlauben“ wirkte kaputt.</b> Gemeint war die Apple-App „Musik“, nicht Spotify; sie lief nicht, und die Warnung samt Knopf stand trotzdem da. Jetzt erscheint Warnung und Knopf nur für eine <b>laufende</b> App, die Gnotchi noch nicht steuern darf. Läuft sie nicht, steht dort ein Hinweis ohne Knopf („Apple Musik läuft nicht, die Erlaubnis lässt sich erst anfordern, wenn sie läuft“). Der Name heißt jetzt „Apple Musik“, und eine alte Rückmeldung bleibt nach einem neuen Klick nicht stehen.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.32.1/Gnotchi-0.32.1.zip" length="7845536" type="application/octet-stream" sparkle:edSignature="vZiCbrVoBR9SMjg89/9KZweizQQ4eHo3h/k0dZOciVj8rjatq5K0fBLdKZOOCclo/E4Nro0Xmqt378Gm0jMKDw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: QqIqWI8zriXvfLx9u0qLd9D0FSEkWFmRl9GxUZbTuutVmOThHTlW8NAJ2+EBFW8N3yogFiMq78Stjl1fRfxXAw==
-length: 2352
+edSignature: gZUF3Q7AxNd2v/uo2XRIuobi01eiACnMuAnODYIbZrfG7C0qZ/z92JJcKMfX6mp9FZlaykfBHcmuDfJqSi/pAQ==
+length: 1764
 -->
