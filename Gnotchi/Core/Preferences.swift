@@ -331,6 +331,7 @@ final class Preferences {
         }
     }
 
+    // swiftlint:disable:next function_body_length
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         // `object(forKey:)` statt `bool(forKey:)`: ein fehlender Eintrag heißt „ab Werk“ (an),

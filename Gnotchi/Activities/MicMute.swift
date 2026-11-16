@@ -188,6 +188,7 @@ final class CoreAudioMic: MicBackend {
     }
 
     private final class Listeners {
+        // swiftlint:disable:next large_tuple
         var entries: [(AudioObjectID, AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
         deinit {
             for (obj, addr, block) in entries {

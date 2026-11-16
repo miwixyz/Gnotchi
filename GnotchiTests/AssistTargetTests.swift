@@ -24,9 +24,9 @@ final class AssistTargetTests: XCTestCase {
         XCTAssertEqual(t, music)
     }
     func testHilfsprozessZaehlt() {
-        let p = [MixerAudio.Process(pid: 1, bundleID: "com.spotify.client.helper", path: nil, outputting: true, devices: []),
-                 MixerAudio.Process(pid: 2, bundleID: "com.spotify.clientX", path: nil, outputting: true, devices: []),
-                 MixerAudio.Process(pid: 3, bundleID: "com.apple.Music", path: nil, outputting: false, devices: [])]
+        let p = [MixerAudio.AudioApp(pid: 1, bundleID: "com.spotify.client.helper", path: nil, outputting: true, devices: []),
+                 MixerAudio.AudioApp(pid: 2, bundleID: "com.spotify.clientX", path: nil, outputting: true, devices: []),
+                 MixerAudio.AudioApp(pid: 3, bundleID: "com.apple.Music", path: nil, outputting: false, devices: [])]
         XCTAssertEqual(NowPlayingModel.audibleSupported(p), [spotify])
     }
 

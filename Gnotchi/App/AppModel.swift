@@ -87,6 +87,7 @@ final class AppModel {
                                                 activityOn: { [prefs] in prefs.headphoneActivity })) {
                 $0.headphoneNotice || $0.headphoneActivity
             },
+            // swiftlint:disable:next line_length
             NotchFeature(part: PrivacyMonitor(activity: activity)) { $0.micCamera || $0.meetingDuck },   // der Meeting-Leiser braucht die Mikrofon-Erkennung
             NotchFeature(part: TippiLink(activity: activity)) { $0.tippiRecording },
             NotchFeature(part: LiveTextLink(activity: activity)) { $0.tippiRecording },

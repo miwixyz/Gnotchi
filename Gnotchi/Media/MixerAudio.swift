@@ -124,7 +124,7 @@ enum MixerAudio {
 
     /// Ein Audio-Prozess für die App-Zeilen: nur gelesene Eigenschaften (gemessen 15.11.: auch das Gerät je Prozess,
     /// `kAudioProcessPropertyDevices`, ohne Freigabe und ohne Tap).
-    struct Process: Equatable, Sendable {
+    struct AudioApp: Equatable, Sendable {
         var object: AudioObjectID = 0
         let pid: pid_t
         let bundleID: String?
@@ -133,7 +133,7 @@ enum MixerAudio {
         let devices: [AudioObjectID]
     }
 
-    static func audioProcesses() -> [Process] {
+    static func audioProcesses() -> [AudioApp] {
         AudioRoute.objectList(system, kAudioHardwarePropertyProcessObjectList).compactMap { id in
             guard let pid: pid_t = AudioRoute.scalar(id, kAudioProcessPropertyPID) else { return nil }
             let running: UInt32 = AudioRoute.scalar(id, kAudioProcessPropertyIsRunningOutput) ?? 0
@@ -144,7 +144,7 @@ enum MixerAudio {
                 devices = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
                 if AudioObjectGetPropertyData(id, &a, 0, nil, &size, &devices) != noErr { devices = [] }
             }
-            return Process(object: id, pid: pid, bundleID: AudioRoute.string(id, kAudioProcessPropertyBundleID),
+            return AudioApp(object: id, pid: pid, bundleID: AudioRoute.string(id, kAudioProcessPropertyBundleID),
                            path: executablePath(pid), outputting: running != 0, devices: devices)
         }
     }

@@ -6,15 +6,15 @@ import XCTest
 @MainActor
 final class MixerTests: XCTestCase {
 
-    private func proc(_ pid: pid_t, _ path: String?, bundle: String? = nil, out: Bool = true, devices: [UInt32] = [1]) -> MixerAudio.Process {
-        MixerAudio.Process(pid: pid, bundleID: bundle, path: path, outputting: out, devices: devices)
+    private func proc(_ pid: pid_t, _ path: String?, bundle: String? = nil, out: Bool = true, devices: [UInt32] = [1]) -> MixerAudio.AudioApp {
+        MixerAudio.AudioApp(pid: pid, bundleID: bundle, path: path, outputting: out, devices: devices)
     }
 
     fileprivate let speakers = OutputDevices.Device(id: 1, name: "MacBook Air-Lautsprecher", transport: kAudioDeviceTransportTypeBuiltIn)
     fileprivate let buds = OutputDevices.Device(id: 2, name: "AirPods", transport: kAudioDeviceTransportTypeBluetooth)
     private let tv = OutputDevices.Device(id: 3, name: "Wohnzimmer", transport: kAudioDeviceTransportTypeAirPlay)
 
-    private func rows(_ p: [MixerAudio.Process], own: pid_t = 999) -> [MixerAppRow] {
+    private func rows(_ p: [MixerAudio.AudioApp], own: pid_t = 999) -> [MixerAppRow] {
         MixerRows.rows(p, devices: [1: speakers, 2: buds, 3: tv], ownPID: own,
                        name: { ($0 as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "") },
                        bundle: { "id." + (($0 as NSString).lastPathComponent) })
@@ -155,14 +155,14 @@ extension MixerTests {
 // Mixer Stufe 2 (G55): Zeilen für den Tap, Einrasten, Einstellung – ohne echten Tap.
 extension MixerTests {
     func testRowCanTapOnlyOnExactlyOneKnownDevice() {
-        var proc = MixerAudio.Process(object: 77, pid: 10, bundleID: nil, path: "/Applications/Helium.app/Contents/MacOS/Helium",
+        var proc = MixerAudio.AudioApp(object: 77, pid: 10, bundleID: nil, path: "/Applications/Helium.app/Contents/MacOS/Helium",
                                       outputting: true, devices: [1])
         let one = MixerRows.rows([proc], devices: [1: speakers, 2: buds], ownPID: 999,
                                  name: { _ in "Helium" }, bundle: { _ in nil }, uid: { $0 == 1 ? "SPEAKER-UID" : "BUDS-UID" })
         XCTAssertEqual(one.first?.processes, [77])
         XCTAssertEqual(one.first?.deviceUID, "SPEAKER-UID")
         XCTAssertEqual(one.first?.canTap, true)
-        proc = MixerAudio.Process(object: 77, pid: 10, bundleID: nil, path: "/Applications/Helium.app/Contents/MacOS/Helium",
+        proc = MixerAudio.AudioApp(object: 77, pid: 10, bundleID: nil, path: "/Applications/Helium.app/Contents/MacOS/Helium",
                                   outputting: true, devices: [1, 2])
         let two = MixerRows.rows([proc], devices: [1: speakers, 2: buds], ownPID: 999,
                                  name: { _ in "Helium" }, bundle: { _ in nil }, uid: { _ in "X" })

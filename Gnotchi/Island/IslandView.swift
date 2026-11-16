@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 import AppKit
 import SwiftUI
 
@@ -133,6 +134,7 @@ struct IslandView: View {
                             onWeather: { activity.selectWeather() },
                             shelf: activity.ringShown || activity.shelfItems.isEmpty ? nil : (activity.shelfItems.count, activity.shelfActive),
                             onShelf: { activity.selectShelf() },
+                            // swiftlint:disable:next line_length
                             clipboard: activity.ringShown || activity.clipboard == nil ? nil : activity.clipboardActive, onClipboard: { activity.selectClipboard() },
                             onSelect: { activity.select($0) }, onMirror: { activity.selectMirror() },
                             onTimer: { activity.showTimerPicker() },
@@ -535,6 +537,7 @@ extension IslandView {
 
     /// Die große Sache. `topInset` nil = direkt unter der Notch (ohne Symbolleiste).
     @ViewBuilder private func big(topInset: CGFloat?) -> some View {
+    // swiftlint:disable:previous function_body_length
         let top = topInset ?? (state.layout.notch?.height ?? 0)
         switch activity.bigContent {
         case .media:

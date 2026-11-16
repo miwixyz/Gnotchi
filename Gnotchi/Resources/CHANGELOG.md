@@ -2,7 +2,9 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht] — 0.28.0
+## [0.30.0] — 2026-11-16
+
+*0.28.0 (Tasten-Ring) und 0.29.0 (Meeting-Leiser) sind nicht einzeln erschienen; dieses Release enthält beides, dazu den Mixer (0.30) und die Behebung des Einfrierens.*
 
 ### Neu
 - **Tasten rund um die große Insel.** Die Werkzeuge (Timer, Wach bleiben, Spiegel, Wetter, Ablage, Zwischenablage) sitzen jetzt als runde Glas-Tasten links und rechts neben der schwebenden Insel, Anheften und Einstellungen unten. Eine laufende Sache zeigt einen Punkt (Timer läuft, Wach bleiben an, Spiegel offen), die Ablage eine Zahl. Der Weg von der Insel zu einer Taste klappt sie nicht zu. Die kleine Leiste in der Insel behält nur noch, was gerade läuft. Einstellungen → Aktivitäten → „Tasten um die Insel“: Hauptschalter und ein Schalter je Taste; ohne Tasten steht wieder die alte Leiste.
@@ -21,6 +23,8 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ### Behoben
 - Spotify/Musik erscheinen in der Insel auch dann, wenn macOS sie nicht als „Wiedergabe“ meldet (z. B. weil ein pausierter Browser davorsteht): Gnotchi fragt die App dann selbst, sofern die Automation schon erlaubt ist.
+- **Einstellungen → Wiedergabe: Knopf „Spotify jetzt erlauben“.** Löst die Automation-Frage von macOS mit einem echten Lesebefehl aus und merkt sich die Zustimmung lokal. Verweigert macOS sie später, vergisst Gnotchi sie und beendet den Ersatzweg.
+- **Das Einstellungsfenster scrollt**, wenn der Inhalt höher ist als der Bildschirm.
 - **Gnotchi konnte dauerhaft einfrieren.** Die Abfrage „darf Gnotchi Spotify oder Musik steuern?“ (`AEDeterminePermissionToAutomateTarget`) lief auf dem Hauptthread und kann ohne Zeitgrenze blockieren; zweimal am 15.11. hing die ganze Insel darin, bis man Gnotchi beendete (Absturzbericht, Aufrufer `NowPlayingModel.refreshExtrasIfAllowed`, seit 0.17). Die Abfrage läuft jetzt nur noch im Hintergrund und liefert einen Zwischenspeicher (`AutomationStatus`); niemand wartet mehr darauf. **Dieser Fehler steckt auch in den veröffentlichten Fassungen bis 0.27.0.**
 
 ### Intern

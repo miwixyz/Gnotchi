@@ -86,8 +86,9 @@ custom_rules:
     regex: '\b(Process\s*\(|Process\.run\(|NSTask|posix_spawn\w*|(?<!\.)system\(|popen\()'
     # 0.6.0: auch im Hilfsprogramm (G28) – das startet gar keine Prozesse.
     included: '(Gnotchi|GnotchiMitteilungen)/.*\.swift'
+    # SpeedTest.swift (G51): ein festes Systemprogramm (networkQuality), feste Argumente, keine Shell, Zeit- und Ausgabegrenze.
     # Tests ausgenommen: BundleIntegrityTests ruft codesign für ein Probe-Bundle auf.
-    excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift'
+    excluded: 'GnotchiTests/|Gnotchi/Media/MediaAdapter\.swift|Gnotchi/Activities/SpeedTest\.swift'
     excluded_match_kinds:
       - comment
       - doccomment

@@ -24,10 +24,11 @@ enum MixerRows {
 
     /// Nur Prozesse, die gerade Ton ausgeben, nur solche in einer App (kein Systemdienst), nicht Gnotchi selbst; Prozesse
     /// derselben App werden zusammengefasst, Geräte vereinigt. Sortiert nach Name.
-    nonisolated static func rows(_ processes: [MixerAudio.Process], devices: [AudioObjectID: OutputDevices.Device],
+    nonisolated static func rows(_ processes: [MixerAudio.AudioApp], devices: [AudioObjectID: OutputDevices.Device],
                                  ownPID: pid_t, name: (String) -> String?, bundle: (String) -> String?,
                                  uid: (AudioObjectID) -> String? = { _ in nil }) -> [MixerAppRow] {
         var order: [String] = []
+        // swiftlint:disable:next large_tuple
         var byApp: [String: (path: String, devices: [AudioObjectID], processes: [AudioObjectID])] = [:]
         for p in processes where p.outputting && p.pid != ownPID {
             guard let app = PrivacyMonitor.outermostApp(path: p.path) else { continue }
@@ -170,6 +171,7 @@ final class MixerModel {
 
     /// Nur für Vorschau und Tests: feste Werte statt Core Audio.
     func setPreview(output: Endpoint, systemOutput: OutputDevices.Device?, input: Endpoint, outputs: [OutputDevices.Device],
+    // swiftlint:disable:previous function_parameter_count
                     inputs: [OutputDevices.Device], apps: [MixerAppRow]) {
         self.output = output
         self.systemOutput = systemOutput

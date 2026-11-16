@@ -107,6 +107,7 @@ final class RingActionsTests: XCTestCase {
     private func json(_ s: String) -> Data { Data(s.utf8) }
 
     func testParseRealisticOutput() throws {
+        // swiftlint:disable:next line_length
         let r = try XCTUnwrap(SpeedTest.parse(json(#"{"dl_throughput":187076416,"ul_throughput":34453692,"base_rtt":29.47,"responsiveness":40.0017,"interface_name":"en0"}"#)))
         XCTAssertEqual(r.downMbps, 187.076416, accuracy: 0.0001)
         XCTAssertEqual(r.upMbps, 34.453692, accuracy: 0.0001)

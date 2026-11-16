@@ -57,6 +57,7 @@ struct MixerView: View {
                     appRow(row)
                 }
                 if !model.appVolumeEnabled, model.apps.contains(where: { $0.volume == nil }) {
+                    // swiftlint:disable:next line_length
                     Text(verbatim: "Regler gibt es für Spotify und Musik. Für andere Apps: Einstellungen → Aktivitäten → „Lautstärke je App“ (braucht die Freigabe „Audio-Aufnahme“).")
                         .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
                 }
@@ -176,6 +177,7 @@ struct MixerView: View {
 
     private func tapHint(_ f: AppTapEngine.Failure) -> String {
         switch f {
+        // swiftlint:disable:next line_length
         case .noSignal: "Kein Ton angekommen: Prüfe die Freigabe „Audio-Aufnahme“ (Systemeinstellungen → Datenschutz & Sicherheit). Die App spielt unverändert."
         case .setup: "Regler nicht verfügbar. Die App spielt unverändert."
         case .tooMany: "Zu viele Regler gleichzeitig (höchstens \(AppTapEngine.maxTaps)). Die App spielt unverändert."

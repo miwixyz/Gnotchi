@@ -53,6 +53,7 @@ extension IslandController {
     /// Insel-Rechteck und äußeres Rechteck mit Ring (beide ohne Schattenrand) für den aktuellen Inhalt, nil = Bildschirm
     /// nicht mehr da. Der Ring gibt dem Panel seitlich und unten Platz (0.28.0); die Insel bleibt mittig unter der Pille.
     func detachedRects(_ entry: Entry, displayID: CGDirectDisplayID) -> (island: CGRect, outer: CGRect, ring: RingLayout)? {
+    // swiftlint:disable:previous large_tuple
         guard let screen = NSScreen.screens.first(where: { $0.displayID == displayID }) else { return nil }
         let ring = Self.ringLayout(activity)
         let outer = DetachedIsland.frame(compact: entry.state.layout.compact, size: ring.outerSize,

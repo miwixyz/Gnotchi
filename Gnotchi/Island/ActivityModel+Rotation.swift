@@ -133,6 +133,7 @@ extension ActivityModel {
 
     /// Hervorgehobenes Symbol der Leiste.
     var highlightedChip: LiveActivity? {
+        // swiftlint:disable:next line_length
         if mirrorActive || timerPickerActive || awakePageActive || weatherActive || shelfActive || clipboardActive || speedtestActive || mixerActive { return nil }
         if playerFirst && bigContent == .media { return playerOverlay ?? .media }
         return bigActivity

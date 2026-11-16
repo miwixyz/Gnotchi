@@ -18,7 +18,7 @@ extension NowPlayingModel {
     }
 
     /// Hörbare Apps aus den Audio-Prozessen: Bundle-ID gleich oder Hilfsprozess (`<id>.helper`).
-    nonisolated static func audibleSupported(_ processes: [MixerAudio.Process]) -> Set<String> {
+    nonisolated static func audibleSupported(_ processes: [MixerAudio.AudioApp]) -> Set<String> {
         var result = Set<String>()
         for p in processes where p.outputting {
             guard let b = p.bundleID else { continue }
