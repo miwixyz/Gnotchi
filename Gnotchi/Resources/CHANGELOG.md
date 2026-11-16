@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.32.1] — 2026-11-16
+
+### Behoben
+- **Audio → Meeting-Leiser: „Musik jetzt erlauben“ wirkte kaputt.** Gemeint war die Apple-App „Musik“, nicht Spotify; sie lief nicht, und die Warnung samt Knopf stand trotzdem da. Jetzt erscheint Warnung und Knopf nur für eine **laufende** App, die Gnotchi noch nicht steuern darf. Läuft sie nicht, steht dort ein Hinweis ohne Knopf („Apple Musik läuft nicht, die Erlaubnis lässt sich erst anfordern, wenn sie läuft“). Der Name heißt jetzt „Apple Musik“, und eine alte Rückmeldung bleibt nach einem neuen Klick nicht stehen.
+
 ## [0.32.0] — 2026-11-16
 
 ### Geändert

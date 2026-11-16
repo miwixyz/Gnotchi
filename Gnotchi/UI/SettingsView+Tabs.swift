@@ -187,8 +187,11 @@ extension SettingsView {
     /// Apps zur Auswahl der Meeting-Apps: die Standardliste, schon gewählte und Apps, die in diesem Lauf das Mikrofon genutzt haben.
     /// „Jetzt erlauben“ mit Rückmeldung: Vorher tat der Knopf bei nicht laufender App nichts sichtbar (Michael 16.11., Musik).
     @ViewBuilder func allowButton(_ id: String) -> some View {
-        let name = AppleScriptSource.appName(id)
-        Button("\(name) jetzt erlauben") { AutomationStatus.shared.request(id) }
+        let name = id == AppleScriptSource.music ? "Apple Musik" : AppleScriptSource.appName(id)
+        Button("\(name) jetzt erlauben") {
+            AutomationStatus.shared.lastRequest[id] = nil   // keine alte Meldung stehen lassen (Michael 16.11.: „läuft nicht“ blieb stehen)
+            AutomationStatus.shared.request(id)
+        }
             .buttonStyle(CardButtonStyle())
         if let code = AutomationStatus.shared.lastRequest[id], code != 0 {
             note(code == AppleScriptSource.notRunningError
@@ -267,10 +270,17 @@ extension SettingsView {
                 note("Gilt für Spotify und Musik. Tippi-Diktat zählt nicht. Für Google Meet im Browser wähle den Browser (er erscheint hier, sobald er das Mikrofon genutzt hat). Gnotchi merkt sich die ursprüngliche Lautstärke und stellt sie nach dem Meeting, beim Beenden und beim Start wieder her; änderst du sie selbst, gilt dein Wert. Dafür läuft die Mikrofon-Erkennung, auch wenn „Mikrofon & Kamera anzeigen“ aus ist; die Punkte in der Insel erscheinen dann trotzdem.",
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
                 ForEach([AppleScriptSource.spotify, AppleScriptSource.music], id: \.self) { id in
+                    let name = id == AppleScriptSource.music ? "Apple Musik (die App „Musik“)" : AppleScriptSource.appName(id)
                     if !AutomationStatus.shared.isAllowed(id) {
-                        note("\(AppleScriptSource.appName(id)): Gnotchi darf die App noch nicht steuern. Ohne diese Erlaubnis bleibt die Lautstärke unverändert, und Gnotchi zeigt den Titel nicht, wenn macOS ihn nicht selbst meldet. macOS fragt beim ersten Spulen (Spotify) bzw. Shuffle-Klick (Musik) – oder jetzt auf Klick (die App muss laufen).",
-                             symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
-                        allowButton(id)
+                        if NSRunningApplication.runningApplications(withBundleIdentifier: id).isEmpty {
+                            // Nicht gestartet: nichts zu erlauben, macOS fragt nur bei laufender App (Michael 16.11.: Knopf wirkte kaputt).
+                            note("\(name) läuft nicht, die Erlaubnis lässt sich erst anfordern, wenn sie läuft. Mit Spotify hat das nichts zu tun.",
+                                 symbol: "info.circle", color: FamilyTheme.textSecondary)
+                        } else {
+                            note("\(name): Gnotchi darf die App noch nicht steuern. Ohne diese Erlaubnis bleibt die Lautstärke unverändert, und Gnotchi zeigt den Titel nicht, wenn macOS ihn nicht selbst meldet. macOS fragt beim ersten Spulen (Spotify) bzw. Shuffle-Klick (Musik) – oder jetzt auf Klick (die App muss laufen).",
+                                 symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                            allowButton(id)
+                        }
                     }
                 }
             }
