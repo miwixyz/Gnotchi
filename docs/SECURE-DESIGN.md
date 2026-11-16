@@ -1117,7 +1117,10 @@ nur aus Klicks (G29, G30).
   Kopie, bevor es sendet. Gemessen 28.10.: signiert → Antwort; ad-hoc-signierte Kopie desselben Programms → kein `ok`.
 - **Feste Befehle** (`DebugCommand.parse`, Tests `DebugCommandTests`): `status`, `snapshot` nur für die Fenster
   `einstellungen`/`hilfe` (Insel, Zwischenablage, Ablage zeigen echte Inhalte – G16/G40 – und sind nicht wählbar),
-  `appearance` light/dark/system. `id` 1–32 Zeichen A–Z/a–z/0–9, sie wird Dateiname (kein Pfad-Ausbruch). Alles
+  `appearance` light/dark/system, `selftest` (seit 16.11.2026, ohne Parameter: prüft Abschottung, Ressourcen,
+  Siegel, Einstellungen in Wegwerf-Suite, beide Fenster, 3 s Rauchtest der Beobachter für Kopfhörer und
+  Mikrofon/Kamera – startet nichts mit Seiteneffekten wie Claude-Hooks, Wetter-Netz, Ablage, Zwischenablage).
+  `id` 1–32 Zeichen A–Z/a–z/0–9, sie wird Dateiname (kein Pfad-Ausbruch). Alles
   andere: verworfen, keine Antwort (gemessen: `snapshot zwischenablage` → keine Antwort). Höchstens 10 Befehle/s,
   Rahmen ≤ 4 KB (PeerSocketServer).
 - **Ausgaben:** `Antworten/<id>.json` und `Bilder/<id>-<fenster>.png` im eigenen 0700-Ordner, nur Zahlen/Kennungen,

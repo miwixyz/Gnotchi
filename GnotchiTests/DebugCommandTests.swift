@@ -9,6 +9,7 @@ final class DebugCommandTests: XCTestCase {
         XCTAssertEqual(parse(#"{"v":1,"id":"a","cmd":"snapshot","window":"einstellungen"}"#)?.kind, .snapshot(window: "einstellungen"))
         XCTAssertEqual(parse(#"{"v":1,"id":"a","cmd":"snapshot","window":"hilfe"}"#)?.kind, .snapshot(window: "hilfe"))
         XCTAssertEqual(parse(#"{"v":1,"id":"a","cmd":"appearance","mode":"dark"}"#)?.kind, .appearance("dark"))
+        XCTAssertEqual(parse(#"{"v":1,"id":"a","cmd":"selftest"}"#)?.kind, .selftest)
     }
 
     func testRejectsEverythingElse() {

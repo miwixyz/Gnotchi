@@ -13,6 +13,8 @@ struct DebugCommand: Equatable, Sendable {
         case snapshot(window: String)
         /// Hell, dunkel oder wie das System.
         case appearance(String)
+        /// Selbsttest (`SelfTest`): PASS/FAIL je Schritt, ohne Parameter, nur gegen die abgeschottete Kopie.
+        case selftest
     }
 
     let id: String
@@ -25,7 +27,7 @@ struct DebugCommand: Equatable, Sendable {
     /// Kennung des Steuerprogramms `gnotchictl` (Developer ID, Team LTKJ6Z2VYB) – nur es darf Befehle schicken.
     nonisolated static let ctlRequirement = LiveText.peerRequirement(identifier: "dev.mwlr.gnotchi.ctl")
 
-    /// `{"v":1,"id":"…","cmd":"status"|"snapshot"|"appearance", …}`; `id` 1–32 Zeichen a–z, A–Z, 0–9 (wird Dateiname).
+    /// `{"v":1,"id":"…","cmd":"status"|"snapshot"|"appearance"|"selftest", …}`; `id` 1–32 Zeichen a–z, A–Z, 0–9 (wird Dateiname).
     nonisolated static func parse(_ payload: Data) -> DebugCommand? {
         guard let obj = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
               let v = obj["v"] as? NSNumber, CFGetTypeID(v) != CFBooleanGetTypeID(), v.doubleValue == 1,
@@ -41,6 +43,8 @@ struct DebugCommand: Equatable, Sendable {
         case "appearance":
             guard let m = obj["mode"] as? String, appearances.contains(m) else { return nil }
             return DebugCommand(id: id, kind: .appearance(m))
+        case "selftest":
+            return DebugCommand(id: id, kind: .selftest)
         default:
             return nil
         }
@@ -103,6 +107,9 @@ final class DebugBridge {
         case .snapshot(let window):
             let result = await snapshot(window: window, id: command.id)
             answer.merge(result) { $1 }
+        case .selftest:
+            guard let model else { answer["ok"] = false; answer["fehler"] = "Modell weg"; break }
+            answer.merge(SelfTest.answer(await SelfTest.run(model: model))) { $1 }
         }
         write(answer, id: command.id)
     }

@@ -24,6 +24,10 @@ SRC="build-dev/Build/Products/Debug/Gnotchi.app"
 DEST_DIR=$(mktemp -d /tmp/gnotchi-bild.XXXXXX)
 APP="$DEST_DIR/Gnotchi Bild.app"
 ditto "$SRC" "$APP"
+# Widget (ab 0.26.0, G49) raus: braucht Sandbox + App-Gruppe samt Profil, die diese Kopie bewusst nicht hat –
+# sonst scheitert `codesign --verify` unten („code has no resources but signature indicates they must be present“,
+# gemessen 2026-11-16). Nur die Kopie in /tmp, nie das Build-Ergebnis.
+[ ! -d "$APP/Contents/PlugIns/GnotchiWidget.appex" ] || rm -r "$APP/Contents/PlugIns/GnotchiWidget.appex"
 PLIST="$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleName Gnotchi Bild" "$PLIST"
@@ -92,4 +96,4 @@ open "$INSTALLED"
 echo "✓ Bild-Testkopie gestartet: $INSTALLED"
 echo "  Erster Lauf auf einem Mac: Systemeinstellungen → Datenschutz & Sicherheit → Aufnahme von Bildschirm &"
 echo "  Systemaudio → „Gnotchi Bild“ einschalten (nicht „Gnotchi“), dann dieses Skript erneut starten."
-echo "  Steuern: build-dev/gnotchictl status | snapshot einstellungen|hilfe | appearance light|dark|system"
+echo "  Steuern: build-dev/gnotchictl status | snapshot einstellungen|hilfe | appearance light|dark|system | selftest"
