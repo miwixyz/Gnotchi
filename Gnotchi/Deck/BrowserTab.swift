@@ -72,6 +72,10 @@ final class BrowserTab {
     private var generation = 0
     /// Ein Befehl läuft: weitere werden verworfen, nicht angestaut.
     private var commandRunning = false
+    /// Zuletzt aktiver Tab (siehe `active(_:previous:)`); nur im Speicher.
+    private(set) var active: TabID?
+    /// Der Tab auf der Taste.
+    var shown: Tab? { Self.displayed(latest.tabs, active: active) }
 
     // MARK: Cover (G59 Punkt 10e, Stufe 2)
 
@@ -102,7 +106,7 @@ final class BrowserTab {
 
     /// Welcher Cover-Schritt gehört in die nächste Abfrage? Höchstens einer je Abfrage, also höchstens 1/s (10f).
     private func nextCoverStep() -> CoverStep {
-        guard coverWanted, latest.failure == nil, let t = Self.displayed(latest.tabs) else {
+        guard coverWanted, latest.failure == nil, let t = shown else {
             if coverKey != nil || coverPending != nil { clearCover() }
             return .none
         }
@@ -141,6 +145,7 @@ final class BrowserTab {
         busy = false
         commandRunning = false
         latest = Snapshot()
+        active = nil
         cover = nil
         coverKey = nil
         coverPending = nil
@@ -166,8 +171,10 @@ final class BrowserTab {
             Task { @MainActor in
                 guard let self, gen == self.generation else { return }
                 self.busy = false
-                if snap != self.latest {
+                let now = Self.active(snap.tabs, previous: self.active)
+                if snap != self.latest || now != self.active {
                     self.latest = snap
+                    self.active = now
                     self.onChange?()
                 }
                 self.apply(outcome, step: step)
@@ -175,30 +182,41 @@ final class BrowserTab {
         }
     }
 
-    /// Play/Pause für den YouTube-Tab. `false`: kein Tab bekannt oder die letzte Messung scheiterte – der Aufrufer nimmt dann den
+    /// Play/Pause für die YouTube-Tabs (Michael 17.11.): spielt etwas → **alle** spielenden pausieren; spielt nichts → den
+    /// zuletzt aktiven Tab starten. `false`: kein Tab bekannt oder die letzte Messung scheiterte – der Aufrufer nimmt dann den
     /// normalen Weg (MediaRemote), damit die Taste nie tot ist.
     ///
-    /// Ziel ist der Stand der letzten Messung (höchstens ~1 s alt). Steht der Tab inzwischen woanders, fangen das die IDs und der
-    /// Host-Test im Skript ab (der Befehl trifft dann keinen fremden Tab, im Zweifel gar keinen). Es läuft höchstens ein Befehl;
-    /// ein zweiter Druck währenddessen wird verworfen, nicht angestaut (zählt als „erledigt“ → `true`).
+    /// Vor dem Befehl wird **frisch** gemessen (gemessen 17.11.: mit dem bis 1 s alten Stand startete ein Druck nach einem von
+    /// Hand gestarteten Video ein zweites, statt es zu pausieren). Es läuft höchstens ein Befehl; ein zweiter Druck währenddessen
+    /// wird verworfen, nicht angestaut (zählt als „erledigt“ → `true`).
     @discardableResult
     func toggle() -> Bool {
-        guard latest.failure == nil, let target = Self.toggleTarget(latest.tabs) else { return false }
+        guard latest.failure == nil, !latest.tabs.isEmpty else { return false }
         guard !commandRunning else { return true }
         commandRunning = true
         let gen = generation
-        let action: Action = target.paused ? .play : .pause
+        let previous = active
         queue.async { [weak self] in
-            let state = Self.run(window: target.window, index: target.index, action: action)
+            let snap = Self.measure()
+            let now = Self.active(snap.tabs, previous: previous)
+            var tabs = snap.tabs
+            var played: TabID?
+            if snap.failure == nil, let plan = Self.plan(snap.tabs, active: now) {
+                for t in plan.tabs {
+                    guard let state = Self.run(window: t.window, index: t.index, action: plan.action),
+                          let i = tabs.firstIndex(where: { $0.window == t.window && $0.index == t.index }) else { continue }
+                    tabs[i] = state
+                    if plan.action == .play { played = TabID(t) }
+                }
+            }
+            let result = Snapshot(tabs: tabs, failure: snap.failure)
             Task { @MainActor in
                 guard let self, gen == self.generation else { return }
                 self.commandRunning = false
-                // Sofort den neuen Stand zeigen, sonst hinkt die Taste bis zur nächsten Abfrage. Reihenfolge ist sicher: Die Queue
-                // ist seriell, eine davor laufende Messung meldet sich also vor diesem Befehl zurück und überschreibt ihn nicht.
-                if let state, let i = self.latest.tabs.firstIndex(where: { $0.window == target.window && $0.index == target.index }) {
-                    self.latest.tabs[i] = state
-                    self.onChange?()
-                }
+                // Sofort den neuen Stand zeigen, sonst hinkt die Taste bis zur nächsten Abfrage.
+                self.active = played ?? Self.active(result.tabs, previous: now)
+                self.latest = result
+                self.onChange?()
                 self.lastStart = .distantPast
             }
         }
@@ -229,13 +247,34 @@ final class BrowserTab {
         return out
     }
 
-    /// Welcher Tab wird umgeschaltet: der gerade spielende, sonst der erste mit Video. Ohne Tab nil.
-    nonisolated static func toggleTarget(_ tabs: [Tab]) -> Tab? {
-        tabs.first { !$0.paused } ?? tabs.first
+    /// Heliums Fenster- und Tab-ID eines Tabs.
+    struct TabID: Equatable, Sendable {
+        let window: Int
+        let index: Int
+        init(_ t: Tab) { window = t.window; index = t.index }
     }
 
-    /// Welcher Tab steht auf der Taste: wie `toggleTarget`.
-    nonisolated static func displayed(_ tabs: [Tab]) -> Tab? { toggleTarget(tabs) }
+    /// Zuletzt aktiver Tab: bleibt, solange er spielt oder (nichts spielt und) noch offen ist; sonst der erste spielende, sonst
+    /// der erste Tab. So startet „Play“ das Video, das zuletzt lief, nicht einfach den ersten Tab (gemessen 17.11.).
+    nonisolated static func active(_ tabs: [Tab], previous: TabID?) -> TabID? {
+        let playing = tabs.filter { !$0.paused }
+        if let p = previous, playing.contains(where: { TabID($0) == p }) { return p }
+        if let first = playing.first { return TabID(first) }
+        if let p = previous, tabs.contains(where: { TabID($0) == p }) { return p }
+        return tabs.first.map(TabID.init)
+    }
+
+    /// Welcher Tab steht auf der Taste (Titel, Cover, Zustand): der aktive, sonst der erste.
+    nonisolated static func displayed(_ tabs: [Tab], active: TabID?) -> Tab? {
+        tabs.first { TabID($0) == active } ?? tabs.first
+    }
+
+    /// Was ein Druck tut: spielt etwas → alle spielenden pausieren; sonst den aktiven Tab starten. Ohne Tab nil.
+    nonisolated static func plan(_ tabs: [Tab], active: TabID?) -> (action: Action, tabs: [Tab])? {
+        let playing = tabs.filter { !$0.paused }
+        if !playing.isEmpty { return (.pause, playing) }
+        return displayed(tabs, active: active).map { (.play, [$0]) }
+    }
 
     /// Antwort der Seite (JSON `{"p":bool,"t":"…","a":"…"}`) → Tab. Fremde Daten: unbekannte Form → nil, Texte gekürzt.
     nonisolated static func parseState(_ text: String, window: Int, index: Int) -> Tab? {

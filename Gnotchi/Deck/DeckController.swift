@@ -35,7 +35,7 @@ final class DeckController {
     /// Cover für eine beobachtete App (G59 Punkt 10e). Helium mit Browser-Weg und YouTube-Tab: Bild aus dem Tab. Sonst das Cover
     /// der Insel, aber nur für die App, die gerade spielt (der Adapter kennt nur die aktive Quelle). Kein Bild → nil.
     func cover(_ app: String) -> Data? {
-        if app == BrowserTab.bundleID, let browser, BrowserTab.displayed(browser.latest.tabs) != nil { return browser.cover }
+        if app == BrowserTab.bundleID, let browser, browser.shown != nil { return browser.cover }
         guard let id = resolve(app), media.info?.appBundleID == id, let art = media.artwork else { return nil }
         if let c = artCache, c.image === art { return c.data }
         let data = DeckCover.render(art)
@@ -129,7 +129,7 @@ final class DeckController {
     /// Titel, Zustand und Steuerbarkeit aus dem YouTube-Tab statt aus MediaRemote (das nur die aktive Quelle kennt).
     private func applyBrowser(to s: inout DeckWire.Status, app: String) {
         guard app == BrowserTab.bundleID, let browser else { return }
-        if let tab = BrowserTab.displayed(browser.latest.tabs) {
+        if let tab = browser.shown {
             s.title = tab.title
             s.artist = tab.artist
             s.playing = !tab.paused

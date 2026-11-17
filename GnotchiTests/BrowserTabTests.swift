@@ -54,12 +54,39 @@ final class BrowserTabTests: XCTestCase {
 
     // MARK: Auswahl
 
-    func testTogglePrefersPlayingTab() {
-        let a = BrowserTab.Tab(window: 1, index: 1, paused: true, title: "A", artist: nil)
-        let b = BrowserTab.Tab(window: 1, index: 5, paused: false, title: "B", artist: nil)
-        XCTAssertEqual(BrowserTab.toggleTarget([a, b]), b)
-        XCTAssertEqual(BrowserTab.toggleTarget([a]), a)
-        XCTAssertNil(BrowserTab.toggleTarget([]))
+    private func tab(_ i: Int, playing: Bool) -> BrowserTab.Tab {
+        BrowserTab.Tab(window: 1, index: i, paused: !playing, title: "T\(i)", artist: nil)
+    }
+
+    /// Messung 17.11. mit zwei Tabs: Video 2 lief, Druck pausierte es, nächster Druck startete Video 1. Jetzt: Video 2.
+    func testPlayResumesLastActiveTabNotTheFirst() {
+        let one = tab(1, playing: false), two = tab(2, playing: true)
+        let active = BrowserTab.active([one, two], previous: nil)
+        XCTAssertEqual(active, BrowserTab.TabID(two))
+        let paused = [one, tab(2, playing: false)]
+        let still = BrowserTab.active(paused, previous: active)
+        XCTAssertEqual(still, BrowserTab.TabID(two), "nichts spielt → der zuletzt aktive bleibt")
+        let plan = BrowserTab.plan(paused, active: still)
+        XCTAssertEqual(plan?.action, .play)
+        XCTAssertEqual(plan?.tabs, [tab(2, playing: false)])
+        XCTAssertEqual(BrowserTab.displayed(paused, active: still)?.index, 2)
+    }
+
+    func testPausePausesEveryPlayingTab() {
+        let tabs = [tab(1, playing: true), tab(2, playing: true), tab(3, playing: false)]
+        let plan = BrowserTab.plan(tabs, active: BrowserTab.TabID(tabs[1]))
+        XCTAssertEqual(plan?.action, .pause)
+        XCTAssertEqual(plan?.tabs.map(\.index), [1, 2])
+    }
+
+    func testActiveFollowsPlayingAndFallsBack() {
+        let one = tab(1, playing: false), two = tab(2, playing: false)
+        XCTAssertEqual(BrowserTab.active([one, two], previous: nil), BrowserTab.TabID(one), "ohne Vorgeschichte: der erste")
+        XCTAssertEqual(BrowserTab.active([tab(1, playing: true), tab(2, playing: true)], previous: BrowserTab.TabID(two)),
+                       BrowserTab.TabID(two), "spielen mehrere, bleibt der aktive")
+        XCTAssertEqual(BrowserTab.active([one], previous: BrowserTab.TabID(two)), BrowserTab.TabID(one), "aktiver Tab geschlossen")
+        XCTAssertNil(BrowserTab.active([], previous: BrowserTab.TabID(two)))
+        XCTAssertNil(BrowserTab.plan([], active: nil))
     }
 
     // MARK: Fremde Daten
