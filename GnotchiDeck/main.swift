@@ -45,7 +45,11 @@ struct DeckAction {
     var lastFeedback: [String: String] = [:]
     /// „App-Lautsprecher“: am Regler vorgewähltes, noch nicht übernommenes Gerät (UID).
     var preview: String?
+    /// „App-Lautstärke“ auf einer Taste (alle Stream Decks ohne Regler, Michael 17.11.): Stumm, Lauter oder Leiser.
+    var keyStep: KeyStep = .mute
 }
+
+enum KeyStep: String { case mute, up, down }
 
 @MainActor
 final class Plugin {
@@ -146,12 +150,14 @@ final class Plugin {
             let app = (settings["app"] as? String).flatMap { id in DeckWire.choices.contains { $0.id == id } ? id : nil }
                 ?? DeckWire.current
             let what = (settings["what"] as? String).flatMap(DeckWire.Play.init(rawValue:)) ?? .toggle
+            let keyStep = (settings["key"] as? String).flatMap(KeyStep.init(rawValue:)) ?? .mute
             let onDial = (payload["controller"] as? String) == "Encoder"
             var a = actions[ctx] ?? DeckAction(kind: kind, onDial: onDial, app: app, what: what)
             if event == "willAppear" { a.onDial = onDial }
             if a.onDial, a.track == nil { a.track = TrackImage() }
             a.app = app
             a.what = what
+            a.keyStep = keyStep
             a.lastFeedback = [:]
             actions[ctx] = a
             sendWatch()
@@ -205,7 +211,13 @@ final class Plugin {
             guard let ctx, let a = actions[ctx] else { return }
             if !gnotchi.isConnected { sendDeck(["event": "showAlert", "context": ctx]); return }
             switch a.kind {
-            case .volume: gnotchi.send(.mute(app: a.app))   // „App-Lautstärke“ auf einer Taste: drücken = stumm
+            case .volume:
+                // „App-Lautstärke“ auf einer Taste: je nach Einstellung stumm, lauter oder leiser (±5 % je Druck).
+                switch a.keyStep {
+                case .mute: gnotchi.send(.mute(app: a.app))
+                case .up: gnotchi.send(.gain(app: a.app, delta: 5))
+                case .down: gnotchi.send(.gain(app: a.app, delta: -5))
+                }
             case .play: gnotchi.send(.play(app: a.app, what: a.what))
             case .output:
                 // Taste: jedes Drücken legt die App auf das nächste Gerät.
@@ -283,7 +295,8 @@ final class Plugin {
         let name = s?.name ?? DeckWire.name(of: a.app) ?? "Gnotchi"
         switch a.kind {
         case .volume where !a.onDial:
-            let title = connected ? "\(name)\n\n\(Self.percentText(s))" : "Gnotchi\n\naus"
+            let sign = switch a.keyStep { case .mute: ""; case .up: "+ "; case .down: "− " }
+            let title = connected ? "\(name)\n\(sign)\n\(Self.percentText(s))" : "Gnotchi\n\naus"
             if a.lastFeedback["title"] != title {
                 sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
                 a.lastFeedback["title"] = title

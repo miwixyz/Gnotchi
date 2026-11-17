@@ -109,7 +109,7 @@ klickst.
 
 ## Stream Deck
 
-Mit einem Elgato Stream Deck steuerst du Lautstärke und Wiedergabe je App, am besten mit den Drehreglern eines Stream Deck +.
+Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautsprecher je App. Das geht auf jedem Stream Deck mit Tasten; mit den Drehreglern eines Stream Deck + am bequemsten.
 
 1. Einstellungen → **Audio** → ganz unten **„Steuerung über Stream Deck“** einschalten.
 2. **„Plugin installieren“** klicken. Stream Deck fragt, ob es das Plugin „Gnotchi“ installieren soll.
@@ -121,6 +121,7 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke und Wiedergabe je App, am b
 - Gedrückt halten und drehen: nächster (rechts) oder vorheriger Titel (links)
 - Auf die Leiste tippen: Play/Pause
 - Die Leiste zeigt App, Prozent und den laufenden Titel; lange Titel laufen durch.
+- Auf einer **Taste** (jedes Stream Deck): rechts unter „Taste“ Stumm, Lauter oder Leiser wählen; je Druck 5 %.
 
 **Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück, je Taste einstellbar.
 

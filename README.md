@@ -68,7 +68,8 @@ Freigabe nicht und fragt nie danach.
   steht; sonst spielt die App direkt. Der Ton bleibt im Arbeitsspeicher, nichts wird gespeichert, gesendet oder protokolliert
   ([G55](docs/SECURE-DESIGN.md)). Seit 0.35 merkt sich Gnotchi den Wert je App und stellt ihn wieder ein, sobald die App
   erneut Ton ausgibt (nie Werte bis 5 %).
-- **Stream Deck (0.35, ab Werk aus):** Eigenes Plugin für Elgatos Stream Deck. Regler „App-Lautstärke“: drehen = Lautstärke,
+- **Stream Deck (0.35, ab Werk aus):** Eigenes Plugin für Elgatos Stream Deck, auf jedem Modell mit Tasten (ab 0.36 auch
+  Lautstärke per Taste: Stumm, Lauter, Leiser). Regler „App-Lautstärke“: drehen = Lautstärke,
   drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
   Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck

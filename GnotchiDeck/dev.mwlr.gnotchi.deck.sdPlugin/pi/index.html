@@ -33,14 +33,23 @@
       <option value="previous">Zurück</option>
     </select>
   </div>
+  <div class="row hidden" id="keyRow"><label for="key">Taste</label>
+    <select id="key">
+      <option value="mute">Stumm</option>
+      <option value="up">Lauter (+5 %)</option>
+      <option value="down">Leiser (−5 %)</option>
+    </select>
+  </div>
   <p id="hint">Browser lassen sich nur steuern, solange sie gerade spielen. Für die Lautstärke von Browsern muss in Gnotchi „Lautstärke je App“ an sein.</p>
 <script>
   let socket = null, uuid = null, settings = {};
   const allowedApps = Array.from(document.querySelectorAll('#app option')).map(o => o.value);
   const allowedWhat = ['toggle', 'next', 'previous'];
+  const allowedKey = ['mute', 'up', 'down'];
 
   function save() {
-    settings = { app: document.getElementById('app').value, what: document.getElementById('what').value };
+    settings = { app: document.getElementById('app').value, what: document.getElementById('what').value,
+                 key: document.getElementById('key').value };
     if (socket && socket.readyState === 1) {
       socket.send(JSON.stringify({ event: 'setSettings', context: uuid, payload: settings }));
     }
@@ -54,13 +63,18 @@
     const s = (action.payload && action.payload.settings) || {};
     document.getElementById('app').value = allowedApps.includes(s.app) ? s.app : 'current';
     document.getElementById('what').value = allowedWhat.includes(s.what) ? s.what : 'toggle';
+    document.getElementById('key').value = allowedKey.includes(s.key) ? s.key : 'mute';
     if (action.action === 'dev.mwlr.gnotchi.deck.play') document.getElementById('whatRow').classList.remove('hidden');
+    // „App-Lautstärke“ auf einer Taste (Stream Deck ohne Regler): Stumm, Lauter oder Leiser.
+    const onKey = action.payload && action.payload.controller === 'Keypad';
+    if (action.action === 'dev.mwlr.gnotchi.deck.volume' && onKey) document.getElementById('keyRow').classList.remove('hidden');
     socket = new WebSocket('ws://127.0.0.1:' + Number(port));
     socket.onopen = function () { socket.send(JSON.stringify({ event: registerEvent, uuid: uuid })); };
   };
 
   document.getElementById('app').addEventListener('change', save);
   document.getElementById('what').addEventListener('change', save);
+  document.getElementById('key').addEventListener('change', save);
 </script>
 </body>
 </html>

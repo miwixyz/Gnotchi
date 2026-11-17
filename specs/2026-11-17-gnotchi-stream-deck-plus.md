@@ -45,6 +45,9 @@ Michael: „Ja, funktioniert.“ Spotify per Regler auf die Mac-mini-Lautspreche
   Bildschirm & Systemaudio“ stand nur „Gnotchi Bild“). Von Hand eingetragen → funktioniert. Hinweise eingebaut.
   Messpunkt: jeder Abbruchgrund beim Umleiten steht im Protokoll.
 - Hinweis „Plugin aktualisieren“: `hello`-Version gegen die eigene, nur in den Einstellungen.
+- **Alle Stream Decks** (Michael 17.11.): „App-Lautstärke“ auf einer Taste mit Einstellung „Taste“ = Stumm / Lauter / Leiser
+  (±5 % je Druck). Am Stream Deck Neo getestet: „funktioniert“. Bei Michael sind Stream Deck +, Neo und ein virtuelles
+  Stream Deck angemeldet.
 
 ## Heute (Stand `fb2b915`, 0.34.1)
 

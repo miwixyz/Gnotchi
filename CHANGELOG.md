@@ -6,6 +6,7 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ### Neu
 - **Lautsprecher je App.** Jede App kann auf einem eigenen Gerät spielen, zum Beispiel Spotify auf den Lautsprechern und der Browser auf den Kopfhörern. Im Mixer auf das Gerät in der Zeile der App klicken und ein anderes wählen. Am Stream Deck gibt es dafür die Aktion **App-Lautsprecher**: drehen = Gerät vorwählen, drücken = übernehmen, auf die Leiste tippen = zurück aufs eigene Gerät; auf einer Taste schaltet jedes Drücken zum nächsten Gerät. Braucht „Lautstärke je App“. Bei einem Gerätewechsel, beim Ausschalten und auch wenn Gnotchi abstürzt, spielt die App wieder auf ihrem eigenen Gerät.
+- **Alle Stream Decks, nicht nur Stream Deck +.** „App-Lautstärke“ auf einer Taste hat jetzt das Feld „Taste“: Stumm, Lauter oder Leiser (je Druck 5 %). Damit gehen Lautstärke, Wiedergabe und Lautsprecher auch auf Stream Deck, Mini, XL, Neo, Mobile und Pedal.
 - **Hinweis „Plugin aktualisieren“.** Ist im Stream Deck ein älteres Gnotchi-Plugin installiert, sagen es die Einstellungen über dem Knopf „Plugin installieren“.
 
 ### Geändert
