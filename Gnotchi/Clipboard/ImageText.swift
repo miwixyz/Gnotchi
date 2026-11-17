@@ -67,6 +67,13 @@ final class ImageTextIndexer {
     private nonisolated static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "zwischenablage")
     /// Nach so vielen Bildern einmal speichern (statt je Bild neu zeichnen).
     nonisolated static let batchSize = 10
+    /// In der App immer `.background` (bremst nie). Tests übergeben eine höhere Stufe: Unter Last bekam `.background` so wenig
+    /// Rechenzeit, dass der Test seine Frist riss, obwohl die Erkennung stimmte (gemessen 17.11.: 4,7 s statt 0,2 s je Bild).
+    let priority: TaskPriority
+
+    init(priority: TaskPriority = .background) {
+        self.priority = priority
+    }
 
     var isRunning: Bool { task != nil }
 
@@ -78,7 +85,7 @@ final class ImageTextIndexer {
         guard !jobs.isEmpty else { return }
         generation += 1
         let mine = generation
-        task = Task.detached(priority: .background) { [weak self, weak store] in
+        task = Task.detached(priority: priority) { [weak self, weak store] in
             let start = Date()
             var batch: [UUID: String] = [:]
             var withText = 0

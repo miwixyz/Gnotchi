@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Intern
+- Bildtext-Test wird bei ausgelastetem Mac nicht mehr fälschlich rot: Der Test lässt die Texterkennung mit normaler Priorität laufen (die App bleibt bei „Hintergrund“, eigener Test sichert das ab) und wartet höchstens 90 s statt fest 10 s. Unter künstlicher Volllast in 0,23 s grün.
+
 ## [0.36.0] — 2026-11-17
 
 ### Neu

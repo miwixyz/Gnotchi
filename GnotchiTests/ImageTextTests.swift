@@ -152,14 +152,23 @@ final class ImageTextTests: XCTestCase {
 
     // MARK: Hintergrund-Lauf
 
+    func testAppIndexerStaysAtBackgroundPriority() {
+        // Die App darf nie bremsen: ohne Angabe bleibt die Erkennung auf `.background` (nur Tests heben sie an).
+        XCTAssertEqual(ImageTextIndexer().priority, .background)
+    }
+
     func testIndexerFillsPendingAndRunsOnce() async throws {
         let store = try makeStore()
         let entry = try store.add(image(png("Vorstellung Samstag")), kind: .image, source: nil)
-        let indexer = ImageTextIndexer()
+        // Normale Priorität statt `.background`: Der Test prüft die Logik, nicht wie viel Rechenzeit macOS gerade übrig hat
+        // (17.11.: bei Last 125 riss die feste 10-s-Frist, obwohl die Erkennung stimmte). Obergrenze 90 s nur gegen echtes
+        // Hängen – ein kalter Start der Texterkennung dauerte gemessen 68 s; sonst ist der Test nach < 1 s fertig.
+        let indexer = ImageTextIndexer(priority: .userInitiated)
         indexer.run(store)
         XCTAssertTrue(indexer.isRunning)
         indexer.run(store)   // zweiter Aufruf startet keinen zweiten Lauf
-        for _ in 0..<200 where indexer.isRunning { try await Task.sleep(for: .milliseconds(50)) }
+        let deadline = Date().addingTimeInterval(90)
+        while indexer.isRunning, Date() < deadline { try await Task.sleep(for: .milliseconds(50)) }
         XCTAssertFalse(indexer.isRunning)
         XCTAssertNotNil(entry.sealedOCR)
         XCTAssertEqual(store.entries(matching: "Samstag").map(\.id), [entry.id])
