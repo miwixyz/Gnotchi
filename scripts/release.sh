@@ -89,6 +89,12 @@ fi
 
 VERSION="$(awk -F'"' '/MARKETING_VERSION:/ { print $2; exit }' project.yml)"
 [ -n "${VERSION}" ] || fail "MARKETING_VERSION nicht in project.yml gefunden"
+# Plugin-Version wird von Hand gepflegt. Gleiche Version wie installiert → Stream Deck verwirft das Paket („AlreadyInstalled“,
+# gemessen 17.11.); ältere als Gnotchi → dauerhaft „Plugin aktualisieren“. Deshalb genau App-Version + „.0“.
+DECK_MANIFEST_VERSION="$(/usr/bin/python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["Version"])' \
+    GnotchiDeck/dev.mwlr.gnotchi.deck.sdPlugin/manifest.json)" || fail "Manifest des Stream-Deck-Plugins nicht lesbar"
+[ "${DECK_MANIFEST_VERSION}" = "${VERSION}.0" ] \
+    || fail "Plugin-Manifest hat Version ${DECK_MANIFEST_VERSION}, erwartet ${VERSION}.0 (GnotchiDeck/…/manifest.json anpassen)"
 TAG="v${VERSION}"
 
 git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null \

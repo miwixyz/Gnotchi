@@ -1753,7 +1753,7 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
 
 - **Anlass:** macOS (MediaRemote) kennt nur eine aktive Quelle. Läuft Spotify, ist ein YouTube-Tab im Browser für das Deck unsichtbar
   und nicht steuerbar. Gemessen 17.11. (Mac mini, Helium, macOS 27): Helium nimmt Apple Events an; JavaScript im Tab nur, wenn
-  „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ an ist (sonst Fehler 12); gezieltes Pause/Play neben Spotify 10 von 10.
+  „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an ist (sonst Fehler 12); gezieltes Pause/Play neben Spotify 10 von 10.
 - **Neue Vertrauensgrenze:** Gnotchi führt JavaScript in einem Browser-Tab aus. Deshalb: eigener Schalter „YouTube in Helium gezielt
   steuern“ (`deckBrowserTab`), **ab Werk aus**, unabhängig von „Stream Deck“. Aus = Helium bekommt nie ein Apple Event.
   Gnotchi schaltet Heliums Schalter nie selbst.
