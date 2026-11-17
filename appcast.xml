@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.37.2</title>
-            <pubDate>Wed, 18 Nov 2026 00:12:03 +0100</pubDate>
+            <title>0.37.3</title>
+            <pubDate>Wed, 18 Nov 2026 00:48:42 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>268</sparkle:version>
-            <sparkle:shortVersionString>0.37.2</sparkle:shortVersionString>
+            <sparkle:version>270</sparkle:version>
+            <sparkle:shortVersionString>0.37.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Stream Deck: mehrere YouTube-Tabs in Helium.</b> Ein Druck auf die Wiedergabe-Taste pausiert jetzt alle YouTube-Videos, die gerade spielen, und der nächste Druck startet wieder das Video, das zuletzt lief. Bisher startete er immer das Video im ersten Tab, und direkt nach einem von Hand gestarteten Video lief manchmal ein zweites mit los. Titel und Cover auf der Taste zeigen das zuletzt aktive Video.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.2/Gnotchi-0.37.2.zip" length="8359752" type="application/octet-stream" sparkle:edSignature="EJxx9MeUaApeXELPG0qL3lpFqiu5osIxptLbqSZJG1ZWBUw8abi+fHnXfMOrZYRG4ssuTCWb3Ty9Q2R0lZSJDg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Stream Deck: Cover von Spotify fehlte.</b> Detailreiche quadratische Cover (z. B. aus Spotify) waren nach dem Verkleinern zu groß für die Taste und wurden ohne Hinweis weggelassen, YouTube-Vorschaubilder passten. Gnotchi verkleinert solche Cover jetzt weiter (bis 96 oder 72 px), statt sie zu verwerfen. Das Plugin muss dafür nicht neu installiert werden.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.3/Gnotchi-0.37.3.zip" length="8360011" type="application/octet-stream" sparkle:edSignature="16D61roGce8Gz3DR8Nc9Ip3D13X0VmozGL572FGoarKzws9wu+n7MX6T7/buFG+VGwI9oPKdexZhFqbnfvaKAw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: SAAU2ZITFD1+jQpnKeVGmydBG/GuZCwDEF8iA/sgtRM4yna7Y9YZj+R88ZCQRwnyAHftSfUVETJDSlPWmLTXDw==
-length: 1617
+edSignature: /CRRNAMCt9qyPydy736UGWS/2AA/TvwU4arvBdgUWM1S/+pCqHy12Z4a6siE8F3/zCDkzQzEbgM25D563TFxDA==
+length: 1572
 -->
