@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.37.0] — 2026-11-17
 
 ### Neu
 - **Stream Deck: YouTube in Helium gezielt steuern (ab Werk aus).** Läuft Spotify und daneben YouTube im Browser, bedient die Wiedergabe-Taste mit der App „Helium“ jetzt gezielt den YouTube-Tab, und die Leiste zeigt dessen Titel und Kanal. Einschalten unter Einstellungen → Stream Deck → „YouTube in Helium gezielt steuern“. In Helium muss „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an sein, macOS fragt beim ersten Mal nach der Steuerung von Helium. Gnotchi führt dort nur festes JavaScript in Tabs von youtube.com aus, liest Adressen nur zum Filtern und lädt nie selbst etwas aus dem Netz. Läuft nichts von YouTube, gilt der bisherige Weg.

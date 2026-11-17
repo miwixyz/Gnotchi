@@ -73,7 +73,8 @@ Freigabe nicht und fragt nie danach.
   drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
   Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
-  ([G59](docs/SECURE-DESIGN.md)).
+  ([G59](docs/SECURE-DESIGN.md)). Ab 0.37: neue Symbole (dunkles Glas, weiße Linien), optional YouTube in Helium gezielt
+  steuern und das Cover auf der Wiedergabe-Taste (beides ab Werk aus).
 - **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
   „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
   App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.
