@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.37.1</title>
-            <pubDate>Tue, 17 Nov 2026 23:41:13 +0100</pubDate>
+            <title>0.37.2</title>
+            <pubDate>Wed, 18 Nov 2026 00:12:03 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>265</sparkle:version>
-            <sparkle:shortVersionString>0.37.1</sparkle:shortVersionString>
+            <sparkle:version>268</sparkle:version>
+            <sparkle:shortVersionString>0.37.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Neue Symbole am Stream Deck.</b> Alle Tasten, Regler und das Plugin-Symbol haben ein neues, einheitliches Aussehen: dunkle Glasfläche, klare weiße Linien und ein warmes Leuchten. Der Name der App steht weiter oben auf der Taste. Stumm erkennst du am abgeblendeten Lautsprecher mit rotem Punkt. Deine Belegung bleibt, du musst nichts neu zuweisen: nach dem Plugin-Update (Einstellungen → Stream Deck → „Plugin installieren“) wechseln die Tasten von selbst.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.1/Gnotchi-0.37.1.zip" length="8358654" type="application/octet-stream" sparkle:edSignature="jTbu9LOGN4fVxNGhfB5ZOrRE5Wlo3e5TQPR00bYs39JXkUa1P2gQ9hv5rX1bJvUs2AwnruDazBnDAac6NGNGDA=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Stream Deck: mehrere YouTube-Tabs in Helium.</b> Ein Druck auf die Wiedergabe-Taste pausiert jetzt alle YouTube-Videos, die gerade spielen, und der nächste Druck startet wieder das Video, das zuletzt lief. Bisher startete er immer das Video im ersten Tab, und direkt nach einem von Hand gestarteten Video lief manchmal ein zweites mit los. Titel und Cover auf der Taste zeigen das zuletzt aktive Video.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.2/Gnotchi-0.37.2.zip" length="8359752" type="application/octet-stream" sparkle:edSignature="EJxx9MeUaApeXELPG0qL3lpFqiu5osIxptLbqSZJG1ZWBUw8abi+fHnXfMOrZYRG4ssuTCWb3Ty9Q2R0lZSJDg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: iMYL7eMYENrCxPpqzzR8dYxLxPQLfoAkQNLlAnfYIVg4RxAXvnQnuZREDg9XLPYAK7u4sSfEMB36rqpKCo1GAg==
-length: 1681
+edSignature: SAAU2ZITFD1+jQpnKeVGmydBG/GuZCwDEF8iA/sgtRM4yna7Y9YZj+R88ZCQRwnyAHftSfUVETJDSlPWmLTXDw==
+length: 1617
 -->
