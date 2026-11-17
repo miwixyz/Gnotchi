@@ -66,7 +66,13 @@ Freigabe nicht und fragt nie danach.
 - **Lautstärke je App (0.30, ab Werk aus):** Im Mixer bekommt jede App mit Ton einen Regler von 0 bis 200 %, auch Browser,
   FaceTime oder Teams (über einen Prozess-Tap, Freigabe „Audio-Aufnahme“). Gnotchi hört nur mit, solange ein Regler nicht auf 100 %
   steht; sonst spielt die App direkt. Der Ton bleibt im Arbeitsspeicher, nichts wird gespeichert, gesendet oder protokolliert
-  ([G55](docs/SECURE-DESIGN.md)).
+  ([G55](docs/SECURE-DESIGN.md)). Seit 0.35 merkt sich Gnotchi den Wert je App und stellt ihn wieder ein, sobald die App
+  erneut Ton ausgibt (nie Werte bis 5 %).
+- **Stream Deck (0.35, ab Werk aus):** Eigenes Plugin für Elgatos Stream Deck. Regler „App-Lautstärke“: drehen = Lautstärke,
+  drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
+  Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Podcasts, Safari, Helium, Edge,
+  gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
+  ([G59](docs/SECURE-DESIGN.md)).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.
@@ -222,7 +228,8 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   „Geschwindigkeitstest“ (0.28, ab Werk aus) – dem Test gegen Apples Server, höchstens 20 Sekunden lang
   ([G51](docs/SECURE-DESIGN.md)).
 - Titel, Interpret und Cover bleiben im Arbeitsspeicher. Gnotchi speichert sie nicht, schreibt sie
-  nicht ins Protokoll und lädt keine Cover-Adressen aus dem Netz. Ins Protokoll kommen nur
+  nicht ins Protokoll und lädt keine Cover-Adressen aus dem Netz. Ausnahme, nur mit eingeschaltetem „Stream Deck“: Titel
+  und Interpret (kein Cover) gehen an Elgatos Stream-Deck-App auf diesem Mac, damit die Leiste sie zeigt ([G59](docs/SECURE-DESIGN.md)). Ins Protokoll kommen nur
   Zustandswechsel und die Kennung der Quell-App.
 - Gespeichert werden nur die Einstellungen, auf diesem Mac.
 - Für „Wo die Musik spielt“ liest Gnotchi über Core Audio nur, **ob** eine App gerade Ton ausgibt,

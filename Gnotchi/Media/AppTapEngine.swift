@@ -196,7 +196,8 @@ final class AppTapEngine {
         return alive.isEmpty ? nil : Target(appID: target.appID, processes: alive, deviceUID: target.deviceUID)
     }
 
-    private final class Listener {
+    /// Auch vom Mixer genutzt (gemerkte Lautstärken, G59): Prozessliste beobachten, ohne dass ein Tap läuft.
+    final class Listener {
         let object: AudioObjectID
         var address: AudioObjectPropertyAddress
         let block: AudioObjectPropertyListenerBlock

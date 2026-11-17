@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<!-- Einstellungen einer Gnotchi-Aktion in Stream Deck (G59). Rein lokal: keine Netzzugriffe, keine fremden Skripte.
+     Speichert nur die Auswahl (App, Befehl) über Stream Decks eigenes setSettings. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src ws://127.0.0.1:*">
+<style>
+  body { margin: 0; padding: 8px 12px; background: #2d2d2d; color: #d8d8d8; font: 12px -apple-system, sans-serif; }
+  .row { display: flex; align-items: center; margin: 6px 0; }
+  label { width: 90px; flex: none; color: #9a9a9a; }
+  select { flex: 1; background: #3d3d3d; color: #e6e6e6; border: 1px solid #555; border-radius: 4px; padding: 3px 4px; font: inherit; }
+  p { color: #8c8c8c; margin: 10px 0 0; line-height: 1.4; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <div class="row"><label for="app">App</label>
+    <select id="app">
+      <option value="current">Gerade spielend</option>
+      <option value="com.spotify.client">Spotify</option>
+      <option value="com.apple.Music">Musik</option>
+      <option value="com.apple.podcasts">Podcasts</option>
+      <option value="com.apple.Safari">Safari</option>
+      <option value="net.imput.helium">Helium</option>
+      <option value="com.microsoft.edgemac">Edge</option>
+    </select>
+  </div>
+  <div class="row hidden" id="whatRow"><label for="what">Befehl</label>
+    <select id="what">
+      <option value="toggle">Play/Pause</option>
+      <option value="next">Weiter</option>
+      <option value="previous">Zurück</option>
+    </select>
+  </div>
+  <p id="hint">Browser lassen sich nur steuern, solange sie gerade spielen. Für die Lautstärke von Browsern muss in Gnotchi „Lautstärke je App“ an sein.</p>
+<script>
+  let socket = null, uuid = null, settings = {};
+  const allowedApps = Array.from(document.querySelectorAll('#app option')).map(o => o.value);
+  const allowedWhat = ['toggle', 'next', 'previous'];
+
+  function save() {
+    settings = { app: document.getElementById('app').value, what: document.getElementById('what').value };
+    if (socket && socket.readyState === 1) {
+      socket.send(JSON.stringify({ event: 'setSettings', context: uuid, payload: settings }));
+    }
+  }
+
+  // Von Stream Deck aufgerufen.
+  window.connectElgatoStreamDeckSocket = function (port, inUUID, registerEvent, info, actionInfo) {
+    uuid = inUUID;
+    let action = {};
+    try { action = JSON.parse(actionInfo); } catch (e) { action = {}; }
+    const s = (action.payload && action.payload.settings) || {};
+    document.getElementById('app').value = allowedApps.includes(s.app) ? s.app : 'current';
+    document.getElementById('what').value = allowedWhat.includes(s.what) ? s.what : 'toggle';
+    if (action.action === 'dev.mwlr.gnotchi.deck.play') document.getElementById('whatRow').classList.remove('hidden');
+    socket = new WebSocket('ws://127.0.0.1:' + Number(port));
+    socket.onopen = function () { socket.send(JSON.stringify({ event: registerEvent, uuid: uuid })); };
+  };
+
+  document.getElementById('app').addEventListener('change', save);
+  document.getElementById('what').addEventListener('change', save);
+</script>
+</body>
+</html>

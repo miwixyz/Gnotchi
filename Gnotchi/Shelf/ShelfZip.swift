@@ -78,11 +78,11 @@ enum ShelfZip {
     }
 
     /// `Ablage.zip`, `Ablage 2.zip` … im Ordner – nie eine bestehende Datei.
-    nonisolated static func uniqueURL(in dir: URL, base: String = "Ablage") -> URL {
-        var url = dir.appendingPathComponent("\(base).zip")
+    nonisolated static func uniqueURL(in dir: URL, base: String = "Ablage", ext: String = "zip") -> URL {
+        var url = dir.appendingPathComponent("\(base).\(ext)")
         var n = 2
         while FileManager.default.fileExists(atPath: url.path) {
-            url = dir.appendingPathComponent("\(base) \(n).zip")
+            url = dir.appendingPathComponent("\(base) \(n).\(ext)")
             n += 1
         }
         return url
@@ -91,9 +91,11 @@ enum ShelfZip {
     // MARK: Schreiben
 
     /// Schreibt das ZIP nach `directory` (Standard: Downloads). Läuft lange bei großen Dateien → nicht im Hauptthread.
-    nonisolated static func create(_ sources: [URL], password: String?, directory: URL) throws(Failure) -> Result {
+    /// `base`/`ext`/`keepExecutable` für das Stream-Deck-Paket (G59): dort muss das Plugin-Programm ausführbar bleiben.
+    nonisolated static func create(_ sources: [URL], password: String?, directory: URL, base: String = "Ablage",
+                                   ext: String = "zip", keepExecutable: Bool = false) throws(Failure) -> Result {
         let (list, links) = try entries(for: sources)
-        let dest = uniqueURL(in: directory)
+        let dest = uniqueURL(in: directory, base: base, ext: ext)
         guard let a = archive_write_new() else { throw .write("new") }
         defer { archive_write_free(a) }
         func check(_ r: Int32, _ step: String) throws(Failure) {
@@ -113,7 +115,8 @@ enum ShelfZip {
             defer { archive_entry_free(entry) }
             archive_entry_set_pathname_utf8(entry, e.isDirectory ? e.path + "/" : e.path)
             archive_entry_set_filetype(entry, e.isDirectory ? 0o040000 : 0o100000)
-            archive_entry_set_perm(entry, e.isDirectory ? 0o755 : 0o644)
+            let executable = keepExecutable && !e.isDirectory && FileManager.default.isExecutableFile(atPath: e.source.path)
+            archive_entry_set_perm(entry, e.isDirectory || executable ? 0o755 : 0o644)
             let mtime = (try? e.source.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
             archive_entry_set_mtime(entry, time_t(mtime?.timeIntervalSince1970 ?? 0), 0)
             archive_entry_set_size(entry, e.isDirectory ? 0 : e.size)

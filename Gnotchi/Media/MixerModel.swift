@@ -97,6 +97,13 @@ final class MixerModel {
     /// Beim Ziehen am App-Regler: je App höchstens ein Aufruf gleichzeitig, immer mit dem neuesten Wert (kein Stau von Apple Events).
     @ObservationIgnored private var pendingPlayer: [String: Int] = [:]
     @ObservationIgnored private var sendingPlayer: Set<String> = []
+    /// Gemerkte Lautstärke je App (G59): Bundle-ID → Prozent, ohne 100. Gilt für Mixer und Stream Deck.
+    private(set) var remembered: [String: Int]
+    @ObservationIgnored private var rememberedOrder: [String]
+    /// Solange gemerkte Werte warten: Prozessliste beobachten, damit eine neu gestartete App ihren Wert bekommt, auch wenn
+    /// gerade niemand den Mixer zeigt. Nur bei eingeschalteter „Lautstärke je App“.
+    @ObservationIgnored private var memoryListener: AppTapEngine.Listener?
+    @ObservationIgnored private var memoryRefresh: Task<Void, Never>?
 
     init(script: AppleScriptSource = AppleScriptSource(), engine: AppTapEngine = AppTapEngine(),
          interval: Duration = .milliseconds(1500), defaults: UserDefaults = .standard,
@@ -105,6 +112,9 @@ final class MixerModel {
         self.defaults = defaults
         outputFavorites = MixerFavorites.load(.output, from: defaults)
         inputFavorites = MixerFavorites.load(.input, from: defaults)
+        let memory = MixerMemory.load(from: defaults)
+        remembered = memory
+        rememberedOrder = memory.keys.sorted()
         self.script = script
         self.engine = engine
         self.interval = interval
@@ -113,11 +123,21 @@ final class MixerModel {
 
     /// Wer den Mixer gerade zeigt (Popover, Insel): Er fragt ab, solange mindestens einer ihn zeigt.
     @ObservationIgnored private var viewers: Set<String> = []
+    /// Betrachter, die keinen schnellen Takt brauchen (Stream Deck, G59): Das Plugin ist verbunden, solange Stream Deck läuft,
+    /// also fast immer. Zeigt nur es den Mixer, fragt er alle 4 s statt alle 1,5 s ab (Akku; eigene Eingaben wirken sofort).
+    @ObservationIgnored private var slowViewers: Set<String> = []
+    nonisolated static let slowInterval: Duration = .seconds(4)
 
-    func setVisible(_ owner: String, _ visible: Bool) {
+    func setVisible(_ owner: String, _ visible: Bool, slow: Bool = false) {
         if visible { viewers.insert(owner) } else { viewers.remove(owner) }
+        if visible, slow { slowViewers.insert(owner) } else { slowViewers.remove(owner) }
+        // Läuft die Abfrage schon im langsamen Takt und öffnet jemand den Mixer: sofort einmal abfragen, nicht bis zu 4 s warten.
+        if visible, !slow, isPolling { Task { await refresh() } }
         if viewers.isEmpty { stop() } else { start() }
     }
+
+    /// Takt der Abfrage: langsam, wenn nur langsame Betrachter zusehen.
+    var pollInterval: Duration { viewers.isSubset(of: slowViewers) ? max(interval, Self.slowInterval) : interval }
 
     /// Fragt der Mixer gerade ab? (Tests)
     var isPolling: Bool { task != nil }
@@ -127,7 +147,7 @@ final class MixerModel {
         task = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                try? await Task.sleep(for: self?.interval ?? .seconds(2))
+                try? await Task.sleep(for: self?.pollInterval ?? .seconds(2))
             }
         }
     }
@@ -149,6 +169,7 @@ final class MixerModel {
         // Nach dem await erneut gegen `holdUntil` prüfen: kein Zurückspringen mitten im Ziehen.
         if let alert = await SystemAlertVolume.read(), Date() >= holdUntil, alert != alertVolume { alertVolume = alert }
         var rows = snapshot.rows
+        applyRemembered(rows)
         for i in rows.indices { rows[i].gain = engine.gain(for: rows[i].id) }
         for i in rows.indices {
             rows[i].gain = engine.gain(for: rows[i].id)
@@ -289,11 +310,78 @@ final class MixerModel {
         Task { await refresh() }
     }
 
-    /// Einstellung geändert. Aus: alle Taps sofort zerstört, die Apps spielen wieder direkt.
+    /// Einstellung geändert. Aus: alle Taps sofort zerstört, die Apps spielen wieder direkt (gemerkte Werte bleiben gespeichert,
+    /// wirken aber nicht). An: gemerkte Werte gleich anwenden.
     func setAppVolumeEnabled(_ on: Bool) {
         guard on != appVolumeEnabled else { return }
         appVolumeEnabled = on
         if !on { releaseAll() }
+        updateMemoryWatch()
+        if on, !remembered.isEmpty { Task { await refresh() } }
+    }
+
+    // MARK: Gemerkte Lautstärken (G59)
+
+    /// Welche Zeilen bekommen jetzt ihren gemerkten Wert? Nur regelbare Apps ohne laufenden Tap und ohne frischen Fehler
+    /// (sonst baute ein abgebauter Tap – keine Freigabe – sich bei jeder Abfrage neu auf), nie Werte ≤ 5 %.
+    nonisolated static func rowsToRestore(_ rows: [MixerAppRow], remembered: [String: Int], enabled: Bool,
+                                          liveGain: (String) -> Float, failed: (String) -> Bool) -> [(MixerAppRow, Int)] {
+        guard enabled else { return [] }
+        return rows.compactMap { row in
+            guard row.canTap, let id = row.bundleID, !AppleScriptSource.supported.contains(id),
+                  let p = remembered[id], MixerMemory.shouldAutoApply(p), liveGain(row.id) == 1, !failed(row.id) else { return nil }
+            return (row, p)
+        }
+    }
+
+    private func applyRemembered(_ rows: [MixerAppRow]) {
+        for (row, p) in Self.rowsToRestore(rows, remembered: remembered, enabled: appVolumeEnabled,
+                                           // `.reset` (Gerätewechsel) blockiert nicht: gemerkt heißt, auf dem neuen Gerät wieder anwenden.
+                                           liveGain: { engine.gain(for: $0) },
+                                           failed: { tapFailures[$0] != nil && tapFailures[$0] != .reset }) {
+            guard let uid = row.deviceUID else { continue }
+            engine.setGain(Float(p) / 100, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))
+        }
+        tapFailures = engine.failures
+    }
+
+    private func remember(_ bundleID: String?, percent: Int) {
+        guard let bundleID, DeckWire.isValidApp(bundleID), !AppleScriptSource.supported.contains(bundleID) else { return }
+        (remembered, rememberedOrder) = MixerMemory.updated(remembered, order: rememberedOrder, bundleID: bundleID, percent: percent)
+        defaults.set(remembered, forKey: MixerMemory.key)
+        updateMemoryWatch()
+    }
+
+    /// Alle gemerkten Werte vergessen (Taste im Mixer); laufende Regler bleiben, bis man sie bewegt.
+    func forgetRemembered() {
+        remembered = [:]
+        rememberedOrder = []
+        defaults.removeObject(forKey: MixerMemory.key)
+        updateMemoryWatch()
+    }
+
+    /// Prozessliste beobachten, solange etwas zu merken ist; nach einer Änderung zweimal nachsehen (eine neue App gibt oft erst
+    /// nach einem Moment Ton aus).
+    private func updateMemoryWatch() {
+        let wanted = appVolumeEnabled && !remembered.isEmpty
+        guard wanted != (memoryListener != nil) else { return }
+        guard wanted else { memoryListener = nil; memoryRefresh?.cancel(); memoryRefresh = nil; return }
+        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.processListChanged() } }
+        }
+        let l = AppTapEngine.Listener(AudioObjectID(kAudioObjectSystemObject), kAudioHardwarePropertyProcessObjectList, block)
+        memoryListener = l.registered ? l : nil
+    }
+
+    private func processListChanged() {
+        memoryRefresh?.cancel()
+        memoryRefresh = Task { [weak self] in
+            for delay in [1.0, 4.0] {
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled, let self else { return }
+                self.applyRemembered(await self.currentRows())
+            }
+        }
     }
 
     /// Alle Regler je App zurück auf 100 % (Beenden, Einstellung aus, Gerätewechsel).
@@ -304,13 +392,15 @@ final class MixerModel {
     }
 
     /// Regler je App (Stufe 2): `percent` 0…200, 100 = kein Tap. Nur mit eingeschalteter Einstellung und für Apps auf genau einem Gerät.
-    func setAppGain(_ row: MixerAppRow, percent: Int) {
+    /// `remember: false` für Stummschalten am Stream Deck: Stumm wird nie gemerkt.
+    func setAppGain(_ row: MixerAppRow, percent: Int, remember shouldRemember: Bool = true) {
         guard appVolumeEnabled, row.canTap, let uid = row.deviceUID else { return }
         touch()
         let snapped = MixerRows.snap(percent)   // nahe 100 %: genau 100 %, dann gibt es keinen Tap
         engine.setGain(Float(snapped) / 100, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))
         if let i = apps.firstIndex(where: { $0.id == row.id }) { apps[i].gain = engine.gain(for: row.id) }
         tapFailures = engine.failures
+        if shouldRemember, engine.failures[row.id] == nil { remember(row.bundleID, percent: snapped) }
     }
 
     /// Spotify/Musik: nur, wenn macOS die Steuerung erlaubt hat (kein Dialog); Wert 0…100.

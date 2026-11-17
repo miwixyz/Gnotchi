@@ -142,6 +142,21 @@ final class NowPlayingModel {
     }
     #endif
 
+    /// Stream Deck (G59): Befehl an eine bestimmte App. `nil` oder die aktive Quelle → normaler Weg (MediaRemote bzw. Rückfall).
+    /// Spotify/Musik sonst gezielt per AppleScript, aber nur mit bereits erteilter Automation (kein Dialog vom Stream Deck aus).
+    /// Andere Apps lassen sich nur als aktive Quelle steuern (M3). Rückgabe: Befehl abgeschickt.
+    @discardableResult
+    func command(_ c: MediaAdapter.Command, bundleID: String?) -> Bool {
+        if bundleID == nil || bundleID == info?.appBundleID {
+            guard info != nil else { return false }
+            route(.send(c))
+            return true
+        }
+        guard let id = bundleID, AppleScriptSource.supported.contains(id), AutomationStatus.shared.isAllowed(id) else { return false }
+        fallback.sendCommand(c, bundleID: id)
+        return true
+    }
+
     func playPause() { route(.send(.toggle)) }
     func next() { route(.send(.next)) }
     func previous() { route(.send(.previous)) }

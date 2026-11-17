@@ -107,6 +107,29 @@ sich eine Liste aller Ausgabegeräte, das aktuelle mit Häkchen. Wählst du eine
 sofort darüber, genau wie unter Systemeinstellungen → Ton. Gnotchi ändert den Ausgang nur, wenn du
 klickst.
 
+## Stream Deck
+
+Mit einem Elgato Stream Deck steuerst du Lautstärke und Wiedergabe je App, am besten mit den Drehreglern eines Stream Deck +.
+
+1. Einstellungen → **Audio** → ganz unten **„Steuerung über Stream Deck“** einschalten.
+2. **„Plugin installieren“** klicken. Stream Deck fragt, ob es das Plugin „Gnotchi“ installieren soll.
+3. In Stream Deck aus der Gruppe **„Gnotchi“** die Aktionen auf Regler oder Tasten ziehen und rechts die App wählen.
+
+**App-Lautstärke** (Regler oder Taste)
+- Drehen: lauter oder leiser
+- Drücken: stumm, noch einmal drücken: alte Lautstärke zurück
+- Gedrückt halten und drehen: nächster (rechts) oder vorheriger Titel (links)
+- Auf die Leiste tippen: Play/Pause
+- Die Leiste zeigt App, Prozent und den laufenden Titel; lange Titel laufen durch.
+
+**Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück, je Taste einstellbar.
+
+Gut zu wissen:
+- Spotify und Musik gehen immer. Browser und andere Apps lassen sich nur steuern, solange sie gerade spielen.
+- Für die Lautstärke von Browsern muss oben im Reiter **„Lautstärke je App“** an sein.
+- Auf der Leiste steht der Titel. Dafür bekommt die Stream-Deck-App auf deinem Mac Titel und Interpret, kein Cover.
+- Gnotchi nimmt Befehle nur vom eigenen Plugin an, und nur, wenn die Stream-Deck-App es gestartet hat.
+
 ## Kopfhörer
 
 Wechselt der Ton auf Bluetooth-Kopfhörer, etwa weil du AirPods verbindest, zeigt die Insel 3 Sekunden
@@ -160,7 +183,7 @@ Termin, Timer, Kopfhörer, Updates). Ein Klick auf ein Symbol zeigt diese Sache 
 stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofon und Kamera.
 
 - **Tasten um die Insel (ab 0.28):** Die Werkzeuge sitzen als runde Glas-Tasten links, rechts und unten neben der großen Insel: Timer, Wach bleiben, Spiegel (links), Wetter, Ablage, Zwischenablage (rechts), Anheften, Einstellungen (unten). Ein Punkt an einer Taste heißt: läuft gerade. Ein Klick zeigt die Sache groß. Einstellungen → Tasten → „Tasten um die Insel“ schaltet jede Taste einzeln; ohne Tasten steht wieder die kleine Leiste. Ab Werk aus und einzeln zuschaltbar: **Mikrofon stumm** (rot, wenn stumm; erscheint, solange eine App das Mikrofon nutzt, oder immer auf Wunsch; beim Beenden von Gnotchi wird wieder laut gestellt), **Bildschirmfoto** (öffnet die Screenshot-App) und **Geschwindigkeitstest** (misst bis zu 20 Sekunden gegen Apples Server und zeigt Download, Upload, Latenz).
-- **Lautstärke je App (ab 0.30, ab Werk aus):** Einstellungen → Audio → „Mixer“. Dann hat im Mixer jede App mit Ton einen Regler von 0 bis 200 % (nahe 100 % rastet er ein). Dafür braucht Gnotchi die Freigabe „Audio-Aufnahme“ (macOS fragt beim ersten Verschieben). Bei 100 %, bei Gerätewechsel, beim Ausschalten und beim Beenden gehen alle Regler zurück und die Apps spielen wieder direkt. Einen Regler gibt es nur für Apps, die auf genau einem Gerät spielen.
+- **Lautstärke je App (ab 0.30, ab Werk aus):** Einstellungen → Audio → „Mixer“. Dann hat im Mixer jede App mit Ton einen Regler von 0 bis 200 % (nahe 100 % rastet er ein). Dafür braucht Gnotchi die Freigabe „Audio-Aufnahme“ (macOS fragt beim ersten Verschieben). Bei 100 % spielt die App wieder direkt. Seit 0.35 merkt sich Gnotchi jeden anderen Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt, auch nach einem Neustart oder Gerätewechsel (Werte bis 5 % nie von selbst). Beim Ausschalten und Beenden spielen alle Apps wieder direkt; „Gemerkte Lautstärken vergessen“ löscht die Liste. Einen Regler gibt es nur für Apps, die auf genau einem Gerät spielen.
 - **Mixer in der Insel (ab 0.30):** Die Ring-Taste „Mixer“ (rechts neben der großen Insel, ab Werk an) zeigt denselben Mixer wie das Menüleisten-Symbol groß in der Insel, in zwei Spalten. Er fragt nur ab, solange er zu sehen ist.
 - **Favoriten im Mixer (ab 0.31):** Öffne das Auswahlfeld für Ausgabe oder Mikrofon und wähle unten „Favoriten …“. Mit einem Klick auf ein Gerät setzt oder entfernst du den Stern. Favoriten stehen danach als Tasten direkt unter dem Auswahlfeld; ein Klick schaltet um. Bis zu 6 je Liste. Ist ein Favorit gerade nicht angeschlossen, fehlt seine Taste, er bleibt aber gemerkt.
 - **Warnton-Lautstärke (ab 0.33):** Unter „Systemtöne“ im Mixer steht ein Regler für die Lautstärke der Warn- und Hinweistöne des Macs. Das ist dieselbe Einstellung wie „Warntonlautstärke“ in Systemeinstellungen → Ton: Sie gilt dauerhaft für den ganzen Mac, nicht nur für Gnotchi, und braucht keine Freigabe. Die Zeile steht nur da, wenn mehrere Ausgabegeräte vorhanden sind.
@@ -370,7 +393,7 @@ nicht wirkt.
 ## Datenschutz
 
 - Was du hörst und siehst, bleibt auf deinem Mac. Titel, Interpret und Cover liegen nur im Arbeitsspeicher und sind nach dem Beenden weg.
-- Gnotchi speichert sie nicht, schreibt sie nicht ins Protokoll und schickt sie nirgendwohin.
+- Gnotchi speichert sie nicht, schreibt sie nicht ins Protokoll und schickt sie nirgendwohin. Einzige Ausnahme, nur wenn du „Stream Deck“ einschaltest: Titel und Interpret gehen an die Stream-Deck-App auf deinem Mac, damit die Leiste sie zeigt.
 - Gespeichert werden nur deine Einstellungen.
 - Gnotchi liest keine Fenstertitel und keine Inhalte anderer Apps und nimmt keinen Ton auf.
 - Welche App Mikrofon oder Kamera nutzt, steht nur in der Insel, nie im Protokoll.

@@ -263,6 +263,13 @@ HOOK_APP="${APP_PATH}/Contents/Helpers/Gnotchi Claude.app"
     || fail "Hook-Programm hat die falsche Kennung"
 codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.claude"' "${HOOK_APP}" \
     || fail "Hook-Programm nicht gültig mit Developer ID signiert"
+# 0.35.0 (G59): Stream-Deck-Plugin – da, ausführbar, Kennung dev.mwlr.gnotchi.deck, gültig mit Developer ID (Gnotchi prüft
+# es am Socket; „Plugin installieren“ übergibt nur ein signaturgeprüftes Programm).
+DECK_BIN="${APP_PATH}/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/gnotchideck"
+[ -x "${DECK_BIN}" ] || fail "Stream-Deck-Plugin fehlt im Bundle oder ist nicht ausführbar"
+[ -f "${APP_PATH}/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/manifest.json" ] || fail "Manifest des Stream-Deck-Plugins fehlt"
+codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.deck"' "${DECK_BIN}" \
+    || fail "Stream-Deck-Plugin nicht gültig mit Developer ID signiert"
 echo "  ✓ Developer ID (Team LTKJ6Z2VYB) + Hardened Runtime"
 echo "  ✓ Berechtigungen: App nur Apple Events, ${NESTED} eingebettete Teile ohne"
 

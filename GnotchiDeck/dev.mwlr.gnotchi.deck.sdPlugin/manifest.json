@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "Name": "Gnotchi",
+  "Version": "0.35.0.0",
+  "Author": "MWLR",
+  "Description": "Lautstärke und Wiedergabe je App über Gnotchi: Spotify, Musik, Podcasts, Safari, Helium, Edge.",
+  "URL": "https://github.com/miwixyz/Gnotchi",
+  "UUID": "dev.mwlr.gnotchi.deck",
+  "Icon": "imgs/plugin",
+  "CodePath": "gnotchideck",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.5" },
+  "OS": [{ "Platform": "mac", "MinimumVersion": "27" }],
+  "Category": "Gnotchi",
+  "CategoryIcon": "imgs/category",
+  "PropertyInspectorPath": "pi/index.html",
+  "Actions": [
+    {
+      "Name": "App-Lautstärke",
+      "UUID": "dev.mwlr.gnotchi.deck.volume",
+      "Icon": "imgs/volume",
+      "Tooltip": "Lautstärke einer App, Titel auf der Leiste",
+      "Controllers": ["Encoder", "Keypad"],
+      "Encoder": {
+        "Icon": "imgs/volume-dial",
+        "layout": "layouts/volume.json",
+        "TriggerDescription": { "Rotate": "Lautstärke · gedrückt: Titel", "Push": "Stumm", "Touch": "Play/Pause" }
+      },
+      "States": [{ "Image": "imgs/volume-dial" }]
+    },
+    {
+      "Name": "Wiedergabe",
+      "UUID": "dev.mwlr.gnotchi.deck.play",
+      "Icon": "imgs/play",
+      "Tooltip": "Play/Pause, Weiter oder Zurück für eine App",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/play-key", "TitleAlignment": "middle", "FontSize": 12 }]
+    }
+  ]
+}

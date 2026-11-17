@@ -38,6 +38,11 @@ targets:
       # buildPhase, weil XcodeGen den Schlüssel `resources:` nicht kennt.
       - path: Vendor/mediaremote-adapter/bin/mediaremote-adapter.pl
         buildPhase: resources
+      # Stream-Deck-Plugin (0.35.0, G59): Manifest, Layout, Einstellungsseite, Symbole als Ordner nach Contents/Resources.
+      # Das Programm `gnotchideck` kommt über die Abhängigkeit unten in denselben Ordner.
+      - path: GnotchiDeck/dev.mwlr.gnotchi.deck.sdPlugin
+        type: folder
+        buildPhase: resources
     resources:
       - path: Gnotchi/Resources/HILFE.md
       - path: Gnotchi/Resources/CHANGELOG.md
@@ -78,6 +83,14 @@ targets:
       - target: GnotchiWidget
         embed: true
         codeSign: true
+      # Stream-Deck-Plugin (0.35.0, G59): eigenes Programm mit eigener Kennung, damit Gnotchi den Absender prüfen kann.
+      - target: GnotchiDeck
+        embed: true
+        link: false
+        codeSign: true
+        copy:
+          destination: resources
+          subpath: dev.mwlr.gnotchi.deck.sdPlugin
     settings:
       base:
         INFOPLIST_FILE: Gnotchi/Resources/Info.plist
@@ -162,6 +175,28 @@ targets:
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
 
+  # Stream-Deck-Plugin „GnotchiDeck“ (0.35.0, G59): wird von Elgatos Stream Deck gestartet, spricht dessen WebSocket und
+  # Gnotchis geprüften Socket `deck.sock`. Keine Berechtigungen. Nachrichtenformat = dieselbe Datei wie in Gnotchi (DeckWire).
+  # Kennung im Programm (eingebettete Info.plist), weil Gnotchi den Peer an `dev.mwlr.gnotchi.deck` erkennt.
+  GnotchiDeck:
+    type: tool
+    platform: macOS
+    sources:
+      - path: GnotchiDeck
+        excludes:
+          - dev.mwlr.gnotchi.deck.sdPlugin/**
+      - path: Gnotchi/Deck/DeckWire.swift
+      - path: Gnotchi/Media/LiveText.swift
+    settings:
+      base:
+        PRODUCT_NAME: gnotchideck
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.deck
+        GENERATE_INFOPLIST_FILE: YES
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+
   # Prüft reine Logik (Zeilen schneiden, Adapter-Zeile bereinigen, Cover-Grenzen, Signaturprüfung,
   # Argumente des Kindprozesses).
   #
@@ -178,6 +213,8 @@ targets:
       - path: GnotchiTests
       # 0.21.0 (G47): Regel der Mausbewegung im Hilfsprogramm mittesten.
       - path: GnotchiMitteilungen/NudgePointer.swift
+      # 0.35.0 (G59): Lauftext des Stream-Deck-Plugins mittesten.
+      - path: GnotchiDeck/Marquee.swift
       - path: Gnotchi
         excludes:
           - App/GnotchiApp.swift

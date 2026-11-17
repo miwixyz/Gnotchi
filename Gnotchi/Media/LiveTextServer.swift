@@ -43,6 +43,11 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     /// Nachricht zählt – sofort weitergeben, aber höchstens `maxPerSecond`, der Rest fällt weg.
     private let coalesce: Bool
     nonisolated static var maxPerSecond: Int { 10 }
+    /// Ohne `coalesce`: höchstens so viele Nachrichten je Sekunde (Standard `maxPerSecond`; Stream Deck G59: 50).
+    private let perSecond: Int
+    /// Stream Deck (G59): Zusätzlich muss der **Elternprozess** des Peers diese Anforderung erfüllen. Sonst könnte jedes Programm
+    /// das echte, signierte Plugin selbst starten und fernsteuern (gemessen 17.11., M2).
+    private let parentRequirement: SecRequirement?
 
     // Nur auf `queue`:
     private var listenFD: Int32 = -1
@@ -58,9 +63,12 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
 
     init(directory: URL, fileName: String, label: String, peer: String, requirement: SecRequirement,
          maxFrame: Int = LiveText.maxFrame, coalesce: Bool = true,
+         perSecond: Int = 10, parentRequirement: SecRequirement? = nil,
          parse: @escaping @Sendable (Data) -> Value?, onValue: @escaping @Sendable (Value?) -> Void) {
         self.maxFrame = maxFrame
         self.coalesce = coalesce
+        self.perSecond = perSecond
+        self.parentRequirement = parentRequirement
         socketPath = directory.appendingPathComponent(fileName).path
         self.requirement = requirement
         self.label = label
@@ -143,7 +151,8 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
             guard fd >= 0 else { return }
             var one: Int32 = 1
             setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, socklen_t(MemoryLayout<Int32>.size))
-            let status = Self.checkPeer(fd, requirement)
+            var status = Self.checkPeer(fd, requirement)
+            if status == errSecSuccess, let parentRequirement { status = Self.checkParent(fd, parentRequirement) }
             guard status == errSecSuccess else {
                 close(fd)
                 Self.log.error("\(self.label, privacy: .public): Verbindung abgelehnt (OSStatus \(status, privacy: .public))")
@@ -172,6 +181,24 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
         let data = withUnsafeBytes(of: &token) { Data($0) }
         var code: SecCode?
         let st = SecCodeCopyGuestWithAttributes(nil, [kSecGuestAttributeAudit: data] as CFDictionary, [], &code)
+        guard st == errSecSuccess, let code else { return st == errSecSuccess ? errSecCSGuestInvalid : st }
+        return SecCodeCheckValidity(code, [], requirement)
+    }
+
+    /// Elternprozess des Peers gegen `requirement` (G59). PID aus dem Audit-Token, Eltern-PID aus `proc_pidinfo`, Elterncode per
+    /// PID – für den Elternprozess gibt es kein Audit-Token. Restrisiko PID-Wiederverwendung: SECURE-DESIGN G59.
+    static func checkParent(_ fd: Int32, _ requirement: SecRequirement) -> OSStatus {
+        var token = audit_token_t()
+        var len = socklen_t(MemoryLayout<audit_token_t>.size)
+        guard getsockopt(fd, SOL_LOCAL, LOCAL_PEERTOKEN, &token, &len) == 0 else { return errSecCSGuestInvalid }
+        let pid = pid_t(bitPattern: token.val.5)
+        var info = proc_bsdinfo()
+        let size = Int32(MemoryLayout<proc_bsdinfo>.size)
+        guard pid > 0, proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) == size, info.pbi_ppid > 1 else {
+            return errSecCSGuestInvalid
+        }
+        var code: SecCode?
+        let st = SecCodeCopyGuestWithAttributes(nil, [kSecGuestAttributePid: NSNumber(value: info.pbi_ppid)] as CFDictionary, [], &code)
         guard st == errSecSuccess, let code else { return st == errSecSuccess ? errSecCSGuestInvalid : st }
         return SecCodeCheckValidity(code, [], requirement)
     }
@@ -222,7 +249,7 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
             let now = Date()
             if now.timeIntervalSince(windowStart) >= 1 { windowStart = now; windowCount = 0 }
             windowCount += 1
-            if windowCount <= Self.maxPerSecond { onValue(value) }
+            if windowCount <= perSecond { onValue(value) }
             return
         }
         let wait = Self.minDeliveryInterval - Date().timeIntervalSince(lastDelivery)

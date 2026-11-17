@@ -1,0 +1,25 @@
+{
+  "Name": "Gnotchi Deck Probe",
+  "Version": "0.0.2.0",
+  "Author": "MWLR",
+  "Description": "Wegwerf-Messprogramm M1: startet ein natives Swift-Plugin.",
+  "UUID": "dev.mwlr.gnotchi.deckprobe",
+  "Icon": "imgs/plugin",
+  "CodePath": "gnotchideck-probe",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.5" },
+  "OS": [{ "Platform": "mac", "MinimumVersion": "13" }],
+  "Category": "Gnotchi Probe",
+  "CategoryIcon": "imgs/action",
+  "Actions": [
+    {
+      "Name": "Hallo",
+      "UUID": "dev.mwlr.gnotchi.deckprobe.hallo",
+      "Icon": "imgs/action",
+      "Tooltip": "Messprogramm M1",
+      "Controllers": ["Keypad", "Encoder"],
+      "Encoder": { "layout": "$B1", "TriggerDescription": { "Push": "Hallo", "Touch": "Hallo" } },
+      "States": [{ "Image": "imgs/key" }]
+    }
+  ]
+}

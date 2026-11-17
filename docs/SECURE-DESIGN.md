@@ -59,6 +59,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
+| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -389,6 +390,8 @@ nur aus Klicks (G29, G30).
   gemeldete App – die fest im Code zugeordnete, signaturgeprüfte, nie einen Pfad aus der Meldung.
   Ab 0.6.0 (G29/G30): Über `notify.sock` kommen vom geprüften Hilfsprogramm nur Mitteilungen zur Anzeige; Befehle
   laufen in die **andere** Richtung (Gnotchi → Hilfsprogramm) und entstehen nur aus einem Klick in der Insel.
+  **Ausnahme ab G59 (Stream Deck):** Befehle von genau einem Absender – dem eigenen, signierten Stream-Deck-Plugin, gestartet von
+  Elgatos Stream Deck – in festem, engem Umfang. Details dort.
 - **Warum:** Sonst könnten andere Programme Gnotchi als Werkzeug benutzen und über dessen
   Automation-Freigabe Spotify/Musik steuern, ohne selbst gefragt zu werden.
 
@@ -1707,3 +1710,27 @@ wurden einzeln im Code nachgeprüft. Keine kritischen oder hohen Funde.
   Garantie. **Nicht gemessen:** Teams, Zoom und andere Apps mit eigener Aufnahmetechnik; ein anderer Mac mit anderer macOS-Version. Nach
   einem macOS-Update erneut mit QuickTime prüfen.
 
+
+### G59 – Stream Deck: Befehle von genau einem geprüften Absender (neu, 2026-11-17, unveröffentlicht)
+
+Spezifikation und Messungen: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (M1, M2, M4, M6 bestanden, M3 teilweise).
+
+- **Was neu ist:** Erstmals darf etwas anderes als ein Klick des Nutzers Gnotchi steuern (Lockerung von G13). Über `deck.sock`
+  nimmt Gnotchi Befehle an: Lautstärke je App ±, stumm, Play/Pause, Weiter, Zurück.
+- **Absender:** Nur, wenn (1) der Peer per Audit-Token die Anforderung Developer ID + `dev.mwlr.gnotchi.deck` + Team `LTKJ6Z2VYB`
+  erfüllt **und** (2) sein Elternprozess `com.elgato.StreamDeck` mit Team `Y93VXCB8Q5` ist. Gemessen 17.11.: dasselbe echte Plugin,
+  aus der Shell gestartet, wird abgelehnt (Elternprüfung −67050). Elterncode per PID (für den Elternprozess gibt es kein
+  Audit-Token); Restrisiko PID-Wiederverwendung zwischen Abfrage und Prüfung, angenommen, weil es Code-Ausführung als Nutzer
+  voraussetzt. Das Plugin prüft umgekehrt Gnotchis Developer-ID-Signatur, bevor es etwas sendet.
+- **Befehle:** feste Liste, Schema mit Grenzen (`delta` −20…20, Bundle-ID nach Muster, höchstens 8 beobachtete Apps), höchstens
+  50 Befehle/s, eine Verbindung. Kein Befehl startet Apps, öffnet URLs, spult oder schickt Apple Events an andere Ziele als die
+  fest verdrahteten Spotify und Musik (G7). Browser nur über MediaRemote und nur, wenn sie die aktive Quelle sind.
+- **Rückkanal:** App-Name, Prozent, stumm, spielt, Zustand und – **bewusst, Entscheidung Michael 17.11.** – Titel und Interpret
+  (je höchstens 200 Zeichen, bereinigt, kein Cover). Damit kennt Elgatos Stream-Deck-App, was gerade läuft. Gemessen (M6):
+  Stream Deck schreibt `setFeedback`/`setTitle`-Inhalte nicht in seine Protokolle. Es führt aber je Plugin eine eigene
+  Protokolldatei → das Plugin schreibt **nie** etwas auf stdout/stderr, nur `os_log` mit festen Texten.
+- **Gemerkte Lautstärken (Erweiterung G14):** `appGains` in UserDefaults, Bundle-ID → Prozent (0–200 ohne 100), höchstens
+  50 Einträge, beim Lesen validiert. Ein gemerkter Wert setzt ohne neuen Klick einen Tap auf – nur bei eingeschalteter
+  „Lautstärke je App“; Werte ≤ 5 % nie automatisch (nie stumm hängen, G53). Stummschalten am Stream Deck wird nicht gemerkt.
+- **Einstellung „Stream Deck“ ab Werk aus;** aus = kein Socket. Sie erweitert keine Freigabe. „Plugin installieren“ übergibt ein
+  im Prozess gepacktes Paket (libarchive, wie G32) an Stream Deck; Gnotchi schreibt nie in Elgatos Ordner.

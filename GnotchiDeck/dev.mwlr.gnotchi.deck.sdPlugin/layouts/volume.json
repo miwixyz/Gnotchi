@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+  "id": "gnotchi-volume",
+  "items": [
+    { "key": "name", "type": "text", "rect": [12, 8, 116, 22], "font": { "size": 15, "weight": 600 }, "alignment": "left", "text-overflow": "ellipsis" },
+    { "key": "pct", "type": "text", "rect": [128, 8, 60, 22], "font": { "size": 15, "weight": 600 }, "alignment": "right", "color": "#E3B66A" },
+    { "key": "track", "type": "pixmap", "rect": [12, 36, 176, 30] },
+    { "key": "bar", "type": "bar", "rect": [12, 74, 176, 12], "value": 0, "subtype": 4, "border_w": 0, "bar_fill_c": "#E3B66A" }
+  ]
+}

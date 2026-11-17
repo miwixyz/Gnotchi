@@ -293,10 +293,35 @@ extension SettingsView {
                 .onChange(of: prefs.appVolume) { model.applyNotchSetting() }
             note(prefs.appVolume
                  // swiftlint:disable:next line_length
-                 ? "Im Mixer (Menüleisten-Symbol) bekommt jede App mit Ton einen Regler von 0 bis 200 %. macOS fragt beim ersten Verschieben nach der Freigabe „Audio-Aufnahme“. Solange ein Regler nicht auf 100 % steht, hört Gnotchi den Ton dieser App im Arbeitsspeicher mit; bei 100 % endet das sofort. Gerätewechsel, Ausschalten und Beenden setzen alle Regler zurück."
+                 ? "Im Mixer (Menüleisten-Symbol) bekommt jede App mit Ton einen Regler von 0 bis 200 %. macOS fragt beim ersten Verschieben nach der Freigabe „Audio-Aufnahme“. Solange ein Regler nicht auf 100 % steht, hört Gnotchi den Ton dieser App im Arbeitsspeicher mit; bei 100 % endet das sofort. Gnotchi merkt sich den Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt (Werte bis 5 % nicht, damit nichts still stumm bleibt). Gerätewechsel setzen alle Regler vorübergehend zurück."
                  // swiftlint:disable:next line_length
                  : "Aus: Regler gibt es nur für Spotify und Musik. Ein Regler je App braucht die Freigabe „Audio-Aufnahme“: Sie erlaubt Gnotchi, den Ton einer App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher, wird nicht gespeichert und nicht gesendet.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
+            if !model.mixer.remembered.isEmpty {
+                Button("Gemerkte Lautstärken vergessen (\(model.mixer.remembered.count))") { model.mixer.forgetRemembered() }
+                    .buttonStyle(CardButtonStyle())
+            }
+        }
+        // 0.35.0 Stream Deck (G59): Befehle nur vom eigenen, signierten Plugin, gestartet von Elgatos Stream Deck.
+        card("Stream Deck") {
+            toggleRow("Steuerung über Stream Deck", isOn: $prefs.streamDeck)
+                .onChange(of: prefs.streamDeck) { model.applyNotchSetting() }
+            // swiftlint:disable:next line_length
+            note("Drehregler: Lautstärke je App (drücken = stumm, auf die Leiste tippen = Play/Pause), Tasten: Play/Pause, Weiter, Zurück. Gnotchi nimmt Befehle nur vom eigenen Plugin an, und nur, wenn Elgatos Stream-Deck-App es gestartet hat. Auf der Leiste steht der laufende Titel; dafür bekommt die Stream-Deck-App Titel und Interpret. Browser lassen sich nur steuern, solange sie gerade spielen.",
+                 symbol: "info.circle", color: FamilyTheme.textSecondary)
+            if prefs.streamDeck {
+                Button("Plugin installieren") { deckInstallResult = DeckLink.installPlugin() }
+                    .buttonStyle(CardButtonStyle())
+                if case .failure(let e)? = deckInstallResult {
+                    note(e == .unsigned ? "Das Plugin in Gnotchi ist nicht gültig signiert – nichts übergeben."
+                         : e == .missing ? "Das Plugin fehlt in diesem Gnotchi." : "Das Paket ließ sich nicht packen.",
+                         symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                }
+                if !prefs.appVolume {
+                    note("Für Browser & Co. braucht der Regler „Lautstärke je App“ oben. Spotify und Musik gehen auch ohne.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+            }
         }
     }
 

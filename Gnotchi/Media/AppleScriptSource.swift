@@ -136,6 +136,24 @@ final class AppleScriptSource {
         }
     }
 
+    /// Stream Deck (G59): Play/Pause, Weiter, Zurück gezielt an Spotify oder Musik, auch wenn sie nicht die aktive Quelle sind.
+    /// Gleiches festes Skript, gleiche Queue und Prüfungen wie `perform`; höchstens ein Befehl gleichzeitig. Ohne laufende App
+    /// nichts (das Skript startet sie nie).
+    func sendCommand(_ command: MediaAdapter.Command, bundleID: String) {
+        guard !commandRunning, let id = Self.supported.first(where: { $0 == bundleID }) else { return }
+        let source = Self.script(.send(command), bundleID: id)
+        guard !source.isEmpty else { return }
+        commandRunning = true
+        let gen = generation
+        queue.async { [weak self] in
+            if Self.isRunning(id) { _ = Self.execute(source) }
+            Task { @MainActor in
+                guard let self, gen == self.generation else { return }
+                self.commandRunning = false
+            }
+        }
+    }
+
     private func poll() {
         guard timer != nil, !polling else { return }
         let running = Self.runningSupported()

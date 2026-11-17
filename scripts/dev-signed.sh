@@ -81,6 +81,12 @@ if [ -d "$HOOK" ]; then
     codesign --force --options runtime --sign "$IDENTITY" "$HOOK"
 fi
 # 2b. Schreibtisch-Widget (0.26.0, G49): eigene, kleinstmögliche Berechtigungen (Sandbox + App-Gruppe), vor der App.
+# 2e. Stream-Deck-Plugin (0.35.0, G59): blankes Programm in Resources, ohne Berechtigungen, eigene Kennung – Gnotchi prüft
+# es am Socket, „Plugin installieren“ übergibt nur ein so signiertes.
+DECK="$APP/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/gnotchideck"
+if [ -f "$DECK" ]; then
+    codesign --force --options runtime -i dev.mwlr.gnotchi.deck --sign "$IDENTITY" "$DECK"
+fi
 WIDGET="$APP/Contents/PlugIns/GnotchiWidget.appex"
 if [ -d "$WIDGET" ]; then
     codesign --force --options runtime --entitlements GnotchiWidget/GnotchiWidget.entitlements \

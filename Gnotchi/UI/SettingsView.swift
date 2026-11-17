@@ -9,6 +9,8 @@ struct SettingsView: View {
     /// 09.10. (C3): vorher wurde ein Fehler verworfen und „Freigabe nötig“ als „aus“ gezeigt.
     @State var login = LoginItem.state
     @State var loginError: String?
+    /// Ergebnis von „Plugin installieren“ (Stream Deck, G59).
+    @State var deckInstallResult: Result<Void, DeckLink.InstallError>?
     /// Zuletzt gewählter Reiter (Michael 22.10.: Fenster war zu lang → Reiter oben wie Safari/Mail).
     @AppStorage("settingsTab") private var tab: Tab = .general
 
