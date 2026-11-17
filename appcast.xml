@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.37.0</title>
-            <pubDate>Tue, 17 Nov 2026 23:33:56 +0100</pubDate>
+            <title>0.37.1</title>
+            <pubDate>Tue, 17 Nov 2026 23:41:13 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>257</sparkle:version>
-            <sparkle:shortVersionString>0.37.0</sparkle:shortVersionString>
+            <sparkle:version>265</sparkle:version>
+            <sparkle:shortVersionString>0.37.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck: YouTube in Helium gezielt steuern (ab Werk aus).</b> Läuft Spotify und daneben YouTube im Browser, bedient die Wiedergabe-Taste mit der App „Helium“ jetzt gezielt den YouTube-Tab, und die Leiste zeigt dessen Titel und Kanal. Einschalten unter Einstellungen → Stream Deck → „YouTube in Helium gezielt steuern“. In Helium muss „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an sein, macOS fragt beim ersten Mal nach der Steuerung von Helium. Gnotchi führt dort nur festes JavaScript in Tabs von youtube.com aus, liest Adressen nur zum Filtern und lädt nie selbst etwas aus dem Netz. Läuft nichts von YouTube, gilt der bisherige Weg.</li><li><b>Stream Deck: Cover auf der Wiedergabe-Taste (ab Werk aus).</b> Einstellungen → Stream Deck → „Cover auf dem Deck“. Die Taste zeigt das Cover der spielenden App, bei YouTube in Helium das Vorschaubild, mit einem kleinen Play/Pause-Zeichen. Das Bild geht dafür an Elgatos Stream-Deck-App. Gnotchi prüft jedes Bild, verkleinert es selbst auf 144 px und lädt nichts aus dem Netz; das YouTube-Vorschaubild holt der Browser im Tab. Braucht das aktualisierte Plugin.</li><li><b>Stream Deck: Hinweis statt stummer Taste.</b> Ist Heliums Schalter aus oder die Steuerung verweigert, zeigt die Wiedergabe-Taste „Helium freigeben“ und die Leiste beide möglichen Ursachen (Heliums Schalter oder die Steuerungs-Freigabe in den Systemeinstellungen), statt beim Drücken einfach nichts zu tun. Braucht das aktualisierte Plugin (Einstellungen → Stream Deck → „Plugin installieren“).</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.0/Gnotchi-0.37.0.zip" length="8230710" type="application/octet-stream" sparkle:edSignature="tubA5TpJHgNDftpnY81qEjlVDfPQe8zM52AlCu3O/lQDrWeaQZ2eNc4f7Szq4ynTUQzUo26Z2a6P42RxDyKjDg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Neue Symbole am Stream Deck.</b> Alle Tasten, Regler und das Plugin-Symbol haben ein neues, einheitliches Aussehen: dunkle Glasfläche, klare weiße Linien und ein warmes Leuchten. Der Name der App steht weiter oben auf der Taste. Stumm erkennst du am abgeblendeten Lautsprecher mit rotem Punkt. Deine Belegung bleibt, du musst nichts neu zuweisen: nach dem Plugin-Update (Einstellungen → Stream Deck → „Plugin installieren“) wechseln die Tasten von selbst.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.1/Gnotchi-0.37.1.zip" length="8358654" type="application/octet-stream" sparkle:edSignature="jTbu9LOGN4fVxNGhfB5ZOrRE5Wlo3e5TQPR00bYs39JXkUa1P2gQ9hv5rX1bJvUs2AwnruDazBnDAac6NGNGDA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: nI1LMuRs5iw04OdZ50ApqLfJxRn20dPk5W9LAm6Lpo0UFxGDGUnILPMvDAYHVlzSwRK3eetrIdM9woJh+O87Bg==
-length: 2797
+edSignature: iMYL7eMYENrCxPpqzzR8dYxLxPQLfoAkQNLlAnfYIVg4RxAXvnQnuZREDg9XLPYAK7u4sSfEMB36rqpKCo1GAg==
+length: 1681
 -->
