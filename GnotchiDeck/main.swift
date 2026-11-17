@@ -290,7 +290,7 @@ final class Plugin {
 
     // MARK: Tastenbilder (Michael 17.11.: „schöne passende Icons“)
 
-    /// Bild der Taste je Aktion und Zustand (Dateien aus `tools/deck-icons.swift`).
+    /// Bild der Taste je Aktion und Zustand (Dateien aus dem Vault-Skill `streamdeck-glas`, Designsprache „Glas“).
     nonisolated static func keyImage(kind: DeckAction.Kind, what: DeckWire.Play, keyStep: KeyStep, playing: Bool, muted: Bool) -> String {
         switch kind {
         case .play:

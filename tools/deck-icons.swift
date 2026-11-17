@@ -1,4 +1,12 @@
-// Zeichnet die Symbole des Stream-Deck-Plugins (G59) als PNG – einheitlicher Satz im Stil der App-Familie (Michael 17.11.:
+// ABGELÖST (17.11.2026): NICHT MEHR LAUFEN LASSEN – es würde die Glas-Symbole in `imgs/` mit dem alten Stil überschreiben.
+// Die Plugin-Bilder kommen jetzt aus dem Skill „streamdeck-glas“ (Designsprache „Glas“, gilt für alle Stream-Deck-Plugins
+// von Michael: dunkle Glasfläche, weiße Lucide-Linien, Leuchten je Kategorie, Medien = Terrakotta #E9A27F). Neu erzeugen:
+//   node "$HOME/MWs2ndBrain/04 Ressourcen/Claude Skills/streamdeck-glas/scripts/build.mjs" plugins gnotchi --out /tmp/gnotchi-glas
+//   cp /tmp/gnotchi-glas/plugins/gnotchi/imgs/*.png GnotchiDeck/dev.mwlr.gnotchi.deck.sdPlugin/imgs/
+// Bildnamen und Grundgrößen stehen dort in `plugins.json`; ein neues Bild im Plugin zuerst dort eintragen.
+// Die Datei bleibt nur als Nachweis des alten Stils im Repo.
+//
+// (Alt) Zeichnet die Symbole des Stream-Deck-Plugins (G59) als PNG – einheitlicher Satz im Stil der App-Familie (Michael 17.11.:
 // „schöne passende Icons“, dann „Gelb ist eine so hässliche Farbe, mach das passend zu Gnotchi und Tippi“): dunkle Fläche
 // mit leichtem Verlauf, helle Zeichen, Akzent Schiefer-Iris (#98A9E1, FamilyTheme dunkel, wie Seam/Tippi), runde Linien,
 // gefüllte Wiedergabe-Zeichen. Tastenbilder lassen unten Platz für den Titel (App-Name).

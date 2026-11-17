@@ -54,6 +54,10 @@ Michael: „Ja, funktioniert.“ Spotify per Regler auf die Mac-mini-Lautspreche
 - Symbole: `tools/deck-icons.swift`, einheitlicher Satz, Tastenbild je Zustand (`setImage`). Erst Gold (Gnotchi-Akzent) –
   Michael: „Gelb ist eine so hässliche Farbe, mach das passend zu Gnotchi und Tippi“ → helle Zeichen, kühles Dunkelgrau,
   Akzent Schiefer-Iris #98A9E1. Text oben, Zeichen unten (Michael). Lange Titel auf Tasten zweizeilig (App / Prozent).
+- Seit 17.11. abends: Designsprache „Glas“ für alle Stream-Deck-Plugins (Michael wählte sie aus drei Richtungen). Die Bilder
+  kommen aus dem Vault-Skill `streamdeck-glas` (`build.mjs plugins gnotchi`, Bildnamen in `plugins.json`), nicht mehr aus
+  `tools/deck-icons.swift` (abgelöst, nicht mehr laufen lassen). Dunkle Glasfläche, weiße Lucide-Linien, Leuchten Medien =
+  Terrakotta #E9A27F, Tastenbilder ohne Text (Titel oben vom Plugin), Stumm = abgeblendet mit rotem Punkt.
 - Profile: `tools/deck-profiles.py` erzeugt `profiles/gnotchi-plus` (20GBD9901) und `gnotchi-neo` (20GBJ9901) im Exportformat
   (gemessen am Profil, das Elgatos Codex-Plugin mitliefert), Manifest `Profiles` mit `AutoInstall`. Am Gerät installiert und
   benutzt – Michael: „Perfekt“. Textposition steckt im Profil: Änderungen daran brauchen ein frisch installiertes Profil.
