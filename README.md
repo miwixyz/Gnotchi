@@ -74,6 +74,11 @@ Freigabe nicht und fragt nie danach.
   Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
   ([G59](docs/SECURE-DESIGN.md)).
+- **YouTube in Helium und Cover am Stream Deck (0.37, beides ab Werk aus):** Läuft Spotify und daneben YouTube in Helium,
+  schaltet die Taste „Wiedergabe“ mit der App „Helium“ gezielt nur den YouTube-Tab (in Helium muss „Darstellung → Entwickler →
+  JavaScript von Apple Events erlauben“ an sein; Gnotchi führt nur festes JavaScript in YouTube-Tabs aus). Fehlt die Freigabe,
+  zeigt die Taste „Helium freigeben“. „Cover auf dem Deck“ zeigt das Cover der spielenden App, bei YouTube das Vorschaubild;
+  Gnotchi verkleinert es selbst und lädt nichts aus dem Netz.
 - **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
   „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
   App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.
@@ -233,7 +238,8 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   ([G51](docs/SECURE-DESIGN.md)).
 - Titel, Interpret und Cover bleiben im Arbeitsspeicher. Gnotchi speichert sie nicht, schreibt sie
   nicht ins Protokoll und lädt keine Cover-Adressen aus dem Netz. Ausnahme, nur mit eingeschaltetem „Stream Deck“: Titel
-  und Interpret (kein Cover) gehen an Elgatos Stream-Deck-App auf diesem Mac, damit die Leiste sie zeigt ([G59](docs/SECURE-DESIGN.md)). Ins Protokoll kommen nur
+  und Interpret gehen an Elgatos Stream-Deck-App auf diesem Mac, damit die Leiste sie zeigt, mit „Cover auf dem Deck“ auch ein
+  auf 144 px verkleinertes Cover ([G59](docs/SECURE-DESIGN.md)). Ins Protokoll kommen nur
   Zustandswechsel und die Kennung der Quell-App.
 - Gespeichert werden nur die Einstellungen, auf diesem Mac.
 - Für „Wo die Musik spielt“ liest Gnotchi über Core Audio nur, **ob** eine App gerade Ton ausgibt,
