@@ -33,7 +33,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   anderem Gerät“ bei Spotify Connect, bei AirPlay oder Bluetooth der Name des Lautsprechers.
 - Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf
   Sekunden nach dem Pausieren ist sie weg, und bei Vollbild-Apps bleibt sie aus.
-- Wer ein Stream Deck hat, kann Gnotchi damit steuern. Auf einem Stream Deck + bekommt jede App ihren eigenen Drehregler, etwa einer für Spotify und einer für den Browser. Drücken macht stumm, gedrückt drehen springt zum nächsten Titel. Über dem Regler läuft der Titel durch, und die Lautstärke merkt sich Gnotchi für jede App.
+- Wer ein Stream Deck hat, kann Gnotchi damit steuern. Auf einem Stream Deck + bekommt jede App ihren eigenen Drehregler, etwa einer für Spotify und einer für den Browser. Drücken macht stumm, gedrückt drehen springt zum nächsten Titel. Über dem Regler läuft der Titel durch, und die Lautstärke merkt sich Gnotchi für jede App. Auch den Lautsprecher stellst du so ein: Spotify auf die Boxen, der Browser bleibt auf den Kopfhörern. Ohne Drehregler geht das alles über Tasten, und für Stream Deck + und Neo liegt ein fertiges Profil bei.
 
 ## Was sonst noch in der Notch landet
 
