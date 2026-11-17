@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 
 ## [Unveröffentlicht]
 
+### Neu
+- **Stream Deck: YouTube in Helium gezielt steuern (ab Werk aus).** Läuft Spotify und daneben YouTube im Browser, bedient die Wiedergabe-Taste mit der App „Helium“ jetzt gezielt den YouTube-Tab, und die Leiste zeigt dessen Titel und Kanal. Einschalten unter Einstellungen → Stream Deck → „YouTube in Helium gezielt steuern“. In Helium muss „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ an sein, macOS fragt beim ersten Mal nach der Steuerung von Helium. Gnotchi führt dort nur festes JavaScript in Tabs von youtube.com aus, liest Adressen nur zum Filtern und lädt nie selbst etwas aus dem Netz. Läuft nichts von YouTube, gilt der bisherige Weg. Noch ohne Cover.
+
 ### Intern
 - Bildtext-Test wird bei ausgelastetem Mac nicht mehr fälschlich rot: Der Test lässt die Texterkennung mit normaler Priorität laufen (die App bleibt bei „Hintergrund“, eigener Test sichert das ab) und wartet höchstens 90 s statt fest 10 s. Unter künstlicher Volllast in 0,23 s grün.
 

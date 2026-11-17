@@ -59,7 +59,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
-| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken |
+| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com) |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1724,7 +1724,7 @@ Spezifikation und Messungen: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (M1,
   voraussetzt. Das Plugin prüft umgekehrt Gnotchis Developer-ID-Signatur, bevor es etwas sendet.
 - **Befehle:** feste Liste, Schema mit Grenzen (`delta` −20…20, Bundle-ID nach Muster, höchstens 8 beobachtete Apps), höchstens
   50 Befehle/s, eine Verbindung. Kein Befehl startet Apps, öffnet URLs, spult oder schickt Apple Events an andere Ziele als die
-  fest verdrahteten Spotify und Musik (G7). Browser nur über MediaRemote und nur, wenn sie die aktive Quelle sind.
+  fest verdrahteten Spotify und Musik (G7). Browser nur über MediaRemote und nur, wenn sie die aktive Quelle sind; einzige Ausnahme: YouTube in Helium über den Schalter „Browser-Tab“ (Punkt 10 unten).
 - **Rückkanal:** App-Name, Prozent, stumm, spielt, Zustand und – **bewusst, Entscheidung Michael 17.11.** – Titel und Interpret
   (je höchstens 200 Zeichen, bereinigt, kein Cover). Damit kennt Elgatos Stream-Deck-App, was gerade läuft. Gemessen (M6):
   Stream Deck schreibt `setFeedback`/`setTitle`-Inhalte nicht in seine Protokolle. Es führt aber je Plugin eine eigene
@@ -1746,3 +1746,33 @@ Spezifikation und Messungen: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (M1,
 - Gefunden: macOS 27 fragt bei Gnotchi **nicht** von selbst nach der Freigabe für Systemaudio; ohne sie liefert der Tap Stille,
   der Wachhund baut nach 1,5 s ab (gewollt). Hinweise in Mixer, Einstellungen und auf der Leiste nennen den Weg zum Eintragen.
 - Umleiten protokolliert jeden Abbruchgrund (ohne Geräte- oder App-Namen, G8), damit es nie still scheitert.
+
+#### G59 Punkt 10 – Browser-Tab als eigene Quelle (neu, 2026-11-17, unveröffentlicht)
+
+Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (G59 Punkt 10). Code: `Gnotchi/Deck/BrowserTab.swift`.
+
+- **Anlass:** macOS (MediaRemote) kennt nur eine aktive Quelle. Läuft Spotify, ist ein YouTube-Tab im Browser für das Deck unsichtbar
+  und nicht steuerbar. Gemessen 17.11. (Mac mini, Helium, macOS 27): Helium nimmt Apple Events an; JavaScript im Tab nur, wenn
+  „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ an ist (sonst Fehler 12); gezieltes Pause/Play neben Spotify 10 von 10.
+- **Neue Vertrauensgrenze:** Gnotchi führt JavaScript in einem Browser-Tab aus. Deshalb: eigener Schalter „YouTube in Helium gezielt
+  steuern“ (`deckBrowserTab`), **ab Werk aus**, unabhängig von „Stream Deck“. Aus = Helium bekommt nie ein Apple Event.
+  Gnotchi schaltet Heliums Schalter nie selbst.
+- **Nur YouTube:** JavaScript läuft ausschließlich in Tabs mit dem Host `www.youtube.com` oder `music.youtube.com` (geparste URL,
+  https, ohne Zugangsdaten, nie „enthält“). Zusätzlich prüft das Skript im Tab selbst `location.hostname` und tut sonst nichts; so
+  trifft ein verschobener Tab nie eine fremde Seite. Tabs werden über Heliums stabile Fenster-/Tab-IDs angesprochen
+  (Positionen wandern, sobald ein anderes Fenster nach vorn kommt).
+- **Feste Skripte:** Alle AppleScript- und JavaScript-Texte sind Konstanten ohne Anführungszeichen. Variabel sind nur zwei
+  Ganzzahlen (Fenster-ID, Tab-ID, Bereich 1…Int32.max). Vom Deck kommt kein Text; der vorhandene Befehl `play` mit `toggle` genügt.
+- **Fremde Daten:** Titel und Kanal der Seite werden auf 200 Zeichen gekürzt und bereinigt (`LiveText.sanitize`); die Antwort ist
+  JSON mit Schema (`p` muss ein echter Wahrheitswert sein), Überlänge oder unbekannte Form wird verworfen.
+- **Tab-Adressen** werden nur zum Filtern gelesen und danach verworfen: nie gespeichert, protokolliert oder gesendet.
+- **Takt:** höchstens eine Abfrage je Sekunde, nur bei verbundenem Plugin und solange Helium auf dem Deck beobachtet wird;
+  Abfragen stauen sich nicht an (auch nicht, solange der Automation-Dialog von macOS offen ist). Zeitgrenze 5 s.
+- **Rückkanal:** wie bisher App-Name, Titel, Interpret, Zustand; neu das Zusatzfeld `needsBrowser` (Schalter in Helium aus oder
+  Automation verweigert). Kein neuer `state`-Wert, damit ältere Plugins nicht getrennt werden. **Kein Cover** in dieser Stufe.
+- **Restrisiko, bewusst angenommen:** Wer Heliums Schalter einschaltet, öffnet Helium für jedes Programm mit Automation-Freigabe,
+  nicht nur für Gnotchi (JavaScript in allen Tabs, auch angemeldeten). Gnotchi kann das nicht begrenzen, nur selbst eng bleiben.
+  Ohne den Schalter bleibt der Rückfall: Browser nur als aktive Quelle.
+- **Noch nicht gemessen:** Weg über die echte Deck-Taste, Netz am Gnotchi-Prozess (`nettop`), mehrere YouTube-Tabs, Verhalten bei
+  ausgeschaltetem Helium-Schalter im laufenden Gnotchi, Erstnutzung mit dem Automation-Dialog.
+- **Stufe 2 (Cover)** bleibt offen: eigener Schalter, ≤ 144 px, Gnotchi prüft und skaliert, nur das aktuelle Bild (Spec Punkt 10e).

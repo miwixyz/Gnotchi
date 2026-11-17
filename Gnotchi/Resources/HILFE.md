@@ -125,6 +125,12 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautspreche
 
 **Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück, je Taste einstellbar.
 
+**YouTube in Helium** (Taste „Wiedergabe“ mit der App „Helium“, neu, ab Werk aus)
+- Spotify läuft und daneben YouTube im Browser? Dann schaltet die Taste gezielt nur den YouTube-Tab, und die Leiste zeigt seinen Titel.
+- Einschalten: Einstellungen → Stream Deck → **„YouTube in Helium gezielt steuern“**. In Helium **Ansicht → Entwickler → JavaScript von Apple Events erlauben** einschalten; macOS fragt beim ersten Mal, ob Gnotchi Helium steuern darf.
+- Achtung: Mit diesem Helium-Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in YouTube-Tabs aus und schaltet den Helium-Schalter nie selbst.
+- Läuft nichts von YouTube in Helium, gilt der bisherige Weg (Helium nur als aktive Quelle).
+
 **App-Lautsprecher** (Regler oder Taste, ab 0.36): auf welchem Gerät die App spielt.
 - Drehen: Gerät vorwählen, die Leiste zeigt es mit „· drücken“
 - Drücken: übernehmen
