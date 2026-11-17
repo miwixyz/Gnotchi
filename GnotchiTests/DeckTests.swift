@@ -198,4 +198,55 @@ final class DeckTests: XCTestCase {
             XCTAssertLessThan(m.offset, m.loop)   // Streifen = Text + Lücke + Text ≥ loop + view
         }
     }
+
+    // MARK: Plugin-Version
+
+    func testPluginVersionComparison() {
+        XCTAssertFalse(DeckWire.isOutdated(plugin: "0.35.0", current: "0.35.0"))
+        XCTAssertTrue(DeckWire.isOutdated(plugin: "0.35.0", current: "0.36.0"))
+        XCTAssertFalse(DeckWire.isOutdated(plugin: "0.36.0", current: "0.35.0"), "neueres Plugin ist kein Grund zum Neuinstallieren")
+        XCTAssertFalse(DeckWire.isOutdated(plugin: "0.35", current: "0.35.0"), "fehlende Stelle = 0")
+        XCTAssertTrue(DeckWire.isOutdated(plugin: "0.9.0", current: "0.10.0"), "zahlenweise, nicht als Text")
+        XCTAssertTrue(DeckWire.isOutdated(plugin: "kaputt", current: "0.35.0"))
+        XCTAssertTrue(DeckWire.isOutdated(plugin: "", current: "0.35.0"))
+    }
+
+    // MARK: Stufe 2 – Lautsprecher je App
+
+    func testRouteCommand() {
+        XCTAssertEqual(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "net.imput.helium", "device": "BuiltInSpeakerDevice"])),
+                       .route(app: "net.imput.helium", device: "BuiltInSpeakerDevice"))
+        XCTAssertEqual(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "current", "device": NSNull()])),
+                       .route(app: "current", device: nil))
+        XCTAssertNil(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "current"])), "ohne device kein Befehl")
+        XCTAssertNil(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "current", "device": "a\nb"])))
+        XCTAssertNil(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "current", "device": ""])))
+        XCTAssertNil(DeckWire.parse(data(["v": 1, "cmd": "route", "app": "current", "device": String(repeating: "x", count: 201)])))
+        let c = DeckWire.Command.route(app: "current", device: nil)
+        XCTAssertEqual(DeckWire.parse(data(DeckWire.encode(c))), c)
+    }
+
+    func testStatusCarriesOutputsAndOldFieldsStillParse() throws {
+        var s = DeckWire.Status(app: "current", name: "Helium", title: nil, artist: nil, percent: 100, muted: false,
+                                playing: true, canPlay: true, state: .ok)
+        s.outputs = [.init(uid: "A", name: "Kopfhörer"), .init(uid: "B", name: "Mac mini-Lautsprecher")]
+        s.output = "B"
+        s.canRoute = true
+        let back = try XCTUnwrap(DeckWire.parseStatus(data(DeckWire.encode(s))))
+        XCTAssertEqual(back.outputs, s.outputs)
+        XCTAssertEqual(back.output, "B")
+        XCTAssertTrue(back.canRoute)
+        // Rückmeldung eines Gnotchi 0.35 (ohne die neuen Felder) bleibt lesbar.
+        var old = DeckWire.encode(s)
+        old["outputs"] = nil; old["output"] = nil; old["canRoute"] = nil
+        let o = try XCTUnwrap(DeckWire.parseStatus(data(old)))
+        XCTAssertTrue(o.outputs.isEmpty)
+        XCTAssertFalse(o.canRoute)
+    }
+
+    func testTargetIsRoutedOnlyWithOtherDevice() {
+        XCTAssertFalse(AppTapEngine.Target(appID: "a", processes: [1], deviceUID: "X").isRouted)
+        XCTAssertFalse(AppTapEngine.Target(appID: "a", processes: [1], deviceUID: "X", outputUID: "X").isRouted)
+        XCTAssertTrue(AppTapEngine.Target(appID: "a", processes: [1], deviceUID: "X", outputUID: "Y").isRouted)
+    }
 }

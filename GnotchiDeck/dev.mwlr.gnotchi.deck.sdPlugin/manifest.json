@@ -1,9 +1,9 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "Gnotchi",
-  "Version": "0.35.0.0",
+  "Version": "0.36.0.0",
   "Author": "MWLR",
-  "Description": "Lautstärke und Wiedergabe je App über Gnotchi: Spotify, Musik, Podcasts, Safari, Helium, Edge.",
+  "Description": "Lautstärke, Wiedergabe und Lautsprecher je App über Gnotchi: Spotify, Musik, Safari, Helium, Edge.",
   "URL": "https://github.com/miwixyz/Gnotchi",
   "UUID": "dev.mwlr.gnotchi.deck",
   "Icon": "imgs/plugin",
@@ -27,6 +27,19 @@
         "TriggerDescription": { "Rotate": "Lautstärke · gedrückt: Titel", "Push": "Stumm", "Touch": "Play/Pause" }
       },
       "States": [{ "Image": "imgs/volume-dial" }]
+    },
+    {
+      "Name": "App-Lautsprecher",
+      "UUID": "dev.mwlr.gnotchi.deck.output",
+      "Icon": "imgs/output",
+      "Tooltip": "Auf welchem Gerät eine App spielt",
+      "Controllers": ["Encoder", "Keypad"],
+      "Encoder": {
+        "Icon": "imgs/output-dial",
+        "layout": "layouts/volume.json",
+        "TriggerDescription": { "Rotate": "Gerät wählen", "Push": "Übernehmen", "Touch": "Eigenes Gerät" }
+      },
+      "States": [{ "Image": "imgs/output-dial", "TitleAlignment": "middle", "FontSize": 11 }]
     },
     {
       "Name": "Wiedergabe",

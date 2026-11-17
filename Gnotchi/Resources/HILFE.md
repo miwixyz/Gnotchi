@@ -124,9 +124,16 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke und Wiedergabe je App, am b
 
 **Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück, je Taste einstellbar.
 
+**App-Lautsprecher** (Regler oder Taste, ab 0.36): auf welchem Gerät die App spielt.
+- Drehen: Gerät vorwählen, die Leiste zeigt es mit „· drücken“
+- Drücken: übernehmen
+- Auf die Leiste tippen: zurück aufs eigene Gerät der App
+- Auf einer Taste: jedes Drücken schaltet zum nächsten Gerät
+- Zuerst stehen deine Ausgabe-Favoriten aus dem Mixer, dann die übrigen Geräte.
+
 Gut zu wissen:
 - Spotify und Musik gehen immer. Browser und andere Apps lassen sich nur steuern, solange sie gerade spielen.
-- Für die Lautstärke von Browsern muss oben im Reiter **„Lautstärke je App“** an sein.
+- Für die Lautstärke von Browsern und für „App-Lautsprecher“ muss oben im Reiter **„Lautstärke je App“** an sein, und Gnotchi braucht die Freigabe für Systemaudio (siehe Berechtigungen).
 - Auf der Leiste steht der Titel. Dafür bekommt die Stream-Deck-App auf deinem Mac Titel und Interpret, kein Cover.
 - Gnotchi nimmt Befehle nur vom eigenen Plugin an, und nur, wenn die Stream-Deck-App es gestartet hat.
 
@@ -183,7 +190,7 @@ Termin, Timer, Kopfhörer, Updates). Ein Klick auf ein Symbol zeigt diese Sache 
 stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofon und Kamera.
 
 - **Tasten um die Insel (ab 0.28):** Die Werkzeuge sitzen als runde Glas-Tasten links, rechts und unten neben der großen Insel: Timer, Wach bleiben, Spiegel (links), Wetter, Ablage, Zwischenablage (rechts), Anheften, Einstellungen (unten). Ein Punkt an einer Taste heißt: läuft gerade. Ein Klick zeigt die Sache groß. Einstellungen → Tasten → „Tasten um die Insel“ schaltet jede Taste einzeln; ohne Tasten steht wieder die kleine Leiste. Ab Werk aus und einzeln zuschaltbar: **Mikrofon stumm** (rot, wenn stumm; erscheint, solange eine App das Mikrofon nutzt, oder immer auf Wunsch; beim Beenden von Gnotchi wird wieder laut gestellt), **Bildschirmfoto** (öffnet die Screenshot-App) und **Geschwindigkeitstest** (misst bis zu 20 Sekunden gegen Apples Server und zeigt Download, Upload, Latenz).
-- **Lautstärke je App (ab 0.30, ab Werk aus):** Einstellungen → Audio → „Mixer“. Dann hat im Mixer jede App mit Ton einen Regler von 0 bis 200 % (nahe 100 % rastet er ein). Dafür braucht Gnotchi die Freigabe „Audio-Aufnahme“ (macOS fragt beim ersten Verschieben). Bei 100 % spielt die App wieder direkt. Seit 0.35 merkt sich Gnotchi jeden anderen Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt, auch nach einem Neustart oder Gerätewechsel (Werte bis 5 % nie von selbst). Beim Ausschalten und Beenden spielen alle Apps wieder direkt; „Gemerkte Lautstärken vergessen“ löscht die Liste. Einen Regler gibt es nur für Apps, die auf genau einem Gerät spielen.
+- **Lautstärke je App (ab 0.30, ab Werk aus):** Einstellungen → Audio → „Mixer“. Dann hat im Mixer jede App mit Ton einen Regler von 0 bis 200 % (nahe 100 % rastet er ein). Dafür braucht Gnotchi die Freigabe „Audio-Aufnahme“ (macOS fragt beim ersten Verschieben). Bei 100 % spielt die App wieder direkt. Seit 0.35 merkt sich Gnotchi jeden anderen Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt, auch nach einem Neustart oder Gerätewechsel (Werte bis 5 % nie von selbst). Beim Ausschalten und Beenden spielen alle Apps wieder direkt; „Gemerkte Lautstärken vergessen“ löscht die Liste. Einen Regler gibt es nur für Apps, die auf genau einem Gerät spielen. **Lautsprecher je App (ab 0.36):** Klick in der Zeile der App auf ihr Gerät und wähl ein anderes; die App spielt dann dort, alle anderen bleiben, wo sie sind. „(eigenes Gerät)“ stellt zurück. Bei Gerätewechsel, beim Ausschalten und auch nach einem Absturz von Gnotchi spielt die App wieder auf ihrem eigenen Gerät.
 - **Mixer in der Insel (ab 0.30):** Die Ring-Taste „Mixer“ (rechts neben der großen Insel, ab Werk an) zeigt denselben Mixer wie das Menüleisten-Symbol groß in der Insel, in zwei Spalten. Er fragt nur ab, solange er zu sehen ist.
 - **Favoriten im Mixer (ab 0.31):** Öffne das Auswahlfeld für Ausgabe oder Mikrofon und wähle unten „Favoriten …“. Mit einem Klick auf ein Gerät setzt oder entfernst du den Stern. Favoriten stehen danach als Tasten direkt unter dem Auswahlfeld; ein Klick schaltet um. Bis zu 6 je Liste. Ist ein Favorit gerade nicht angeschlossen, fehlt seine Taste, er bleibt aber gemerkt.
 - **Warnton-Lautstärke (ab 0.33):** Unter „Systemtöne“ im Mixer steht ein Regler für die Lautstärke der Warn- und Hinweistöne des Macs. Das ist dieselbe Einstellung wie „Warntonlautstärke“ in Systemeinstellungen → Ton: Sie gilt dauerhaft für den ganzen Mac, nicht nur für Gnotchi, und braucht keine Freigabe. Die Zeile steht nur da, wenn mehrere Ausgabegeräte vorhanden sind.
@@ -369,7 +376,7 @@ Ein Rechtsklick auf die Insel (oder Ctrl-Klick) öffnet ein kleines Menü mit �
 
 ## Berechtigungen
 
-Gnotchi braucht **keine Freigabe „Gerätesteuerung und Datenzugriff“**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Nur wenn du „Lautstärke je App“ einschaltest (ab Werk aus), fragt macOS beim ersten Verschieben eines App-Reglers nach **„Audio-Aufnahme“**: Sie erlaubt Gnotchi, den Ton dieser App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher und wird nicht gespeichert. Auch
+Gnotchi braucht **keine Freigabe „Gerätesteuerung und Datenzugriff“**, keine Bildschirmaufnahme, kein Mikrofon und kein Bluetooth. Nur wenn du „Lautstärke je App“ einschaltest (ab Werk aus), fragt macOS beim ersten Verschieben eines App-Reglers nach **„Audio-Aufnahme“** (bei Gnotchi nicht immer; dann selbst eintragen: Systemeinstellungen → Datenschutz & Sicherheit → „Aufnahme von Bildschirm & Systemaudio“ → „+“ → Gnotchi): Sie erlaubt Gnotchi, den Ton dieser App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher und wird nicht gespeichert. Auch
 die Dateiablage braucht keine Freigabe. Ausnahme: Wer „Bildschirmfotos automatisch ablegen“ einschaltet und Fotos auf
 dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibtisch.
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Freigabe „Gerätesteuerung und Datenzugriff“ dem eigenen Hilfsprogramm

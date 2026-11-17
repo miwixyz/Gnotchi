@@ -73,6 +73,9 @@ Freigabe nicht und fragt nie danach.
   Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
   ([G59](docs/SECURE-DESIGN.md)).
+- **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
+  „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
+  App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.

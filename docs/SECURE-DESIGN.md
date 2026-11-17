@@ -1734,3 +1734,15 @@ Spezifikation und Messungen: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (M1,
   „Lautstärke je App“; Werte ≤ 5 % nie automatisch (nie stumm hängen, G53). Stummschalten am Stream Deck wird nicht gemerkt.
 - **Einstellung „Stream Deck“ ab Werk aus;** aus = kein Socket. Sie erweitert keine Freigabe. „Plugin installieren“ übergibt ein
   im Prozess gepacktes Paket (libarchive, wie G32) an Stream Deck; Gnotchi schreibt nie in Elgatos Ordner.
+
+**Nachtrag 0.36.0 (17.11., Stufe 2 „Lautsprecher je App“):**
+- Neuer Befehl `route(app, device)`: Geräte-UID nur druckbares ASCII ≤ 200, Gnotchi prüft sie gegen die **frische**
+  Ausgabeliste (G20); `nil` = zurück aufs eigene Gerät. Wirkt nur mit „Lautstärke je App“ und erteilter Freigabe – derselbe
+  Prozess-Tap wie G55, das private Aggregat-Gerät gibt auf dem Zielgerät aus statt auf dem eigenen.
+- Rückmeldung bekommt zusätzliche Felder (`outputs`, `output`, `canRoute`, `needsCapture`), keine neue Nachrichtenart –
+  ein Plugin 0.35 ignoriert sie. Gerätenamen sind keine Hördaten; sie gehen an Elgatos App wie der Titel.
+- Gemessen (M5): Umleitung hält; nach `kill -9` von Gnotchi spielt die App von selbst wieder auf ihrem Gerät (macOS räumt
+  privates Aggregat und Tap mit dem Prozess ab). Gerätewechsel hebt Umleitungen auf (G55, nie hängen lassen).
+- Gefunden: macOS 27 fragt bei Gnotchi **nicht** von selbst nach der Freigabe für Systemaudio; ohne sie liefert der Tap Stille,
+  der Wachhund baut nach 1,5 s ab (gewollt). Hinweise in Mixer, Einstellungen und auf der Leiste nennen den Weg zum Eintragen.
+- Umleiten protokolliert jeden Abbruchgrund (ohne Geräte- oder App-Namen, G8), damit es nie still scheitert.

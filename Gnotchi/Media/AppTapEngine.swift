@@ -35,7 +35,19 @@ final class AppTapEngine {
     struct Target: Equatable, Sendable {
         let appID: String
         let processes: [AudioObjectID]
+        /// Gerät, auf dem die App spielt (dort wird abgegriffen und stummgeschaltet).
         let deviceUID: String
+        /// Gerät, auf dem der Ton herauskommt (Stufe 2, „Lautsprecher je App“, G59). Gleich `deviceUID` = nicht umgeleitet.
+        let outputUID: String
+
+        init(appID: String, processes: [AudioObjectID], deviceUID: String, outputUID: String? = nil) {
+            self.appID = appID
+            self.processes = processes
+            self.deviceUID = deviceUID
+            self.outputUID = outputUID ?? deviceUID
+        }
+
+        var isRouted: Bool { outputUID != deviceUID }
     }
 
     enum Failure: Error, Equatable, Sendable {
@@ -91,11 +103,13 @@ final class AppTapEngine {
     var onProcessListChanged: (() -> Void)?
 
     func gain(for appID: String) -> Float { gains[appID] ?? 1 }
+    /// Ausgabegerät, auf das eine App gerade umgeleitet ist (nil = nicht umgeleitet).
+    func route(for appID: String) -> String? { live[appID].flatMap { $0.target.isRouted ? $0.target.outputUID : nil } }
 
-    /// Regler gesetzt. 100 % = kein Tap (und ein vorhandener wird zerstört).
+    /// Regler gesetzt. 100 % ohne Umleitung = kein Tap (und ein vorhandener wird zerstört).
     func setGain(_ raw: Float, for target: Target) {
         let g = TapMixer.clamp(raw)
-        guard TapMixer.needsTap(g) else { release(target.appID); failures[target.appID] = nil; return }
+        guard TapMixer.needsTap(g) || target.isRouted else { release(target.appID); failures[target.appID] = nil; return }
         guard !target.processes.isEmpty else { release(target.appID); failures[target.appID] = .noTarget; return }
         if let l = live[target.appID], l.target == target {
             l.cell.set(g)
@@ -193,7 +207,8 @@ final class AppTapEngine {
     /// Das Ziel ohne Prozesse, die es nicht mehr gibt; nil, wenn keiner übrig ist.
     nonisolated static func trimmed(_ target: Target, exists: (AudioObjectID) -> Bool) -> Target? {
         let alive = target.processes.filter(exists)
-        return alive.isEmpty ? nil : Target(appID: target.appID, processes: alive, deviceUID: target.deviceUID)
+        return alive.isEmpty ? nil : Target(appID: target.appID, processes: alive, deviceUID: target.deviceUID,
+                                            outputUID: target.outputUID)
     }
 
     /// Auch vom Mixer genutzt (gemerkte Lautstärken, G59): Prozessliste beobachten, ohne dass ein Tap läuft.
@@ -227,11 +242,12 @@ final class AppTapEngine {
         let dict: [String: Any] = [
             kAudioAggregateDeviceNameKey: "Gnotchi Mixer",
             kAudioAggregateDeviceUIDKey: UUID().uuidString,
-            kAudioAggregateDeviceMainSubDeviceKey: target.deviceUID,
+            // Ausgabe auf `outputUID` (Stufe 2: umgeleitet), abgegriffen wird auf `deviceUID` (oben im Tap).
+            kAudioAggregateDeviceMainSubDeviceKey: target.outputUID,
             kAudioAggregateDeviceIsPrivateKey: true,
             kAudioAggregateDeviceIsStackedKey: false,
             kAudioAggregateDeviceTapAutoStartKey: true,
-            kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: target.deviceUID]],
+            kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: target.outputUID]],
             kAudioAggregateDeviceTapListKey: [[kAudioSubTapDriftCompensationKey: true, kAudioSubTapUIDKey: desc.uuid.uuidString]],
         ]
         var aggID = AudioObjectID(kAudioObjectUnknown)

@@ -16,6 +16,7 @@ final class DeckLink: NotchPart {
     nonisolated static let viewer = "streamdeck"
 
     private let mixer: MixerModel
+    private let activity: ActivityModel
     private let controller: DeckController
     private var server: PeerSocketServer<DeckWire.Command>?
     private var connected = false
@@ -25,6 +26,7 @@ final class DeckLink: NotchPart {
 
     init(activity: ActivityModel) {
         mixer = activity.mixer
+        self.activity = activity
         controller = DeckController(mixer: activity.mixer, media: activity.media)
     }
 
@@ -69,9 +71,11 @@ final class DeckLink: NotchPart {
         }
         controller.handle(c)
         switch c {
+        case .hello(let version):
+            let own = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+            activity.deckPluginOutdated = DeckWire.isOutdated(plugin: version, current: own) ? version : nil
         case .watch: push(all: true)
-        case .gain, .mute, .play: push(all: false)
-        case .hello: break
+        case .gain, .mute, .play, .route: push(all: false)
         }
     }
 

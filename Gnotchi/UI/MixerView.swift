@@ -199,15 +199,10 @@ struct MixerView: View {
                 }
                 Text(verbatim: row.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 4)
-                ForEach(row.devices) { d in
-                    HStack(spacing: 4) {
-                        Image(systemName: d.kind.symbol).foregroundStyle(kindTint(d.kind))
-                        Text(verbatim: d.name).lineLimit(1).truncationMode(.tail)
-                    }
-                    .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(.quaternary.opacity(0.5)))
-                    .frame(maxWidth: 150)
+                if model.appVolumeEnabled, row.canTap {
+                    routeMenu(row)
+                } else {
+                    ForEach(row.devices) { d in deviceCapsule(d, routed: false) }
                 }
             }
             if let id = row.bundleID, let v = row.volume {
@@ -238,10 +233,48 @@ struct MixerView: View {
         }
     }
 
+    private func deviceCapsule(_ d: OutputDevices.Device, routed: Bool) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: routed ? "arrow.turn.up.right" : d.kind.symbol)
+                .foregroundStyle(routed ? FamilyTheme.iris : kindTint(d.kind))
+            Text(verbatim: d.name).lineLimit(1).truncationMode(.tail)
+        }
+        .font(.system(size: 11)).foregroundStyle(FamilyTheme.textSecondary)
+        .padding(.horizontal, 8).padding(.vertical, 2)
+        .background(Capsule().fill(.quaternary.opacity(0.5)))
+        .frame(maxWidth: 150)
+    }
+
+    /// Stufe 2 „Lautsprecher je App“ (G59): Klick auf das Gerät der App → anderes Ausgabegerät wählen. Nur mit „Lautstärke je App“.
+    private func routeMenu(_ row: MixerAppRow) -> some View {
+        let own = row.devices.first
+        let routed = row.route.flatMap { uid in model.outputs.first { $0.uid == uid } }
+        return Menu {
+            if let own {
+                Button { model.setAppRoute(row, outputUID: nil) } label: {
+                    Label("\(own.name) (eigenes Gerät)", systemImage: row.route == nil ? "checkmark" : own.kind.symbol)
+                }
+                Divider()
+            }
+            ForEach(model.outputs.filter { $0.uid != nil && $0.uid != row.deviceUID }) { d in
+                Button { model.setAppRoute(row, outputUID: d.uid) } label: {
+                    Label(d.name, systemImage: row.route == d.uid ? "checkmark" : d.kind.symbol)
+                }
+            }
+        } label: {
+            if let d = routed ?? own { deviceCapsule(d, routed: routed != nil) }
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Auf welchem Gerät diese App spielt")
+        .accessibilityLabel("Ausgabegerät für \(row.name)")
+    }
+
     private func tapHint(_ f: AppTapEngine.Failure) -> String {
         switch f {
         // swiftlint:disable:next line_length
-        case .noSignal: "Kein Ton angekommen, die App spielt unverändert. Pausiert sie nur, ziehe den Regler noch einmal; sonst die Freigabe „Audio-Aufnahme“ prüfen (Systemeinstellungen → Datenschutz & Sicherheit)."
+        case .noSignal: "Kein Ton angekommen, die App spielt unverändert. Pausiert sie nur, ziehe den Regler noch einmal; sonst fehlt die Freigabe: Systemeinstellungen → Datenschutz & Sicherheit → „Aufnahme von Bildschirm & Systemaudio“ → „+“ → Gnotchi einschalten. macOS fragt bei Gnotchi nicht immer von selbst."
         case .setup: "Regler nicht verfügbar. Die App spielt unverändert."
         case .tooMany: "Zu viele Regler gleichzeitig (höchstens \(AppTapEngine.maxTaps)). Die App spielt unverändert."
         case .noTarget: "Diese App gibt gerade keinen Ton aus. Die App spielt unverändert."

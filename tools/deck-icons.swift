@@ -8,7 +8,7 @@ let gold = NSColor(red: 0xE3 / 255, green: 0xB6 / 255, blue: 0x6A / 255, alpha: 
 let light = NSColor(white: 0.92, alpha: 1)
 let tile = NSColor(white: 0.13, alpha: 1)
 
-enum Glyph { case speaker, play }
+enum Glyph { case speaker, play, route }
 
 func draw(_ glyph: Glyph, size: Int, color: NSColor, background: NSColor?) -> Data {
     let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4,
@@ -42,6 +42,17 @@ func draw(_ glyph: Glyph, size: Int, color: NSColor, background: NSColor?) -> Da
             w.lineCapStyle = .round
             w.stroke()
         }
+    case .route:
+        // Lautsprecher links klein, Pfeil nach rechts: „auf ein anderes Gerät“.
+        let p = NSBezierPath()
+        p.move(to: NSPoint(x: s * 0.14, y: s * 0.42)); p.line(to: NSPoint(x: s * 0.24, y: s * 0.42))
+        p.line(to: NSPoint(x: s * 0.38, y: s * 0.30)); p.line(to: NSPoint(x: s * 0.38, y: s * 0.70))
+        p.line(to: NSPoint(x: s * 0.24, y: s * 0.58)); p.line(to: NSPoint(x: s * 0.14, y: s * 0.58)); p.close()
+        let a = NSBezierPath()
+        a.move(to: NSPoint(x: s * 0.50, y: s * 0.50)); a.line(to: NSPoint(x: s * 0.86, y: s * 0.50))
+        a.move(to: NSPoint(x: s * 0.74, y: s * 0.62)); a.line(to: NSPoint(x: s * 0.86, y: s * 0.50))
+        a.line(to: NSPoint(x: s * 0.74, y: s * 0.38))
+        for path in [p, a] { path.lineWidth = line; path.lineJoinStyle = .round; path.lineCapStyle = .round; path.stroke() }
     case .play:
         let p = NSBezierPath()
         p.move(to: NSPoint(x: s * 0.34, y: s * 0.24))
@@ -70,6 +81,8 @@ write("volume", .speaker, base: 20, color: light)
 // Reglerbild und Zustandsbild müssen 72 × 72 sein (Manifest-Schema „Encoder.Icon“); mit 20 × 20 fehlte die Aktion in der Liste.
 write("volume-dial", .speaker, base: 72, color: gold, background: tile)
 write("play", .play, base: 20, color: light)
+write("output", .route, base: 20, color: light)
+write("output-dial", .route, base: 72, color: gold, background: tile)
 // Tastenbild bleibt leer (dunkel): Name und Zeichen kommen als Titel.
 write("play-key", .play, base: 72, color: NSColor(white: 1, alpha: 0.08), background: tile)
 print("Symbole geschrieben nach \(out.path)")

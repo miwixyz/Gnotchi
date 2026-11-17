@@ -53,7 +53,16 @@ enum DeckWire {
         case gain(app: String, delta: Int)
         case mute(app: String)
         case play(app: String, what: Play)
+        /// Stufe 2 (0.36.0): App auf ein Ausgabegerät legen; `nil` = zurück auf ihr eigenes.
+        case route(app: String, device: String?)
     }
+
+    /// Ein Ausgabegerät für die Auswahl am Regler.
+    struct Output: Equatable, Sendable {
+        let uid: String
+        let name: String
+    }
+    nonisolated static let maxOutputs = 8
 
     /// Zustand einer beobachteten App für die Anzeige.
     enum State: String, Sendable {
@@ -78,6 +87,21 @@ enum DeckWire {
         /// Wiedergabe lässt sich steuern (Spotify/Musik immer, sonst nur als aktive Quelle).
         var canPlay: Bool
         var state: State
+        /// Stufe 2: wählbare Ausgabegeräte (Favoriten, sonst alle) und das Gerät, auf dem die App gerade spielt. Zusätzliche
+        /// Felder in derselben Nachricht – ein Plugin 0.35 ignoriert sie (neue Nachrichtenarten würden es trennen).
+        var outputs: [Output] = []
+        var output: String?
+        /// Lässt sich die App umleiten (braucht „Lautstärke je App“ und genau ein Gerät)?
+        var canRoute = false
+        /// Der letzte Tap dieser App brachte nur Stille: Freigabe für Systemaudio fehlt (macOS fragt bei Gnotchi nicht
+        /// selbst, gemessen 17.11. am Mac mini). Zusätzliches Feld, ältere Plugins ignorieren es.
+        var needsCapture = false
+    }
+
+    /// Geräte-UID von Core Audio: druckbares ASCII ohne Steuerzeichen, 1…200 Zeichen (z. B. „BuiltInSpeakerDevice“,
+    /// „AppleUSBAudioEngine:…“). Gnotchi prüft zusätzlich gegen die frische Geräteliste (G20).
+    nonisolated static func isValidDeviceUID(_ s: String) -> Bool {
+        !s.isEmpty && s.utf8.count <= 200 && s.unicodeScalars.allSatisfy { $0.value >= 0x20 && $0.value < 0x7F }
     }
 
     // MARK: Prüfen (Gnotchi-Seite)
@@ -112,6 +136,10 @@ enum DeckWire {
         case "play":
             guard let w = obj["what"] as? String, let what = Play(rawValue: w) else { return nil }
             return .play(app: app, what: what)
+        case "route":
+            if obj["device"] is NSNull { return .route(app: app, device: nil) }
+            guard let d = obj["device"] as? String, isValidDeviceUID(d) else { return nil }
+            return .route(app: app, device: d)
         default:
             return nil
         }
@@ -124,6 +152,7 @@ enum DeckWire {
         case .gain(let app, let delta): ["v": 1, "cmd": "gain", "app": app, "delta": delta]
         case .mute(let app): ["v": 1, "cmd": "mute", "app": app]
         case .play(let app, let what): ["v": 1, "cmd": "play", "app": app, "what": what.rawValue]
+        case .route(let app, let device): ["v": 1, "cmd": "route", "app": app, "device": device ?? NSNull()]
         }
     }
 
@@ -135,6 +164,12 @@ enum DeckWire {
         if let t = s.title { o["title"] = String(t.prefix(maxTextChars)) }
         if let a = s.artist { o["artist"] = String(a.prefix(maxTextChars)) }
         if let p = s.percent { o["percent"] = p }
+        if !s.outputs.isEmpty {
+            o["outputs"] = s.outputs.prefix(maxOutputs).map { ["uid": $0.uid, "name": String($0.name.prefix(60))] }
+        }
+        if let out = s.output { o["output"] = out }
+        if s.canRoute { o["canRoute"] = true }
+        if s.needsCapture { o["needsCapture"] = true }
         return o
     }
 
@@ -147,10 +182,32 @@ enum DeckWire {
               let state = (obj["state"] as? String).flatMap(State.init(rawValue:)) else { return nil }
         let clean = { (s: String?) in s.map { String(LiveText.sanitize($0).prefix(maxTextChars)) }.flatMap { $0.isEmpty ? nil : $0 } }
         let percent = (obj["percent"] as? NSNumber).map { min(200, max(0, $0.intValue)) }
-        return Status(app: app, name: clean(name) ?? app, title: clean(obj["title"] as? String),
-                      artist: clean(obj["artist"] as? String), percent: percent,
-                      muted: obj["muted"] as? Bool ?? false, playing: obj["playing"] as? Bool ?? false,
-                      canPlay: obj["canPlay"] as? Bool ?? false, state: state)
+        var s = Status(app: app, name: clean(name) ?? app, title: clean(obj["title"] as? String),
+                       artist: clean(obj["artist"] as? String), percent: percent,
+                       muted: obj["muted"] as? Bool ?? false, playing: obj["playing"] as? Bool ?? false,
+                       canPlay: obj["canPlay"] as? Bool ?? false, state: state)
+        s.outputs = ((obj["outputs"] as? [[String: Any]]) ?? []).prefix(maxOutputs).compactMap { o in
+            guard let uid = o["uid"] as? String, isValidDeviceUID(uid), let n = clean(o["name"] as? String) else { return nil }
+            return Output(uid: uid, name: String(n.prefix(60)))
+        }
+        s.output = (obj["output"] as? String).flatMap { isValidDeviceUID($0) ? $0 : nil }
+        s.canRoute = obj["canRoute"] as? Bool ?? false
+        s.needsCapture = obj["needsCapture"] as? Bool ?? false
+        return s
+    }
+
+    /// Ist die gemeldete Plugin-Version älter als die eigene? Zahlenweise verglichen („0.35.0“ < „0.36.0“ < „0.100.0“).
+    /// Unlesbare Versionen gelten als veraltet (dann lieber einmal neu installieren).
+    nonisolated static func isOutdated(plugin: String, current: String) -> Bool {
+        let parts = { (s: String) -> [Int]? in
+            guard s.range(of: #"^\d{1,6}(\.\d{1,6}){0,3}$"#, options: .regularExpression) != nil else { return nil }
+            return s.split(separator: ".").compactMap { Int($0) }
+        }
+        guard let p = parts(plugin) else { return true }
+        guard let c = parts(current) else { return false }
+        let n = max(p.count, c.count)
+        let pad = { (a: [Int]) in a + Array(repeating: 0, count: n - a.count) }
+        return pad(p).lexicographicallyPrecedes(pad(c))
     }
 
     nonisolated static func isAck(_ payload: Data) -> Bool {

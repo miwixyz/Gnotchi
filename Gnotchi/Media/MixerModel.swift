@@ -1,4 +1,5 @@
 import CoreAudio
+import OSLog
 import Foundation
 
 /// Eine App mit Ton im Mixer (0.30.0, G54): eine Zeile je App, nicht je Prozess (Browser spielen aus Helfer-Prozessen).
@@ -15,6 +16,8 @@ struct MixerAppRow: Equatable, Identifiable, Sendable {
     var deviceUID: String?
     /// Verstärkung des laufenden Taps (1 = unverändert).
     var gain: Float = 1
+    /// Stufe 2 (G59): UID des Ausgabegeräts, auf das die App umgeleitet ist; nil = spielt auf ihrem eigenen Gerät.
+    var route: String?
 
     var canTap: Bool { !processes.isEmpty && deviceUID != nil && devices.count == 1 }
 }
@@ -58,6 +61,8 @@ enum MixerRows {
 @MainActor
 @Observable
 final class MixerModel {
+
+    private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "mixer")
 
     struct Endpoint: Equatable {
         var device: OutputDevices.Device?
@@ -173,6 +178,7 @@ final class MixerModel {
         for i in rows.indices { rows[i].gain = engine.gain(for: rows[i].id) }
         for i in rows.indices {
             rows[i].gain = engine.gain(for: rows[i].id)
+            rows[i].route = engine.route(for: rows[i].id)
             guard let id = rows[i].bundleID, AppleScriptSource.supported.contains(id) else { continue }
             rows[i].volume = await script.volume(.read, bundleID: id)
         }
@@ -217,8 +223,8 @@ final class MixerModel {
         guard appVolumeEnabled, engine.hasTaps else { return }
         for row in await currentRows() where row.canTap {
             let g = engine.gain(for: row.id)
-            guard g != 1, let uid = row.deviceUID else { continue }
-            engine.setGain(g, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))   // nur bei geändertem Ziel neu gebaut
+            guard g != 1 || engine.route(for: row.id) != nil, let uid = row.deviceUID else { continue }
+            engine.setGain(g, for: target(row, uid))   // nur bei geändertem Ziel neu gebaut
         }
         tapFailures = engine.failures
     }
@@ -340,7 +346,7 @@ final class MixerModel {
                                            liveGain: { engine.gain(for: $0) },
                                            failed: { tapFailures[$0] != nil && tapFailures[$0] != .reset }) {
             guard let uid = row.deviceUID else { continue }
-            engine.setGain(Float(p) / 100, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))
+            engine.setGain(Float(p) / 100, for: target(row, uid))
         }
         tapFailures = engine.failures
     }
@@ -387,7 +393,7 @@ final class MixerModel {
     /// Alle Regler je App zurück auf 100 % (Beenden, Einstellung aus, Gerätewechsel).
     func releaseAll() {
         engine.releaseAll()
-        for i in apps.indices where apps[i].gain != 1 { apps[i].gain = 1 }
+        for i in apps.indices where apps[i].gain != 1 || apps[i].route != nil { apps[i].gain = 1; apps[i].route = nil }
         tapFailures = engine.failures
     }
 
@@ -397,10 +403,46 @@ final class MixerModel {
         guard appVolumeEnabled, row.canTap, let uid = row.deviceUID else { return }
         touch()
         let snapped = MixerRows.snap(percent)   // nahe 100 %: genau 100 %, dann gibt es keinen Tap
-        engine.setGain(Float(snapped) / 100, for: .init(appID: row.id, processes: row.processes, deviceUID: uid))
+        engine.setGain(Float(snapped) / 100, for: target(row, uid))
         if let i = apps.firstIndex(where: { $0.id == row.id }) { apps[i].gain = engine.gain(for: row.id) }
         tapFailures = engine.failures
         if shouldRemember, engine.failures[row.id] == nil { remember(row.bundleID, percent: snapped) }
+    }
+
+    /// Ziel für den Tap-Motor mit der **aktuellen** Umleitung: Ein Lautstärke-Schritt darf eine Umleitung nie verlieren.
+    private func target(_ row: MixerAppRow, _ uid: String, output: String?? = nil) -> AppTapEngine.Target {
+        let out: String? = output ?? engine.route(for: row.id)
+        return .init(appID: row.id, processes: row.processes, deviceUID: uid, outputUID: out)
+    }
+
+    /// Stufe 2 „Lautsprecher je App“ (G59): App auf ein anderes Ausgabegerät legen; nil oder ihr eigenes Gerät = zurück.
+    /// Nur Geräte aus der **frischen** Ausgabeliste (G20), nur mit „Lautstärke je App“ und für Apps auf genau einem Gerät.
+    /// Rückgabe: wirkt die Umleitung jetzt?
+    @discardableResult
+    func setAppRoute(_ row: MixerAppRow, outputUID: String?) -> Bool {
+        // Messpunkt 17.11. (Michael: „passiert aber nichts“): jeden Abbruchgrund protokollieren, nie still scheitern.
+        // Nur Gründe und Zahlen, keine Geräte- oder App-Namen (G8).
+        guard appVolumeEnabled else { Self.log.notice("Umleiten: „Lautstärke je App“ aus"); return false }
+        guard row.canTap, let uid = row.deviceUID else {
+            Self.log.notice("Umleiten: App nicht regelbar (Prozesse \(row.processes.count, privacy: .public), Geräte \(row.devices.count, privacy: .public), UID \(row.deviceUID != nil, privacy: .public))")
+            return false
+        }
+        let fresh = OutputDevices.list().compactMap(\.uid)
+        if let outputUID, outputUID != uid, !fresh.contains(outputUID) {
+            Self.log.notice("Umleiten: Zielgerät nicht in der frischen Liste (\(fresh.count, privacy: .public) Geräte)")
+            return false
+        }
+        touch()
+        let out = outputUID == uid ? nil : outputUID
+        engine.setGain(engine.gain(for: row.id), for: target(row, uid, output: .some(out)))
+        if let i = apps.firstIndex(where: { $0.id == row.id }) {
+            apps[i].gain = engine.gain(for: row.id)
+            apps[i].route = engine.route(for: row.id)
+        }
+        tapFailures = engine.failures
+        let ok = engine.route(for: row.id) == out
+        Self.log.notice("Umleiten: \(out == nil ? "zurück" : "auf anderes Gerät", privacy: .public) → \(ok ? "wirkt" : "gescheitert", privacy: .public), Fehler \(String(describing: self.engine.failures[row.id]), privacy: .public)")
+        return ok
     }
 
     /// Spotify/Musik: nur, wenn macOS die Steuerung erlaubt hat (kein Dialog); Wert 0…100.

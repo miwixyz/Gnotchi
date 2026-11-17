@@ -30,6 +30,22 @@ Michael am Stream Deck Plus: Drehen, Stumm, Play/Pause, Titelsprung, Lauftext �
   das Programm in `Resources/…sdPlugin`) ist **noch nicht gemessen** – beim ersten Release `codesign -dv` am Artefakt prüfen.
   Ein heruntergeladenes Gnotchi mit Quarantäne: übernimmt das gepackte Plugin das Merkmal (`ShelfZip.copyQuarantine`)? M1 offen.
 
+## Umsetzung Stufe 2 (17.11., gebaut, am Gerät getestet, nicht released)
+
+Michael: „Ja, funktioniert.“ Spotify per Regler auf die Mac-mini-Lautsprecher, nach 20 s noch dort, Tippen → zurück.
+
+- Tap-Motor: `Target.outputUID` (Ausgabe) neben `deviceUID` (Abgriff); Tap bleibt auch bei 100 %, solange umgeleitet.
+  `MixerModel.setAppRoute`, Ziel immer mit aktueller Umleitung (ein Lautstärke-Schritt verliert sie nicht).
+- Mixer: Klick auf das Gerät einer App → Menü mit allen Ausgabegeräten. Stream Deck: Aktion „App-Lautsprecher“.
+- Auswahl am Regler: **alle** Ausgabegeräte, Favoriten zuerst (nur Favoriten war zu eng – Michael: „Keine Lautsprecher
+  können ausgewählt werden“; bei ihm waren nur Kopfhörer und CalDigit Favoriten).
+- **M5 – bestanden.** Umleitung hält; nach `kill -9` von Gnotchi spielte Spotify von selbst wieder auf den Kopfhörern.
+- **Fund unterwegs:** Die erste Umleitung sprang nach 1,5 s zurück (Protokoll: „Tap ohne Ton abgebaut“). Ursache: Gnotchi
+  hatte am Mac mini nie die Freigabe für Systemaudio; macOS hat nie gefragt (Michael: kein Dialog, in „Aufnahme von
+  Bildschirm & Systemaudio“ stand nur „Gnotchi Bild“). Von Hand eingetragen → funktioniert. Hinweise eingebaut.
+  Messpunkt: jeder Abbruchgrund beim Umleiten steht im Protokoll.
+- Hinweis „Plugin aktualisieren“: `hello`-Version gegen die eigene, nur in den Einstellungen.
+
 ## Heute (Stand `fb2b915`, 0.34.1)
 
 - **Keine Stream-Deck-Anbindung.** G13 verbietet jede Fremdsteuerung: kein URL-Schema, kein AppleScript-Empfang, keine

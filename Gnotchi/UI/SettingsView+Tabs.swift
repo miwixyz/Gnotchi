@@ -293,7 +293,7 @@ extension SettingsView {
                 .onChange(of: prefs.appVolume) { model.applyNotchSetting() }
             note(prefs.appVolume
                  // swiftlint:disable:next line_length
-                 ? "Im Mixer (Menüleisten-Symbol) bekommt jede App mit Ton einen Regler von 0 bis 200 %. macOS fragt beim ersten Verschieben nach der Freigabe „Audio-Aufnahme“. Solange ein Regler nicht auf 100 % steht, hört Gnotchi den Ton dieser App im Arbeitsspeicher mit; bei 100 % endet das sofort. Gnotchi merkt sich den Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt (Werte bis 5 % nicht, damit nichts still stumm bleibt). Gerätewechsel setzen alle Regler vorübergehend zurück."
+                 ? "Im Mixer (Menüleisten-Symbol) bekommt jede App mit Ton einen Regler von 0 bis 200 %. Dafür braucht Gnotchi die Freigabe für Systemaudio. Fragt macOS beim ersten Verschieben nicht, trag sie selbst ein: Systemeinstellungen → Datenschutz & Sicherheit → „Aufnahme von Bildschirm & Systemaudio“ → „+“ → Gnotchi. Solange ein Regler nicht auf 100 % steht, hört Gnotchi den Ton dieser App im Arbeitsspeicher mit; bei 100 % endet das sofort. Gnotchi merkt sich den Wert je App und stellt ihn wieder ein, sobald die App erneut Ton ausgibt (Werte bis 5 % nicht, damit nichts still stumm bleibt). Gerätewechsel setzen alle Regler vorübergehend zurück."
                  // swiftlint:disable:next line_length
                  : "Aus: Regler gibt es nur für Spotify und Musik. Ein Regler je App braucht die Freigabe „Audio-Aufnahme“: Sie erlaubt Gnotchi, den Ton einer App mitzuhören, solange ihr Regler nicht auf 100 % steht. Der Ton bleibt im Arbeitsspeicher, wird nicht gespeichert und nicht gesendet.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
@@ -310,6 +310,10 @@ extension SettingsView {
             note("Drehregler: Lautstärke je App (drücken = stumm, auf die Leiste tippen = Play/Pause), Tasten: Play/Pause, Weiter, Zurück. Gnotchi nimmt Befehle nur vom eigenen Plugin an, und nur, wenn Elgatos Stream-Deck-App es gestartet hat. Auf der Leiste steht der laufende Titel; dafür bekommt die Stream-Deck-App Titel und Interpret. Browser lassen sich nur steuern, solange sie gerade spielen.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
             if prefs.streamDeck {
+                if let old = model.activity.deckPluginOutdated {
+                    note("Im Stream Deck ist noch das Plugin \(old) installiert. Klick „Plugin installieren“, damit es zu diesem Gnotchi passt.",
+                         symbol: "arrow.down.circle", color: FamilyTheme.warning)
+                }
                 Button("Plugin installieren") { deckInstallResult = DeckLink.installPlugin() }
                     .buttonStyle(CardButtonStyle())
                 if case .failure(let e)? = deckInstallResult {

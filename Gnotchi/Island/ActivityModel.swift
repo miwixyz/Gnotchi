@@ -191,6 +191,10 @@ final class ActivityModel {
     var claudeSessions: [ClaudeSession] = []
     /// Einrichtung der Hooks: nil = in Ordnung, sonst Hinweis für die Einstellungen (G35).
     var claudeSetupNote: String?
+    /// Stream Deck (G59): Version des verbundenen Plugins, wenn sie älter ist als das Plugin in diesem Gnotchi; sonst nil.
+    /// Die Einstellungen zeigen dann „Plugin aktualisieren“. Nur hier, nie als neue Nachricht ans Plugin (ältere Plugins
+    /// trennen bei unbekannten Nachrichten).
+    var deckPluginOutdated: String?
     /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
     @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
     @ObservationIgnored let noteDuration: Duration

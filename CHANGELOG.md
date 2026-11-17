@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Lautsprecher je App.** Jede App kann auf einem eigenen Gerät spielen, zum Beispiel Spotify auf den Lautsprechern und der Browser auf den Kopfhörern. Im Mixer auf das Gerät in der Zeile der App klicken und ein anderes wählen. Am Stream Deck gibt es dafür die Aktion **App-Lautsprecher**: drehen = Gerät vorwählen, drücken = übernehmen, auf die Leiste tippen = zurück aufs eigene Gerät; auf einer Taste schaltet jedes Drücken zum nächsten Gerät. Braucht „Lautstärke je App“. Bei einem Gerätewechsel, beim Ausschalten und auch wenn Gnotchi abstürzt, spielt die App wieder auf ihrem eigenen Gerät.
+- **Hinweis „Plugin aktualisieren“.** Ist im Stream Deck ein älteres Gnotchi-Plugin installiert, sagen es die Einstellungen über dem Knopf „Plugin installieren“.
+
+### Geändert
+- **Freigabe für Systemaudio.** macOS fragt bei Gnotchi nicht immer von selbst nach (gemessen am Mac mini). Mixer, Einstellungen und Stream Deck sagen jetzt, wo du sie einträgst: Systemeinstellungen → Datenschutz & Sicherheit → „Aufnahme von Bildschirm & Systemaudio“ → „+“ → Gnotchi.
+
 ## [0.35.0] — 2026-11-17
 
 ### Neu

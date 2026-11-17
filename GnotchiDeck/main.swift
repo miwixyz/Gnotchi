@@ -32,7 +32,7 @@ func streamDeckArguments(_ argv: [String]) -> (port: Int, uuid: String, register
 
 /// Eine Aktion auf dem Gerät.
 struct DeckAction {
-    enum Kind { case volume, play }
+    enum Kind { case volume, play, output }
     let kind: Kind
     /// Auf einem Drehregler (Leiste mit Layout) oder einer Taste. „App-Lautstärke“ geht auf beides: Aktionen nur für Regler
     /// zeigte Stream Deck 7.6.1 bei Michael gar nicht in der Liste (gemessen 17.11., Test A/B/C).
@@ -43,6 +43,8 @@ struct DeckAction {
     /// Titelzeile als Bild (nur auf einem Regler).
     var track: TrackImage?
     var lastFeedback: [String: String] = [:]
+    /// „App-Lautsprecher“: am Regler vorgewähltes, noch nicht übernommenes Gerät (UID).
+    var preview: String?
 }
 
 @MainActor
@@ -50,6 +52,15 @@ final class Plugin {
 
     static let volumeAction = "dev.mwlr.gnotchi.deck.volume"
     static let playAction = "dev.mwlr.gnotchi.deck.play"
+    static let outputAction = "dev.mwlr.gnotchi.deck.output"
+
+    /// Nächstes Gerät in der Liste, ringförmig, ab `current` (unbekannt → Anfang). Rein, für den Regler und die Taste.
+    nonisolated static func step(_ outputs: [DeckWire.Output], from current: String?, by ticks: Int) -> String? {
+        guard !outputs.isEmpty else { return nil }
+        let i = outputs.firstIndex { $0.uid == current } ?? 0
+        let n = outputs.count
+        return outputs[((i + ticks) % n + n) % n].uid
+    }
 
     private let task: URLSessionWebSocketTask
     private let gnotchi = GnotchiSocket()
@@ -85,7 +96,7 @@ final class Plugin {
     /// Lauftext-Takt nur, solange ein Regler wirklich scrollt: 12 Weckrufe je Sekunde rund um die Uhr kosteten Akku
     /// (Stream Deck läuft praktisch immer). 12 Bilder je Sekunde, 3 Pixel je Bild (pixelweise, Michael 17.11.).
     private func updateTickTimer() {
-        let needed = actions.values.contains { $0.kind == .volume && $0.onDial && $0.marquee.scrolls }
+        let needed = actions.values.contains { $0.kind != .play && $0.onDial && $0.marquee.scrolls }
         if needed, tick == nil {
             tick = Timer.scheduledTimer(withTimeInterval: 1.0 / 12, repeats: true) { _ in
                 MainActor.assumeIsolated { [weak self] in self?.scrollTick() }
@@ -129,7 +140,7 @@ final class Plugin {
         switch event {
         case "willAppear", "didReceiveSettings":
             guard let ctx, let action = obj["action"] as? String else { return }
-            let kind: DeckAction.Kind = action == Self.playAction ? .play : .volume
+            let kind: DeckAction.Kind = action == Self.playAction ? .play : action == Self.outputAction ? .output : .volume
             let settings = payload["settings"] as? [String: Any] ?? [:]
             // Nur die feste Auswahl (17.11.); alles andere → „gerade spielend“. Hält auch `watch` sicher unter 512 Byte.
             let app = (settings["app"] as? String).flatMap { id in DeckWire.choices.contains { $0.id == id } ? id : nil }
@@ -152,6 +163,13 @@ final class Plugin {
             updateTickTimer()
         case "dialRotate":
             guard let ctx, let a = actions[ctx], let ticks = payload["ticks"] as? Int, ticks != 0 else { return }
+            if a.kind == .output {
+                // Drehen wählt nur vor (Umschalten stört kurz den Ton); übernommen wird beim Drücken.
+                let s = status[a.app]
+                actions[ctx]?.preview = Self.step(s?.outputs ?? [], from: a.preview ?? s?.output, by: ticks > 0 ? 1 : -1)
+                render(ctx)
+                return
+            }
             if let gesture = Self.pressGesture(pressed: payload["pressed"] as? Bool ?? false, ticks: ticks,
                                                alreadySkipped: skippedWhilePressed.contains(ctx)) {
                 // Gedrückt drehen: ein Titelsprung je Druck (Michael 17.11.: „nächsten und vorherigen Titel“).
@@ -166,15 +184,34 @@ final class Plugin {
         case "dialUp":
             // Stumm erst beim Loslassen – und nur, wenn nicht gedrückt gedreht (= Titel gesprungen) wurde.
             guard let ctx, let a = actions[ctx] else { return }
+            if a.kind == .output {
+                if let p = a.preview, p != status[a.app]?.output { gnotchi.send(.route(app: a.app, device: p)) }
+                actions[ctx]?.preview = nil
+                render(ctx)
+                return
+            }
             if skippedWhilePressed.remove(ctx) == nil { gnotchi.send(.mute(app: a.app)) }
         case "touchTap":
             guard let ctx, let a = actions[ctx] else { return }
+            if a.kind == .output {
+                // Tippen: zurück auf das eigene Gerät der App.
+                gnotchi.send(.route(app: a.app, device: nil))
+                actions[ctx]?.preview = nil
+                render(ctx)
+                return
+            }
             gnotchi.send(.play(app: a.app, what: .toggle))
         case "keyDown":
             guard let ctx, let a = actions[ctx] else { return }
             if !gnotchi.isConnected { sendDeck(["event": "showAlert", "context": ctx]); return }
-            // „App-Lautstärke“ auf einer Taste: drücken = stumm.
-            gnotchi.send(a.kind == .volume ? .mute(app: a.app) : .play(app: a.app, what: a.what))
+            switch a.kind {
+            case .volume: gnotchi.send(.mute(app: a.app))   // „App-Lautstärke“ auf einer Taste: drücken = stumm
+            case .play: gnotchi.send(.play(app: a.app, what: a.what))
+            case .output:
+                // Taste: jedes Drücken legt die App auf das nächste Gerät.
+                let s = status[a.app]
+                if let next = Self.step(s?.outputs ?? [], from: s?.output, by: 1) { gnotchi.send(.route(app: a.app, device: next)) }
+            }
         default:
             break
         }
@@ -227,6 +264,18 @@ final class Plugin {
         return s.percent.map { "\($0) %" } ?? ""
     }
 
+    /// Zeile für „App-Lautsprecher“: vorgewähltes oder aktuelles Gerät.
+    nonisolated static func outputText(_ s: DeckWire.Status?, preview: String?, connected: Bool) -> String {
+        guard connected else { return "Gnotchi nicht verbunden" }
+        guard let s else { return "…" }
+        guard s.canRoute else { return s.state == .needsSetting ? "„Lautstärke je App“ in Gnotchi einschalten" : "kein Ton" }
+        // Stille nach dem Umleiten: pausiert (Browser halten den Ausgang offen) oder Freigabe fehlt – beides nennen (Audit 17.11.).
+        if s.needsCapture, preview == nil { return "Kein Ton angekommen – pausiert? Sonst fehlt die Freigabe für Systemaudio" }
+        let shown = preview ?? s.output
+        let name = s.outputs.first { $0.uid == shown }?.name ?? "?"
+        return preview != nil && preview != s.output ? "\(name) · drücken" : name
+    }
+
     private func render(_ ctx: String) {
         guard var a = actions[ctx] else { return }
         let s = status[a.app]
@@ -252,6 +301,24 @@ final class Plugin {
                 sendDeck(["event": "setFeedback", "context": ctx, "payload": payload])
                 a.lastFeedback = fb
             }
+        case .output where !a.onDial:
+            let text = Self.outputText(s, preview: nil, connected: connected)
+            let title = "\(name)\n\n\(text)"
+            if a.lastFeedback["title"] != title {
+                sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
+                a.lastFeedback["title"] = title
+            }
+        case .output:
+            let text = Self.outputText(s, preview: a.preview, connected: connected)
+            let width = a.track?.prepare(text, gap: a.marquee.gap) ?? 0
+            a.marquee.set(key: text, contentWidth: width)
+            let fb: [String: String] = ["name": name, "pct": "", "track": "\(text)|\(a.marquee.offset)", "bar": "0"]
+            if fb != a.lastFeedback {
+                var payload: [String: Any] = ["name": name, "pct": "", "bar": ["value": 0]]
+                if fb["track"] != a.lastFeedback["track"], let img = a.track?.frame(offset: a.marquee.offset) { payload["track"] = img }
+                sendDeck(["event": "setFeedback", "context": ctx, "payload": payload])
+                a.lastFeedback = fb
+            }
         case .play:
             let symbol = switch a.what {
             case .toggle: (s?.playing ?? false) ? "❚❚" : "▶"
@@ -269,7 +336,7 @@ final class Plugin {
     }
 
     private func scrollTick() {
-        for (ctx, a) in actions where a.kind == .volume && a.onDial && a.marquee.scrolls {
+        for (ctx, a) in actions where a.kind != .play && a.onDial && a.marquee.scrolls {
             var m = a.marquee
             let moved = m.tick()
             actions[ctx]?.marquee = m   // auch in der Pause zurückschreiben, sonst zählt die Pause nie herunter (Fund 17.11.)

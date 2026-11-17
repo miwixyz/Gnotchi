@@ -1,9 +1,12 @@
 import Foundation
+import OSLog
 
 /// Stream Deck (G59): übersetzt geprüfte Befehle in die vorhandenen Wege (Mixer, Wiedergabe) und baut die Rückmeldung.
 /// Kein eigener Zugriff auf Core Audio oder Apple Events – nur über MixerModel und NowPlayingModel.
 @MainActor
 final class DeckController {
+
+    private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "streamdeck")
 
     private let mixer: MixerModel
     private let media: NowPlayingModel
@@ -55,6 +58,13 @@ final class DeckController {
             case .previous: .previous
             }
             media.command(cmd, bundleID: app == DeckWire.current ? nil : app)
+        case .route(let app, let device):
+            // Stufe 2 (G59): MixerModel prüft gegen die frische Geräteliste und „Lautstärke je App“.
+            guard let id = resolve(app), let row = row(id) else {
+                // Messpunkt 17.11.: nie still verwerfen.
+                return Self.log.notice("Stream Deck: Umleiten – App gibt gerade keinen Ton aus oder spielt nichts")
+            }
+            mixer.setAppRoute(row, outputUID: device)
         }
     }
 
@@ -121,6 +131,21 @@ final class DeckController {
         var s = DeckWire.Status(app: app, name: name, title: info?.title, artist: info?.artist, percent: nil, muted: false,
                                 playing: info?.isPlaying ?? false, canPlay: canPlay, state: .silent)
         guard let id else { return s }
+        if let r, mixer.appVolumeEnabled, r.canTap {
+            // Stufe 2: Auswahl = alle Ausgabegeräte, Favoriten zuerst (Michael 17.11.: nur Favoriten war zu eng, die
+            // Lautsprecher fehlten). Dazu das Gerät, auf dem die App spielt.
+            let favorites = mixer.favorites(.output)
+            let rest = mixer.outputs.filter { d in !favorites.contains { $0.uid == d.uid } }
+            s.outputs = (favorites + rest).prefix(DeckWire.maxOutputs)
+                .compactMap { d in d.uid.map { DeckWire.Output(uid: $0, name: d.name) } }
+            if let own = r.deviceUID, !s.outputs.contains(where: { $0.uid == own }), let dev = r.devices.first {
+                s.outputs.insert(DeckWire.Output(uid: own, name: dev.name), at: 0)
+            }
+            s.outputs = Array(s.outputs.prefix(DeckWire.maxOutputs))
+            s.output = r.route ?? r.deviceUID
+            s.canRoute = true
+            s.needsCapture = mixer.tapFailures[r.id] == .noSignal
+        }
         if Self.isPlayer(id) {
             s.percent = r?.volume
             s.state = r?.volume == nil ? .silent : .ok
