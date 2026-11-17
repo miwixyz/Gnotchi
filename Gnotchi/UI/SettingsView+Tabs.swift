@@ -326,6 +326,11 @@ extension SettingsView {
                 // swiftlint:disable:next line_length
                 note("Play/Pause und Titel für YouTube-Tabs in Helium, auch wenn gleichzeitig Spotify läuft. Dafür muss in Helium „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an sein, und macOS fragt nach der Steuerung von Helium. Achtung: Mit diesem Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in Tabs von youtube.com aus und schaltet den Helium-Schalter nie selbst.",
                      symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                // G59 Punkt 10e: Cover, ab Werk aus.
+                toggleRow("Cover auf dem Deck", isOn: $prefs.deckCover)
+                // swiftlint:disable:next line_length
+                note("Zeigt das Cover (bei YouTube in Helium das Vorschaubild) auf der Wiedergabe-Taste. Das Bild geht dafür an die Stream-Deck-App von Elgato, auch private Cover. Gnotchi verkleinert es vorher selbst und lädt nichts aus dem Netz. Braucht das aktuelle Plugin.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
                 if !prefs.appVolume {
                     note("Für Browser & Co. braucht der Regler „Lautstärke je App“ oben. Spotify und Musik gehen auch ohne.",
                          symbol: "info.circle", color: FamilyTheme.textSecondary)

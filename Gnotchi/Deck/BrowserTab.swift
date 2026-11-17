@@ -73,11 +73,77 @@ final class BrowserTab {
     /// Ein Befehl läuft: weitere werden verworfen, nicht angestaut.
     private var commandRunning = false
 
+    // MARK: Cover (G59 Punkt 10e, Stufe 2)
+
+    /// Schalter „Cover auf dem Deck“ – setzt `DeckLink`. Aus = kein Cover-JavaScript im Tab.
+    var coverWanted = false {
+        didSet { if !coverWanted { clearCover() } }
+    }
+    /// Fertiges Deck-Bild (aus `DeckCover.render`) für den angezeigten Tab, sonst nil.
+    private(set) var cover: Data?
+    /// Zu welchem Video (Tab + Titel + Kanal) `cover` gehört.
+    private var coverKey: String?
+    private var coverPending: (key: String, tries: Int)?
+    /// So oft wird nach dem Start nachgefragt (je ≥ 1 s), dann gilt: kein Cover für dieses Video.
+    nonisolated static let maxCoverTries = 5
+
+    enum CoverStep: Sendable { case none, start(Tab), collect(Tab) }
+    enum CoverOutcome: Sendable, Equatable { case none, started, waiting, done(Data?) }
+
+    nonisolated static func coverKey(_ t: Tab) -> String { "\(t.window):\(t.index):\(t.title ?? "")|\(t.artist ?? "")" }
+
+    private func clearCover() {
+        let had = cover != nil
+        cover = nil
+        coverKey = nil
+        coverPending = nil
+        if had { onChange?() }
+    }
+
+    /// Welcher Cover-Schritt gehört in die nächste Abfrage? Höchstens einer je Abfrage, also höchstens 1/s (10f).
+    private func nextCoverStep() -> CoverStep {
+        guard coverWanted, latest.failure == nil, let t = Self.displayed(latest.tabs) else {
+            if coverKey != nil || coverPending != nil { clearCover() }
+            return .none
+        }
+        let key = Self.coverKey(t)
+        if let p = coverPending { return p.key == key ? .collect(t) : .start(t) }
+        return key == coverKey ? .none : .start(t)
+    }
+
+    private func apply(_ outcome: CoverOutcome, step: CoverStep) {
+        let key: String
+        switch step {
+        case .none: return
+        case .start(let t), .collect(let t): key = Self.coverKey(t)
+        }
+        switch outcome {
+        case .none: return
+        case .started: coverPending = (key, 0)
+        case .waiting:
+            guard let p = coverPending, p.key == key else { return }
+            if p.tries + 1 >= Self.maxCoverTries { finishCover(key: key, data: nil) } else { coverPending = (key, p.tries + 1) }
+        case .done(let data): finishCover(key: key, data: data)
+        }
+    }
+
+    private func finishCover(key: String, data: Data?) {
+        coverPending = nil
+        coverKey = key
+        if cover != data {
+            cover = data
+            onChange?()
+        }
+    }
+
     func reset() {
         generation += 1
         busy = false
         commandRunning = false
         latest = Snapshot()
+        cover = nil
+        coverKey = nil
+        coverPending = nil
     }
 
     /// Eine Abfrage, höchstens eine je Sekunde und nie zwei gleichzeitig. Läuft Helium nicht: keine Apple Events (G59/10a).
@@ -93,8 +159,10 @@ final class BrowserTab {
         busy = true
         lastStart = Date()
         let gen = generation
+        let step = nextCoverStep()
         queue.async { [weak self] in
             let snap = Self.measure()
+            let outcome = snap.failure == nil ? Self.runCover(step) : .none
             Task { @MainActor in
                 guard let self, gen == self.generation else { return }
                 self.busy = false
@@ -102,6 +170,7 @@ final class BrowserTab {
                     self.latest = snap
                     self.onChange?()
                 }
+                self.apply(outcome, step: step)
             }
         }
     }
@@ -209,10 +278,36 @@ final class BrowserTab {
             + "return JSON.stringify({p:v.paused,t:m?String(m.title):'',a:m?String(m.artist):''})})()"
     }
 
+    /// Cover holen, Schritt 1 (10e/10f): Der **Browser** lädt das kleinste Artwork der Media-Session mit mindestens 144 px
+    /// (sonst das letzte), verkleinert es im Tab per Canvas auf 144 px Breite und legt die `data:`-Adresse in einer Variablen ab.
+    /// `fetch` ist asynchron, deshalb liest Schritt 2 sie in einer späteren Abfrage. Antwort: `1` gestartet, `0` kein Artwork.
+    /// Gnotchi lädt nichts aus dem Netz und sieht die Artwork-Adresse nie.
+    nonisolated static let coverStartJavaScript =
+        "(function(){var h=location.hostname;if(h!=='www.youtube.com'&&h!=='music.youtube.com')return '';"
+            + "var m=navigator.mediaSession&&navigator.mediaSession.metadata;var a=m&&m.artwork;"
+            + "if(!a||!a.length){delete window.__gnotchiCover;return '0';}"
+            + "var s='',b=1e9;for(var i=0;i<a.length;i++){var z=parseInt(String(a[i].sizes||'0'),10)||0;"
+            + "if(z>=144&&z<b){b=z;s=a[i].src;}}if(!s)s=a[a.length-1].src;"
+            + "window.__gnotchiCover=null;"
+            + "fetch(s,{mode:'cors',credentials:'omit'}).then(function(r){return r.blob();}).then(createImageBitmap)"
+            + ".then(function(i){var w=144,hh=Math.max(1,Math.round(144*i.height/i.width));var c=document.createElement('canvas');"
+            + "c.width=w;c.height=hh;c.getContext('2d').drawImage(i,0,0,w,hh);window.__gnotchiCover=c.toDataURL('image/jpeg',0.8);})"
+            + ".catch(function(){window.__gnotchiCover='';});return '1';})()"
+
+    /// Cover holen, Schritt 2: noch nicht fertig → `wait`; sonst Ergebnis zurück und Variable löschen (keine Spur im Tab, 10f).
+    nonisolated static let coverCollectJavaScript =
+        "(function(){var h=location.hostname;if(h!=='www.youtube.com'&&h!=='music.youtube.com')return '';"
+            + "var c=window.__gnotchiCover;if(c===null)return 'wait';delete window.__gnotchiCover;"
+            + "return typeof c==='string'&&c.length<=24000?c:'';})()"
+
     /// Skript für einen Tab. Fenster und Tab sind geprüfte Ganzzahlen; das JavaScript enthält keine Anführungszeichen.
     nonisolated static func tabScript(window: Int, index: Int, action: Action) -> String? {
+        tabScript(window: window, index: index, javascript: javascript(action))
+    }
+
+    /// Wie oben für die festen Cover-Skripte. Nur Konstanten aus dieser Datei, nie Text von außen.
+    nonisolated static func tabScript(window: Int, index: Int, javascript js: String) -> String? {
         guard idRange.contains(window), idRange.contains(index) else { return nil }
-        let js = javascript(action)
         guard !js.contains("\"") && !js.contains("\\") else { return nil }
         return """
             with timeout of 5 seconds
@@ -269,5 +364,33 @@ final class BrowserTab {
             return nil
         }
         return text.flatMap { parseState($0, window: window, index: index) }
+    }
+
+    /// Ein Cover-Schritt (auf der Queue, nach `measure`). Fehler zählen als „kein Cover für dieses Video“, nie als Dauerversuch.
+    nonisolated static func runCover(_ step: CoverStep) -> CoverOutcome {
+        switch step {
+        case .none: return .none
+        case .start(let t):
+            guard isRunning, let source = tabScript(window: t.window, index: t.index, javascript: coverStartJavaScript) else {
+                return .none
+            }
+            let (text, error) = execute(source)
+            if let error { log.error("Browser-Tab: Cover nicht gestartet (\(error, privacy: .public))") }
+            return text == "1" ? .started : .done(nil)
+        case .collect(let t):
+            guard isRunning, let source = tabScript(window: t.window, index: t.index, javascript: coverCollectJavaScript) else {
+                return .none
+            }
+            let (text, error) = execute(source)
+            if let error { log.error("Browser-Tab: Cover nicht gelesen (\(error, privacy: .public))") }
+            return collectOutcome(error == nil ? text : nil)
+        }
+    }
+
+    /// Antwort von Schritt 2 → Ergebnis. Fremde Daten: nur über `DeckCover` (Prüfung vor dem Dekodieren, eigene Skalierung).
+    nonisolated static func collectOutcome(_ text: String?) -> CoverOutcome {
+        guard let text else { return .done(nil) }
+        if text == "wait" { return .waiting }
+        return .done(DeckCover.image(dataURL: text).flatMap(DeckCover.render))
     }
 }

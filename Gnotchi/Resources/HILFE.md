@@ -131,6 +131,11 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautspreche
 - Achtung: Mit diesem Helium-Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in YouTube-Tabs aus und schaltet den Helium-Schalter nie selbst.
 - Läuft nichts von YouTube in Helium, gilt der bisherige Weg (Helium nur als aktive Quelle).
 
+**Cover auf dem Deck** (ab Werk aus)
+- Einschalten: Einstellungen → Stream Deck → **„Cover auf dem Deck“**, danach einmal **„Plugin installieren“**.
+- Die Wiedergabe-Taste zeigt das Cover der App, die gerade spielt, bei YouTube in Helium das Vorschaubild. Oben rechts steht, ob sie spielt oder pausiert.
+- Das Bild geht an die Stream-Deck-App von Elgato, auch private Cover. Gnotchi verkleinert es vorher und lädt nichts aus dem Netz.
+
 **App-Lautsprecher** (Regler oder Taste, ab 0.36): auf welchem Gerät die App spielt.
 - Drehen: Gerät vorwählen, die Leiste zeigt es mit „· drücken“
 - Drücken: übernehmen

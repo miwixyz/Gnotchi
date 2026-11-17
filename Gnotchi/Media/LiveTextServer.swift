@@ -48,6 +48,7 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     /// Stream Deck (G59): Zusätzlich muss der **Elternprozess** des Peers diese Anforderung erfüllen. Sonst könnte jedes Programm
     /// das echte, signierte Plugin selbst starten und fernsteuern (gemessen 17.11., M2).
     private let parentRequirement: SecRequirement?
+    private let sendBuffer: Int32?
 
     // Nur auf `queue`:
     private var listenFD: Int32 = -1
@@ -63,12 +64,13 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
 
     init(directory: URL, fileName: String, label: String, peer: String, requirement: SecRequirement,
          maxFrame: Int = LiveText.maxFrame, coalesce: Bool = true,
-         perSecond: Int = 10, parentRequirement: SecRequirement? = nil,
+         perSecond: Int = 10, parentRequirement: SecRequirement? = nil, sendBuffer: Int32? = nil,
          parse: @escaping @Sendable (Data) -> Value?, onValue: @escaping @Sendable (Value?) -> Void) {
         self.maxFrame = maxFrame
         self.coalesce = coalesce
         self.perSecond = perSecond
         self.parentRequirement = parentRequirement
+        self.sendBuffer = sendBuffer
         socketPath = directory.appendingPathComponent(fileName).path
         self.requirement = requirement
         self.label = label
@@ -161,6 +163,9 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
             // Eine geprüfte neue Verbindung ersetzt die alte.
             closeClient(reason: nil)
             _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
+            // Größerer Sendepuffer, wo einzelne Nachrichten groß sind (Deck-Cover ≈ 7 KB): lokale Sockets puffern ab Werk nur
+            // 8 KB (gemessen 17.11.: net.local.stream.sendspace = 8192); ein Teil-Schreiben schließt die Verbindung.
+            if var size = sendBuffer { setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &size, socklen_t(MemoryLayout<Int32>.size)) }
             clientFD = fd
             buffer = Data()
             if let ack = LiveText.frame(["v": 1, "ok": true]) { _ = ack.withUnsafeBytes { write(fd, $0.baseAddress, ack.count) } }
@@ -233,8 +238,8 @@ final class PeerSocketServer<Value: Sendable>: @unchecked Sendable {
     }
 
     /// An den verbundenen, geprüften Client schreiben (Mitteilungen: Filter und Befehle, G29/G30). Ohne Client nichts.
-    func send(_ object: [String: Any]) {
-        guard let data = LiveText.frame(object, max: maxFrame) else { return }
+    func send(_ object: [String: Any], max: Int? = nil) {
+        guard let data = LiveText.frame(object, max: max ?? maxFrame) else { return }
         queue.async { [weak self] in
             guard let self, clientFD >= 0 else { return }
             let n = data.withUnsafeBytes { write(self.clientFD, $0.baseAddress, data.count) }

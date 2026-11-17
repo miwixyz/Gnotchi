@@ -1,3 +1,4 @@
+import AppKit
 import Darwin
 import Foundation
 import OSLog
@@ -70,6 +71,10 @@ final class Plugin {
     private let gnotchi = GnotchiSocket()
     private var actions: [String: DeckAction] = [:]
     private var status: [String: DeckWire.Status] = [:]
+    /// Cover je App (G59 Punkt 10e): nur im Speicher, nie auf Platte, nie in Elgatos Profile, nie auf stdout/stderr.
+    private var covers: [String: Data] = [:]
+    /// Zählt je App jedes neue Cover: Teil des Bild-Schlüssels, sonst sähe `renderKey` beim Videowechsel „gleiches Bild“ (Audit 17.11.).
+    private var coverGen: [String: Int] = [:]
     private var tick: Timer?
     private var reconnect: Timer?
     /// Regler, an denen während des aktuellen Drucks schon gedreht wurde (Titel gesprungen): kein Stumm beim Loslassen.
@@ -88,6 +93,7 @@ final class Plugin {
         task.resume()
         sendDeck(["event": register, "uuid": uuid])
         gnotchi.onStatus = { [weak self] s in self?.received(s) }
+        gnotchi.onCover = { [weak self] app, jpeg in self?.receivedCover(app, jpeg) }
         gnotchi.onConnectionChange = { [weak self] up in self?.connectionChanged(up) }
         receiveLoop()
         tryConnect()
@@ -238,10 +244,11 @@ final class Plugin {
 
     private func connectionChanged(_ up: Bool) {
         if up {
-            gnotchi.send(.hello(version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"))
+            gnotchi.send(.hello(version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0", cover: true))
             sendWatch()
         } else {
             status = [:]
+            covers = [:]
         }
         for ctx in actions.keys { actions[ctx]?.lastFeedback = [:]; render(ctx) }
     }
@@ -254,6 +261,13 @@ final class Plugin {
     private func received(_ s: DeckWire.Status) {
         status[s.app] = s
         for (ctx, a) in actions where a.app == s.app { render(ctx) }
+    }
+
+    private func receivedCover(_ app: String, _ jpeg: Data?) {
+        covers[app] = jpeg
+        coverGen[app, default: 0] += 1
+        coverCache = [:]
+        for (ctx, a) in actions where a.app == app { render(ctx) }
     }
 
     // MARK: Anzeige
@@ -322,6 +336,54 @@ final class Plugin {
     }
 
     private var imageCache: [String: String] = [:]
+    /// Fertige Cover-Tasten als `data:`-URL, Schlüssel `cover:<App>:<Zustand>` (geleert bei jedem neuen Cover).
+    private var coverCache: [String: String] = [:]
+
+    /// Wiedergabe-Taste (Play/Pause) mit Cover: Bild auf 144 × 144 eingepasst, Zustand als kleines Zeichen oben rechts.
+    /// Kein Cover, andere Taste oder nicht verbunden → nil (dann das normale Symbol).
+    private func coverImage(app: String, what: DeckWire.Play, playing: Bool, connected: Bool) -> String? {
+        guard connected, what == .toggle, let jpeg = covers[app] else { return nil }
+        let key = "cover:\(app):\(coverGen[app] ?? 0):\(playing ? "p" : "s")"
+        if coverCache[key] != nil { return key }
+        guard let png = Self.coverKey(jpeg: jpeg, playing: playing) else { return nil }
+        coverCache[key] = "data:image/png;base64," + png.base64EncodedString()
+        return key
+    }
+
+    nonisolated static func coverKey(jpeg: Data, playing: Bool) -> Data? {
+        let side = 144
+        guard let src = NSImage(data: jpeg), src.size.width > 0, src.size.height > 0,
+              let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side, bitsPerSample: 8,
+                                         samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                                         bytesPerRow: 0, bitsPerPixel: 0),
+              let ctx = NSGraphicsContext(bitmapImageRep: rep) else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = ctx
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        let full = NSRect(x: 0, y: 0, width: side, height: side)
+        NSColor.black.setFill()
+        full.fill()
+        let scale = min(Double(side) / src.size.width, Double(side) / src.size.height)
+        let w = src.size.width * scale, h = src.size.height * scale
+        src.draw(in: NSRect(x: (Double(side) - w) / 2, y: (Double(side) - h) / 2, width: w, height: h))
+        // Zustand: dunkler Kreis + weißes Zeichen oben rechts (wie die Taste ohne Cover: spielt → Pause-Zeichen).
+        let badge = NSRect(x: side - 44, y: side - 44, width: 36, height: 36)
+        NSColor(white: 0, alpha: 0.6).setFill()
+        NSBezierPath(ovalIn: badge).fill()
+        let cfg = NSImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        if let glyph = NSImage(systemSymbolName: playing ? "pause.fill" : "play.fill", accessibilityDescription: nil)?
+            .withSymbolConfiguration(cfg) {
+            let tinted = NSImage(size: glyph.size, flipped: false) { r in
+                glyph.draw(in: r)
+                NSColor.white.set()
+                r.fill(using: .sourceAtop)
+                return true
+            }
+            tinted.draw(in: NSRect(x: badge.midX - glyph.size.width / 2, y: badge.midY - glyph.size.height / 2,
+                                   width: glyph.size.width, height: glyph.size.height))
+        }
+        return rep.representation(using: .png, properties: [:])
+    }
 
     /// PNG aus dem Plugin-Ordner als `data:`-URL (einmal gelesen, dann aus dem Speicher).
     private func imageData(_ name: String) -> String? {
@@ -333,9 +395,10 @@ final class Plugin {
         return url
     }
 
-    /// Bild und Titel einer Taste setzen – nur bei Änderung.
+    /// Bild und Titel einer Taste setzen – nur bei Änderung. `cover:`-Namen kommen aus `coverImage`, alle anderen aus `imgs/`.
     private func renderKey(_ ctx: String, _ a: inout DeckAction, image: String, title: String) {
-        if a.lastFeedback["image"] != image, let data = imageData(image) {
+        let data = image.hasPrefix("cover:") ? coverCache[image] : imageData(image)
+        if a.lastFeedback["image"] != image, let data {
             sendDeck(["event": "setImage", "context": ctx, "payload": ["image": data, "target": 0]])
             a.lastFeedback["image"] = image
         }
@@ -386,8 +449,10 @@ final class Plugin {
                 a.lastFeedback = fb
             }
         case .play:
-            renderKey(ctx, &a, image: Self.keyImage(kind: .play, what: a.what, keyStep: a.keyStep, playing: s?.playing ?? false,
-                                                   muted: false), title: Self.playTitle(s, name: name, connected: connected))
+            let playing = s?.playing ?? false
+            let image = coverImage(app: a.app, what: a.what, playing: playing, connected: connected)
+                ?? Self.keyImage(kind: .play, what: a.what, keyStep: a.keyStep, playing: playing, muted: false)
+            renderKey(ctx, &a, image: image, title: Self.playTitle(s, name: name, connected: connected))
         }
         actions[ctx] = a
         updateTickTimer()
