@@ -70,7 +70,7 @@ Freigabe nicht und fragt nie danach.
   erneut Ton ausgibt (nie Werte bis 5 %).
 - **Stream Deck (0.35, ab Werk aus):** Eigenes Plugin für Elgatos Stream Deck. Regler „App-Lautstärke“: drehen = Lautstärke,
   drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
-  Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Podcasts, Safari, Helium, Edge,
+  Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
   ([G59](docs/SECURE-DESIGN.md)).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,

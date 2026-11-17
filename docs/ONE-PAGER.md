@@ -33,6 +33,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
   anderem Gerät“ bei Spotify Connect, bei AirPlay oder Bluetooth der Name des Lautsprechers.
 - Sie drängt sich nicht auf. Ab Werk klappt sie erst nach 0,6 Sekunden auf (einstellbar), fünf
   Sekunden nach dem Pausieren ist sie weg, und bei Vollbild-Apps bleibt sie aus.
+- Wer ein Stream Deck hat, kann Gnotchi damit steuern. Auf einem Stream Deck + bekommt jede App ihren eigenen Drehregler, etwa einer für Spotify und einer für den Browser. Drücken macht stumm, gedrückt drehen springt zum nächsten Titel. Über dem Regler läuft der Titel durch, und die Lautstärke merkt sich Gnotchi für jede App.
 
 ## Was sonst noch in der Notch landet
 
@@ -79,7 +80,7 @@ im Kontrollzentrum. In der Notch steht kein Logo und keine eigene Farbe.
 
 Gnotchi selbst braucht keine Freigabe „Gerätesteuerung und Datenzugriff“. Es liest keine Fenstertitel und löst keine Eingaben aus. Wer die Mitteilungen einschaltet, gibt die Freigabe einem eigenen kleinen Hilfsprogramm, und nur dem. Es liest Apples Mitteilungen und reicht bloß die der ausgewählten Apps an Gnotchi weiter, nachdem beide geprüft haben, dass der andere echt ist. Fügst du aus der Zwischenablage ein, drückt es ⌘V und sonst keine Taste. Mitteilungstexte werden weder gespeichert noch protokolliert.
 
-Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
+Titel, Interpret und Cover bleiben im Arbeitsspeicher deines Macs. Schaltest du das Stream Deck ein, gibt Gnotchi Titel und Interpret an die Stream-Deck-App auf deinem Mac weiter. Sonst könnte die Leiste sie nicht zeigen. Ins Netz geht Gnotchi nur, um nach Updates zu suchen, und, wenn du es einschaltest, für das Wetter. Dorthin geht nur der Ort, den du gewählt hast, nie dein Standort. Im Systemprotokoll steht nicht, was du hörst.
 
 Die Ablage merkt sich nur, wo deine Dateien liegen. Den Inhalt nicht. Ausnahme sind Fotos aus der Fotos-App und Anhänge aus Outlook oder Gmail: Die legt sie als Kopie in einen eigenen Ordner und löscht genau diese Kopie wieder, wenn du den Eintrag entfernst. Sie öffnet nichts, und ein ZIP-Passwort vergisst Gnotchi nach dem Packen. Bei Bildschirmfotos schaut Gnotchi nur nach, ob eine neue Datei eines ist, und merkt sich, wo sie liegt. Das Bild selbst öffnet es nicht.
 
