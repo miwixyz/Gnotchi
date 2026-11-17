@@ -76,8 +76,12 @@ final class DeckController {
         guard let row = row(id) else { return }
         if Self.isPlayer(id) {
             guard let v = row.volume else { return }
-            if v > 0 { beforeMute[id] = v; mixer.setPlayerVolume(bundleID: id, percent: 0) }
-            else { mixer.setPlayerVolume(bundleID: id, percent: beforeMute.removeValue(forKey: id) ?? 50) }
+            if v > 0 {
+                beforeMute[id] = v
+                mixer.setPlayerVolume(bundleID: id, percent: 0)
+            } else {
+                mixer.setPlayerVolume(bundleID: id, percent: beforeMute.removeValue(forKey: id) ?? 50)
+            }
             return
         }
         guard mixer.appVolumeEnabled, row.canTap else { return }

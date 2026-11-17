@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.35.0] — 2026-11-17
 
 ### Neu
 - **Stream Deck (ab Werk aus).** Gnotchi lässt sich jetzt über ein Elgato Stream Deck steuern, am besten mit Drehreglern (Stream Deck +). Einstellungen → Audio → „Stream Deck“ einschalten, dann „Plugin installieren“; Stream Deck fragt selbst nach. Zwei Aktionen:

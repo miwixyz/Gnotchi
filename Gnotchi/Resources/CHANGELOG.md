@@ -2,13 +2,13 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.35.0] — 2026-11-17
 
 ### Neu
 - **Stream Deck (ab Werk aus).** Gnotchi lässt sich jetzt über ein Elgato Stream Deck steuern, am besten mit Drehreglern (Stream Deck +). Einstellungen → Audio → „Stream Deck“ einschalten, dann „Plugin installieren“; Stream Deck fragt selbst nach. Zwei Aktionen:
   - **App-Lautstärke** (Regler oder Taste): Drehen = lauter/leiser, Drücken = stumm, gedrückt drehen = nächster/vorheriger Titel, auf die Leiste tippen = Play/Pause. Die Leiste zeigt App, Prozent, Balken und den laufenden Titel als ruhigen Lauftext.
   - **Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück.
-  - Je Aktion wählbar: Spotify, Musik, Podcasts, Safari, Helium, Edge oder „Gerade spielend“. Browser lassen sich nur steuern, solange sie gerade spielen; für ihre Lautstärke braucht es „Lautstärke je App“.
+  - Je Aktion wählbar: Spotify, Musik, Safari, Helium, Edge oder „Gerade spielend“. Browser lassen sich nur steuern, solange sie gerade spielen; für ihre Lautstärke braucht es „Lautstärke je App“.
   - Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, und nur, wenn Elgatos Stream-Deck-App es gestartet hat. Titel und Interpret gehen dafür an die Stream-Deck-App (kein Cover).
 - **Lautstärke je App wird gemerkt.** Ein Regler, der nicht auf 100 % steht, gilt für diese App weiter, auch nach einer Pause, nach dem Neustart der App oder von Gnotchi und nach einem Gerätewechsel. Werte bis 5 % stellt Gnotchi nie von selbst wieder ein. „Gemerkte Lautstärken vergessen“ in den Einstellungen setzt alles zurück.
 

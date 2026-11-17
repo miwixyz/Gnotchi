@@ -5,7 +5,8 @@ import XCTest
 @MainActor
 final class DeckTests: XCTestCase {
 
-    private func data(_ obj: Any) -> Data { try! JSONSerialization.data(withJSONObject: obj) }
+    /// Testdaten sind immer gültiges JSON; scheitert es doch, liefern leere Daten einen roten Test statt eines Absturzes.
+    private func data(_ obj: Any) -> Data { (try? JSONSerialization.data(withJSONObject: obj)) ?? Data() }
 
     // MARK: DeckWire.parse – nur die feste Befehlsliste
 
