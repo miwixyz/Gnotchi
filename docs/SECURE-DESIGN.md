@@ -1786,6 +1786,7 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
     Plugin, das im `hello` `cover: true` meldet (älteres Plugin würde den Rahmen als ungültig werten und trennen). Sende- und
     Empfangspuffer 64 KB (lokale Sockets ab Werk 8 KB, gemessen; Teil-Schreiben schließt die Verbindung). Nur bei Änderung.
   - Plugin: nur JPEG ≤ 5000 Byte angenommen, nur im Speicher, nie auf Platte oder stdout/stderr.
+  - 0.37.3 (18.11.): Passt ein Cover bei 144 px auch mit Qualität 0,4 nicht in 5000 Byte, wird es in Stufen 120/96/72 px neu skaliert (Spotify 600 × 600: 6786 Byte bei 144 px → 3682 Byte bei 96 px). Grenzen unverändert, Plugin prüft sie weiter.
   - Gemessen 17.11.: Tab-Skripte 144×81 / 4182 Byte, Variable danach `undefined`; Cover an der Taste und Wechsel beim nächsten Video (Michael, Plugin 0.36.0.4); keine Netzverbindung
     am Gnotchi-Prozess (`lsof -a -i`), Plugin blieb verbunden. Restrisiko: Fetch, der nach 5 Nachfragen noch läuft, hinterlässt die
     Variable bis zum nächsten Start im Tab (eigenes Vorschaubild der Seite, harmlos).

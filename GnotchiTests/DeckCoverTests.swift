@@ -61,6 +61,19 @@ final class DeckCoverTests: XCTestCase {
         XCTAssertEqual(props[kCGImagePropertyPixelHeight] as? Int, DeckWire.coverPixels)
     }
 
+    /// Gemessen 18.11.: detailreiches quadratisches Cover (Spotify) passte bei 144 px nicht in die Grenze → gar kein Cover.
+    /// Jetzt wird es kleiner statt verworfen.
+    func testRenderStepsDownWhenDetailedCoverDoesNotFit() throws {
+        let detailed = try XCTUnwrap(NSImage(data: image(144, 144, noise: true))?
+            .cgImage(forProposedRect: nil, context: nil, hints: nil))
+        XCTAssertNil(DeckCover.render(detailed, side: DeckWire.coverPixels), "Ausgangslage: passt bei 144 px nicht")
+        let out = try XCTUnwrap(DeckCover.render(detailed))
+        XCTAssertLessThanOrEqual(out.count, DeckWire.maxCoverBytes)
+        let src = try XCTUnwrap(CGImageSourceCreateWithData(out as CFData, nil))
+        let props = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any])
+        XCTAssertLessThan(try XCTUnwrap(props[kCGImagePropertyPixelWidth] as? Int), DeckWire.coverPixels)
+    }
+
     func testRenderNeverUpscales() throws {
         let small = try XCTUnwrap(DeckCover.image(data: image(80, 45)))
         let out = try XCTUnwrap(DeckCover.render(small))

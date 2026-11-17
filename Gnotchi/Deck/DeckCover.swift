@@ -44,11 +44,25 @@ enum DeckCover {
         return render(cg)
     }
 
-    /// Auf ≤ 144 px skalieren (nie vergrößern) und als JPEG ≤ `DeckWire.maxCoverBytes` kodieren. Gelingt das nicht → nil.
+    /// Längste Seite in Stufen: Passt das Bild bei 144 px auch mit der niedrigsten Qualität nicht in `DeckWire.maxCoverBytes`,
+    /// wird es kleiner. Gemessen 18.11.: Spotify-Cover 600 × 600 → 144 px bei Qualität 0,4 = 6786 Byte, also kein Cover.
+    /// Querformat (YouTube 144 × 81) passte immer. Die Grenze selbst bleibt, das installierte Plugin prüft sie ebenfalls.
+    nonisolated static let renderSides = [DeckWire.coverPixels, 120, 96, 72]
+
+    /// Auf ≤ 144 px skalieren (nie vergrößern) und als JPEG ≤ `DeckWire.maxCoverBytes` kodieren, notfalls kleiner (`renderSides`).
+    /// Gelingt das auch bei 72 px nicht → nil.
     nonisolated static func render(_ image: CGImage) -> Data? {
+        for side in renderSides {
+            if let data = render(image, side: side) { return data }
+        }
+        return nil
+    }
+
+    /// Eine Stufe: auf ≤ `side` px skalieren und kodieren, sonst nil.
+    nonisolated static func render(_ image: CGImage, side: Int) -> Data? {
         let longest = max(image.width, image.height)
         guard longest > 0 else { return nil }
-        let scale = min(1, Double(DeckWire.coverPixels) / Double(longest))
+        let scale = min(1, Double(side) / Double(longest))
         let w = max(1, Int((Double(image.width) * scale).rounded()))
         let h = max(1, Int((Double(image.height) * scale).rounded()))
         guard let space = CGColorSpace(name: CGColorSpace.sRGB),

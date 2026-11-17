@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.37.3] — 2026-11-18
+
+### Behoben
+- **Stream Deck: Cover von Spotify fehlte.** Detailreiche quadratische Cover (z. B. aus Spotify) waren nach dem Verkleinern zu groß für die Taste und wurden ohne Hinweis weggelassen, YouTube-Vorschaubilder passten. Gnotchi verkleinert solche Cover jetzt weiter (bis 96 oder 72 px), statt sie zu verwerfen. Das Plugin muss dafür nicht neu installiert werden.
+
 ## [0.37.2] — 2026-11-18
 
 ### Behoben
