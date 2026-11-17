@@ -25,6 +25,10 @@ final class DeckLink: NotchPart {
     private var timer: Timer?
     /// Zuletzt gemeldeter Stand je beobachteter App: nur Änderungen gehen raus.
     private var lastSent: [String: DeckWire.Status] = [:]
+    /// Cover (G59 Punkt 10e): nur an Plugins, die es im `hello` melden, und nur mit „Cover auf dem Deck“. Gesendet wird nur bei
+    /// Änderung; `lastCover[app] == .some(nil)` = „kein Cover“ schon gemeldet.
+    private var pluginTakesCover = false
+    private var lastCover: [String: Data?] = [:]
 
     init(activity: ActivityModel, prefs: Preferences) {
         mixer = activity.mixer
@@ -45,7 +49,7 @@ final class DeckLink: NotchPart {
         let s = PeerSocketServer<DeckWire.Command>(
             directory: dir, fileName: DeckWire.socketName, label: "Stream Deck", peer: "Plugin",
             requirement: req, maxFrame: DeckWire.maxFrame, coalesce: false, perSecond: DeckWire.maxPerSecond,
-            parentRequirement: parent,
+            parentRequirement: parent, sendBuffer: 65_536,
             parse: { DeckWire.parse($0) },
             onValue: { [weak self] c in Task { @MainActor in self?.receive(c) } })
         do {
@@ -79,7 +83,9 @@ final class DeckLink: NotchPart {
         updateBrowser()
         controller.handle(c)
         switch c {
-        case .hello(let version):
+        case .hello(let version, let cover):
+            pluginTakesCover = cover
+            if cover { push(all: true) }
             let own = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
             activity.deckPluginOutdated = DeckWire.isOutdated(plugin: version, current: own) ? version : nil
         case .watch: push(all: true)
@@ -93,6 +99,8 @@ final class DeckLink: NotchPart {
         timer?.invalidate()
         timer = nil
         lastSent = [:]
+        pluginTakesCover = false
+        lastCover = [:]
         controller.reset()
         controller.browser = nil
         browser.reset()
@@ -102,6 +110,7 @@ final class DeckLink: NotchPart {
 
     /// Browser-Weg nur bei eingeschalteter Einstellung (G59/10a); aus = `nil`, Helium bekommt nie ein Apple Event.
     private func updateBrowser() {
+        browser.coverWanted = prefs.deckCover
         let on = prefs.deckBrowserTab
         if on, controller.browser == nil { controller.browser = browser }
         if !on, controller.browser != nil {
@@ -126,6 +135,20 @@ final class DeckLink: NotchPart {
         for s in current where all || lastSent[s.app] != s {
             lastSent[s.app] = s
             server.send(DeckWire.encode(s))
+        }
+        pushCovers(apps: current.map(\.app), server: server)
+    }
+
+    /// Cover nur bei Änderung; Schalter aus → einmal „kein Cover“ für Apps, die eines hatten. Größerer Rahmen nur hier.
+    private func pushCovers(apps: [String], server: PeerSocketServer<DeckWire.Command>) {
+        guard pluginTakesCover else { return }
+        lastCover = lastCover.filter { apps.contains($0.key) }
+        for app in apps {
+            let jpeg = prefs.deckCover ? controller.cover(app) : nil
+            if let last = lastCover[app], last == jpeg { continue }
+            if lastCover[app] == nil, jpeg == nil, !prefs.deckCover { continue }
+            lastCover[app] = .some(jpeg)
+            server.send(DeckWire.encodeCover(app: app, jpeg: jpeg), max: DeckWire.maxCoverFrame)
         }
     }
 

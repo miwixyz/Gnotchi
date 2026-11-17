@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import OSLog
 
 /// Stream Deck (G59): übersetzt geprüfte Befehle in die vorhandenen Wege (Mixer, Wiedergabe) und baut die Rückmeldung.
@@ -25,6 +25,22 @@ final class DeckController {
     func reset() {
         watched = []
         beforeMute = [:]
+        artCache = nil
+    }
+
+    /// Zuletzt skaliertes Insel-Cover: dasselbe Bild wird nicht bei jeder Meldung neu kodiert.
+    /// Hält das Bild selbst (Vergleich per `===`): eine bloße Adresse könnte nach dem Freigeben an ein neues Bild gehen.
+    private var artCache: (image: NSImage, data: Data?)?
+
+    /// Cover für eine beobachtete App (G59 Punkt 10e). Helium mit Browser-Weg und YouTube-Tab: Bild aus dem Tab. Sonst das Cover
+    /// der Insel, aber nur für die App, die gerade spielt (der Adapter kennt nur die aktive Quelle). Kein Bild → nil.
+    func cover(_ app: String) -> Data? {
+        if app == BrowserTab.bundleID, let browser, BrowserTab.displayed(browser.latest.tabs) != nil { return browser.cover }
+        guard let id = resolve(app), media.info?.appBundleID == id, let art = media.artwork else { return nil }
+        if let c = artCache, c.image === art { return c.data }
+        let data = DeckCover.render(art)
+        artCache = (art, data)
+        return data
     }
 
     /// `current` → Bundle-ID der aktiven Quelle (oder nil), sonst die Bundle-ID selbst.

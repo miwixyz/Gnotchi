@@ -1775,4 +1775,17 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   Ohne den Schalter bleibt der Rückfall: Browser nur als aktive Quelle.
 - **Noch nicht gemessen:** Weg über die echte Deck-Taste, Netz am Gnotchi-Prozess (`nettop`), mehrere YouTube-Tabs, Verhalten bei
   ausgeschaltetem Helium-Schalter im laufenden Gnotchi, Erstnutzung mit dem Automation-Dialog.
-- **Stufe 2 (Cover)** bleibt offen: eigener Schalter, ≤ 144 px, Gnotchi prüft und skaliert, nur das aktuelle Bild (Spec Punkt 10e).
+- **Stufe 2 (Cover, 17.11., Spec 10e):** Schalter `deckCover` „Cover auf dem Deck“, ab Werk aus. Code: `Gnotchi/Deck/DeckCover.swift`,
+  Cover-Teil in `BrowserTab`, `DeckController.cover(_:)`, `DeckLink.pushCovers`.
+  - Quelle: YouTube-Tab (Browser lädt das Artwork der Media-Session ohne Cookies, verkleinert per Canvas auf 144 px, legt die
+    `data:`-Adresse in `window.__gnotchiCover`; Gnotchi liest sie eine Abfrage später und löscht die Variable) oder das Cover der
+    Insel für die aktive Quelle (schon nach G6 dekodiert). Gnotchi sieht die Artwork-Adresse nie und öffnet keine Verbindung.
+  - Fremdes Bild: nur `data:image/jpeg|png;base64`, ≤ 16 KB, Kopfdaten-Prüfung vor dem Dekodieren (JPEG/PNG, ein Bild, Seiten
+    1…256 px), ImageIO. Gnotchi skaliert neu (≤ 144 px, nie größer) und kodiert JPEG ≤ 5000 Byte; nur das geht ans Plugin.
+  - Transport: eigene Nachricht `cover` (Gnotchi → Plugin) mit eigenem Rahmen ≤ 7168 Byte; Befehle bleiben bei 512. Nur an ein
+    Plugin, das im `hello` `cover: true` meldet (älteres Plugin würde den Rahmen als ungültig werten und trennen). Sende- und
+    Empfangspuffer 64 KB (lokale Sockets ab Werk 8 KB, gemessen; Teil-Schreiben schließt die Verbindung). Nur bei Änderung.
+  - Plugin: nur JPEG ≤ 5000 Byte angenommen, nur im Speicher, nie auf Platte oder stdout/stderr.
+  - Gemessen 17.11.: Tab-Skripte 144×81 / 4182 Byte, Variable danach `undefined`; Cover an der Taste und Wechsel beim nächsten Video (Michael, Plugin 0.36.0.4); keine Netzverbindung
+    am Gnotchi-Prozess (`lsof -a -i`), Plugin blieb verbunden. Restrisiko: Fetch, der nach 5 Nachfragen noch läuft, hinterlässt die
+    Variable bis zum nächsten Start im Tab (eigenes Vorschaubild der Seite, harmlos).

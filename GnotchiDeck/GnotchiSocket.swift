@@ -13,6 +13,8 @@ final class GnotchiSocket {
     static let ackTimeout: TimeInterval = 0.5
 
     var onStatus: (DeckWire.Status) -> Void = { _ in }
+    /// Cover einer App (G59 Punkt 10e); nil = keines.
+    var onCover: (String, Data?) -> Void = { _, _ in }
     var onConnectionChange: (Bool) -> Void = { _ in }
 
     private var fd: Int32 = -1
@@ -56,6 +58,9 @@ final class GnotchiSocket {
             return false
         }
         _ = fcntl(s, F_SETFL, fcntl(s, F_GETFL) | O_NONBLOCK)
+        // Cover-Nachrichten sind ≈ 7 KB, lokale Sockets puffern ab Werk 8 KB (gemessen 17.11.).
+        var size: Int32 = 65_536
+        setsockopt(s, SOL_SOCKET, SO_RCVBUF, &size, socklen_t(MemoryLayout<Int32>.size))
         fd = s
         let src = DispatchSource.makeReadSource(fileDescriptor: s, queue: .main)
         src.setEventHandler { [weak self] in MainActor.assumeIsolated { self?.readIncoming() } }
@@ -108,16 +113,21 @@ final class GnotchiSocket {
     }
 
     private func readIncoming() {
-        var chunk = [UInt8](repeating: 0, count: DeckWire.maxFrame)
+        var chunk = [UInt8](repeating: 0, count: DeckWire.maxCoverFrame)
         let n = read(fd, &chunk, chunk.count)
         if n == 0 { return close(reason: "Gnotchi getrennt") }
         if n < 0 { return errno == EAGAIN ? () : close(reason: "Lesefehler") }
         buffer.append(contentsOf: chunk[0..<n])
         while fd >= 0 {
-            switch LiveText.nextFrame(&buffer, max: DeckWire.maxFrame) {
+            // Größerer Rahmen nur, weil Gnotchi Cover schickt (nur nach `hello` mit `cover`); Inhalt wird trotzdem geprüft.
+            switch LiveText.nextFrame(&buffer, max: DeckWire.maxCoverFrame) {
             case .needMore: return
             case .invalid: return close(reason: "ungültiger Rahmen")
             case .message(let payload):
+                if let c = DeckWire.parseCover(payload) {
+                    onCover(c.app, c.jpeg)
+                    continue
+                }
                 guard let s = DeckWire.parseStatus(payload) else { return close(reason: "ungültige Nachricht") }
                 onStatus(s)
             }

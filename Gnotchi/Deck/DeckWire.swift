@@ -20,6 +20,13 @@ enum DeckWire {
     nonisolated static let maxTextChars = 200
     /// Höchstens so viele Befehle je Sekunde (M4: normal gedreht bis 9 Ereignisse/s).
     nonisolated static let maxPerSecond = 50
+    /// Cover (G59 Punkt 10e): fertig skaliertes JPEG ≤ 5000 Byte (Base64 ≈ 6,7 KB). Eigene Nachricht mit eigenem, größerem Rahmen
+    /// nur in Richtung Gnotchi → Plugin; Befehle bleiben bei `maxCommandBytes`. Nur an Plugins, die im `hello` `cover` melden –
+    /// ein älteres Plugin würde den größeren Rahmen als ungültig werten und die Verbindung schließen.
+    nonisolated static let maxCoverBytes = 5000
+    nonisolated static let maxCoverFrame = 7168
+    /// Längste Seite des Covers, das Gnotchi sendet (Taste 144 × 144 px bei @2x).
+    nonisolated static let coverPixels = 144
 
     /// Elgatos Stream-Deck-App (gemessen 17.11.: `Developer ID Application: Corsair Memory, Inc. (Y93VXCB8Q5)`).
     nonisolated static let streamDeckRequirement =
@@ -48,7 +55,8 @@ enum DeckWire {
     enum Play: String, Sendable, CaseIterable { case toggle, next, previous }
 
     enum Command: Equatable, Sendable {
-        case hello(version: String)
+        /// `cover`: Plugin kann Cover-Nachrichten lesen (ab Plugin 0.36.0.3; fehlt das Feld → nein).
+        case hello(version: String, cover: Bool = false)
         case watch([String])
         case gain(app: String, delta: Int)
         case mute(app: String)
@@ -121,7 +129,8 @@ enum DeckWire {
               let obj = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
               let v = obj["v"] as? NSNumber, CFGetTypeID(v) != CFBooleanGetTypeID(), v.doubleValue == 1 else { return nil }
         if let version = obj["hello"] as? String {
-            return version.count <= 32 ? .hello(version: version) : nil
+            guard version.count <= 32 else { return nil }
+            return .hello(version: version, cover: obj["cover"] as? Bool ?? false)
         }
         if let list = obj["watch"] as? [Any] {
             let apps = list.compactMap { $0 as? String }
@@ -150,7 +159,7 @@ enum DeckWire {
 
     nonisolated static func encode(_ c: Command) -> [String: Any] {
         switch c {
-        case .hello(let version): ["v": 1, "hello": version]
+        case .hello(let version, let cover): cover ? ["v": 1, "hello": version, "cover": true] : ["v": 1, "hello": version]
         case .watch(let apps): ["v": 1, "watch": apps]
         case .gain(let app, let delta): ["v": 1, "cmd": "gain", "app": app, "delta": delta]
         case .mute(let app): ["v": 1, "cmd": "mute", "app": app]
@@ -175,6 +184,25 @@ enum DeckWire {
         if s.needsCapture { o["needsCapture"] = true }
         if s.needsBrowser { o["needsBrowser"] = true }
         return o
+    }
+
+    // MARK: Cover (Gnotchi → Plugin, G59 Punkt 10e)
+
+    /// Cover einer beobachteten App; `nil` = keines (mehr). Gnotchi schickt nur Bilder aus `DeckCover.render`.
+    nonisolated static func encodeCover(app: String, jpeg: Data?) -> [String: Any] {
+        ["v": 1, "cover": app, "img": jpeg.map { $0.base64EncodedString() } ?? NSNull()]
+    }
+
+    /// Plugin-Seite: Cover-Nachricht lesen. Nur JPEG (FF D8 FF), höchstens `maxCoverBytes`; sonst nil (Nachricht ungültig).
+    /// Ist es keine Cover-Nachricht, ebenfalls nil – der Aufrufer versucht dann `parseStatus`.
+    nonisolated static func parseCover(_ payload: Data) -> (app: String, jpeg: Data?)? {
+        guard let obj = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
+              let v = obj["v"] as? NSNumber, v.doubleValue == 1,
+              let app = obj["cover"] as? String, isValidApp(app) else { return nil }
+        if obj["img"] is NSNull { return (app, nil) }
+        guard let b64 = obj["img"] as? String, b64.utf8.count <= (maxCoverBytes + 2) / 3 * 4,
+              let d = Data(base64Encoded: b64), d.count <= maxCoverBytes, d.starts(with: [0xFF, 0xD8, 0xFF]) else { return nil }
+        return (app, d)
     }
 
     /// Plugin-Seite: Rückmeldung lesen. Texte werden erneut bereinigt und gekürzt (das Plugin vertraut nur der Form).
