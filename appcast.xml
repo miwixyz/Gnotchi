@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.36.0</title>
-            <pubDate>Tue, 17 Nov 2026 14:17:37 +0100</pubDate>
+            <title>0.37.0</title>
+            <pubDate>Tue, 17 Nov 2026 23:33:56 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>249</sparkle:version>
-            <sparkle:shortVersionString>0.36.0</sparkle:shortVersionString>
+            <sparkle:version>257</sparkle:version>
+            <sparkle:shortVersionString>0.37.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Lautsprecher je App.</b> Jede App kann auf einem eigenen Gerät spielen, zum Beispiel Spotify auf den Lautsprechern und der Browser auf den Kopfhörern. Im Mixer auf das Gerät in der Zeile der App klicken und ein anderes wählen. Am Stream Deck gibt es dafür die Aktion <b>App-Lautsprecher</b>: drehen = Gerät vorwählen, drücken = übernehmen, auf die Leiste tippen = zurück aufs eigene Gerät; auf einer Taste schaltet jedes Drücken zum nächsten Gerät. Braucht „Lautstärke je App“. Bei einem Gerätewechsel, beim Ausschalten und auch wenn Gnotchi abstürzt, spielt die App wieder auf ihrem eigenen Gerät.</li><li><b>Alle Stream Decks, nicht nur Stream Deck +.</b> „App-Lautstärke“ auf einer Taste hat jetzt das Feld „Taste“: Stumm, Lauter oder Leiser (je Druck 5 %). Damit gehen Lautstärke, Wiedergabe und Lautsprecher auch auf Stream Deck, Mini, XL, Neo, Mobile und Pedal.</li><li><b>Fertige Stream-Deck-Profile.</b> Das Plugin bringt je ein Profil „Gnotchi“ für Stream Deck + und Stream Deck Neo mit allen Funktionen mit; Stream Deck bietet sie beim Installieren an.</li><li><b>Neue Symbole.</b> Ein einheitlicher Satz im Stil der App-Familie (helle Zeichen, Schieferblau als Akzent). Tasten zeigen ihren Zustand als Bild (Pause, wenn etwas läuft; durchgestrichen, wenn stumm), der Text steht oben.</li><li><b>Hinweis „Plugin aktualisieren“.</b> Ist im Stream Deck ein älteres Gnotchi-Plugin installiert, sagen es die Einstellungen über dem Knopf „Plugin installieren“.</li></ul><h3>Geändert</h3><ul><li><b>Freigabe für Systemaudio.</b> macOS fragt bei Gnotchi nicht immer von selbst nach (gemessen am Mac mini). Mixer, Einstellungen und Stream Deck sagen jetzt, wo du sie einträgst: Systemeinstellungen → Datenschutz &amp; Sicherheit → „Aufnahme von Bildschirm &amp; Systemaudio“ → „+“ → Gnotchi.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.36.0/Gnotchi-0.36.0.zip" length="8284688" type="application/octet-stream" sparkle:edSignature="D6QqvsrgrRbWoVSrH3XNlRyGz3CzEUF1IDnQbpNKucM9tXPKtpmZpoKjFRP2mAyLVLOps0/esMm6vKZ5jZu8AQ=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck: YouTube in Helium gezielt steuern (ab Werk aus).</b> Läuft Spotify und daneben YouTube im Browser, bedient die Wiedergabe-Taste mit der App „Helium“ jetzt gezielt den YouTube-Tab, und die Leiste zeigt dessen Titel und Kanal. Einschalten unter Einstellungen → Stream Deck → „YouTube in Helium gezielt steuern“. In Helium muss „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an sein, macOS fragt beim ersten Mal nach der Steuerung von Helium. Gnotchi führt dort nur festes JavaScript in Tabs von youtube.com aus, liest Adressen nur zum Filtern und lädt nie selbst etwas aus dem Netz. Läuft nichts von YouTube, gilt der bisherige Weg.</li><li><b>Stream Deck: Cover auf der Wiedergabe-Taste (ab Werk aus).</b> Einstellungen → Stream Deck → „Cover auf dem Deck“. Die Taste zeigt das Cover der spielenden App, bei YouTube in Helium das Vorschaubild, mit einem kleinen Play/Pause-Zeichen. Das Bild geht dafür an Elgatos Stream-Deck-App. Gnotchi prüft jedes Bild, verkleinert es selbst auf 144 px und lädt nichts aus dem Netz; das YouTube-Vorschaubild holt der Browser im Tab. Braucht das aktualisierte Plugin.</li><li><b>Stream Deck: Hinweis statt stummer Taste.</b> Ist Heliums Schalter aus oder die Steuerung verweigert, zeigt die Wiedergabe-Taste „Helium freigeben“ und die Leiste beide möglichen Ursachen (Heliums Schalter oder die Steuerungs-Freigabe in den Systemeinstellungen), statt beim Drücken einfach nichts zu tun. Braucht das aktualisierte Plugin (Einstellungen → Stream Deck → „Plugin installieren“).</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.37.0/Gnotchi-0.37.0.zip" length="8230710" type="application/octet-stream" sparkle:edSignature="tubA5TpJHgNDftpnY81qEjlVDfPQe8zM52AlCu3O/lQDrWeaQZ2eNc4f7Szq4ynTUQzUo26Z2a6P42RxDyKjDg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: zuFSUNs5LVzWj+KQH5TFpFj4Ei7/CxwxC1Lj9WiaeAOCxwQ0MCY0YWtDeYzaXz7iGgYPB8CfKqzt7XuErTFRDA==
-length: 3070
+edSignature: nI1LMuRs5iw04OdZ50ApqLfJxRn20dPk5W9LAm6Lpo0UFxGDGUnILPMvDAYHVlzSwRK3eetrIdM9woJh+O87Bg==
+length: 2797
 -->

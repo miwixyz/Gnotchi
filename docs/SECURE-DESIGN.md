@@ -59,7 +59,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
-| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com) |
+| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com), 10e: Cover auf dem Deck (eigener Schalter, ≤ 144 px, Gnotchi skaliert) |
 
 ## Was Gnotchi ist und welche Macht es hat
 
