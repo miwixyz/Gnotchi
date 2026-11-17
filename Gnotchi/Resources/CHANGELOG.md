@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Geändert
+- **Hilfe: Widget zeigt nur graue Platzhalter.** Neuer Hinweis unter „Musik auf dem Schreibtisch“: Nach einem Update findet der Widget-Dienst von macOS die Daten manchmal nicht mehr; `killall chronod` im Terminal behebt das (gemessen am 18.11., macOS 27.2.1).
+
 ## [0.37.3] — 2026-11-18
 
 ### Behoben
