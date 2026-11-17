@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.35.0</title>
-            <pubDate>Tue, 17 Nov 2026 12:35:20 +0100</pubDate>
+            <title>0.36.0</title>
+            <pubDate>Tue, 17 Nov 2026 14:17:37 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>244</sparkle:version>
-            <sparkle:shortVersionString>0.35.0</sparkle:shortVersionString>
+            <sparkle:version>249</sparkle:version>
+            <sparkle:shortVersionString>0.36.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck (ab Werk aus).</b> Gnotchi lässt sich jetzt über ein Elgato Stream Deck steuern, am besten mit Drehreglern (Stream Deck +). Einstellungen → Audio → „Stream Deck“ einschalten, dann „Plugin installieren“; Stream Deck fragt selbst nach. Zwei Aktionen:</li><li><b>App-Lautstärke</b> (Regler oder Taste): Drehen = lauter/leiser, Drücken = stumm, gedrückt drehen = nächster/vorheriger Titel, auf die Leiste tippen = Play/Pause. Die Leiste zeigt App, Prozent, Balken und den laufenden Titel als ruhigen Lauftext.</li><li><b>Wiedergabe</b> (Taste): Play/Pause, Weiter oder Zurück.</li><li>Je Aktion wählbar: Spotify, Musik, Safari, Helium, Edge oder „Gerade spielend“. Browser lassen sich nur steuern, solange sie gerade spielen; für ihre Lautstärke braucht es „Lautstärke je App“.</li><li>Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, und nur, wenn Elgatos Stream-Deck-App es gestartet hat. Titel und Interpret gehen dafür an die Stream-Deck-App (kein Cover).</li><li><b>Lautstärke je App wird gemerkt.</b> Ein Regler, der nicht auf 100 % steht, gilt für diese App weiter, auch nach einer Pause, nach dem Neustart der App oder von Gnotchi und nach einem Gerätewechsel. Werte bis 5 % stellt Gnotchi nie von selbst wieder ein. „Gemerkte Lautstärken vergessen“ in den Einstellungen setzt alles zurück.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.35.0/Gnotchi-0.35.0.zip" length="8030336" type="application/octet-stream" sparkle:edSignature="6wVGVmBOkIwm2DRfLI2N5VrfeYN0o9NFx0KwaNzwl0xmAxxteGkrFd2G2663ri0k0lQjfWelZDdSdXueqvQ5Aw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Lautsprecher je App.</b> Jede App kann auf einem eigenen Gerät spielen, zum Beispiel Spotify auf den Lautsprechern und der Browser auf den Kopfhörern. Im Mixer auf das Gerät in der Zeile der App klicken und ein anderes wählen. Am Stream Deck gibt es dafür die Aktion <b>App-Lautsprecher</b>: drehen = Gerät vorwählen, drücken = übernehmen, auf die Leiste tippen = zurück aufs eigene Gerät; auf einer Taste schaltet jedes Drücken zum nächsten Gerät. Braucht „Lautstärke je App“. Bei einem Gerätewechsel, beim Ausschalten und auch wenn Gnotchi abstürzt, spielt die App wieder auf ihrem eigenen Gerät.</li><li><b>Alle Stream Decks, nicht nur Stream Deck +.</b> „App-Lautstärke“ auf einer Taste hat jetzt das Feld „Taste“: Stumm, Lauter oder Leiser (je Druck 5 %). Damit gehen Lautstärke, Wiedergabe und Lautsprecher auch auf Stream Deck, Mini, XL, Neo, Mobile und Pedal.</li><li><b>Fertige Stream-Deck-Profile.</b> Das Plugin bringt je ein Profil „Gnotchi“ für Stream Deck + und Stream Deck Neo mit allen Funktionen mit; Stream Deck bietet sie beim Installieren an.</li><li><b>Neue Symbole.</b> Ein einheitlicher Satz im Stil der App-Familie (helle Zeichen, Schieferblau als Akzent). Tasten zeigen ihren Zustand als Bild (Pause, wenn etwas läuft; durchgestrichen, wenn stumm), der Text steht oben.</li><li><b>Hinweis „Plugin aktualisieren“.</b> Ist im Stream Deck ein älteres Gnotchi-Plugin installiert, sagen es die Einstellungen über dem Knopf „Plugin installieren“.</li></ul><h3>Geändert</h3><ul><li><b>Freigabe für Systemaudio.</b> macOS fragt bei Gnotchi nicht immer von selbst nach (gemessen am Mac mini). Mixer, Einstellungen und Stream Deck sagen jetzt, wo du sie einträgst: Systemeinstellungen → Datenschutz &amp; Sicherheit → „Aufnahme von Bildschirm &amp; Systemaudio“ → „+“ → Gnotchi.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.36.0/Gnotchi-0.36.0.zip" length="8284688" type="application/octet-stream" sparkle:edSignature="D6QqvsrgrRbWoVSrH3XNlRyGz3CzEUF1IDnQbpNKucM9tXPKtpmZpoKjFRP2mAyLVLOps0/esMm6vKZ5jZu8AQ=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: SmY9NRq16iCa1hCt6cwXnCKLP+65llnDAV0is1soqyPYFsnwO01N55WdUsdnSn+YthWjKai9CVgHv9Y55YwyDg==
-length: 2569
+edSignature: zuFSUNs5LVzWj+KQH5TFpFj4Ei7/CxwxC1Lj9WiaeAOCxwQ0MCY0YWtDeYzaXz7iGgYPB8CfKqzt7XuErTFRDA==
+length: 3070
 -->
