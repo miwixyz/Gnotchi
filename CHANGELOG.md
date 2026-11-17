@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.37.2] — 2026-11-18
 
 ### Behoben
 - **Stream Deck: mehrere YouTube-Tabs in Helium.** Ein Druck auf die Wiedergabe-Taste pausiert jetzt alle YouTube-Videos, die gerade spielen, und der nächste Druck startet wieder das Video, das zuletzt lief. Bisher startete er immer das Video im ersten Tab, und direkt nach einem von Hand gestarteten Video lief manchmal ein zweites mit los. Titel und Cover auf der Taste zeigen das zuletzt aktive Video.
