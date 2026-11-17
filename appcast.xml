@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.34.1</title>
-            <pubDate>Mon, 16 Nov 2026 12:23:18 +0100</pubDate>
+            <title>0.35.0</title>
+            <pubDate>Tue, 17 Nov 2026 12:35:20 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>239</sparkle:version>
-            <sparkle:shortVersionString>0.34.1</sparkle:shortVersionString>
+            <sparkle:version>244</sparkle:version>
+            <sparkle:shortVersionString>0.35.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Unlesbare Verlaufseinträge werden gemeldet.</b> Fehlt der Schlüssel für den Zwischenablage-Verlauf (zum Beispiel nach einem Umzug der Datenbank auf einen neuen Mac), legt Gnotchi wie bisher einen neuen an, und die älteren Einträge lassen sich nicht mehr lesen. Früher stand das nur im Protokoll. Jetzt zeigen die Einstellungen der Zwischenablage „n Einträge im Verlauf lassen sich nicht mehr lesen …“ und einen Knopf „Unlesbare Einträge entfernen“. Das Schlüsselbund-Verhalten selbst ist unverändert.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.34.1/Gnotchi-0.34.1.zip" length="7857609" type="application/octet-stream" sparkle:edSignature="dubSd6QES6/0MQfO9/bNnS/NiOLR25G3GDbDUV7++a6c3sAwZvH/77bSTQJEChbVbKa4O4RPWFQAMBpbhmZVCQ=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck (ab Werk aus).</b> Gnotchi lässt sich jetzt über ein Elgato Stream Deck steuern, am besten mit Drehreglern (Stream Deck +). Einstellungen → Audio → „Stream Deck“ einschalten, dann „Plugin installieren“; Stream Deck fragt selbst nach. Zwei Aktionen:</li><li><b>App-Lautstärke</b> (Regler oder Taste): Drehen = lauter/leiser, Drücken = stumm, gedrückt drehen = nächster/vorheriger Titel, auf die Leiste tippen = Play/Pause. Die Leiste zeigt App, Prozent, Balken und den laufenden Titel als ruhigen Lauftext.</li><li><b>Wiedergabe</b> (Taste): Play/Pause, Weiter oder Zurück.</li><li>Je Aktion wählbar: Spotify, Musik, Safari, Helium, Edge oder „Gerade spielend“. Browser lassen sich nur steuern, solange sie gerade spielen; für ihre Lautstärke braucht es „Lautstärke je App“.</li><li>Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, und nur, wenn Elgatos Stream-Deck-App es gestartet hat. Titel und Interpret gehen dafür an die Stream-Deck-App (kein Cover).</li><li><b>Lautstärke je App wird gemerkt.</b> Ein Regler, der nicht auf 100 % steht, gilt für diese App weiter, auch nach einer Pause, nach dem Neustart der App oder von Gnotchi und nach einem Gerätewechsel. Werte bis 5 % stellt Gnotchi nie von selbst wieder ein. „Gemerkte Lautstärken vergessen“ in den Einstellungen setzt alles zurück.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.35.0/Gnotchi-0.35.0.zip" length="8030336" type="application/octet-stream" sparkle:edSignature="6wVGVmBOkIwm2DRfLI2N5VrfeYN0o9NFx0KwaNzwl0xmAxxteGkrFd2G2663ri0k0lQjfWelZDdSdXueqvQ5Aw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: oNUG7HV43X4o0BaCPHgUEn1bsWXbIWPu3eyQ5tD/FMAGn8dNp09d+dZJUpHm9OeeK1u/d5kZFWSMuyTHJHNAAQ==
-length: 1730
+edSignature: SmY9NRq16iCa1hCt6cwXnCKLP+65llnDAV0is1soqyPYFsnwO01N55WdUsdnSn+YthWjKai9CVgHv9Y55YwyDg==
+length: 2569
 -->
