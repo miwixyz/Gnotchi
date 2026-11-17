@@ -59,6 +59,12 @@ if [ -d "$HOOK" ]; then
     done
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HOOK"
 fi
+# Stream-Deck-Plugin (0.35.0, G59) – fehlte hier bis 17.11.: blieb adhoc signiert, Gnotchi hätte es weder übergeben
+# noch am Socket angenommen. Kennung wie in dev-signed.sh und der Prüfung in release.sh.
+DECK="$STAGE/Gnotchi.app/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/gnotchideck"
+if [ -f "$DECK" ]; then
+    codesign --force --options runtime --timestamp -i dev.mwlr.gnotchi.deck --sign "$IDENTITY" "$DECK"
+fi
 # Schreibtisch-Widget (0.26.0, G49): eigene, kleinstmögliche Berechtigungen (Sandbox + App-Gruppe), vor der App.
 WIDGET="$STAGE/Gnotchi.app/Contents/PlugIns/GnotchiWidget.appex"
 if [ -d "$WIDGET" ]; then

@@ -238,7 +238,7 @@ beweist, dass er (a) unser Plugin ist und (b) von Elgatos Stream-Deck-App gestar
 10. **Browser-Tab als eigene Quelle und Cover (ergänzt 17.11.; Ausgang: Michael hat Spotify und YouTube in Helium parallel und
     kann am Deck nur Spotify bedienen, Thumbnail fehlt).** Ursache: MediaRemote kennt nur eine aktive Quelle (M3). Weg:
     Gnotchi fragt Helium per Apple Events (`tell application "Helium"`), nicht per MediaRemote. Gemessen 17.11. (M10a): mit
-    dem Helium-Schalter „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ pausiert/startet `video.pause()/play()`
+    dem Helium-Schalter „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ pausiert/startet `video.pause()/play()`
     den YouTube-Tab gezielt, 10 von 10, Spotify unberührt; Titel, Kanal und Cover-Adresse stehen in
     `navigator.mediaSession.metadata`; `fetch` mit CORS plus Canvas liefert ein 144×81-JPEG (≈ 4 KB) im Tab.
     **Das ist die neue Vertrauensgrenze (4): Gnotchi führt JavaScript in einem Browser-Tab aus.** Regeln:
