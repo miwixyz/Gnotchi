@@ -288,6 +288,51 @@ final class Plugin {
         return preview != nil && preview != s.output ? "\(name) · drücken" : name
     }
 
+    // MARK: Tastenbilder (Michael 17.11.: „schöne passende Icons“)
+
+    /// Bild der Taste je Aktion und Zustand (Dateien aus `tools/deck-icons.swift`).
+    nonisolated static func keyImage(kind: DeckAction.Kind, what: DeckWire.Play, keyStep: KeyStep, playing: Bool, muted: Bool) -> String {
+        switch kind {
+        case .play:
+            switch what {
+            case .toggle: playing ? "key-pause" : "key-play"
+            case .next: "key-next"
+            case .previous: "key-previous"
+            }
+        case .volume:
+            switch keyStep {
+            case .mute: muted ? "key-muted" : "key-mute"
+            case .up: "key-volume-up"
+            case .down: "key-volume-down"
+            }
+        case .output: "key-output"
+        }
+    }
+
+    private var imageCache: [String: String] = [:]
+
+    /// PNG aus dem Plugin-Ordner als `data:`-URL (einmal gelesen, dann aus dem Speicher).
+    private func imageData(_ name: String) -> String? {
+        if let hit = imageCache[name] { return hit }
+        let dir = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath().deletingLastPathComponent()
+        guard let d = try? Data(contentsOf: dir.appendingPathComponent("imgs/\(name)@2x.png")) else { return nil }
+        let url = "data:image/png;base64," + d.base64EncodedString()
+        imageCache[name] = url
+        return url
+    }
+
+    /// Bild und Titel einer Taste setzen – nur bei Änderung.
+    private func renderKey(_ ctx: String, _ a: inout DeckAction, image: String, title: String) {
+        if a.lastFeedback["image"] != image, let data = imageData(image) {
+            sendDeck(["event": "setImage", "context": ctx, "payload": ["image": data, "target": 0]])
+            a.lastFeedback["image"] = image
+        }
+        if a.lastFeedback["title"] != title {
+            sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
+            a.lastFeedback["title"] = title
+        }
+    }
+
     private func render(_ ctx: String) {
         guard var a = actions[ctx] else { return }
         let s = status[a.app]
@@ -295,12 +340,11 @@ final class Plugin {
         let name = s?.name ?? DeckWire.name(of: a.app) ?? "Gnotchi"
         switch a.kind {
         case .volume where !a.onDial:
-            let sign = switch a.keyStep { case .mute: ""; case .up: "+ "; case .down: "− " }
-            let title = connected ? "\(name)\n\(sign)\n\(Self.percentText(s))" : "Gnotchi\n\naus"
-            if a.lastFeedback["title"] != title {
-                sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
-                a.lastFeedback["title"] = title
-            }
+            let pct = Self.percentText(s)
+            // Zwei Zeilen statt „App · Prozent“ (abgeschnitten auf der Taste, Screenshot 17.11.).
+            let title = connected ? (pct.isEmpty ? name : "\(name)\n\(pct)") : "Gnotchi aus"
+            renderKey(ctx, &a, image: Self.keyImage(kind: .volume, what: a.what, keyStep: a.keyStep, playing: false,
+                                                   muted: s?.muted ?? false), title: title)
         case .volume:
             let text = Self.trackText(s, connected: connected)
             let width = a.track?.prepare(text, gap: a.marquee.gap) ?? 0
@@ -315,12 +359,9 @@ final class Plugin {
                 a.lastFeedback = fb
             }
         case .output where !a.onDial:
-            let text = Self.outputText(s, preview: nil, connected: connected)
-            let title = "\(name)\n\n\(text)"
-            if a.lastFeedback["title"] != title {
-                sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
-                a.lastFeedback["title"] = title
-            }
+            let device = Self.outputText(s, preview: nil, connected: connected)
+            // Nur das Gerät: App + Gerät passte nicht auf die Taste (Screenshot 17.11.: „Externe Kopfhö…“).
+            renderKey(ctx, &a, image: "key-output", title: connected ? device : "Gnotchi aus")
         case .output:
             let text = Self.outputText(s, preview: a.preview, connected: connected)
             let width = a.track?.prepare(text, gap: a.marquee.gap) ?? 0
@@ -333,16 +374,8 @@ final class Plugin {
                 a.lastFeedback = fb
             }
         case .play:
-            let symbol = switch a.what {
-            case .toggle: (s?.playing ?? false) ? "❚❚" : "▶"
-            case .next: "▶▶"
-            case .previous: "◀◀"
-            }
-            let title = connected ? "\(name)\n\n\(symbol)" : "Gnotchi\n\naus"
-            if a.lastFeedback["title"] != title {
-                sendDeck(["event": "setTitle", "context": ctx, "payload": ["title": title, "target": 0]])
-                a.lastFeedback["title"] = title
-            }
+            renderKey(ctx, &a, image: Self.keyImage(kind: .play, what: a.what, keyStep: a.keyStep, playing: s?.playing ?? false,
+                                                   muted: false), title: connected ? name : "Gnotchi aus")
         }
         actions[ctx] = a
         updateTickTimer()

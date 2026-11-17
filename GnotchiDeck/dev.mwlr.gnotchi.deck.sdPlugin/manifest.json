@@ -14,6 +14,10 @@
   "Category": "Gnotchi",
   "CategoryIcon": "imgs/category",
   "PropertyInspectorPath": "pi/index.html",
+  "Profiles": [
+    { "Name": "profiles/gnotchi-plus", "DeviceType": 7, "Readonly": false, "DontAutoSwitchWhenInstalled": true, "AutoInstall": true },
+    { "Name": "profiles/gnotchi-neo", "DeviceType": 9, "Readonly": false, "DontAutoSwitchWhenInstalled": true, "AutoInstall": true }
+  ],
   "Actions": [
     {
       "Name": "App-Lautstärke",
@@ -26,7 +30,7 @@
         "layout": "layouts/volume.json",
         "TriggerDescription": { "Rotate": "Lautstärke · gedrückt: Titel", "Push": "Stumm", "Touch": "Play/Pause" }
       },
-      "States": [{ "Image": "imgs/volume-dial" }]
+      "States": [{ "Image": "imgs/key-volume", "TitleAlignment": "top", "FontSize": 10 }]
     },
     {
       "Name": "App-Lautsprecher",
@@ -39,7 +43,7 @@
         "layout": "layouts/volume.json",
         "TriggerDescription": { "Rotate": "Gerät wählen", "Push": "Übernehmen", "Touch": "Eigenes Gerät" }
       },
-      "States": [{ "Image": "imgs/output-dial", "TitleAlignment": "middle", "FontSize": 11 }]
+      "States": [{ "Image": "imgs/key-output", "TitleAlignment": "top", "FontSize": 10 }]
     },
     {
       "Name": "Wiedergabe",
@@ -47,7 +51,7 @@
       "Icon": "imgs/play",
       "Tooltip": "Play/Pause, Weiter oder Zurück für eine App",
       "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/play-key", "TitleAlignment": "middle", "FontSize": 12 }]
+      "States": [{ "Image": "imgs/key-play", "TitleAlignment": "top", "FontSize": 10 }]
     }
   ]
 }

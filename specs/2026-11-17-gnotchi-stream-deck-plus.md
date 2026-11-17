@@ -49,6 +49,15 @@ Michael: „Ja, funktioniert.“ Spotify per Regler auf die Mac-mini-Lautspreche
   (±5 % je Druck). Am Stream Deck Neo getestet: „funktioniert“. Bei Michael sind Stream Deck +, Neo und ein virtuelles
   Stream Deck angemeldet.
 
+## Symbole und Profile (17.11.)
+
+- Symbole: `tools/deck-icons.swift`, einheitlicher Satz, Tastenbild je Zustand (`setImage`). Erst Gold (Gnotchi-Akzent) –
+  Michael: „Gelb ist eine so hässliche Farbe, mach das passend zu Gnotchi und Tippi“ → helle Zeichen, kühles Dunkelgrau,
+  Akzent Schiefer-Iris #98A9E1. Text oben, Zeichen unten (Michael). Lange Titel auf Tasten zweizeilig (App / Prozent).
+- Profile: `tools/deck-profiles.py` erzeugt `profiles/gnotchi-plus` (20GBD9901) und `gnotchi-neo` (20GBJ9901) im Exportformat
+  (gemessen am Profil, das Elgatos Codex-Plugin mitliefert), Manifest `Profiles` mit `AutoInstall`. Am Gerät installiert und
+  benutzt – Michael: „Perfekt“. Textposition steckt im Profil: Änderungen daran brauchen ein frisch installiertes Profil.
+
 ## Heute (Stand `fb2b915`, 0.34.1)
 
 - **Keine Stream-Deck-Anbindung.** G13 verbietet jede Fremdsteuerung: kein URL-Schema, kein AppleScript-Empfang, keine

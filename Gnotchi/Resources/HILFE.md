@@ -113,7 +113,7 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautspreche
 
 1. Einstellungen → **Audio** → ganz unten **„Steuerung über Stream Deck“** einschalten.
 2. **„Plugin installieren“** klicken. Stream Deck fragt, ob es das Plugin „Gnotchi“ installieren soll.
-3. In Stream Deck aus der Gruppe **„Gnotchi“** die Aktionen auf Regler oder Tasten ziehen und rechts die App wählen.
+3. Stream Deck bietet beim Installieren das fertige Profil **„Gnotchi“** an (Stream Deck + und Neo), mit allen Funktionen. Oder du ziehst die Aktionen aus der Gruppe **„Gnotchi“** selbst auf Regler oder Tasten und wählst rechts die App.
 
 **App-Lautstärke** (Regler oder Taste)
 - Drehen: lauter oder leiser
