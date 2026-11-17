@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.37.1] — 2026-11-17
+
+### Geändert
+- **Neue Symbole am Stream Deck.** Alle Tasten, Regler und das Plugin-Symbol haben ein neues, einheitliches Aussehen: dunkle Glasfläche, klare weiße Linien und ein warmes Leuchten. Der Name der App steht weiter oben auf der Taste. Stumm erkennst du am abgeblendeten Lautsprecher mit rotem Punkt. Deine Belegung bleibt, du musst nichts neu zuweisen: nach dem Plugin-Update (Einstellungen → Stream Deck → „Plugin installieren“) wechseln die Tasten von selbst.
+
+### Intern
+- Stream-Deck-Symbole kommen aus einem gemeinsamen Generator für alle Plugins der App-Familie (Designsprache „Glas“); `tools/deck-icons.swift` ist abgelöst und trägt einen Stopp-Hinweis.
+
 ## [0.37.0] — 2026-11-17
 
 ### Neu
@@ -9,11 +17,7 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 - **Stream Deck: Cover auf der Wiedergabe-Taste (ab Werk aus).** Einstellungen → Stream Deck → „Cover auf dem Deck“. Die Taste zeigt das Cover der spielenden App, bei YouTube in Helium das Vorschaubild, mit einem kleinen Play/Pause-Zeichen. Das Bild geht dafür an Elgatos Stream-Deck-App. Gnotchi prüft jedes Bild, verkleinert es selbst auf 144 px und lädt nichts aus dem Netz; das YouTube-Vorschaubild holt der Browser im Tab. Braucht das aktualisierte Plugin.
 - **Stream Deck: Hinweis statt stummer Taste.** Ist Heliums Schalter aus oder die Steuerung verweigert, zeigt die Wiedergabe-Taste „Helium freigeben“ und die Leiste beide möglichen Ursachen (Heliums Schalter oder die Steuerungs-Freigabe in den Systemeinstellungen), statt beim Drücken einfach nichts zu tun. Braucht das aktualisierte Plugin (Einstellungen → Stream Deck → „Plugin installieren“).
 
-### Geändert
-- **Neue Symbole am Stream Deck.** Alle Tasten, Regler und das Plugin-Symbol haben ein neues, einheitliches Aussehen: dunkle Glasfläche, klare weiße Linien und ein warmes Leuchten. Der Name der App steht weiter oben auf der Taste. Stumm erkennst du am abgeblendeten Lautsprecher mit rotem Punkt. Deine Belegung bleibt, du musst nichts neu zuweisen: nach dem Plugin-Update (Einstellungen → Stream Deck → „Plugin installieren“) wechseln die Tasten von selbst.
-
 ### Intern
-- Stream-Deck-Symbole kommen aus einem gemeinsamen Generator für alle Plugins der App-Familie (Designsprache „Glas“); `tools/deck-icons.swift` ist abgelöst und trägt einen Stopp-Hinweis.
 - `release.sh` bricht ab, wenn die Version im Plugin-Manifest nicht zur App-Version passt (gleiche Version verwirft Stream Deck still als „schon installiert“).
 - `make install` signiert das Stream-Deck-Plugin jetzt mit der Developer ID. Vorher blieb es in Testfassungen ohne gültige Signatur, Gnotchi hätte es weder übergeben noch angenommen.
 - Bildtext-Test wird bei ausgelastetem Mac nicht mehr fälschlich rot: Der Test lässt die Texterkennung mit normaler Priorität laufen (die App bleibt bei „Hintergrund“, eigener Test sichert das ab) und wartet höchstens 90 s statt fest 10 s. Unter künstlicher Volllast in 0,23 s grün.

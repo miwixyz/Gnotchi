@@ -73,7 +73,7 @@ Freigabe nicht und fragt nie danach.
   drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
   Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
-  ([G59](docs/SECURE-DESIGN.md)).
+  ([G59](docs/SECURE-DESIGN.md)). Ab 0.37.1 einheitliche Symbole: dunkles Glas, weiße Linien, warmes Leuchten.
 - **YouTube in Helium und Cover am Stream Deck (0.37, beides ab Werk aus):** Läuft Spotify und daneben YouTube in Helium,
   schaltet die Taste „Wiedergabe“ mit der App „Helium“ gezielt nur den YouTube-Tab (in Helium muss „Darstellung → Entwickler →
   JavaScript von Apple Events erlauben“ an sein; Gnotchi führt nur festes JavaScript in YouTube-Tabs aus). Fehlt die Freigabe,
