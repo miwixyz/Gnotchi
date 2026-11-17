@@ -96,6 +96,9 @@ enum DeckWire {
         /// Der letzte Tap dieser App brachte nur Stille: Freigabe für Systemaudio fehlt (macOS fragt bei Gnotchi nicht
         /// selbst, gemessen 17.11. am Mac mini). Zusätzliches Feld, ältere Plugins ignorieren es.
         var needsCapture = false
+        /// Browser-Weg (G59 Punkt 10): „Browser-Tab steuern“ ist an, aber Helium lässt kein JavaScript zu oder Gnotchi darf Helium
+        /// nicht steuern. Zusätzliches Feld, ältere Plugins ignorieren es (ein neuer `state`-Wert würde sie trennen).
+        var needsBrowser = false
     }
 
     /// Geräte-UID von Core Audio: druckbares ASCII ohne Steuerzeichen, 1…200 Zeichen (z. B. „BuiltInSpeakerDevice“,
@@ -170,6 +173,7 @@ enum DeckWire {
         if let out = s.output { o["output"] = out }
         if s.canRoute { o["canRoute"] = true }
         if s.needsCapture { o["needsCapture"] = true }
+        if s.needsBrowser { o["needsBrowser"] = true }
         return o
     }
 
@@ -193,6 +197,7 @@ enum DeckWire {
         s.output = (obj["output"] as? String).flatMap { isValidDeviceUID($0) ? $0 : nil }
         s.canRoute = obj["canRoute"] as? Bool ?? false
         s.needsCapture = obj["needsCapture"] as? Bool ?? false
+        s.needsBrowser = obj["needsBrowser"] as? Bool ?? false
         return s
     }
 

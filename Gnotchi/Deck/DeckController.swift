@@ -14,6 +14,8 @@ final class DeckController {
     private(set) var watched: [String] = []
     /// Wert vor dem Stummschalten je Bundle-ID (nur im Speicher, nie gemerkt).
     private var beforeMute: [String: Int] = [:]
+    /// Browser-Weg (G59 Punkt 10). `nil` = Einstellung „Browser-Tab steuern“ aus: Helium bekommt dann nie ein Apple Event.
+    var browser: BrowserTab?
 
     init(mixer: MixerModel, media: NowPlayingModel) {
         self.mixer = mixer
@@ -52,6 +54,9 @@ final class DeckController {
             guard let id = resolve(app) else { return }
             toggleMute(id)
         case .play(let app, let what):
+            // Helium mit eingeschaltetem Browser-Weg: gezielt am YouTube-Tab, egal welche Quelle macOS als aktiv führt.
+            // Kein Tab bekannt (andere Seite spielt) → normaler Weg wie bisher.
+            if app == BrowserTab.bundleID, what == .toggle, browser?.toggle() == true { return }
             let cmd: MediaAdapter.Command = switch what {
             case .toggle: .toggle
             case .next: .next
@@ -105,6 +110,18 @@ final class DeckController {
         }
     }
 
+    /// Titel, Zustand und Steuerbarkeit aus dem YouTube-Tab statt aus MediaRemote (das nur die aktive Quelle kennt).
+    private func applyBrowser(to s: inout DeckWire.Status, app: String) {
+        guard app == BrowserTab.bundleID, let browser else { return }
+        if let tab = BrowserTab.displayed(browser.latest.tabs) {
+            s.title = tab.title
+            s.artist = tab.artist
+            s.playing = !tab.paused
+            s.canPlay = true
+        }
+        s.needsBrowser = browser.latest.failure == .javascriptOff || browser.latest.failure == .denied
+    }
+
     nonisolated static func percent(_ gain: Float) -> Int { Int((gain * 100).rounded()) }
 
     /// Nächster Wert für einen Tap-Regler. Der Mixer rastet ±3 um 100 % ein (dann kein Tap); in 2-%-Schritten käme man von 100
@@ -130,6 +147,7 @@ final class DeckController {
             || (Self.isPlayer(id ?? "") && AutomationStatus.shared.isAllowed(id ?? "")))
         var s = DeckWire.Status(app: app, name: name, title: info?.title, artist: info?.artist, percent: nil, muted: false,
                                 playing: info?.isPlaying ?? false, canPlay: canPlay, state: .silent)
+        applyBrowser(to: &s, app: app)
         guard let id else { return s }
         if let r, mixer.appVolumeEnabled, r.canTap {
             // Stufe 2: Auswahl = alle Ausgabegeräte, Favoriten zuerst (Michael 17.11.: nur Favoriten war zu eng, die

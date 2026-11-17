@@ -181,7 +181,8 @@ Zeile passen, misst M7.
 
 `state`: `ok | silent` (App gibt keinen Ton aus) `| needsSetting` („Lautstärke je App“ aus) `| needsPermission`
 (Freigabe fehlt) `| notActive` (Wiedergabe nur für die aktive Quelle möglich).
-**Titel und Interpret ja, Cover nein** (G59 Punkt 6).
+**Titel und Interpret ja. Cover nur nach G59 Punkt 10e** (eigener Schalter, ≤ 144 px, aktuelles Bild); neuer `state`-Wert
+`needsBrowserSetting` (Helium-Schalter fehlt, Punkt 10a).
 
 ## Sicherheitsentwurf (G59, Vorschlag)
 
@@ -202,14 +203,16 @@ beweist, dass er (a) unser Plugin ist und (b) von Elgatos Stream-Deck-App gestar
    Restrisiko: PID-Wiederverwendung zwischen Abfrage und Prüfung. Wir prüfen das Audit-Token des Peers und danach die
    Elternkennung; ein Angreifer bräuchte dafür ohnehin Code-Ausführung als Michael (siehe Restrisiken).
 3. **Feste Befehlsliste, keine Pfade, keine Skripte.** Kein Befehl startet eine App, öffnet eine URL, spult oder schickt Apple
-   Events an andere Ziele als die fest verdrahteten Spotify und Musik. AppleScript-Texte bleiben fest im Code (G7).
+   Events an andere Ziele als die fest verdrahteten Spotify und Musik (und, nur nach Punkt 10, Helium). AppleScript- und
+   JavaScript-Texte bleiben fest im Code (G7).
 4. **Grenzen:** Zeile ≤ 512 Byte, Puffer ≤ 4 KB, höchstens 50 Befehle/s (darüber verworfen), höchstens eine Verbindung
    gleichzeitig. Gain-Aufrufe je App weiter über die vorhandene „höchstens ein Aufruf gleichzeitig, neuester Wert“-Bremse.
 5. **Einstellung „Stream Deck“ ab Werk aus.** Aus = Socket gar nicht offen. Die Einstellung erweitert keine Freigabe:
    Ohne „Lautstärke je App“ und „Audio-Aufnahme“ gibt es für Browser keinen Regler, das Plugin zeigt nur „Einstellung fehlt“.
 6. **Rückkanal mit Titel, bewusst entschieden** (Michael, 17.11.: „Titel anzeigen“). Gesendet werden App-Name, Titel, Interpret,
    Prozent, stumm, spielt, Gerätename, Zustand. **Damit erfährt Elgatos Stream-Deck-App, was Michael hört.** Das ist die erste
-   Stelle, an der Hördaten Gnotchis Prozess verlassen (bisher nur Anzeige in der eigenen Insel). Begrenzung: kein Cover, keine
+   Stelle, an der Hördaten Gnotchis Prozess verlassen (bisher nur Anzeige in der eigenen Insel). Begrenzung: Cover nur nach
+   Punkt 10 (ergänzt 17.11., Michael wollte das YouTube-Thumbnail auf der Taste), keine
    Wiedergabezeit, Text höchstens 200 Zeichen; Titel nur an ein geprüftes Plugin (1, 2); unser Plugin gibt Titel nur per
    `setFeedback` an die Leiste. Gemessen (M6): Stream Deck schreibt `setFeedback`- und `setTitle`-Inhalte **nicht** in seine
    Protokolle. **Aber:** Stream Deck legt je Plugin eine eigene Protokolldatei an
@@ -228,6 +231,48 @@ beweist, dass er (a) unser Plugin ist und (b) von Elgatos Stream-Deck-App gestar
 9. **Umleitung nie hängen lassen** (Stufe 2, wie G53): Verschwindet das Ziel-Gerät, stürzt das Plugin ab oder wird die
    Einstellung abgeschaltet → App spielt wieder direkt. Stürzt Gnotchi ab, enden die Taps mit dem Prozess (macOS räumt private
    Aggregate auf, im Spike beobachtet, in Gnotchi zu messen: M5).
+10. **Browser-Tab als eigene Quelle und Cover (ergänzt 17.11.; Ausgang: Michael hat Spotify und YouTube in Helium parallel und
+    kann am Deck nur Spotify bedienen, Thumbnail fehlt).** Ursache: MediaRemote kennt nur eine aktive Quelle (M3). Weg:
+    Gnotchi fragt Helium per Apple Events (`tell application "Helium"`), nicht per MediaRemote. Gemessen 17.11. (M10a): mit
+    dem Helium-Schalter „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ pausiert/startet `video.pause()/play()`
+    den YouTube-Tab gezielt, 10 von 10, Spotify unberührt; Titel, Kanal und Cover-Adresse stehen in
+    `navigator.mediaSession.metadata`; `fetch` mit CORS plus Canvas liefert ein 144×81-JPEG (≈ 4 KB) im Tab.
+    **Das ist die neue Vertrauensgrenze (4): Gnotchi führt JavaScript in einem Browser-Tab aus.** Regeln:
+    - a) **Eigene Einstellung „Browser-Tab steuern (Helium)“, ab Werk aus**, getrennt von „Stream Deck“. Aus = Gnotchi schickt
+      Helium nie ein Apple Event. Gnotchi **schaltet Heliums Schalter nie selbst** (kein Oberflächen-Skript); fehlt er, Zustand
+      `needsBrowserSetting` mit Hinweis, wo er sitzt, und es passiert nichts weiter. Der Hinweistext benennt das Risiko:
+      Mit dem Schalter kann jedes Programm mit Automation-Freigabe für Helium JavaScript in allen Tabs ausführen, auch in
+      angemeldeten. Gnotchi verengt das nicht, nutzt es aber (Restrisiko unten).
+    - b) **Ziel nur nach Positivliste:** JavaScript läuft ausschließlich in Tabs, deren Adresse den Host `www.youtube.com`
+      oder `music.youtube.com` hat (Prüfung in Swift auf dem geparsten Host, nicht per Teilzeichenfolge). Gnotchi liest dafür
+      die Adressen aller Tabs, verwirft nicht passende sofort und speichert, protokolliert oder sendet sie nie. Weitere Seiten
+      oder Browser (Safari, Edge) sind ein eigener Durchgang mit eigener Messung.
+    - c) **Feste Befehle:** das Plugin sendet `browser` mit `play|pause|toggle`, sonst nichts. Das JavaScript steht fest im Code
+      (nur `video.pause()/play()` und lesen von `mediaSession.metadata`), enthält nie Text vom Deck, aus einem Tab oder von einer
+      Adresse. Ergebnis kommt als JSON zurück und wird gegen ein Schema geprüft (unbekannte Felder, Überlänge → verworfen).
+    - d) **Tab-Inhalte sind fremde Daten:** Titel, Kanal und Cover kommen aus der Seite. Text ≤ 200 Zeichen, Steuerzeichen
+      und Richtungszeichen entfernt (wie `NowPlayingInfo`). Die Cover-Adresse geht nie an das Plugin und wird von Gnotchi nie
+      selbst geladen. Gnotchi öffnet keine Netzverbindung; das Bild holt der Browser im Tab.
+    - e) **Cover generell (auch Spotify, Musik, aktive Quelle über den Adapter):** nur mit eigenem Schalter „Cover auf dem Deck“
+      (ab Werk aus, Aufklärung: das Bild geht an Elgatos Prozess, auch private Cover). Gnotchi prüft jedes Bild (JPEG/PNG-
+      Kennung, ≤ 16 KB, Seiten ≤ 256 px, Decoder = ImageIO), skaliert es selbst auf ≤ 144 px und sendet nur das aktuelle Bild,
+      nie eine Liste. Im Plugin nicht auf Platte, nicht in Elgatos Profile, nie auf stdout/stderr.
+    - f) **Takt und Spuren:** Abfrage des Tabs höchstens 1/s, nur solange ein Plugin verbunden und eine Medien-Aktion sichtbar
+      ist; Cover höchstens einmal je Videowechsel. Die Cover-Abfrage braucht zwei Aufrufe (`fetch` ist asynchron); die dafür im
+      Tab angelegte Variable wird nach dem Lesen gelöscht, sonst bleibt nichts im Tab.
+    - g) **Zustand `playing`/`paused` des Tabs** kommt aus `video.paused`; ohne Media-Session oder ohne Video:
+      `state: notActive`. Läuft nichts in der Positivliste: kein Tab, `state: notActive`.
+    - **Umsetzungsstand 17.11. (Stufe 1, ohne Cover, nicht committet):** `Gnotchi/Deck/BrowserTab.swift`. **Abweichung von 10c:** kein neuer
+      Befehl `browser`, sondern der vorhandene `play` mit `app: net.imput.helium` und `what: toggle` (Plugin unverändert); `next/previous`
+      laufen weiter über den normalen Weg. **Abweichung bei der Anzeige:** Kein neuer `state`-Wert (er würde ältere Plugins trennen),
+      stattdessen Zusatzfeld `needsBrowser` (Schalter in Helium aus oder Automation verweigert); das Plugin zeigt es noch nicht. Tabs
+      werden über Heliums stabile **IDs** angesprochen (Positionen wandern). Gemessen: im `tell`-Block ist `tab` eine Klasse, nicht der
+      Tabulator. Einstellung `deckBrowserTab`, ab Werk aus.
+    - **Ausstiegskriterium M10 (vor dem Bau):** (i) `nettop`/`lsof` zeigt für Gnotchi keine neue Verbindung beim Cover-Wechsel;
+      (ii) ein Testtab mit lokaler Seite (nicht auf der Positivliste) bekommt nie JavaScript; (iii) Schalter in Helium aus →
+      `needsBrowserSetting`, kein Absturz, kein Dauerversuch; (iv) mehrere Tabs/Fenster mit Medien: Entscheidung, welcher gilt
+      (Vorschlag: der mit `paused == false`, sonst der zuletzt aktive); (v) Tab ohne Media-Session; (vi) kaputtes/zu großes
+      Cover wird verworfen; (vii) Ergebnis über die Deck-Taste (nicht nur Skript) 10 von 10 neben laufendem Spotify.
 
 ### Vertrauensgrenzen und Datenfluss
 
@@ -254,6 +299,11 @@ signaturgeprüft), (3) Gnotchi → Core Audio / Apple Events (bestehende Freigab
 | **D** | Befehlsflut friert Audio oder Hauptthread ein | 50/s-Grenze, eine Verbindung, Gain-Bremse (4); Mixer-Abfrage abseits des Hauptthreads (wie 0.33.1) |
 | **D** | App bleibt stumm/umgeleitet hängen | Rückfall auf direkt (9) |
 | **E** | Plugin nutzt Gnotchis Automation-/Audio-Freigabe als Hebel | Nur feste Befehle auf feste Ziele (3); keine neue Freigabe (5); kein Audio zurück (8) |
+| **E** | Plugin lässt Gnotchi JavaScript in beliebigen Tabs ausführen (Gmail, Publer …) | Befehl nur `play/pause/toggle`, JavaScript fest im Code, Ausführung nur in Tabs der Positivliste (YouTube), geparster Host (10b, 10c) |
+| **T** | Manipulierte Seite lügt in Titel/Kanal/Cover oder liefert ein Bild als Bombe | Fremde Daten: Länge, Zeichen, Schema; Bild ≤ 16 KB, ≤ 256 px, ImageIO, Neuskalierung durch Gnotchi (10d, 10e) |
+| **I** | Tab-Adressen oder Browserverlauf verlassen Gnotchi | Adressen nur zum Filtern gelesen, nie gespeichert, protokolliert oder gesendet; Cover-Adresse nie an das Plugin (10b, 10d) |
+| **I** | Privates Cover geht an Elgato | Bewusst angenommen, eigener Schalter ab Werk aus, nur aktuelles Bild, ≤ 144 px (10e) |
+| **D** | Dauerabfrage belastet Helium oder die Seite | ≤ 1/s, nur bei verbundenem Plugin und sichtbarer Aktion, Cover einmal je Videowechsel (10f) |
 
 ### Restrisiken (bewusst angenommen)
 
@@ -261,6 +311,9 @@ signaturgeprüft), (3) Gnotchi → Core Audio / Apple Events (bestehende Freigab
   vorher über eigenes AppleScript auch (mit eigenem Freigabe-Dialog). Neu ist nur, dass dieser Dialog entfällt – begrenzt auf
   Lautstärke, stumm, Play/Pause, Weiter/Zurück und Ausgabegerät aus Michaels Favoriten. Kein Zugriff auf Ton-Inhalte.
 - Titel und Interpret liegen im Arbeitsspeicher von Elgatos Stream-Deck-App (Michaels Entscheidung, G59 Punkt 6).
+- **Helium-Schalter (Punkt 10):** Wer „JavaScript von Apple Events erlauben“ einschaltet, öffnet Helium für jedes Programm mit
+  Automation-Freigabe, nicht nur für Gnotchi. Gnotchi kann das nicht begrenzen, nur selbst eng bleiben (Positivliste, feste
+  Texte). Michael entscheidet, ob er den Schalter dauerhaft an lässt; Rückfall ohne Schalter: Browser nur als aktive Quelle.
 - Elgatos Stream-Deck-App ist Teil der Vertrauenskette. Wird sie kompromittiert, kann sie unser Plugin fernsteuern (im selben
   engen Befehlsumfang).
 

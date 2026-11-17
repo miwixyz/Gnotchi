@@ -105,7 +105,7 @@ final class AppModel {
             // 0.9.0 Code & KI (G34/G35): Hooks in ~/.claude/settings.json nur bei eingeschaltetem Schalter.
             NotchFeature(part: ClaudeLink(activity: activity, prefs: prefs)) { $0.claudeCode },
             // 0.35.0 Stream Deck (G59): Befehle nur vom eigenen Plugin, gestartet von Elgatos Stream Deck. Ab Werk aus.
-            NotchFeature(part: DeckLink(activity: activity)) { $0.streamDeck },
+            NotchFeature(part: DeckLink(activity: activity, prefs: prefs)) { $0.streamDeck },
             // 0.11.0 Zwischenablage (G37–G41): ab Werk aus, liest nur bei Änderung. Einfügen nur übers Hilfsprogramm (G42).
             NotchFeature(part: ClipboardLink(activity: activity, prefs: prefs)) { $0.clipboard },
             // 0.15.0: Musik auf dem Schreibtisch – nur mit Musik in der Notch (gleiche Daten), ab Werk aus.

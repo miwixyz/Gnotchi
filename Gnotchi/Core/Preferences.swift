@@ -72,6 +72,8 @@ final class Preferences {
         static let claudeCode = "claudeCode"
         /// 0.35.0 Stream Deck (G59): Socket für das eigene Plugin. Ab Werk aus.
         static let streamDeck = "streamDeck"
+        /// Stream Deck, Browser-Weg (G59 Punkt 10): YouTube in Helium gezielt steuern. Ab Werk aus.
+        static let deckBrowserTab = "deckBrowserTab"
         /// 0.7.0 Wetter (G31): Schalter, gewählter Ort (Name, Region, Land, gerundete Koordinaten), Einheit.
         static let weather = "weather"
         static let weatherPlace = "weatherPlace"
@@ -240,6 +242,8 @@ final class Preferences {
     var claudeCode: Bool { didSet { defaults.set(claudeCode, forKey: Key.claudeCode) } }
     /// Stream Deck (0.35.0, G59): Befehle vom eigenen, geprüften Plugin. Ab Werk **aus**; aus = kein Socket.
     var streamDeck: Bool { didSet { defaults.set(streamDeck, forKey: Key.streamDeck) } }
+    /// Stream Deck: Play/Pause und Titel für YouTube in Helium per Apple Events am Tab (G59 Punkt 10). Ab Werk **aus**.
+    var deckBrowserTab: Bool { didSet { defaults.set(deckBrowserTab, forKey: Key.deckBrowserTab) } }
     /// Apps, deren Mitteilungen in die Notch dürfen (G29) – nur Kennungen, gleiche Regeln wie G25. Nur über
     /// `setNotifyApp`; `nil` = noch nie eingeschaltet (dann schlägt Gnotchi einmal Nachrichten-Apps vor).
     private(set) var notifyApps: [String]? { didSet { defaults.set(notifyApps, forKey: Key.notifyApps) } }
@@ -374,6 +378,7 @@ final class Preferences {
         compactUnread = defaults.object(forKey: Key.compactUnread) as? Bool ?? true
         claudeCode = defaults.object(forKey: Key.claudeCode) as? Bool ?? false
         streamDeck = defaults.object(forKey: Key.streamDeck) as? Bool ?? false
+        deckBrowserTab = defaults.object(forKey: Key.deckBrowserTab) as? Bool ?? false
         notifyApps = defaults.object(forKey: Key.notifyApps).map { Self.validExcluded($0) }
         weather = defaults.object(forKey: Key.weather) as? Bool ?? false
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true

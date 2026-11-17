@@ -18,16 +18,20 @@ final class DeckLink: NotchPart {
     private let mixer: MixerModel
     private let activity: ActivityModel
     private let controller: DeckController
+    private let prefs: Preferences
+    private let browser = BrowserTab()
     private var server: PeerSocketServer<DeckWire.Command>?
     private var connected = false
     private var timer: Timer?
     /// Zuletzt gemeldeter Stand je beobachteter App: nur Änderungen gehen raus.
     private var lastSent: [String: DeckWire.Status] = [:]
 
-    init(activity: ActivityModel) {
+    init(activity: ActivityModel, prefs: Preferences) {
         mixer = activity.mixer
         self.activity = activity
+        self.prefs = prefs
         controller = DeckController(mixer: activity.mixer, media: activity.media)
+        browser.onChange = { [weak self] in self?.push(all: false) }
     }
 
     func start() {
@@ -64,11 +68,15 @@ final class DeckLink: NotchPart {
             connected = true
             mixer.setVisible(Self.viewer, true, slow: true)
             timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                MainActor.assumeIsolated { [weak self] in self?.push(all: false) }
+                MainActor.assumeIsolated { [weak self] in
+                    self?.tickBrowser()
+                    self?.push(all: false)
+                }
             }
             timer?.tolerance = 0.1
             Self.log.notice("Stream Deck: Plugin verbunden")
         }
+        updateBrowser()
         controller.handle(c)
         switch c {
         case .hello(let version):
@@ -86,8 +94,27 @@ final class DeckLink: NotchPart {
         timer = nil
         lastSent = [:]
         controller.reset()
+        controller.browser = nil
+        browser.reset()
         mixer.setVisible(Self.viewer, false)
         Self.log.notice("Stream Deck: Plugin getrennt")
+    }
+
+    /// Browser-Weg nur bei eingeschalteter Einstellung (G59/10a); aus = `nil`, Helium bekommt nie ein Apple Event.
+    private func updateBrowser() {
+        let on = prefs.deckBrowserTab
+        if on, controller.browser == nil { controller.browser = browser }
+        if !on, controller.browser != nil {
+            controller.browser = nil
+            browser.reset()
+        }
+    }
+
+    /// Abfrage des Tabs höchstens 1/s und nur, solange Helium auf dem Deck beobachtet wird (G59/10f).
+    private func tickBrowser() {
+        updateBrowser()
+        guard controller.browser != nil, controller.watched.contains(BrowserTab.bundleID) else { return }
+        browser.refresh()
     }
 
     /// Stand der beobachteten Apps senden; ohne `all` nur, was sich geändert hat.

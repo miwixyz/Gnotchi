@@ -321,6 +321,11 @@ extension SettingsView {
                          : e == .missing ? "Das Plugin fehlt in diesem Gnotchi." : "Das Paket ließ sich nicht packen.",
                          symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                 }
+                // G59 Punkt 10: Browser-Weg, ab Werk aus. Gnotchi schaltet Heliums Schalter nie selbst.
+                toggleRow("YouTube in Helium gezielt steuern", isOn: $prefs.deckBrowserTab)
+                // swiftlint:disable:next line_length
+                note("Play/Pause und Titel für YouTube-Tabs in Helium, auch wenn gleichzeitig Spotify läuft. Dafür muss in Helium „Ansicht → Entwickler → JavaScript von Apple Events erlauben“ an sein, und macOS fragt nach der Steuerung von Helium. Achtung: Mit diesem Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in Tabs von youtube.com aus und schaltet den Helium-Schalter nie selbst.",
+                     symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                 if !prefs.appVolume {
                     note("Für Browser & Co. braucht der Regler „Lautstärke je App“ oben. Spotify und Musik gehen auch ohne.",
                          symbol: "info.circle", color: FamilyTheme.textSecondary)
