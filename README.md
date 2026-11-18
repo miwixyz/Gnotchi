@@ -77,8 +77,10 @@ Freigabe nicht und fragt nie danach.
 - **YouTube in Helium und Cover am Stream Deck (0.37, beides ab Werk aus):** Läuft Spotify und daneben YouTube in Helium,
   schaltet die Taste „Wiedergabe“ mit der App „Helium“ gezielt nur den YouTube-Tab (in Helium muss „Darstellung → Entwickler →
   JavaScript von Apple Events erlauben“ an sein; Gnotchi führt nur festes JavaScript in YouTube-Tabs aus). Fehlt die Freigabe,
-  zeigt die Taste „Helium freigeben“. „Cover auf dem Deck“ zeigt das Cover der spielenden App, bei YouTube das Vorschaubild;
-  Gnotchi verkleinert es selbst und lädt nichts aus dem Netz.
+  zeigt die Taste „Helium freigeben“. Laufen mehrere YouTube-Tabs, pausiert ein Druck alle, der nächste startet das zuletzt
+  aktive Video wieder (0.37.2). „Cover auf dem Deck“ zeigt das Cover der spielenden App, bei YouTube das Vorschaubild;
+  Gnotchi verkleinert es selbst, bei detailreichen Covern bis 96 oder 72 px, damit es auf die Taste passt (0.37.3), und lädt
+  nichts aus dem Netz.
 - **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
   „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
   App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.
