@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.38.0</title>
-            <pubDate>Wed, 18 Nov 2026 10:23:31 +0100</pubDate>
+            <title>0.39.0</title>
+            <pubDate>Wed, 18 Nov 2026 18:33:45 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>274</sparkle:version>
-            <sparkle:shortVersionString>0.38.0</sparkle:shortVersionString>
+            <sparkle:version>277</sparkle:version>
+            <sparkle:shortVersionString>0.39.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck: Tasten „Ausgabe“ und „Mikrofon“.</b> Stellen das Gerät des ganzen Macs um, z. B. auf die AirPods. Rechts ein festes Gerät wählen: Ein Druck schaltet darauf, die Taste leuchtet, solange es eingestellt ist, und sagt „nicht da“, wenn es fehlt. Ohne festes Gerät schaltet jedes Drücken reihum weiter (Favoriten aus dem Mixer zuerst, höchstens 8). Auf dem Regler: drehen wählt vor, drücken übernimmt. Apps mit eigener Geräteauswahl wie Teams behalten ihr Gerät (Teams auf dem Mac bietet keinen Systemstandard).</li><li><b>Stream Deck: Teams in der App-Auswahl.</b> „App-Lautsprecher“ legt den Ton eines Teams-Anrufs auf ein anderes Gerät, z. B. die AirPods, obwohl Teams selbst ein festes Gerät eingestellt hat. Nur der Ton, nicht das Mikrofon; braucht „Lautstärke je App“. Auch „App-Lautstärke“ geht für Teams.</li></ul><h3>Geändert</h3><ul><li><b>Hilfe: Widget zeigt nur graue Platzhalter.</b> Neuer Hinweis unter „Musik auf dem Schreibtisch“: Nach einem Update findet der Widget-Dienst von macOS die Daten manchmal nicht mehr; <code>killall chronod</code> im Terminal behebt das (gemessen am 18.11., macOS 27.2.1).</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.38.0/Gnotchi-0.38.0.zip" length="8508533" type="application/octet-stream" sparkle:edSignature="gp0oy4g5RGrf7Ra6BmpB7UgwtmdoBFPfaLhIWdiA2yRhUDfU+9Tlq3tgj8f8ti1D7QXu9LyaexFpRtmpTOxICA=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Als reinen Text einfügen per Kürzel.</b> Einschalten unter Einstellungen → Zwischenablage → „Kürzel für reinen Text“ (ab Werk aus). ⇧⌘V fügt ein, was du gerade kopiert hast, nur eben ohne Formatierung. Eine Sekunde später liegt die Formatierung wieder in der Zwischenablage, ein normales ⌘V fügt also formatiert ein wie immer. Bei Passwörtern und erkannten Schlüsseln leert Gnotchi die Zwischenablage danach, statt sie zurückzuschreiben. Zweimal ⇧⌘V hintereinander fügt zweimal ein. Das Kürzel kannst du ändern, und es geht auch ohne Verlauf. Einfügen braucht „Mitteilungen in der Notch“. Ohne wandelt das Kürzel die Kopie nur in reinen Text um. Weil das Kürzel systemweit gilt, bekommt eine App, die ⇧⌘V selbst nutzt, es nicht mehr.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.39.0/Gnotchi-0.39.0.zip" length="8523642" type="application/octet-stream" sparkle:edSignature="ZKU37TZi30CQYJHmXm7dRsUmz4d9lud88TxDxS14hTJl3EKc/53FykMc2Q7fvFsH874F1leIEouoJYGJXyRxBw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: z4sJJNCISwJMsrEXY6QWc6zzMqSHgjSVAyVHsRf8M2wLiScpJLYSwumSvXmnBMZ26j1ZzxcfdxTKf5wDpRnWAw==
-length: 2380
+edSignature: nTQBeyFfaA2bmEmsU0Mnu45nvPMbHBYf3siQtNwmoXsYGjaA/f0c6BnOJM9k0oZ1Lf9uMvTjn1SwIjnxC55jAg==
+length: 1985
 -->
