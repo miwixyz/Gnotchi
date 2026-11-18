@@ -94,6 +94,9 @@ final class Preferences {
         static let clipboardPausedUntil = "clipboardPausedUntil"
         static let clipboardPanelEdge = "clipboardPanelEdge"
         static let clipboardPanelHotKey = "clipboardPanelHotKey"
+        /// G60: Kürzel „Als reinen Text einfügen“, eigener Schalter (ab Werk aus) und Kombination.
+        static let plainPaste = "plainPaste"
+        static let plainPasteHotKey = "plainPasteHotKey"
         /// 0.13.0 Geheimnisse (G43): Schalter, „an seit“, wie viele gespeicherte Geheimnisse schon angeboten wurden.
         /// 0.14.0: Kürzel klappt zuerst aus der Notch herunter, nochmal → große Ansicht am Rand.
         static let clipboardNotchFirst = "clipboardNotchFirst"
@@ -281,6 +284,9 @@ final class Preferences {
     var clipboardPanelHotKey: HotKey? {
         didSet { defaults.set(clipboardPanelHotKey?.stored, forKey: Key.clipboardPanelHotKey) }
     }
+    /// G60: ⇧⌘V (Vorschlag) fügt die aktuelle Kopie als reinen Text ein, danach Original zurück. Ab Werk aus.
+    var plainPaste: Bool { didSet { defaults.set(plainPaste, forKey: Key.plainPaste) } }
+    var plainPasteHotKey: HotKey? { didSet { defaults.set(plainPasteHotKey?.stored, forKey: Key.plainPasteHotKey) } }
 
     /// 0.13.0 (G43): Schlüssel und Tokens erkennen, verdecken, lose nach 5 Min. löschen. Ab Werk **an** – speichert
     /// nur weniger, gibt nichts preis (Michael 26.10.). Einschalten setzt „an seit“ neu (Altbestand: volle 5 Min.).
@@ -400,6 +406,8 @@ final class Preferences {
             .flatMap { $0 == .notch ? nil : $0 } ?? .right
         clipboardNotchFirst = defaults.object(forKey: Key.clipboardNotchFirst) as? Bool ?? true
         clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
+        plainPaste = defaults.object(forKey: Key.plainPaste) as? Bool ?? false
+        plainPasteHotKey = HotKey(stored: defaults.object(forKey: Key.plainPasteHotKey))
         clipboardSecrets = defaults.object(forKey: Key.clipboardSecrets) as? Bool ?? true
         clipboardImageText = defaults.object(forKey: Key.clipboardImageText) as? Bool ?? true
         clipboardSecretsOffered = max(0, defaults.integer(forKey: Key.clipboardSecretsOffered))

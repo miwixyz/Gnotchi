@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.39.0] — 2026-11-18
+
+### Neu
+- **Als reinen Text einfügen per Kürzel.** Einschalten unter Einstellungen → Zwischenablage → „Kürzel für reinen Text“ (ab Werk aus). ⇧⌘V fügt ein, was du gerade kopiert hast, nur eben ohne Formatierung. Eine Sekunde später liegt die Formatierung wieder in der Zwischenablage, ein normales ⌘V fügt also formatiert ein wie immer. Bei Passwörtern und erkannten Schlüsseln leert Gnotchi die Zwischenablage danach, statt sie zurückzuschreiben. Zweimal ⇧⌘V hintereinander fügt zweimal ein. Das Kürzel kannst du ändern, und es geht auch ohne Verlauf. Einfügen braucht „Mitteilungen in der Notch“. Ohne wandelt das Kürzel die Kopie nur in reinen Text um. Weil das Kürzel systemweit gilt, bekommt eine App, die ⇧⌘V selbst nutzt, es nicht mehr.
+
 ## [0.38.0] — 2026-11-18
 
 ### Neu

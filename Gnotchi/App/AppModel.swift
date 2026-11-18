@@ -108,6 +108,8 @@ final class AppModel {
             NotchFeature(part: DeckLink(activity: activity, prefs: prefs)) { $0.streamDeck },
             // 0.11.0 Zwischenablage (G37–G41): ab Werk aus, liest nur bei Änderung. Einfügen nur übers Hilfsprogramm (G42).
             NotchFeature(part: ClipboardLink(activity: activity, prefs: prefs)) { $0.clipboard },
+            // G60: Kürzel „Als reinen Text einfügen“, ab Werk aus, unabhängig vom Verlauf. Einfügen über G42.
+            NotchFeature(part: PlainPasteLink(activity: activity, prefs: prefs)) { $0.plainPaste },
             // 0.15.0: Musik auf dem Schreibtisch – nur mit Musik in der Notch (gleiche Daten), ab Werk aus.
             NotchFeature(part: DesktopMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.desktopMusic },
             // 0.20.0 (G46): Sperrbildschirm über private SkyLight-Ebene, ab Werk aus, nur mit Musik in der Notch.

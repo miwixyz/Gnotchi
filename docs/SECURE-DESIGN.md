@@ -60,6 +60,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
 | G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com), 10e: Cover auf dem Deck (eigener Schalter, ≤ 144 px, Gnotchi skaliert) |
+| G60 | – (neu, 0.39.0) | Reiner Text per Kürzel: eigener Schalter ab Werk aus, nur echter Tastendruck, ⌘V über G42, Original nach 1 s zurück, vertrauliche Kopien nie zurück |
 
 ## Was Gnotchi ist und welche Macht es hat
 
@@ -1804,3 +1805,51 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   - Gemessen 17.11.: Tab-Skripte 144×81 / 4182 Byte, Variable danach `undefined`; Cover an der Taste und Wechsel beim nächsten Video (Michael, Plugin 0.36.0.4); keine Netzverbindung
     am Gnotchi-Prozess (`lsof -a -i`), Plugin blieb verbunden. Restrisiko: Fetch, der nach 5 Nachfragen noch läuft, hinterlässt die
     Variable bis zum nächsten Start im Tab (eigenes Vorschaubild der Seite, harmlos).
+
+### G60 – Als reinen Text einfügen per Kürzel (neu, 2026-11-18, 0.39.0)
+- **Anlass:** Michael, 18.11.: „als Tastenkürzel, zum Beispiel ⇧⌘V“. Danach soll die Zwischenablage ihre
+  Formatierung zurückhaben (Michaels Wahl „Ja, zurückholen“).
+- **Datenfluss:** echter Tastendruck (Carbon `RegisterEventHotKey`, keine Freigabe, G1) → Gnotchi liest
+  `NSPasteboard.general` einmal: alle Elemente und Typen als Momentaufnahme **nur im Arbeitsspeicher** →
+  schreibt nur `public.utf8-plain-text` + `org.nspasteboard.TransientType` → wartet, bis ⇧/⌥/⌃ losgelassen sind
+  (höchstens 1 s) → Befehl `paste` an das Hilfsprogramm (G42, unverändert: Befehl ohne Inhalt, nur ⌘V, 0,3-s-Sperre,
+  nicht wenn Gnotchi vorn) → nach 1 s Original zurück, ebenfalls mit `TransientType`.
+- **Eigener Schalter, ab Werk aus,** Kürzel frei wählbar, Vorschlag ⇧⌘V. Unabhängig vom Verlauf (G37): Ohne Verlauf
+  liest Gnotchi die Zwischenablage nur in dem Moment, in dem Michael das Kürzel drückt.
+- **G42 erweitert:** `paste` kommt jetzt auch aus diesem Kürzel – weiterhin nur aus einer echten Eingabe von Michael,
+  nie zeitgesteuert. `PasteKey.swift` und die Lint-Ausnahme bleiben unverändert.
+- **Zurückholen nur, wenn nichts dazwischenkam:** nur bei unverändertem `changeCount` seit Gnotchis Schreiben – hat
+  Michael oder eine App inzwischen kopiert, bleibt deren Kopie.
+- **Vertrauliche Kopien nie zurück:** Trägt das Original `org.nspasteboard.ConcealedType` (Passwort-Apps, Gnotchis
+  Tresor G39) oder erkennt Gnotchi bei eingeschaltetem Verlauf einen Schlüssel darin (G43), wird der reine Text ebenfalls als vertraulich markiert und die
+  Zwischenablage nach 1 s **geleert** statt zurückgeschrieben. Grund: Zurückschreiben änderte `changeCount`, die
+  Leer-Uhren der Passwort-Apps und Gnotchis eigene (G39/G43) liefen dann ins Leere – das Passwort bliebe unbegrenzt
+  in der Zwischenablage.
+- **Ohne Hilfsprogramm** („Mitteilungen“ aus oder ohne Freigabe): nur umwandeln, reiner Text bleibt, nichts zurück
+  (sonst wäre die Taste wirkungslos). Vertrauliches wird auch hier nach 60 s geleert, wenn unverändert.
+- **Grenzen:** Momentaufnahme über 50 MB → reiner Text wird eingefügt, Original nicht zurückgeholt (Protokoll nur
+  „zu groß“). Kein reiner Text vorhanden (nur Bild/Datei) → nichts tun. Zweiter Druck während der Wartezeit: fügt
+  noch einmal ein und schiebt das Zurückholen um 1 s hinaus, aber nur, solange Gnotchis reiner Text noch drinliegt;
+  sonst verworfen.
+- **Protokoll:** nur feste Texte („umgewandelt“, „eingefügt“, „zurückgeholt“, „geleert“, Grund fürs Verwerfen), nie
+  Inhalt, Typen oder App-Name (G8).
+- **STRIDE:**
+  - *S:* Wer löst aus? Nur Carbon-Kürzel im eigenen Prozess; der `paste`-Weg zum Hilfsprogramm bleibt G29/G42.
+  - *T:* Inhalt wird nur verkürzt (Formatierung weg), nie verändert; Zurückgeschriebenes = gelesene Bytes.
+  - *R:* Protokoll wie oben.
+  - *I:* Momentaufnahme lebt ≤ 1 s im Speicher, nie auf Platte, nie im Verlauf (TransientType – auch andere
+    Verlaufs-Apps übernehmen weder Zwischenstand noch Rückschrift). Vertrauliches siehe oben.
+  - *D:* Tastenwiederholung → höchstens ein ⌘V je 0,3 s im Hilfsprogramm; Zurückholen nur verschoben, nie verloren.
+  - *E:* kein neuer Weg: ⌘V geht an die App, die beim Tastendruck vorn ist – dieselbe, die Michaels eigenes ⇧⌘V
+    bekommen hätte. Restrisiko aus G42 (Code in Gnotchi kann Text + ⌘V auslösen) unverändert.
+- **Restrisiken:** (1) Liest eine langsame App die Zwischenablage erst nach 1 s, bekommt sie das formatierte
+  Original. (2) Das Kürzel gilt systemweit: Apps, die ⇧⌘V selbst belegen, bekommen es nicht mehr (Chrome, Slack,
+  Notion nutzen es ohnehin für „ohne Formatierung“). (3) Daten, die eine App erst auf Anfrage liefert (Zusagen), werden
+  beim Lesen erzeugt; Typen ohne Daten fehlen beim Zurückschreiben.
+- **Zu messen vor dem Release:** formatierter Text aus Safari → TextEdit (Rich Text) kommt ohne Format an, danach ⌘V
+  wieder mit Format; ⇧ bleibt gedrückt → kein ⇧⌘V-Kreislauf; Passwort aus Passwörter-App → danach leer; ohne
+  Mitteilungen → nur umgewandelt; Gnotchi-Verlauf bekommt keinen neuen Eintrag.
+- **Prüfung (18.11.):** `/code-audit` (Default) mit zwei Funden, beide behoben, Tests mit Gegenprobe rot → grün:
+  (1) ein von Gnotchi erkannter Schlüssel (G43, ohne Concealed-Markierung) wurde zurückgeschrieben – dabei lief
+  Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
+  (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.

@@ -78,6 +78,24 @@ extension SettingsView {
             ClipboardExclusions()
             ClipboardDataCard(link: link)
         }
+        // G60: eigener Schalter, ab Werk aus, auch ohne Verlauf.
+        card("Als reinen Text einfügen") {
+            toggleRow("Kürzel für reinen Text", isOn: $prefs.plainPaste)
+                .onChange(of: prefs.plainPaste) { model.applyNotchSetting() }
+            if prefs.plainPaste {
+                row("Kürzel") {
+                    HotKeyRecorder(hotKey: $prefs.plainPasteHotKey)
+                        .onChange(of: prefs.plainPasteHotKey) { model.applyNotchSetting() }
+                }
+                if model.activity.notifyTrust != true {
+                    note("Zum Einfügen braucht das Kürzel „Mitteilungen in der Notch“. Ohne wandelt es die Kopie nur in "
+                         + "reinen Text um, ⌘V drückst du dann selbst.", symbol: "exclamationmark.triangle", color: .orange)
+                }
+            }
+            note("Das Kürzel fügt die aktuelle Kopie ohne Formatierung ein. Danach hat die Zwischenablage ihre Formatierung "
+                 + "wieder, Passwörter werden geleert. Es gilt in allen Apps: Eine App, die dasselbe Kürzel nutzt, bekommt es "
+                 + "nicht mehr.", symbol: "textformat", color: FamilyTheme.textSecondary)
+        }
     }
 }
 
