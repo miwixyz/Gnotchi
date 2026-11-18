@@ -15,7 +15,10 @@
 </style>
 </head>
 <body>
-  <div class="row"><label for="app">App</label>
+  <div class="row hidden" id="deviceRow"><label for="device">Gerät</label>
+    <select id="device"><option value="">Nächstes je Druck</option></select>
+  </div>
+  <div class="row" id="appRow"><label for="app">App</label>
     <select id="app">
       <option value="current">Gerade spielend</option>
       <option value="com.spotify.client">Spotify</option>
@@ -24,6 +27,7 @@
       <option value="com.apple.Safari">Safari</option>
       <option value="net.imput.helium">Helium</option>
       <option value="com.microsoft.edgemac">Edge</option>
+      <option value="com.microsoft.teams2">Teams</option>
     </select>
   </div>
   <div class="row hidden" id="whatRow"><label for="what">Befehl</label>
@@ -47,9 +51,40 @@
   const allowedWhat = ['toggle', 'next', 'previous'];
   const allowedKey = ['mute', 'up', 'down'];
 
+  // „Ausgabe“/„Mikrofon“: festes Gerät. Liste kommt vom Plugin (sendToPropertyInspector); Texte nur per textContent.
+  let deviceAction = false, savedDevice = '', savedName = '';
+  function fillDevices(list, current) {
+    const sel = document.getElementById('device');
+    while (sel.options.length > 1) sel.remove(1);
+    let found = false;
+    for (const d of Array.isArray(list) ? list.slice(0, 8) : []) {
+      if (!d || typeof d.uid !== 'string' || typeof d.name !== 'string' || d.uid.length > 200) continue;
+      const o = document.createElement('option');
+      o.value = d.uid;
+      o.textContent = d.name.slice(0, 60) + (d.uid === current ? ' (jetzt)' : '');
+      o.dataset.name = d.name.slice(0, 60);
+      sel.appendChild(o);
+      if (d.uid === savedDevice) found = true;
+    }
+    if (savedDevice && !found) {
+      const o = document.createElement('option');
+      o.value = savedDevice;
+      o.textContent = (savedName || 'Gerät') + ' (nicht da)';
+      o.dataset.name = savedName;
+      sel.appendChild(o);
+    }
+    sel.value = savedDevice;
+  }
+
   function save() {
     settings = { app: document.getElementById('app').value, what: document.getElementById('what').value,
                  key: document.getElementById('key').value };
+    if (deviceAction) {
+      const sel = document.getElementById('device');
+      savedDevice = sel.value;
+      savedName = savedDevice ? (sel.options[sel.selectedIndex].dataset.name || '') : '';
+      settings = { device: savedDevice, deviceName: savedName };
+    }
     if (socket && socket.readyState === 1) {
       socket.send(JSON.stringify({ event: 'setSettings', context: uuid, payload: settings }));
     }
@@ -68,13 +103,30 @@
     // „App-Lautstärke“ auf einer Taste (Stream Deck ohne Regler): Stumm, Lauter oder Leiser.
     const onKey = action.payload && action.payload.controller === 'Keypad';
     if (action.action === 'dev.mwlr.gnotchi.deck.volume' && onKey) document.getElementById('keyRow').classList.remove('hidden');
+    deviceAction = action.action === 'dev.mwlr.gnotchi.deck.system-output' || action.action === 'dev.mwlr.gnotchi.deck.system-input';
+    if (deviceAction) {
+      savedDevice = typeof s.device === 'string' && s.device.length <= 200 ? s.device : '';
+      savedName = typeof s.deviceName === 'string' ? s.deviceName.slice(0, 60) : '';
+      fillDevices([], '');
+      document.getElementById('deviceRow').classList.remove('hidden');
+      document.getElementById('appRow').classList.add('hidden');
+      document.getElementById('hint').textContent = 'Festes Gerät: Ein Druck stellt den ganzen Mac darauf um, die Taste leuchtet, solange es eingestellt ist. '
+        + '„Nächstes je Druck“ schaltet reihum durch die Geräte (Favoriten aus dem Mixer zuerst, höchstens 8). '
+        + 'Apps mit eigener Geräteauswahl wie Teams behalten ihr Gerät.';
+    }
     socket = new WebSocket('ws://127.0.0.1:' + Number(port));
     socket.onopen = function () { socket.send(JSON.stringify({ event: registerEvent, uuid: uuid })); };
+    socket.onmessage = function (e) {
+      let m = {};
+      try { m = JSON.parse(e.data); } catch (err) { return; }
+      if (deviceAction && m.event === 'sendToPropertyInspector' && m.payload) fillDevices(m.payload.devices, m.payload.current);
+    };
   };
 
   document.getElementById('app').addEventListener('change', save);
   document.getElementById('what').addEventListener('change', save);
   document.getElementById('key').addEventListener('change', save);
+  document.getElementById('device').addEventListener('change', save);
 </script>
 </body>
 </html>

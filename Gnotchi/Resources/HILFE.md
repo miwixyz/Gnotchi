@@ -111,7 +111,7 @@ klickst.
 
 ## Stream Deck
 
-Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautsprecher je App. Das geht auf jedem Stream Deck mit Tasten; mit den Drehreglern eines Stream Deck + am bequemsten.
+Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautsprecher je App, dazu Ausgabe und Mikrofon des ganzen Macs. Das geht auf jedem Stream Deck mit Tasten; mit den Drehreglern eines Stream Deck + am bequemsten.
 
 1. Einstellungen → **Audio** → ganz unten **„Steuerung über Stream Deck“** einschalten.
 2. **„Plugin installieren“** klicken. Stream Deck fragt, ob es das Plugin „Gnotchi“ installieren soll.
@@ -145,6 +145,16 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautspreche
 - Auf die Leiste tippen: zurück aufs eigene Gerät der App
 - Auf einer Taste: jedes Drücken schaltet zum nächsten Gerät
 - Zuerst stehen deine Ausgabe-Favoriten aus dem Mixer, dann die übrigen Geräte.
+- **Teams** (neu): Teams hat keine Einstellung „Systemstandard“ und folgt deshalb der Taste „Ausgabe“ nicht. Mit „App-Lautsprecher“ und der App „Teams“ legst du den Ton eines Anrufs trotzdem auf die AirPods. Das geht nur, während Teams Ton ausgibt (im Anruf), und nur für den Ton: Das Mikrofon stellst du in Teams selbst um.
+
+**Ausgabe** und **Mikrofon** (Taste oder Regler, neu): Gerät für den ganzen Mac, z. B. AirPods.
+- Rechts unter „Gerät“ ein festes Gerät wählen: Ein Druck stellt den Mac darauf um. Die Taste leuchtet, solange es eingestellt ist, sonst ist sie gedimmt.
+- Für AirPods am besten zwei Tasten: eine „Ausgabe“ und eine „Mikrofon“, beide auf die AirPods. Sonst hörst du über die AirPods und sprichst ins Mikrofon des Macs.
+- Ist das Gerät nicht verbunden (AirPods im Etui), steht „nicht da“ auf der Taste; ein Druck zeigt ein Warnzeichen.
+- „Nächstes je Druck“: jedes Drücken schaltet reihum weiter, die Taste zeigt das eingestellte Gerät.
+- Am Regler: drehen wählt vor, drücken übernimmt, auf die Leiste tippen stellt das feste Gerät ein.
+- Zur Auswahl stehen höchstens 8 Geräte, zuerst deine Favoriten aus dem Mixer.
+- Apps mit eigener Geräteauswahl behalten ihr Gerät. **Teams** auf dem Mac bietet keine Einstellung „Systemstandard“ und bleibt bei dem Gerät, das dort gewählt ist.
 
 Gut zu wissen:
 - Spotify und Musik gehen immer. Browser und andere Apps lassen sich nur steuern, solange sie gerade spielen.

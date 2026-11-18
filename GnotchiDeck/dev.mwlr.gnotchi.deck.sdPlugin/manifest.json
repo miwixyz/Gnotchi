@@ -1,9 +1,9 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "Gnotchi",
-  "Version": "0.37.3.0",
+  "Version": "0.38.0.0",
   "Author": "MWLR",
-  "Description": "Lautstärke, Wiedergabe und Lautsprecher je App über Gnotchi: Spotify, Musik, Safari, Helium, Edge.",
+  "Description": "Lautstärke, Wiedergabe und Lautsprecher je App über Gnotchi: Spotify, Musik, Safari, Helium, Edge, Teams. Dazu Ausgabe und Mikrofon des Macs.",
   "URL": "https://github.com/miwixyz/Gnotchi",
   "UUID": "dev.mwlr.gnotchi.deck",
   "Icon": "imgs/plugin",
@@ -44,6 +44,32 @@
         "TriggerDescription": { "Rotate": "Gerät wählen", "Push": "Übernehmen", "Touch": "Eigenes Gerät" }
       },
       "States": [{ "Image": "imgs/key-output", "TitleAlignment": "top", "FontSize": 10 }]
+    },
+    {
+      "Name": "Ausgabe",
+      "UUID": "dev.mwlr.gnotchi.deck.system-output",
+      "Icon": "imgs/sysout",
+      "Tooltip": "Ausgabegerät des Macs, z. B. AirPods",
+      "Controllers": ["Encoder", "Keypad"],
+      "Encoder": {
+        "Icon": "imgs/sysout-dial",
+        "layout": "layouts/volume.json",
+        "TriggerDescription": { "Rotate": "Gerät wählen", "Push": "Übernehmen", "Touch": "Festes Gerät" }
+      },
+      "States": [{ "Image": "imgs/key-sysout", "TitleAlignment": "top", "FontSize": 10 }]
+    },
+    {
+      "Name": "Mikrofon",
+      "UUID": "dev.mwlr.gnotchi.deck.system-input",
+      "Icon": "imgs/sysin",
+      "Tooltip": "Mikrofon des Macs, z. B. AirPods",
+      "Controllers": ["Encoder", "Keypad"],
+      "Encoder": {
+        "Icon": "imgs/sysin-dial",
+        "layout": "layouts/volume.json",
+        "TriggerDescription": { "Rotate": "Gerät wählen", "Push": "Übernehmen", "Touch": "Festes Gerät" }
+      },
+      "States": [{ "Image": "imgs/key-sysin", "TitleAlignment": "top", "FontSize": 10 }]
     },
     {
       "Name": "Wiedergabe",

@@ -316,6 +316,16 @@ final class MixerModel {
         Task { await refresh() }
     }
 
+    /// Stream Deck (0.38, Tasten „Ausgabe“ und „Mikrofon“): Gerät des Macs per fester UID setzen. Liest die Liste frisch, sonst
+    /// fehlten gerade verbundene AirPods bis zur nächsten Abfrage (bis 4 s). false = Gerät nicht angeschlossen, nichts gesetzt.
+    @discardableResult
+    func selectDevice(uid: String, input: Bool) -> Bool {
+        let list = input ? MixerAudio.inputDevices() : OutputDevices.list()
+        guard let d = list.first(where: { $0.uid == uid }) else { return false }
+        if input { selectInput(d.id) } else { selectOutput(d.id) }
+        return true
+    }
+
     /// Einstellung geändert. Aus: alle Taps sofort zerstört, die Apps spielen wieder direkt (gemerkte Werte bleiben gespeichert,
     /// wirken aber nicht). An: gemerkte Werte gleich anwenden.
     func setAppVolumeEnabled(_ on: Bool) {

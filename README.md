@@ -84,6 +84,10 @@ Freigabe nicht und fragt nie danach.
 - **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
   „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
   App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.
+- **Ausgabe und Mikrofon am Stream Deck (neu):** Tasten „Ausgabe“ und „Mikrofon“ stellen das Gerät des ganzen Macs um, z. B.
+  auf die AirPods. Mit festem Gerät leuchtet die Taste, solange es eingestellt ist, und zeigt „nicht da“, wenn es fehlt; ohne
+  festes Gerät schaltet jeder Druck reihum weiter. Apps mit eigener Geräteauswahl (Teams) behalten ihr Gerät; den Ton eines Teams-Anrufs legt
+  „App-Lautsprecher“ mit der App „Teams“ um (nur Ton, nicht das Mikrofon).
 - **Klein und groß:** Klein zeigt die Insel Cover und Pegel neben der Notch. Groß zeigt sie Cover,
   App, Titel, Interpret, die Tasten Zurück, Wiedergabe/Pause und Weiter sowie einen dünnen
   Fortschrittsbalken mit Zeiten wie im Kontrollzentrum.

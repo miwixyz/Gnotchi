@@ -1747,6 +1747,20 @@ Spezifikation und Messungen: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (M1,
   der Wachhund baut nach 1,5 s ab (gewollt). Hinweise in Mixer, Einstellungen und auf der Leiste nennen den Weg zum Eintragen.
 - Umleiten protokolliert jeden Abbruchgrund (ohne Geräte- oder App-Namen, G8), damit es nie still scheitert.
 
+**Nachtrag 0.38 (18.11., Tasten „Ausgabe“ und „Mikrofon“):**
+- Kein neuer Befehl und keine neue Nachrichtenart: `watch` und `route` nehmen zusätzlich die festen Kennungen
+  `dev.mwlr.gnotchi.system-output` / `…system-input` an der Stelle einer App (Gnotchis eigener Namensraum, keine fremde App
+  trägt sie). `route` mit einer davon setzt das **Standardgerät des Macs** (Ausgabe bzw. Eingang) – dasselbe, was ein Klick im
+  Mixer oder in der Insel tut, keine neue Fähigkeit und keine Freigabe. `nil` wird ignoriert.
+- Geräte-UID wie bisher geprüft (druckbares ASCII ≤ 200); Gnotchi sucht sie in der **frisch** gelesenen Geräteliste (G20) und
+  setzt nichts, wenn sie fehlt (Protokoll mit festem Text, ohne Gerätenamen, G8).
+- Rückmeldung: Geräteliste (≤ 8, Favoriten zuerst, das eingestellte Gerät immer dabei) und das eingestellte Gerät – nur
+  Gerätenamen, keine Hördaten; gehen an Elgatos App wie bei „App-Lautsprecher“. Das Einstellungsfeld des Plugins bekommt die
+  Liste per `sendToPropertyInspector` und setzt Texte nur per `textContent`; gespeichert werden UID und Name des festen Geräts
+  in Stream Decks eigenen Einstellungen (das Plugin prüft beides beim Lesen erneut).
+- Feste App-Auswahl um Teams (`com.microsoft.teams2`) erweitert: nur Lautstärke und Umleiten über den Prozess-Tap (G55);
+  Teams bekommt keine Apple Events (die gehen weiter nur an Spotify und Musik, G7).
+
 #### G59 Punkt 10 – Browser-Tab als eigene Quelle (neu, 2026-11-17, unveröffentlicht)
 
 Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.md` (G59 Punkt 10). Code: `Gnotchi/Deck/BrowserTab.swift`.

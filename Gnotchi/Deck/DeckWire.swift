@@ -48,9 +48,20 @@ enum DeckWire {
         ("com.apple.Safari", "Safari"),
         ("net.imput.helium", "Helium"),
         ("com.microsoft.edgemac", "Edge"),
+        // 0.38: Teams für „App-Lautsprecher“ (Michael 18.11.: Teams bietet keinen Systemstandard, die Taste „Ausgabe“ erreicht
+        // es nicht). Helfer-Prozesse (WebView, ModuleHost) fasst der Mixer unter der Haupt-App zusammen.
+        ("com.microsoft.teams2", "Teams"),
     ]
 
     nonisolated static func name(of app: String) -> String? { choices.first { $0.id == app }?.name }
+
+    /// Ausgabe und Mikrofon des ganzen Macs (0.38, Tasten „Ausgabe“ und „Mikrofon“, z. B. AirPods). Stehen in `watch` und `route`
+    /// an der Stelle einer App, damit das Format gleich bleibt (ein älteres Gnotchi meldet sie nur als „kein Ton“). Kennungen aus
+    /// Gnotchis eigenem Namensraum: keine fremde App trägt sie. In der Rückmeldung stehen in `outputs` dann die Geräte dieser
+    /// Liste (beim Mikrofon die Eingänge) und in `output` das gerade eingestellte Gerät.
+    nonisolated static let systemOutput = "dev.mwlr.gnotchi.system-output"
+    nonisolated static let systemInput = "dev.mwlr.gnotchi.system-input"
+    nonisolated static func isSystem(_ app: String) -> Bool { app == systemOutput || app == systemInput }
 
     enum Play: String, Sendable, CaseIterable { case toggle, next, previous }
 

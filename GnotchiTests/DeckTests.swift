@@ -76,7 +76,7 @@ final class DeckTests: XCTestCase {
     func testAckAndChoices() {
         XCTAssertTrue(DeckWire.isAck(data(["v": 1, "ok": true])))
         XCTAssertFalse(DeckWire.isAck(data(["v": 1, "ok": false])))
-        XCTAssertEqual(DeckWire.choices.map(\.name), ["Gerade spielend", "Spotify", "Musik", "Podcasts", "Safari", "Helium", "Edge"])
+        XCTAssertEqual(DeckWire.choices.map(\.name), ["Gerade spielend", "Spotify", "Musik", "Podcasts", "Safari", "Helium", "Edge", "Teams"])
         XCTAssertTrue(DeckWire.choices.allSatisfy { DeckWire.isValidApp($0.id) })
     }
 
@@ -242,6 +242,96 @@ final class DeckTests: XCTestCase {
         let o = try XCTUnwrap(DeckWire.parseStatus(data(old)))
         XCTAssertTrue(o.outputs.isEmpty)
         XCTAssertFalse(o.canRoute)
+    }
+
+    // MARK: 0.38 Tasten „Ausgabe“ und „Mikrofon“
+
+    func testSystemIDsPassTheWireAndAreNoApp() {
+        for id in [DeckWire.systemOutput, DeckWire.systemInput] {
+            XCTAssertTrue(DeckWire.isValidApp(id))
+            XCTAssertTrue(DeckWire.isSystem(id))
+            let c = DeckWire.Command.route(app: id, device: "AirPods-UID")
+            XCTAssertEqual(DeckWire.parse(data(DeckWire.encode(c))), c)
+        }
+        XCTAssertEqual(DeckWire.parse(data(DeckWire.encode(.watch([DeckWire.systemOutput, "current"])))),
+                       .watch([DeckWire.systemOutput, "current"]))
+        XCTAssertFalse(DeckWire.isSystem("current"))
+        XCTAssertFalse(DeckWire.isSystem("com.spotify.client"))
+    }
+
+    private func dev(_ id: AudioObjectID, _ name: String, uid: String?) -> OutputDevices.Device {
+        OutputDevices.Device(id: id, name: name, transport: kAudioDeviceTransportTypeBuiltIn, uid: uid)
+    }
+
+    func testSystemStatusListsFavoritesFirstAndAlwaysTheCurrentDevice() throws {
+        let suite = "DeckTests.system.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let mixer = MixerModel(interval: .seconds(3600), defaults: defaults)
+        let outs = (1...10).map { dev(AudioObjectID($0), "Gerät \($0)", uid: "u\($0)") } + [dev(99, "Ohne UID", uid: nil)]
+        let mic = dev(50, "AirPods", uid: "pods-in")
+        mixer.setPreview(output: .init(device: outs[9]), systemOutput: nil, input: .init(device: mic), outputs: outs,
+                         inputs: [dev(51, "Mac-Mikrofon", uid: "mac-in"), mic], apps: [])
+        mixer.toggleFavorite(outs[4], .output)
+        let deck = DeckController(mixer: mixer, media: NowPlayingModel())
+
+        let out = deck.status(DeckWire.systemOutput)
+        XCTAssertEqual(out.name, "Ausgabe")
+        XCTAssertEqual(out.state, .ok)
+        XCTAssertTrue(out.canRoute)
+        XCTAssertEqual(out.outputs.count, DeckWire.maxOutputs)
+        XCTAssertEqual(out.output, "u10")
+        XCTAssertEqual(out.outputs.first?.uid, "u10", "eingestelltes Gerät hinter Platz 8 wird vorn eingefügt")
+        XCTAssertEqual(out.outputs[1].uid, "u5", "Favorit vor den übrigen")
+        XCTAssertFalse(out.outputs.contains { $0.name == "Ohne UID" })
+
+        let input = deck.status(DeckWire.systemInput)
+        XCTAssertEqual(input.name, "Mikrofon")
+        XCTAssertEqual(input.outputs.map(\.uid), ["mac-in", "pods-in"], "beim Mikrofon die Eingänge")
+        XCTAssertEqual(input.output, "pods-in")
+        // Über das Netz und zurück: dieselben Felder wie bei „App-Lautsprecher“.
+        XCTAssertEqual(DeckWire.parseStatus(data(DeckWire.encode(input))), input)
+    }
+
+    func testSystemStatusWithoutDevicesCannotRoute() throws {
+        let suite = "DeckTests.empty.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let deck = DeckController(mixer: MixerModel(interval: .seconds(3600), defaults: defaults), media: NowPlayingModel())
+        let s = deck.status(DeckWire.systemOutput)
+        XCTAssertTrue(s.outputs.isEmpty)
+        XCTAssertFalse(s.canRoute)
+    }
+
+    func testFixedDeviceFromSettings() {
+        XCTAssertTrue(DeviceKey.fixed([:]) == (nil, nil))
+        XCTAssertTrue(DeviceKey.fixed(["device": ""]) == (nil, nil), "leer = reihum")
+        XCTAssertTrue(DeviceKey.fixed(["device": "a\nb", "deviceName": "X"]) == (nil, nil))
+        XCTAssertTrue(DeviceKey.fixed(["device": 5]) == (nil, nil))
+        let f = DeviceKey.fixed(["device": "pods", "deviceName": String(repeating: "A", count: 80)])
+        XCTAssertEqual(f.uid, "pods")
+        XCTAssertEqual(f.name?.count, 60)
+        XCTAssertNil(DeviceKey.fixed(["device": "pods", "deviceName": ""]).name)
+    }
+
+    func testDeviceKeyLook() {
+        var s = DeckWire.Status(app: DeckWire.systemOutput, name: "Ausgabe", title: nil, artist: nil, percent: nil,
+                                muted: false, playing: false, canPlay: false, state: .ok)
+        s.outputs = [.init(uid: "spk", name: "Lautsprecher"), .init(uid: "pods", name: "AirPods")]
+        s.output = "spk"
+        s.canRoute = true
+        // Festes Gerät: leuchtet nur, wenn eingestellt.
+        XCTAssertTrue(DeviceKey.look(s, input: false, fixed: "pods", fixedName: "AirPods", connected: true) == ("key-sysout-off", "AirPods"))
+        s.output = "pods"
+        XCTAssertTrue(DeviceKey.look(s, input: false, fixed: "pods", fixedName: nil, connected: true) == ("key-sysout", "AirPods"))
+        // Nicht angeschlossen → gemerkter Name und Hinweis.
+        XCTAssertTrue(DeviceKey.look(s, input: true, fixed: "gone", fixedName: "Jabra", connected: true) == ("key-sysin-off", "Jabra\nnicht da"))
+        // Reihum: zeigt das eingestellte Gerät.
+        XCTAssertTrue(DeviceKey.look(s, input: false, fixed: nil, fixedName: nil, connected: true) == ("key-sysout", "AirPods"))
+        // Ohne Verbindung oder ohne Liste: gedimmt, nie leer.
+        XCTAssertTrue(DeviceKey.look(s, input: false, fixed: "pods", fixedName: "AirPods", connected: false) == ("key-sysout-off", "Gnotchi aus"))
+        XCTAssertTrue(DeviceKey.look(nil, input: false, fixed: "pods", fixedName: "AirPods", connected: true) == ("key-sysout-off", "AirPods"))
+        XCTAssertTrue(DeviceKey.look(nil, input: false, fixed: nil, fixedName: nil, connected: true) == ("key-sysout-off", "…"))
     }
 
     func testTargetIsRoutedOnlyWithOtherDevice() {

@@ -33,7 +33,8 @@ func streamDeckArguments(_ argv: [String]) -> (port: Int, uuid: String, register
 
 /// Eine Aktion auf dem Gerät.
 struct DeckAction {
-    enum Kind { case volume, play, output }
+    /// `device` = Taste „Ausgabe“ bzw. „Mikrofon“ des ganzen Macs (0.38); `app` ist dann `DeckWire.systemOutput`/`systemInput`.
+    enum Kind { case volume, play, output, device }
     let kind: Kind
     /// Auf einem Drehregler (Leiste mit Layout) oder einer Taste. „App-Lautstärke“ geht auf beides: Aktionen nur für Regler
     /// zeigte Stream Deck 7.6.1 bei Michael gar nicht in der Liste (gemessen 17.11., Test A/B/C).
@@ -48,6 +49,9 @@ struct DeckAction {
     var preview: String?
     /// „App-Lautstärke“ auf einer Taste (alle Stream Decks ohne Regler, Michael 17.11.): Stumm, Lauter oder Leiser.
     var keyStep: KeyStep = .mute
+    /// „Ausgabe“/„Mikrofon“: festes Gerät (UID) und sein zuletzt bekannter Name; nil = jeder Druck schaltet zum nächsten Gerät.
+    var device: String?
+    var deviceName: String?
 }
 
 enum KeyStep: String { case mute, up, down }
@@ -58,6 +62,8 @@ final class Plugin {
     static let volumeAction = "dev.mwlr.gnotchi.deck.volume"
     static let playAction = "dev.mwlr.gnotchi.deck.play"
     static let outputAction = "dev.mwlr.gnotchi.deck.output"
+    static let systemOutputAction = "dev.mwlr.gnotchi.deck.system-output"
+    static let systemInputAction = "dev.mwlr.gnotchi.deck.system-input"
 
     /// Nächstes Gerät in der Liste, ringförmig, ab `current` (unbekannt → Anfang). Rein, für den Regler und die Taste.
     nonisolated static func step(_ outputs: [DeckWire.Output], from current: String?, by ticks: Int) -> String? {
@@ -77,6 +83,8 @@ final class Plugin {
     private var coverGen: [String: Int] = [:]
     private var tick: Timer?
     private var reconnect: Timer?
+    /// Kontext, dessen Einstellungsfeld gerade offen ist (bekommt die Geräteliste für „Ausgabe“/„Mikrofon“).
+    private var inspector: String?
     /// Regler, an denen während des aktuellen Drucks schon gedreht wurde (Titel gesprungen): kein Stumm beim Loslassen.
     private var skippedWhilePressed: Set<String> = []
 
@@ -150,10 +158,13 @@ final class Plugin {
         switch event {
         case "willAppear", "didReceiveSettings":
             guard let ctx, let action = obj["action"] as? String else { return }
-            let kind: DeckAction.Kind = action == Self.playAction ? .play : action == Self.outputAction ? .output : .volume
+            let system = action == Self.systemOutputAction ? DeckWire.systemOutput
+                : action == Self.systemInputAction ? DeckWire.systemInput : nil
+            let kind: DeckAction.Kind = system != nil ? .device
+                : action == Self.playAction ? .play : action == Self.outputAction ? .output : .volume
             let settings = payload["settings"] as? [String: Any] ?? [:]
             // Nur die feste Auswahl (17.11.); alles andere → „gerade spielend“. Hält auch `watch` sicher unter 512 Byte.
-            let app = (settings["app"] as? String).flatMap { id in DeckWire.choices.contains { $0.id == id } ? id : nil }
+            let app = system ?? (settings["app"] as? String).flatMap { id in DeckWire.choices.contains { $0.id == id } ? id : nil }
                 ?? DeckWire.current
             let what = (settings["what"] as? String).flatMap(DeckWire.Play.init(rawValue:)) ?? .toggle
             let keyStep = (settings["key"] as? String).flatMap(KeyStep.init(rawValue:)) ?? .mute
@@ -164,10 +175,16 @@ final class Plugin {
             a.app = app
             a.what = what
             a.keyStep = keyStep
+            (a.device, a.deviceName) = DeviceKey.fixed(settings)
             a.lastFeedback = [:]
             actions[ctx] = a
             sendWatch()
             render(ctx)
+        case "propertyInspectorDidAppear":
+            inspector = ctx
+            if let ctx { sendDevices(ctx) }
+        case "propertyInspectorDidDisappear":
+            if inspector == ctx { inspector = nil }
         case "willDisappear":
             guard let ctx else { return }
             actions[ctx] = nil
@@ -175,7 +192,7 @@ final class Plugin {
             updateTickTimer()
         case "dialRotate":
             guard let ctx, let a = actions[ctx], let ticks = payload["ticks"] as? Int, ticks != 0 else { return }
-            if a.kind == .output {
+            if a.kind == .output || a.kind == .device {
                 // Drehen wählt nur vor (Umschalten stört kurz den Ton); übernommen wird beim Drücken.
                 let s = status[a.app]
                 actions[ctx]?.preview = Self.step(s?.outputs ?? [], from: a.preview ?? s?.output, by: ticks > 0 ? 1 : -1)
@@ -196,7 +213,7 @@ final class Plugin {
         case "dialUp":
             // Stumm erst beim Loslassen – und nur, wenn nicht gedrückt gedreht (= Titel gesprungen) wurde.
             guard let ctx, let a = actions[ctx] else { return }
-            if a.kind == .output {
+            if a.kind == .output || a.kind == .device {
                 if let p = a.preview, p != status[a.app]?.output { gnotchi.send(.route(app: a.app, device: p)) }
                 actions[ctx]?.preview = nil
                 render(ctx)
@@ -205,6 +222,13 @@ final class Plugin {
             if skippedWhilePressed.remove(ctx) == nil { gnotchi.send(.mute(app: a.app)) }
         case "touchTap":
             guard let ctx, let a = actions[ctx] else { return }
+            if a.kind == .device {
+                // Tippen: auf das feste Gerät (falls gewählt).
+                if let d = a.device { gnotchi.send(.route(app: a.app, device: d)) }
+                actions[ctx]?.preview = nil
+                render(ctx)
+                return
+            }
             if a.kind == .output {
                 // Tippen: zurück auf das eigene Gerät der App.
                 gnotchi.send(.route(app: a.app, device: nil))
@@ -229,6 +253,14 @@ final class Plugin {
                 // Taste: jedes Drücken legt die App auf das nächste Gerät.
                 let s = status[a.app]
                 if let next = Self.step(s?.outputs ?? [], from: s?.output, by: 1) { gnotchi.send(.route(app: a.app, device: next)) }
+            case .device:
+                // Festes Gerät → genau dieses; sonst das nächste der Liste. Nicht angeschlossen → Warnzeichen (nie stumm).
+                let s = status[a.app]
+                guard let target = a.device ?? Self.step(s?.outputs ?? [], from: s?.output, by: 1) else {
+                    sendDeck(["event": "showAlert", "context": ctx]); return
+                }
+                gnotchi.send(.route(app: a.app, device: target))
+                if !(s?.outputs ?? []).contains(where: { $0.uid == target }) { sendDeck(["event": "showAlert", "context": ctx]) }
             }
         default:
             break
@@ -261,6 +293,7 @@ final class Plugin {
     private func received(_ s: DeckWire.Status) {
         status[s.app] = s
         for (ctx, a) in actions where a.app == s.app { render(ctx) }
+        if let ctx = inspector, actions[ctx]?.app == s.app { sendDevices(ctx) }
     }
 
     private func receivedCover(_ app: String, _ jpeg: Data?) {
@@ -268,6 +301,15 @@ final class Plugin {
         coverGen[app, default: 0] += 1
         coverCache = [:]
         for (ctx, a) in actions where a.app == app { render(ctx) }
+    }
+
+    /// Geräteliste ans offene Einstellungsfeld von „Ausgabe“/„Mikrofon“ (Auswahl des festen Geräts).
+    private func sendDevices(_ ctx: String) {
+        guard let a = actions[ctx], a.kind == .device else { return }
+        let s = status[a.app]
+        let devices = (s?.outputs ?? []).map { ["uid": $0.uid, "name": $0.name] }
+        sendDeck(["event": "sendToPropertyInspector", "context": ctx,
+                  "payload": ["devices": devices, "current": s?.output ?? ""]])
     }
 
     // MARK: Anzeige
@@ -306,7 +348,7 @@ final class Plugin {
     nonisolated static func outputText(_ s: DeckWire.Status?, preview: String?, connected: Bool) -> String {
         guard connected else { return "Gnotchi nicht verbunden" }
         guard let s else { return "…" }
-        guard s.canRoute else { return s.state == .needsSetting ? "„Lautstärke je App“ in Gnotchi einschalten" : "kein Ton" }
+        guard s.canRoute else { if DeckWire.isSystem(s.app) { return "…" }; return s.state == .needsSetting ? "„Lautstärke je App“ in Gnotchi einschalten" : "kein Ton" }
         // Stille nach dem Umleiten: pausiert (Browser halten den Ausgang offen) oder Freigabe fehlt – beides nennen (Audit 17.11.).
         if s.needsCapture, preview == nil { return "Kein Ton angekommen – pausiert? Sonst fehlt die Freigabe für Systemaudio" }
         let shown = preview ?? s.output
@@ -332,6 +374,7 @@ final class Plugin {
             case .down: "key-volume-down"
             }
         case .output: "key-output"
+        case .device: "key-sysout"
         }
     }
 
@@ -437,7 +480,11 @@ final class Plugin {
             let device = Self.outputText(s, preview: nil, connected: connected)
             // Nur das Gerät: App + Gerät passte nicht auf die Taste (Screenshot 17.11.: „Externe Kopfhö…“).
             renderKey(ctx, &a, image: "key-output", title: connected ? device : "Gnotchi aus")
-        case .output:
+        case .device where !a.onDial:
+            let k = DeviceKey.look(s, input: a.app == DeckWire.systemInput, fixed: a.device, fixedName: a.deviceName,
+                                   connected: connected)
+            renderKey(ctx, &a, image: k.image, title: k.title)
+        case .output, .device:
             let text = Self.outputText(s, preview: a.preview, connected: connected)
             let width = a.track?.prepare(text, gap: a.marquee.gap) ?? 0
             a.marquee.set(key: text, contentWidth: width)

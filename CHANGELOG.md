@@ -2,7 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.38.0] — 2026-11-18
+
+### Neu
+- **Stream Deck: Tasten „Ausgabe“ und „Mikrofon“.** Stellen das Gerät des ganzen Macs um, z. B. auf die AirPods. Rechts ein festes Gerät wählen: Ein Druck schaltet darauf, die Taste leuchtet, solange es eingestellt ist, und sagt „nicht da“, wenn es fehlt. Ohne festes Gerät schaltet jedes Drücken reihum weiter (Favoriten aus dem Mixer zuerst, höchstens 8). Auf dem Regler: drehen wählt vor, drücken übernimmt. Apps mit eigener Geräteauswahl wie Teams behalten ihr Gerät (Teams auf dem Mac bietet keinen Systemstandard).
+- **Stream Deck: Teams in der App-Auswahl.** „App-Lautsprecher“ legt den Ton eines Teams-Anrufs auf ein anderes Gerät, z. B. die AirPods, obwohl Teams selbst ein festes Gerät eingestellt hat. Nur der Ton, nicht das Mikrofon; braucht „Lautstärke je App“. Auch „App-Lautstärke“ geht für Teams.
 
 ### Geändert
 - **Hilfe: Widget zeigt nur graue Platzhalter.** Neuer Hinweis unter „Musik auf dem Schreibtisch“: Nach einem Update findet der Widget-Dienst von macOS die Daten manchmal nicht mehr; `killall chronod` im Terminal behebt das (gemessen am 18.11., macOS 27.2.1).

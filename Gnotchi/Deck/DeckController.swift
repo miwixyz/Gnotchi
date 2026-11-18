@@ -79,6 +79,12 @@ final class DeckController {
             case .previous: .previous
             }
             media.command(cmd, bundleID: app == DeckWire.current ? nil : app)
+        case .route(let app, let device) where DeckWire.isSystem(app):
+            // Ausgabe bzw. Mikrofon des Macs (0.38). `nil` hat hier keine Bedeutung (es gibt kein „eigenes Gerät“).
+            guard let device else { return }
+            if !mixer.selectDevice(uid: device, input: app == DeckWire.systemInput) {
+                Self.log.notice("Stream Deck: Gerät gerade nicht angeschlossen, nichts umgestellt")
+            }
         case .route(let app, let device):
             // Stufe 2 (G59): MixerModel prüft gegen die frische Geräteliste und „Lautstärke je App“.
             guard let id = resolve(app), let row = row(id) else {
@@ -152,7 +158,28 @@ final class DeckController {
 
     func statuses() -> [DeckWire.Status] { watched.map(status) }
 
+    /// Ausgabe oder Mikrofon des Macs: Geräte der Liste (Favoriten zuerst, wie im Mixer) und das gerade eingestellte.
+    func systemStatus(_ app: String) -> DeckWire.Status {
+        let input = app == DeckWire.systemInput
+        var s = DeckWire.Status(app: app, name: input ? "Mikrofon" : "Ausgabe", title: nil, artist: nil, percent: nil,
+                                muted: false, playing: false, canPlay: false, state: .ok)
+        let favorites = mixer.favorites(input ? .input : .output)
+        let rest = (input ? mixer.inputs : mixer.outputs).filter { d in !favorites.contains { $0.uid == d.uid } }
+        let all = (favorites + rest).compactMap { d in d.uid.map { DeckWire.Output(uid: $0, name: d.name) } }
+        s.outputs = Array(all.prefix(DeckWire.maxOutputs))
+        // Das eingestellte Gerät immer mitschicken, auch wenn es hinter den ersten acht steht.
+        if let current = (input ? mixer.input : mixer.output).device, let uid = current.uid {
+            s.output = uid
+            if !s.outputs.contains(where: { $0.uid == uid }) {
+                s.outputs = [DeckWire.Output(uid: uid, name: current.name)] + s.outputs.prefix(DeckWire.maxOutputs - 1)
+            }
+        }
+        s.canRoute = !s.outputs.isEmpty
+        return s
+    }
+
     func status(_ app: String) -> DeckWire.Status {
+        if DeckWire.isSystem(app) { return systemStatus(app) }
         let id = resolve(app)
         let r = row(id)
         let info = media.info.flatMap { $0.appBundleID == id ? $0 : nil }
