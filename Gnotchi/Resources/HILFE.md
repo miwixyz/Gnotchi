@@ -237,6 +237,35 @@ ab 15 Minuten vor Beginn: Uhrzeit, Titel und wie lange es noch dauert. Bei Begin
 Klick öffnet den Apple Kalender. Ganztägige Termine und Erinnerungen erscheinen nicht. Schalter: „Termine
 aus Kalli anzeigen“.
 
+## Schnelleingabe
+
+Termine und Erinnerungen in Alltagssprache anlegen, ohne eine App zu öffnen. Einschalten unter Einstellungen →
+Aktivitäten → **Schnelleingabe** (ab Werk aus). Dafür muss [Kalli](https://github.com/miwixyz/Kalli) laufen, in
+der Version nach 0.15.3: Gnotchi selbst hat keinen Zugriff auf Kalender und Erinnerungen, gespeichert wird über
+Kalli.
+
+**Öffnen:** control + option + N (änderbar in den Einstellungen) oder die Ring-Taste **Neuer Eintrag** neben der
+großen Insel. Die Zeile klappt unter der Notch herunter.
+
+**Tippen:** zum Beispiel „Zahnarzt morgen 15 Uhr“, „Teams-Call 16:30 bis 17:15“, „Rechnung zahlen bis 30.11.“ oder
+„erinnere mich in 2 Stunden Cati anzurufen“. Darunter steht beim Tippen, was daraus wird: Art, Tag, Uhrzeit, Titel.
+
+- **Mit Uhrzeit** wird es ein **Termin** im Standardkalender, 1 Stunde lang. „bis 17 Uhr“, „2 Std“ oder „30 Min“
+  ändern die Dauer.
+- **Ohne Uhrzeit** wird es eine **Erinnerung** in der Standardliste. „erinnere mich“, „nicht vergessen“ und
+  „bis <Datum>“ machen immer eine Erinnerung. „!“ am Ende macht sie dringend.
+- **Tab** wechselt zwischen Termin und Erinnerung.
+- **Uhrzeiten gelten wörtlich** im 24-Stunden-Format: „7 Uhr“ ist 07:00, „halb drei“ ist 02:30. „morgens“,
+  „nachmittags“, „abends“ verschieben („halb drei nachmittags“ ist 14:30). Ein gelbes **Prüfen** steht da bei
+  zwei Daten, bei Uhrzeiten zwischen 0 und 6 Uhr ohne Tageszeit und bei einem Ende vor dem Beginn.
+- Ein Wochentag meint den nächsten („Freitag“), eine schon vergangene Uhrzeit ohne Datum morgen.
+
+**↵** speichert. Danach steht kurz „Gespeichert · Rückgängig (⌘Z)“, dann geht die Zeile von selbst zu. **⌘Z** in
+diesem Moment nimmt den Eintrag wieder zurück. **Escape** oder ein Klick daneben schließt ohne Speichern.
+
+Läuft Kalli nicht oder antwortet es nicht, bleibt die Zeile offen und sagt das. Bei „Kalli antwortet nicht“ kurz in
+Apple Kalender nachsehen, ob der Eintrag doch angekommen ist.
+
 ## Timer
 
 Menüleisten-Symbol → **Timer** → 5, 10, 15 oder 25 Minuten oder **Eigene Zeit oder Name …** (1 bis 180 Minuten,
@@ -381,6 +410,7 @@ dein Standort.
 
 - **Musik in der Notch:** zeigt Musik und Videos in der Insel. Ab Werk an. Aus heißt: kein Abfragen der Wiedergabe. Die Insel bleibt für die anderen Anzeigen da, solange eine davon an ist.
 - **Kopfhörer-Hinweis**, **Mikrofon & Kamera anzeigen**, **Tippi-Aufnahme anzeigen**, **Qotti-Kontingent anzeigen**, **Termine aus Kalli anzeigen:** jeweils ab Werk an. Sind alle Schalter aus, gibt es keine Insel.
+- **Schnelleingabe** (Aktivitäten): ab Werk aus, Kürzel ab Werk control + option + N (siehe „Schnelleingabe“).
 - **Ruhige Insel ohne Notch** (Allgemein → Aussehen): ab Werk an. Ohne Notch sieht die Pille aus wie die Menüleiste, solange nichts läuft.
 - **Aufklappen als:** Insel (ab Werk) oder Band.
 - **Wiedergabe-Knöpfe in der kleinen Insel**, **Wiedergabe immer groß:** ab Werk aus (siehe „Große Insel“).
@@ -436,6 +466,7 @@ nicht wirkt.
 - Update-Meldungen der Familien-Apps enthalten nur den App-Namen und die Versionsnummer. Auch sie kann jedes Programm mitlesen. Gnotchi zeigt daraus nur Namen und Version und speichert sie nicht.
 - Der Medienfilter speichert nur die Kennungen der ausgeschalteten Apps, keine Titel und keine Zeitpunkte.
 - Deinen nächsten Termin bekommt Gnotchi von Kalli auf demselben geschützten Weg wie Tippis Live-Text: Beide Apps prüfen vorher die Signatur der anderen. Kalli schickt nur Titel, Beginn und Kalenderfarbe des Termins, den seine Menüleiste ohnehin zeigt. Gnotchi speichert ihn nicht, protokolliert ihn nicht und vergisst ihn bei Beginn.
+- Die Schnelleingabe schickt, was du eintippst (Titel, Zeitpunkt, Art), über dieselbe geschützte Verbindung an Kalli, und nur, wenn du ↵ drückst. Gnotchi speichert nichts davon, protokolliert keine Eingaben und vergisst die Zeile beim Schließen. Kalli prüft jede Anfrage selbst und löscht per ⌘Z nur einen Eintrag, der gerade eben auf diesem Weg entstand. In Bildschirmfreigaben ist die Zeile unsichtbar.
 - Der Geschwindigkeitstest (nur auf deinen Klick, ab Werk aus) schickt Datenverkehr zu Apples Testservern, höchstens 20 Sekunden lang. Das Ergebnis steht nur in der Insel und wird nicht gespeichert.
 - Das Kamerabild des Spiegels geht direkt auf den Bildschirm. Gnotchi speichert es nicht, verarbeitet es nicht und schickt es nirgendwohin.
 - Der Timer lebt nur im Arbeitsspeicher.

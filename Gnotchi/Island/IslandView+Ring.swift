@@ -13,7 +13,7 @@ extension IslandView {
                                running: activity.ringRunning(b), count: b == .shelf ? activity.shelfItems.count : nil,
                                multicolor: b == .weather, dot: b == .mic ? .red : .orange, onHover: onHover) {
                     activity.ringTap(b)
-                    if b == .settings || b == .screenshot { onRingAction(b) }
+                    if b == .settings || b == .screenshot || b == .quickEntry { onRingAction(b) }
                 }
                 .offset(x: ring.margins.side + r.minX, y: r.minY)
             }
@@ -28,6 +28,7 @@ extension IslandView {
         case .weather: activity.weather.map { Weather.symbol($0.code, day: $0.isDay) } ?? "cloud.sun"
         case .shelf: "tray.full.fill"
         case .clipboard: "doc.on.clipboard"
+        case .quickEntry: "plus"
         case .mixer: "slider.horizontal.3"
         case .pin: activity.pinned ? "pin.fill" : "pin"
         case .mic: activity.mic.isMuted ? "mic.slash.fill" : "mic.fill"

@@ -48,6 +48,8 @@ final class AppModel {
     @ObservationIgnored private var signalSources: [DispatchSourceSignal] = []
     /// Messpunkt Fokus bei Mitteilungen (0.16.0), nur Protokoll.
     @ObservationIgnored private var focusProbe: FocusProbe?
+    /// Für „Termine aus Kalli anzeigen“: Läuft der Socket nur für die Schnelleingabe, zeigt er keine Termine (G61).
+    private var kalliLink: KalliEventLink? { features.lazy.compactMap { $0.part as? KalliEventLink }.first }
     /// Meeting-Leiser (0.29.0, G53): Spotify/Musik leiser, solange eine Meeting-App das Mikrofon nutzt.
     @ObservationIgnored let ducker = MeetingDucker()
     /// Mixer (0.30.0) samt Tap-Motor der Regler je App: lebt so lange wie die App, nicht wie das Popover.
@@ -114,7 +116,7 @@ final class AppModel {
             NotchFeature(part: DesktopMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.desktopMusic },
             // 0.20.0 (G46): Sperrbildschirm über private SkyLight-Ebene, ab Werk aus, nur mit Musik in der Notch.
             NotchFeature(part: LockScreenMusicLink(media: nowPlaying, prefs: prefs)) { $0.notchMedia && $0.lockScreenMusic },
-        ] + Self.optionalFeatures(kalli: kalli, awake: awake) : [])
+        ] + Self.optionalFeatures(kalli: kalli, awake: awake, activity: activity, prefs: prefs) : [])
         nowPlaying.isExcluded = { [prefs] id in prefs.isMediaExcluded(id) }
         activity.onPrivacyChange = { [ducker] apps in ducker.micAppsChanged(apps) }
         features = [NotchFeature(part: source ?? nowPlaying) { $0.notchMedia }] + extras
@@ -183,6 +185,7 @@ final class AppModel {
         activity.compactUnread = prefs.compactUnread
         activity.bandStyle = prefs.bandStyle
         if !prefs.playerFirst { activity.overlayActivity = nil }
+        kalliLink?.showsEvents = prefs.kalliEvents
         syncOwnUpdate()
         guard allowStart else { return }
         activity.mic.setActive(prefs.ring && prefs.isRingButtonOn(.mic))   // Beobachter nur, solange die Taste gebraucht wird
@@ -284,8 +287,12 @@ extension AppModel {
     }
 
     /// Teile, die es nur im Echtbetrieb gibt: Kalli-Termine, Wach bleiben (immer an, schaltet sich selbst).
-    static func optionalFeatures(kalli: KalliEventLink?, awake: StayAwake?) -> [NotchFeature] {
-        (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents }] } ?? [])
+    /// Kalli-Socket auch für die Schnelleingabe (G61): läuft, wenn eins von beidem an ist; die Schnelleingabe selbst
+    /// danach, damit sie den laufenden Socket vorfindet.
+    static func optionalFeatures(kalli: KalliEventLink?, awake: StayAwake?, activity: ActivityModel,
+                                 prefs: Preferences) -> [NotchFeature] {
+        (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents || $0.quickEntry }] } ?? [])
+            + (kalli.map { [NotchFeature(part: QuickEntryLink(activity: activity, prefs: prefs, kalli: $0)) { $0.quickEntry }] } ?? [])
             + (awake.map { [NotchFeature(part: $0) { _ in true }] } ?? [])
     }
 }

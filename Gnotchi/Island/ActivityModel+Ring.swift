@@ -15,6 +15,7 @@ extension ActivityModel {
         if weather != nil { s.insert(.weather) }
         if !shelfItems.isEmpty { s.insert(.shelf) }
         if clipboard != nil { s.insert(.clipboard) }
+        if openQuickEntry != nil { s.insert(.quickEntry) }
         return s
     }
 
@@ -38,7 +39,7 @@ extension ActivityModel {
         case .pin: pinned
         case .speedtest: speedtestActive
         case .mixer: mixerActive
-        case .mic, .screenshot, .settings: false
+        case .mic, .screenshot, .settings, .quickEntry: false
         }
     }
 
@@ -50,7 +51,7 @@ extension ActivityModel {
         case .mirror: mirrorActive
         case .mic: mic.isMuted
         case .speedtest: speed.state == .running
-        case .weather, .shelf, .clipboard, .mixer, .pin, .screenshot, .settings: false
+        case .weather, .shelf, .clipboard, .mixer, .pin, .screenshot, .settings, .quickEntry: false
         }
     }
 
@@ -69,7 +70,7 @@ extension ActivityModel {
         case .mic: mic.toggle()
         case .speedtest: selectSpeedtest()
         case .mixer: selectMixer()
-        case .screenshot, .settings: break   // öffnen Fenster bzw. Apps: der Controller führt sie aus
+        case .screenshot, .settings, .quickEntry: break   // öffnen Fenster bzw. Apps: der Controller führt sie aus
         }
     }
 

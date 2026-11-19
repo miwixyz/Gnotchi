@@ -7,6 +7,8 @@ import Foundation
 enum RingButton: String, CaseIterable, Sendable, Hashable {
     // Bisherige Werkzeug-Symbole der Leiste – nur der Ort ist neu.
     case timer, awake, mirror, weather, shelf, clipboard
+    /// Schnelleingabe (G61): neuer Termin oder neue Erinnerung. Nur sichtbar mit eingeschalteter Schnelleingabe.
+    case quickEntry
     /// Mixer groß in der Insel (0.30.0), ab Werk an.
     case mixer
     case pin
@@ -19,7 +21,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
     /// Links Timer-Werkzeuge, rechts Inhalte, unten Insel-Steuerung (Spec Punkt 3).
     var side: Side {
         switch self {
-        case .timer, .awake, .mirror: .left
+        case .timer, .awake, .mirror, .quickEntry: .left
         case .weather, .shelf, .clipboard, .mixer: .right
         case .pin, .mic, .screenshot, .speedtest: .bottomLeading
         case .settings: .bottomTrailing
@@ -35,6 +37,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
         case .weather: "Wetter"
         case .shelf: "Ablage"
         case .clipboard: "Zwischenablage"
+        case .quickEntry: "Neuer Eintrag"
         case .mixer: "Mixer"
         case .pin: "Anheften"
         case .mic: "Mikrofon stumm"

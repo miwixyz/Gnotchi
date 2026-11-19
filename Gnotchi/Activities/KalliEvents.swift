@@ -26,15 +26,19 @@ enum KalliEvents {
 
     enum Message: Equatable, Sendable {
         case event(Event), none
+        /// Kallis Antwort auf eine Schnelleingabe (`v:2`, G61). Ändert den angezeigten Termin nicht.
+        case result(QuickEntryWire.Result)
     }
 
     // MARK: Schema
 
-    /// `{"v":1,"event":{"title":"…","start":<Unix-Sekunden>,"color":"#RRGGBB"}}` oder `{"v":1,"event":null}`.
+    /// `{"v":1,"event":{"title":"…","start":<Unix-Sekunden>,"color":"#RRGGBB"}}` oder `{"v":1,"event":null}`,
+    /// ab der Schnelleingabe auch `{"v":2,"result":{…}}` (`QuickEntryWire.parseResult`).
     /// `nil` = ungültig (Verbindung zu). Beginn außerhalb von jetzt − 1 Tag … jetzt + 400 Tage → `.none`.
     nonisolated static func parse(_ payload: Data, now: Date = Date()) -> Message? {
-        guard let obj = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
-              isNumber(obj["v"], equalTo: 1) else { return nil }
+        guard let obj = try? JSONSerialization.jsonObject(with: payload) as? [String: Any] else { return nil }
+        if isNumber(obj["v"], equalTo: 2) { return QuickEntryWire.parseResult(obj).map(Message.result) }
+        guard isNumber(obj["v"], equalTo: 1) else { return nil }
         guard let raw = obj["event"], !(raw is NSNull) else { return Message.none }
         guard let e = raw as? [String: Any], let title = e["title"] as? String,
               let s = e["start"] as? NSNumber, CFGetTypeID(s) != CFBooleanGetTypeID() else { return nil }
@@ -115,6 +119,16 @@ final class KalliEventLink: NotchPart {
     private var latest: KalliEvents.Event?
     private var timer: Task<Void, Never>?
 
+    /// Termine in der Insel zeigen („Termine aus Kalli anzeigen“). Aus, wenn der Socket nur für die Schnelleingabe
+    /// läuft – dann kommen Kallis Termine an, werden aber nicht gezeigt.
+    var showsEvents = true {
+        didSet { if !showsEvents { latest = nil; schedule() } }
+    }
+    /// Kalli ist verbunden und geprüft (Kalli schickt beim Verbinden immer seinen Stand).
+    private(set) var kalliConnected = false
+    /// Offene Schnelleingabe-Anfragen: Kennung → wartet auf Kallis Antwort.
+    private var waiting: [UUID: CheckedContinuation<QuickEntryWire.Result, Never>] = [:]
+
     init(activity: ActivityModel) {
         self.activity = activity
     }
@@ -124,8 +138,11 @@ final class KalliEventLink: NotchPart {
         var req: SecRequirement?
         guard SecRequirementCreateWithString(KalliEvents.requirement as CFString, [], &req) == errSecSuccess,
               let req else { return Self.log.error("Termine: Anforderung ungültig") }
+        // Ohne Zusammenfassen (G61): Sonst überschriebe ein Termin-Stand innerhalb von 0,25 s Kallis Antwort auf
+        // eine Schnelleingabe. Kalli schickt Termine nur bei Änderungen, höchstens 10 je Sekunde gelten weiter.
         let s = PeerSocketServer<KalliEvents.Message>(
             directory: dir, fileName: "kalli.sock", label: "Termine", peer: "Kalli", requirement: req,
+            coalesce: false,
             parse: { KalliEvents.parse($0) },
             onValue: { [weak self] message in Task { @MainActor in self?.receive(message) } })
         do {
@@ -149,10 +166,73 @@ final class KalliEventLink: NotchPart {
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
     }
 
-    /// `nil` = getrennt/aus → Termin sofort verwerfen.
+    /// `nil` = getrennt/aus → Termin sofort verwerfen, offene Schnelleingaben scheitern sichtbar.
     func receive(_ message: KalliEvents.Message?) {
-        if case .event(let e)? = message { latest = e } else { latest = nil }
+        if case .result(let r)? = message { return answer(r) }
+        kalliConnected = message != nil
+        if message == nil { failAllWaiting("Verbindung zu Kalli getrennt. Bitte in Apple Kalender prüfen.") }
+        if showsEvents, case .event(let e)? = message { latest = e } else { latest = nil }
         schedule()
+    }
+
+    // MARK: Schnelleingabe (G61)
+
+    /// Schickt den Eintrag an Kalli und wartet auf die Antwort (höchstens `QuickEntryWire.replyTimeout`).
+    /// Liefert die Kennung für ⌘Z oder die Meldung für die Zeile. Nie stilles Scheitern.
+    func submit(_ entry: QuickEntryParser.Entry) async -> Swift.Result<UUID, QuickEntryFailure> {
+        guard let server, kalliConnected else {
+            Self.log.notice("Schnelleingabe: Kalli nicht verbunden")
+            return .failure(.kalliNotRunning)
+        }
+        let id = UUID()
+        guard let payload = QuickEntryWire.create(entry, id: id) else {
+            Self.log.notice("Schnelleingabe: Eingabe nicht sendbar")
+            return .failure(.invalid)
+        }
+        let r = await request(payload, id: id, via: server)
+        // Nur Art und Ausgang, nie Titel (Kallis Fehlertext enthält keine Eingabe).
+        Self.log.notice("Schnelleingabe: \(entry.kind.rawValue, privacy: .public) \(r.ok ? "gespeichert" : "abgelehnt", privacy: .public)\(r.ok ? "" : " – " + (r.error ?? ""), privacy: .public)")
+        return r.ok ? .success(id) : .failure(.kalli(r.error ?? "Kalli hat den Eintrag abgelehnt."))
+    }
+
+    /// Nimmt einen eben gespeicherten Eintrag zurück. `nil` = zurückgenommen, sonst die Meldung.
+    func undo(_ id: UUID) async -> String? {
+        guard let server, kalliConnected else { return QuickEntryFailure.kalliNotRunning.message }
+        let r = await request(QuickEntryWire.undo(id: id), id: id, via: server)
+        Self.log.notice("Schnelleingabe: Rückgängig \(r.ok ? "ok" : "abgelehnt – " + (r.error ?? ""), privacy: .public)")
+        return r.ok ? nil : (r.error ?? "Rückgängig hat nicht geklappt.")
+    }
+
+    private func request(_ payload: [String: Any], id: UUID,
+                         via server: PeerSocketServer<KalliEvents.Message>) async -> QuickEntryWire.Result {
+        await withCheckedContinuation { (c: CheckedContinuation<QuickEntryWire.Result, Never>) in
+            waiting[id] = c
+            server.send(payload)
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(QuickEntryWire.replyTimeout))
+                self?.timeOut(id)
+            }
+        }
+    }
+
+    /// Jede Kennung wird genau einmal beantwortet (Antwort oder Zeitlimit, was zuerst kommt).
+    private func answer(_ r: QuickEntryWire.Result) {
+        guard let id = r.id, let c = waiting.removeValue(forKey: id) else {
+            return Self.log.notice("Schnelleingabe: Antwort ohne offene Anfrage")
+        }
+        c.resume(returning: r)
+    }
+
+    /// Zeitlimit: nur, wenn Kalli bis dahin nicht geantwortet hat (Kalli vor der Schnelleingabe antwortet nie).
+    private func timeOut(_ id: UUID) {
+        waiting.removeValue(forKey: id)?.resume(
+            returning: QuickEntryWire.Result(id: id, ok: false, error: QuickEntryFailure.noReply.message))
+    }
+
+    private func failAllWaiting(_ message: String) {
+        let open = waiting
+        waiting = [:]
+        for (id, c) in open { c.resume(returning: QuickEntryWire.Result(id: id, ok: false, error: message)) }
     }
 
     private func schedule(now: Date = Date()) {

@@ -159,6 +159,8 @@ final class ActivityModel {
     @ObservationIgnored weak var shelf: ShelfLink?
     /// Zwischenablage (0.11.0, G37): läuft = Symbol in der Leiste; groß gezeigt = `clipboardActive`.
     var clipboard: ClipboardLink?
+    /// Schnelleingabe öffnen (G61); `nil` = aus (dann keine Ring-Taste).
+    var openQuickEntry: (() -> Void)?
     var clipboardActive = false
     /// Geschwindigkeitstest (0.28.0, G51): Ergebnis groß gezeigt, Zustand in `speed`.
     var speedtestActive = false

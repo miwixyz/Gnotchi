@@ -1853,3 +1853,46 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   (1) ein von Gnotchi erkannter Schlüssel (G43, ohne Concealed-Markierung) wurde zurückgeschrieben – dabei lief
   Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
   (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.
+
+### G61 – Schnelleingabe: Eingabezeile in der Notch, gespeichert über Kalli (neu, 2026-11-19, unveröffentlicht)
+- **Anlass:** Michael, 19.11., nach Cupola (trycupola.com): „Können wir das bei uns einbauen?“ Sieben Entscheidungen
+  per `/grill-me`, jede einzeln bestätigt; Spezifikation mit Testtabelle: `specs/2026-11-19-gnotchi-schnelleingabe.md`.
+  Kalli-Seite: Kalli `docs/SECURE-DESIGN.md` K2.
+- **Kein Kalender- und Erinnerungszugriff für Gnotchi:** Für Erinnerungen gibt es keinen Nur-Schreiben-Zugriff;
+  Gnotchi müsste sonst alle Erinnerungen lesen dürfen. Gnotchi erkennt und zeigt, **Kalli schreibt**. Keine neuen
+  Entitlements, keine neuen Usage-Texte.
+- **Datenfluss:** echter Tastendruck (Carbon-Kürzel, G1) oder Ring-Taste → Zeile (`KeyPanel`, nimmt Tastatur, ohne
+  die Arbeits-App zu deaktivieren) → `QuickEntryParser` (rein, ohne EventKit/UI, im Arbeitsspeicher) → nur auf ↵
+  `{"v":2,"create":{id,kind,title,start,end,allDay,urgent}}` an Kalli über `kalli.sock` (G26) → Kallis
+  `{"v":2,"result":{id,ok,error?}}`. ⌘Z in den 1,5 s danach → `{"v":2,"undo":{"id"}}`.
+- **Weg unverändert geprüft:** `PeerSocketServer` prüft Kalli vor dem ersten Byte (Audit-Token →
+  `SecCodeCheckValidity`, Developer ID, Team LTKJ6Z2VYB, `com.kalli.app`), Rahmen 4 Byte + JSON ≤ 4 KB. Der Server
+  läuft jetzt auch, wenn nur die Schnelleingabe an ist (`kalliEvents || quickEntry`); Termine zeigt die Insel weiter
+  nur mit „Termine aus Kalli anzeigen“. Ohne Zusammenfassen (`coalesce: false`), sonst gingen Antworten verloren.
+- **Antworten streng zugeordnet:** jede Anfrage mit eigener UUID; `parseResult` nimmt nur `v:2` mit bekannter `id`
+  und Bool `ok`, Fehlertext von Kalli gekürzt und ohne Steuerzeichen. Zeitlimit 4 s → „Kalli antwortet nicht …
+  in Apple Kalender prüfen“ (der Eintrag kann trotzdem angekommen sein, deshalb kein „nicht gespeichert“).
+  Trennung beendet alle offenen Anfragen sichtbar. Kalli nicht verbunden → sofort Fehler, nichts geht raus.
+- **Eingabe begrenzt:** höchstens 300 Zeichen; ohne Titel kein Senden. Die Zeile bleibt bei jedem Fehler offen und
+  bearbeitbar; ein falscher Erfolg ist nicht möglich, weil „Gespeichert“ nur nach Kallis `ok` erscheint.
+- **Nicht sichtbar, nicht gespeichert:** `sharingType = .none` (wie G58), Inhalt der Zeile wird beim Schließen
+  verworfen (`contentView = nil`), nichts auf Platte, nichts im Verlauf der Zwischenablage.
+- **Protokoll:** nur Längen, Art, Ergebnis, Tastencode, Schließgrund, nie Text, Titel oder Zeitpunkt (G8).
+- **STRIDE:**
+  - *S:* Nur ein Developer-ID-signiertes Kalli bekommt Einträge; Auslöser ist nur Michaels Tastendruck oder Klick.
+  - *T:* Kalli prüft jedes Feld selbst (K2); Gnotchi schickt genau, was die Vorschau zeigt.
+  - *R:* Protokoll wie oben, auf beiden Seiten.
+  - *I:* Titel geht nur an Kalli, nie ins Protokoll, nie in Bildschirmfreigaben.
+  - *D:* Kalli begrenzt auf 20 Anlagen je Minute und 32 wartende Anfragen; Gnotchi hat je Zeile höchstens eine
+    Anfrage offen.
+  - *E:* kein neuer Weg nach außen; Restrisiko wie G26 (Code in Gnotchi kann Kalli Einträge anlegen lassen, aber nur
+    seine eigenen frischen löschen).
+- **Restrisiken:** (1) Kalli speichert, die Antwort kommt nach 4 s → Michael sieht „antwortet nicht“, obwohl der
+  Eintrag da ist (Hinweistext sagt das). (2) Uhrzeiten wörtlich im 24-h-Format („halb drei“ = 02:30) ist Michaels
+  Entscheidung; das gelbe „Prüfen“ fängt 0–6 Uhr ohne Tageszeit ab. (3) Das Kürzel gilt systemweit.
+- **Prüfung (19.11.):** `/code-audit` auf beide Diffs; Gnotchi-Fund behoben: das Selbst-Schließen einer älteren Zeile
+  konnte eine neu geöffnete zumachen (`openToken`). Sichttest am echten System mit Developer-ID-Kopien beider Apps
+  (Skill `app-sichttest`): Termin anlegen → ⌘Z → weg, Tab → Erinnerung → ⌘Z, Härteprobe 3/3, Kalli beendet →
+  „nicht verbunden“. Dabei drei Fehler gefunden und behoben: ⌘Z-Erfolg wurde durch `??` zu „Kalli läuft nicht“,
+  Fokus kam manchmal zu spät (Zeichen gingen verloren), der Tastenmonitor verglich die Fensternummer. gitleaks und
+  Swift-Advisories sauber. Kein `rafter run` (Zweitmeinung erst vor dem Release).

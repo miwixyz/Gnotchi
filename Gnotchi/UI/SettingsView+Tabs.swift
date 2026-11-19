@@ -229,6 +229,20 @@ extension SettingsView {
             toggleRow("Updates der App-Familie", isOn: $prefs.familyUpdates)
                 .onChange(of: prefs.familyUpdates) { model.applyNotchSetting() }
         }
+        // G61: Schnelleingabe, ab Werk aus. Gespeichert wird über Kalli, Gnotchi hat keinen Kalenderzugriff.
+        card("Schnelleingabe") {
+            toggleRow("Termine und Erinnerungen per Kürzel anlegen", isOn: $prefs.quickEntry)
+                .onChange(of: prefs.quickEntry) { model.applyNotchSetting() }
+            if prefs.quickEntry {
+                row("Kürzel") {
+                    HotKeyRecorder(hotKey: $prefs.quickEntryHotKey)
+                        .onChange(of: prefs.quickEntryHotKey) { model.applyNotchSetting() }
+                }
+            }
+            note("Schreib zum Beispiel „Zahnarzt morgen 15 Uhr“. Mit Uhrzeit wird es ein Termin, sonst eine Erinnerung, "
+                 + "Tab wechselt. ↵ speichert, ⌘Z direkt danach nimmt zurück. Gespeichert wird über Kalli, Kalli muss "
+                 + "laufen.", symbol: "info.circle", color: .secondary)
+        }
         // 0.9.0 Code & KI (G34/G35): trägt Hooks in ~/.claude/settings.json ein – deshalb Erklärung und Hinweis direkt hier.
         card("Code & KI") {
             toggleRow("Claude Code in der Notch", isOn: $prefs.claudeCode)

@@ -200,6 +200,11 @@ extension IslandController {
                                                configuration: NSWorkspace.OpenConfiguration())
             collapseTasks[id]?.cancel()
             Task { await self.collapse(id) }
+        case .quickEntry:
+            // Schnelleingabe (G61): Insel zu, Zeile aus der Notch auf.
+            collapseTasks[id]?.cancel()
+            Task { await self.collapse(id) }
+            activity.openQuickEntry?()
         default:
             break
         }

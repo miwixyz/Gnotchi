@@ -97,6 +97,9 @@ final class Preferences {
         /// G60: Kürzel „Als reinen Text einfügen“, eigener Schalter (ab Werk aus) und Kombination.
         static let plainPaste = "plainPaste"
         static let plainPasteHotKey = "plainPasteHotKey"
+        /// Schnelleingabe (G61): eigener Schalter (ab Werk aus) und Kombination.
+        static let quickEntry = "quickEntry"
+        static let quickEntryHotKey = "quickEntryHotKey"
         /// 0.13.0 Geheimnisse (G43): Schalter, „an seit“, wie viele gespeicherte Geheimnisse schon angeboten wurden.
         /// 0.14.0: Kürzel klappt zuerst aus der Notch herunter, nochmal → große Ansicht am Rand.
         static let clipboardNotchFirst = "clipboardNotchFirst"
@@ -287,6 +290,9 @@ final class Preferences {
     /// G60: ⇧⌘V (Vorschlag) fügt die aktuelle Kopie als reinen Text ein, danach Original zurück. Ab Werk aus.
     var plainPaste: Bool { didSet { defaults.set(plainPaste, forKey: Key.plainPaste) } }
     var plainPasteHotKey: HotKey? { didSet { defaults.set(plainPasteHotKey?.stored, forKey: Key.plainPasteHotKey) } }
+    /// G61: Schnelleingabe in Alltagssprache, gespeichert über Kalli. ⌃⌥N (Vorschlag). Ab Werk aus.
+    var quickEntry: Bool { didSet { defaults.set(quickEntry, forKey: Key.quickEntry) } }
+    var quickEntryHotKey: HotKey? { didSet { defaults.set(quickEntryHotKey?.stored, forKey: Key.quickEntryHotKey) } }
 
     /// 0.13.0 (G43): Schlüssel und Tokens erkennen, verdecken, lose nach 5 Min. löschen. Ab Werk **an** – speichert
     /// nur weniger, gibt nichts preis (Michael 26.10.). Einschalten setzt „an seit“ neu (Altbestand: volle 5 Min.).
@@ -408,6 +414,8 @@ final class Preferences {
         clipboardPanelHotKey = HotKey(stored: defaults.object(forKey: Key.clipboardPanelHotKey))
         plainPaste = defaults.object(forKey: Key.plainPaste) as? Bool ?? false
         plainPasteHotKey = HotKey(stored: defaults.object(forKey: Key.plainPasteHotKey))
+        quickEntry = defaults.object(forKey: Key.quickEntry) as? Bool ?? false
+        quickEntryHotKey = HotKey(stored: defaults.object(forKey: Key.quickEntryHotKey))
         clipboardSecrets = defaults.object(forKey: Key.clipboardSecrets) as? Bool ?? true
         clipboardImageText = defaults.object(forKey: Key.clipboardImageText) as? Bool ?? true
         clipboardSecretsOffered = max(0, defaults.integer(forKey: Key.clipboardSecretsOffered))
