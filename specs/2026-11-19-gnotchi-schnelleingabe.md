@@ -4,7 +4,7 @@ Stand 2026-11-19 (MacBook). Per `/grill-me` mit Michael geklärt, sieben Entsche
 bestätigt („ja, passt“). Vorbild: Cupola (trycupola.com), Natural-Language-Quick-Add. Noch kein Code.
 Zieht mit Kalli zusammen (Kalli schreibt, Gnotchi erkennt und zeigt).
 
-> **Gebaut am 19.11.** (Zweige `feature/schnelleingabe` und Kalli `feature/schnelleingabe-rueckkanal`). Abweichungen
+> **Gebaut am 19.11., veröffentlicht mit Gnotchi 0.40.0 und Kalli 0.16.0.** (Zweige `feature/schnelleingabe` und Kalli `feature/schnelleingabe-rueckkanal`). Abweichungen
 > von diesem Entwurf: Zeitlimit für Kallis Antwort 4 s statt 1 s (Kalli liest nach dem Speichern nach); ein altes
 > Kalli zeigt sich als „Kalli antwortet nicht … Kalli aktualisieren“; kein eigener Plus-Knopf in der großen Insel,
 > nur die Ring-Taste „Neuer Eintrag“; Kalendername in der Vorschau fehlt. Stand der Sicherheit: `docs/SECURE-DESIGN.md`

@@ -2,11 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.40.0] — 2026-11-19
 
 ### Neu
 - **Schnelleingabe: Termine und Erinnerungen in Alltagssprache.** Einschalten unter Einstellungen → Aktivitäten → „Schnelleingabe“ (ab Werk aus). control + option + N (änderbar) oder die Ring-Taste „Neuer Eintrag“ öffnet eine Zeile unter der Notch. Du tippst zum Beispiel „Zahnarzt morgen 15 Uhr“ oder „Rechnung zahlen bis 30.11.“, darunter siehst du beim Tippen, was daraus wird. Mit Uhrzeit wird es ein Termin (1 Stunde, „bis 17 Uhr“ oder „30 Min“ geht auch), sonst eine Erinnerung. „erinnere mich“ macht immer eine Erinnerung, „!“ am Ende macht sie dringend, Tab wechselt die Art. Uhrzeiten gelten wörtlich im 24-Stunden-Format („halb drei“ ist 02:30, „halb drei nachmittags“ 14:30), Uneindeutiges ist gelb mit „Prüfen“ markiert. ↵ speichert, danach steht kurz „Gespeichert · Rückgängig (⌘Z)“, dann geht die Zeile von selbst zu. Escape schließt ohne Speichern. Nur Deutsch.
-- **Gespeichert wird über Kalli.** Gnotchi bekommt keinen Zugriff auf Kalender und Erinnerungen. Es schickt den Eintrag an Kalli, über dieselbe geprüfte Verbindung wie den nächsten Termin. Kalli prüft ihn selbst, legt ihn an und bestätigt erst, wenn er da ist. Läuft Kalli nicht oder antwortet es nicht, bleibt die Zeile offen und sagt das. Braucht die nächste Kalli-Version (nach 0.15.3).
+- **Gespeichert wird über Kalli.** Gnotchi bekommt keinen Zugriff auf Kalender und Erinnerungen. Es schickt den Eintrag an Kalli, über dieselbe geprüfte Verbindung wie den nächsten Termin. Kalli prüft ihn selbst, legt ihn an und bestätigt erst, wenn er da ist. Läuft Kalli nicht oder antwortet es nicht, bleibt die Zeile offen und sagt das. Braucht Kalli ab 0.16.0.
 
 ## [0.39.0] — 2026-11-18
 

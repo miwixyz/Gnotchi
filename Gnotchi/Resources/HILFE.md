@@ -241,7 +241,7 @@ aus Kalli anzeigen“.
 
 Termine und Erinnerungen in Alltagssprache anlegen, ohne eine App zu öffnen. Einschalten unter Einstellungen →
 Aktivitäten → **Schnelleingabe** (ab Werk aus). Dafür muss [Kalli](https://github.com/miwixyz/Kalli) laufen, in
-der Version nach 0.15.3: Gnotchi selbst hat keinen Zugriff auf Kalender und Erinnerungen, gespeichert wird über
+ab Version 0.16.0: Gnotchi selbst hat keinen Zugriff auf Kalender und Erinnerungen, gespeichert wird über
 Kalli.
 
 **Öffnen:** control + option + N (änderbar in den Einstellungen) oder die Ring-Taste **Neuer Eintrag** neben der

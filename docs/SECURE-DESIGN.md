@@ -60,6 +60,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
 | G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com), 10e: Cover auf dem Deck (eigener Schalter, ≤ 144 px, Gnotchi skaliert) |
+| G61 | – (neu, 0.40.0) | Schnelleingabe: kein Kalenderzugriff für Gnotchi, Eintrag nur auf ↵ an das geprüfte Kalli, Kalli prüft selbst und löscht nur Frisches, Eingaben nie im Protokoll, Zeile nicht in Bildschirmfreigaben |
 | G60 | – (neu, 0.39.0) | Reiner Text per Kürzel: eigener Schalter ab Werk aus, nur echter Tastendruck, ⌘V über G42, Original nach 1 s zurück, vertrauliche Kopien nie zurück |
 
 ## Was Gnotchi ist und welche Macht es hat
@@ -1854,7 +1855,7 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
   (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.
 
-### G61 – Schnelleingabe: Eingabezeile in der Notch, gespeichert über Kalli (neu, 2026-11-19, unveröffentlicht)
+### G61 – Schnelleingabe: Eingabezeile in der Notch, gespeichert über Kalli (neu, 2026-11-19, 0.40.0)
 - **Anlass:** Michael, 19.11., nach Cupola (trycupola.com): „Können wir das bei uns einbauen?“ Sieben Entscheidungen
   per `/grill-me`, jede einzeln bestätigt; Spezifikation mit Testtabelle: `specs/2026-11-19-gnotchi-schnelleingabe.md`.
   Kalli-Seite: Kalli `docs/SECURE-DESIGN.md` K2.

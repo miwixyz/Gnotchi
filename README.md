@@ -102,11 +102,11 @@ Freigabe nicht und fragt nie danach.
 - **Zwischenablage (0.11, ab Werk aus):** Verlauf mit Suche in einer Seitenansicht am Rand (⌃<, Kürzel wählbar, rechts/links/unten), Kacheln in der großen Insel, Sammlungen, Angeheftetes, Titel. Dazu ein **Tresor** mit Touch ID und ein Import aus PastePal. ⇧ nimmt reinen Text. **Ab 0.12** fügen Doppelklick, ↵ und ⌘1–9 direkt in die vordere App ein. Das ⌘V drückt das Hilfsprogramm „Gnotchi Mitteilungen“ (nur mit eingeschalteten Mitteilungen), Gnotchi selbst bleibt ohne diese Freigabe. Ohne Hilfsprogramm wird nur kopiert. **Ab 0.13** erkennt Gnotchi kopierte API-Schlüssel und Tokens (rund 40 Dienste) und zeigt sie nur verdeckt. Lose Einträge sind 5 Minuten nach der letzten Nutzung weg, in Sammlungen wird nichts gelöscht. **Ab 0.14** klappt die Zwischenablage aus der Notch herunter (⌃<, nochmal ⌃< für die große Ansicht am Rand), mit Karten je Inhalt: Farbcodes als Farbfläche, Bilder randlos, Links mit Domain, Stern und Papierkorb beim Drüberfahren. **Ab 0.15** zeigt die Leertaste eine große Vorschau der markierten Karte. **Ab 0.27** ist Text in Bildern durchsuchbar (lokal, verschlüsselt, „Text aus Bild kopieren“), Angeheftetes steht im Verlauf oben, und die große Ansicht öffnet auf Wunsch am Mauszeiger. **Ab 0.39** fügt ⇧⌘V die aktuelle Kopie als reinen Text ein, danach kommt die Formatierung zurück (eigener Schalter, ab Werk aus).
 - **Nächster Termin aus [Kalli](https://github.com/miwixyz/Kalli) (0.5):** 15 Minuten vor Beginn
   mit Uhrzeit und Restzeit, ein Klick öffnet den Apple Kalender (ab Kalli 0.12.0).
-- **Schnelleingabe (nach 0.39, ab Werk aus):** control + option + N oder die Ring-Taste „Neuer Eintrag“
+- **Schnelleingabe (0.40, ab Werk aus):** control + option + N oder die Ring-Taste „Neuer Eintrag“
   öffnet eine Zeile unter der Notch. „Zahnarzt morgen 15 Uhr“ wird ein Termin, „Rechnung zahlen bis 30.11.“
   eine Erinnerung, mit mitlaufender Vorschau, Tab wechselt die Art, ⌘Z nimmt direkt danach zurück. Eigene
   deutsche Erkennung statt `NSDataDetector` (der lag bei 3 von 20 Sätzen ohne Warnung falsch). Gespeichert wird
-  über Kalli (nach 0.15.3), Gnotchi selbst hat keinen Kalenderzugriff.
+  über Kalli (ab 0.16.0), Gnotchi selbst hat keinen Kalenderzugriff.
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
   die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute. **Ab 0.19**
   steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“). **Ab 0.21** hat
