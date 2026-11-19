@@ -33,7 +33,7 @@ Zieht mit Kalli zusammen (Kalli schreibt, Gnotchi erkennt und zeigt).
    „bis <Datum>“ → immer Erinnerung. **Tab** wechselt die Art in der Vorschau. Symbol zeigt die Art.
 4. **Termin:** Standardkalender für neue Termine (Name + Farbpunkt in der Vorschau), Dauer 1 h,
    erkannt werden „bis 17 Uhr“, „2 Std“, „30 Min“. Kein eigener Alarm (Kalli-Vorlauf + Gnotchi-Insel
-   reichen). Kein Ort/Notiz/Teilnehmer. Kalender-Kürzel („@CINEWEB“) erst bei Bedarf.
+   reichen). Kein Ort/Notiz/Teilnehmer. Kalender-Kürzel („@Arbeit“) erst bei Bedarf.
    **Erinnerung:** wie Kalli heute (Standardliste, Alarm nur mit Uhrzeit, „!“ am Ende = dringend).
 5. **Uneindeutiges:** Uhrzeiten wörtlich im 24-h-Format („7 Uhr“ = 07:00, „halb drei“ = 02:30);
    „morgens/nachmittags/abends“ verschieben. Wochentag = heute → heute, wenn die Zeit noch kommt,
@@ -55,17 +55,17 @@ Zieht mit Kalli zusammen (Kalli schreibt, Gnotchi erkennt und zeigt).
 |---|---|---|---|
 | Zahnarzt Do 15 Uhr | Termin | Do 19.11. 15:00 | Zahnarzt |
 | Zahnarzt morgen um 15 Uhr | Termin | Fr 20.11. 15:00 | Zahnarzt |
-| Call mit Andrea übermorgen 9:30 | Termin | Sa 21.11. 09:30 | Call mit Andrea |
+| Call mit Lena übermorgen 9:30 | Termin | Sa 21.11. 09:30 | Call mit Lena |
 | Meeting am 3.12. um 14 Uhr | Termin | Do 03.12. 14:00 | Meeting |
 | Meeting am 3. Dezember 14:00 | Termin | Do 03.12. 14:00 | Meeting |
-| Kino BiiGZ Freitag 20 Uhr | Termin | Fr 20.11. 20:00 | Kino BiiGZ |
+| Kino mit Jonas Freitag 20 Uhr | Termin | Fr 20.11. 20:00 | Kino mit Jonas |
 | nächsten Montag Steuerberater 11 Uhr | Termin | Mo 23.11. 11:00 | Steuerberater |
 | heute 18 Uhr Sport | Termin | Do 19.11. 18:00 | Sport |
 | 9 Uhr Sport | Termin | Fr 20.11. 09:00 | Sport |
 | Müll rausbringen morgen früh | Erinnerung | Fr 20.11. (Vorschlag 08:00, offen) | Müll rausbringen |
 | Rechnung zahlen bis 30.11. | Erinnerung | Mo 30.11., ohne Uhrzeit | Rechnung zahlen |
-| in 2 Stunden Cati anrufen | Termin | Do 19.11. 16:30 | Cati anrufen |
-| erinnere mich in 2 Stunden Cati anzurufen | Erinnerung | Do 19.11. 16:30, Alarm | Cati anzurufen |
+| in 2 Stunden Tom anrufen | Termin | Do 19.11. 16:30 | Tom anrufen |
+| erinnere mich in 2 Stunden Tom anzurufen | Erinnerung | Do 19.11. 16:30, Alarm | Tom anzurufen |
 | in 3 Tagen Paket abholen | Erinnerung | So 22.11., ohne Uhrzeit | Paket abholen |
 | Mittwoch halb drei nachmittags Friseur | Termin | Mi 25.11. 14:30 | Friseur |
 | Mittwoch halb drei Friseur | Termin | Mi 25.11. **02:30** (wörtlich, Regel 5) | Friseur |

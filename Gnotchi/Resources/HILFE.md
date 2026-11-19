@@ -248,7 +248,7 @@ Kalli.
 großen Insel. Die Zeile klappt unter der Notch herunter.
 
 **Tippen:** zum Beispiel „Zahnarzt morgen 15 Uhr“, „Teams-Call 16:30 bis 17:15“, „Rechnung zahlen bis 30.11.“ oder
-„erinnere mich in 2 Stunden Cati anzurufen“. Darunter steht beim Tippen, was daraus wird: Art, Tag, Uhrzeit, Titel.
+„erinnere mich in 2 Stunden Tom anzurufen“. Darunter steht beim Tippen, was daraus wird: Art, Tag, Uhrzeit, Titel.
 
 - **Mit Uhrzeit** wird es ein **Termin** im Standardkalender, 1 Stunde lang. „bis 17 Uhr“, „2 Std“ oder „30 Min“
   ändern die Dauer.

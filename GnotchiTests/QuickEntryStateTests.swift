@@ -140,7 +140,7 @@ final class QuickEntryStateTests: XCTestCase {
         XCTAssertEqual(QuickEntryPreview.when(entry("Geburtstag Mama 12.01.2027"), now: now, calendar: calendar),
                        "Di 12.01.2027 · ganztägig")
         XCTAssertEqual(QuickEntryPreview.when(entry("Paket abholen"), now: now, calendar: calendar), "ohne Datum")
-        XCTAssertEqual(QuickEntryPreview.when(entry("erinnere mich in 2 Stunden Cati anzurufen"), now: now,
+        XCTAssertEqual(QuickEntryPreview.when(entry("erinnere mich in 2 Stunden Tom anzurufen"), now: now,
                                               calendar: calendar), "Do 19.11. · 16:30")
         XCTAssertEqual(QuickEntryPreview.kindLabel(entry("Paket abholen")), "Erinnerung")
     }
