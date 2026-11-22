@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.40.0</title>
-            <pubDate>Thu, 19 Nov 2026 17:50:19 +0100</pubDate>
+            <title>0.41.0</title>
+            <pubDate>Sun, 22 Nov 2026 13:17:55 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>281</sparkle:version>
-            <sparkle:shortVersionString>0.40.0</sparkle:shortVersionString>
+            <sparkle:version>283</sparkle:version>
+            <sparkle:shortVersionString>0.41.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Schnelleingabe: Termine und Erinnerungen in Alltagssprache.</b> Einschalten unter Einstellungen → Aktivitäten → „Schnelleingabe“ (ab Werk aus). control + option + N (änderbar) oder die Ring-Taste „Neuer Eintrag“ öffnet eine Zeile unter der Notch. Du tippst zum Beispiel „Zahnarzt morgen 15 Uhr“ oder „Rechnung zahlen bis 30.11.“, darunter siehst du beim Tippen, was daraus wird. Mit Uhrzeit wird es ein Termin (1 Stunde, „bis 17 Uhr“ oder „30 Min“ geht auch), sonst eine Erinnerung. „erinnere mich“ macht immer eine Erinnerung, „!“ am Ende macht sie dringend, Tab wechselt die Art. Uhrzeiten gelten wörtlich im 24-Stunden-Format („halb drei“ ist 02:30, „halb drei nachmittags“ 14:30), Uneindeutiges ist gelb mit „Prüfen“ markiert. ↵ speichert, danach steht kurz „Gespeichert · Rückgängig (⌘Z)“, dann geht die Zeile von selbst zu. Escape schließt ohne Speichern. Nur Deutsch.</li><li><b>Gespeichert wird über Kalli.</b> Gnotchi bekommt keinen Zugriff auf Kalender und Erinnerungen. Es schickt den Eintrag an Kalli, über dieselbe geprüfte Verbindung wie den nächsten Termin. Kalli prüft ihn selbst, legt ihn an und bestätigt erst, wenn er da ist. Läuft Kalli nicht oder antwortet es nicht, bleibt die Zeile offen und sagt das. Braucht Kalli ab 0.16.0.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.40.0/Gnotchi-0.40.0.zip" length="8600754" type="application/octet-stream" sparkle:edSignature="q7j26PaYLrDeIlcybE+6VXbjKTIY6YApMgZbFFYIX7ADkNsLRg0H57P12C1+MJf3wW7tkpXhFQH++FRWpGdfBQ=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Läuft gerade auf Tippis Schreibtischgerät.</b> Einschalten unter Einstellungen → Aktivitäten → „Tippi-Gerät“ (ab Werk aus) und den Schlüssel eintragen, der auch im Gerät steht. Gnotchi meldet dem Gerät im Heimnetz jede Sekunde Titel, Interpret und App, egal ob Spotify, Musik oder ein Video im Browser. Die Tasten am Gerät steuern die Wiedergabe (Zurück, Wiedergabe/Pause, Weiter) und die Lautstärke des Macs (Leiser, Stumm, Lauter). Unter dem Schalter steht, ob das Gerät erreichbar ist.</li><li><b>Sicher im Heimnetz.</b> Jede Meldung ist mit dem Schlüssel signiert, und Gnotchi führt eine Taste nur aus, wenn auch die Antwort des Geräts richtig signiert ist. Am Mac läuft dafür kein Server. Titel und Interpret gehen unverschlüsselt durchs WLAN, nur signiert: Wer im selben WLAN mitliest, sieht, was läuft.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.41.0/Gnotchi-0.41.0.zip" length="8619649" type="application/octet-stream" sparkle:edSignature="AIljfxHuRmNB6VOYwlrelK1MKh6e1xCTdbppDmwSdcVws0N+Jk9Ux6j42woTBwicYU+mxY8f8xXk8oWQUu5iCA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: wwpIjiNYRdsoevShPjHJZHESK0F7VoCfKrOjUG4x7uNae55XiKrC6Fp3adAMrOqTgjoXf7GrXAK2uFoU6BaGDw==
-length: 2531
+edSignature: gDV4WsU4vRQG57+6rDFEcCfEf94MLmm/OeoPJbr5ooBroL9JFjQgIJKxh2bpATgVze4lwMUrR3kx22kuUjJWBw==
+length: 2045
 -->
