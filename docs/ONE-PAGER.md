@@ -40,6 +40,8 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Diktierst du mit [Tippi](https://github.com/miwixyz/Tippi), steht in der Notch ein rotes
   Mikrofon mit dem Pegel deiner Stimme. Tippis eigene Anzeige bleibt dann weg. Mit Tippis
   Live-Vorschau klappt die Insel auf und zeigt die letzten zwei Zeilen, während du sprichst.
+- Hast du Tippis Schreibtischgerät, zeigt es, was gerade läuft, und seine Tasten steuern Musik und
+  Lautstärke am Mac. Das ist ab Werk aus.
 - Ein oranger Punkt heißt: Eine App nutzt das Mikrofon. Grün ist die Kamera. Welche App am
   Mikrofon hängt, siehst du, wenn du mit der Maus darüberfährst.
 - Kopfhörer verbunden? Die Notch zeigt drei Sekunden lang ihren Namen.

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.41.0] — 2026-11-22
+
+### Neu
+- **Läuft gerade auf Tippis Schreibtischgerät.** Einschalten unter Einstellungen → Aktivitäten → „Tippi-Gerät“ (ab Werk aus) und den Schlüssel eintragen, der auch im Gerät steht. Gnotchi meldet dem Gerät im Heimnetz jede Sekunde Titel, Interpret und App, egal ob Spotify, Musik oder ein Video im Browser. Die Tasten am Gerät steuern die Wiedergabe (Zurück, Wiedergabe/Pause, Weiter) und die Lautstärke des Macs (Leiser, Stumm, Lauter). Unter dem Schalter steht, ob das Gerät erreichbar ist.
+- **Sicher im Heimnetz.** Jede Meldung ist mit dem Schlüssel signiert, und Gnotchi führt eine Taste nur aus, wenn auch die Antwort des Geräts richtig signiert ist. Am Mac läuft dafür kein Server. Titel und Interpret gehen unverschlüsselt durchs WLAN, nur signiert: Wer im selben WLAN mitliest, sieht, was läuft.
+
 ## [0.40.0] — 2026-11-19
 
 ### Neu

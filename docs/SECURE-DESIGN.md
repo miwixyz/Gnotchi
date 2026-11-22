@@ -1855,6 +1855,31 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
   (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.
 
+### G62 – „Läuft gerade“ an Tippis Schreibtischgerät (neu, 2026-11-22, 0.41.0)
+- **Anlass:** Michael, 22.11.: „Now Playing Widget mit Spotify, Music, YouTube“, dann „Ja, bau das mit Gnotchi so“.
+  Geräteseite: tippi-firmware `SICHERHEIT.md`, „Entwurf 0.10“ (privates Repo).
+- **Datenfluss:** `TippiDeviceLink` (Schalter `tippiDevice`, ab Werk aus) → jede Sekunde `POST http://<IPv4 von
+  tippi.local>/jetzt` mit `{"t","a","q","s"}` (Titel ≤ 80, Interpret ≤ 60, App-Name ≤ 24, spielt 0/1). Header
+  `x-tippi-zeit` (Unix-Sekunden, strikt steigend) und `x-tippi-sig` = HMAC-SHA256(Schlüssel, zeit + "\n" + body).
+- **Tasten zurück nur signiert:** Antwort `{"k":[…]}`, Header `x-tippi-sig` = HMAC über zeit + "\n" + Antwort.
+  `TippiDevice.commands` vergleicht laufzeitgleich, nimmt höchstens 4 Einträge und nur `prev`, `toggle`, `next`,
+  `lauter`, `leiser`, `stumm`. Wiedergabe über dieselben Wege wie die Insel, Lautstärke über das Standard-Ausgabegerät
+  (Schritt 1/16). Antwort nach dem Ausschalten wird verworfen.
+- **Schlüssel:** eigener Schlüsselbund-Eintrag `dev.mwlr.gnotchi.tippigeraet`, nicht synchronisiert, nur Eingabe,
+  nie Anzeige. Keine Weiterleitungen (Schlüssel bleibt beim Gerät), Zeitlimit 2 s, eine Anfrage zur Zeit.
+- **Netz:** nur das lokale Netz; `NSLocalNetworkUsageDescription` und `NSAllowsLocalNetworking` in der Info.plist,
+  keine neuen Entitlements. `.local` nur über IPv4 aufgelöst (sonst ~5 s Wartezeit auf IPv6, gemessen 22.11.).
+- **STRIDE:**
+  - *S:* Ein vorgetäuschtes `tippi.local` kann ohne Schlüssel weder Meldungen annehmen noch Tasten auslösen.
+  - *T:* Signatur über Zeit und Inhalt in beide Richtungen; feste Befehlsliste.
+  - *R:* Protokoll nur bei geändertem Ergebnis (Statuscode) und je ausgeführter Taste, nie Titel.
+  - *I:* **Titel, Interpret, App gehen unverschlüsselt durchs Heimnetz** (bewusst, TLS auf dem Gerät zu teuer).
+    Im README und in der Hilfe genannt.
+  - *D:* Ein Gerät, das nicht antwortet, kostet eine Namensauflösung je Sekunde; Gnotchi wartet höchstens 2 s.
+  - *E:* Höchstens Wiedergabe und Lautstärke, sonst nichts.
+- **Restrisiko:** Wer den Schlüssel aus dem Gerät liest (physischer Zugriff), kann die Wiedergabe und Lautstärke am
+  Mac steuern, solange Gnotchi meldet.
+
 ### G61 – Schnelleingabe: Eingabezeile in der Notch, gespeichert über Kalli (neu, 2026-11-19, 0.40.0)
 - **Anlass:** Michael, 19.11., nach Cupola (trycupola.com): „Können wir das bei uns einbauen?“ Sieben Entscheidungen
   per `/grill-me`, jede einzeln bestätigt; Spezifikation mit Testtabelle: `specs/2026-11-19-gnotchi-schnelleingabe.md`.

@@ -27,6 +27,7 @@ final class Preferences {
         static let tippiRecording = "tippiRecording"
         /// Qotti liest diesen Schlüssel (CFPreferences, Domäne dev.mwlr.gnotchi) – nicht umbenennen.
         static let qottiQuota = "qottiQuota"
+        static let tippiDevice = "tippiDevice"
         /// 0.4.0 Live-Aktivitäten.
         static let liveRotation = "liveRotation"
         static let headphoneActivity = "headphoneActivity"
@@ -159,6 +160,8 @@ final class Preferences {
 
     /// Qotti-Kontingent: Warnung bei 80/95 %/Drosselung, Zeile in der großen Insel (0.3.0). Ab Werk an.
     var qottiQuota: Bool { didSet { defaults.set(qottiQuota, forKey: Key.qottiQuota) } }
+    /// 0.41.0 (G62): „Läuft gerade“ an Tippis Schreibtischgerät, ab Werk aus.
+    var tippiDevice: Bool { didSet { defaults.set(tippiDevice, forKey: Key.tippiDevice) } }
 
     /// Kleine Insel wechselt alle 4 s zwischen den Aktivitäten (0.4.0). Aus = immer die erste. Ab Werk an.
     var liveRotation: Bool { didSet { defaults.set(liveRotation, forKey: Key.liveRotation) } }
@@ -369,6 +372,7 @@ final class Preferences {
         micCamera = defaults.object(forKey: Key.micCamera) as? Bool ?? true
         tippiRecording = defaults.object(forKey: Key.tippiRecording) as? Bool ?? true
         qottiQuota = defaults.object(forKey: Key.qottiQuota) as? Bool ?? true
+        tippiDevice = defaults.object(forKey: Key.tippiDevice) as? Bool ?? false
         liveRotation = defaults.object(forKey: Key.liveRotation) as? Bool ?? true
         headphoneActivity = defaults.object(forKey: Key.headphoneActivity) as? Bool ?? true
         familyUpdates = defaults.object(forKey: Key.familyUpdates) as? Bool ?? true

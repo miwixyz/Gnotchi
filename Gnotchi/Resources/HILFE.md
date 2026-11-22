@@ -207,6 +207,16 @@ offen, bleibt sie offen und die Warnung entfällt. In der großen Insel steht ü
 
 Das klappt ab Qotti 1.5.0.
 
+## Tippi-Gerät
+
+Hast du Tippis Schreibtischgerät (ESP32 mit Tippi-Firmware ab 0.10), zeigt es auf der Seite „Musik“,
+was gerade läuft: Titel, Interpret und App. Die Tasten dort steuern die Wiedergabe und die Lautstärke des
+Macs. Einschalten unter Einstellungen → Aktivitäten → „Tippi-Gerät“, dann den Schlüssel eintragen, der
+auch im Gerät steht, und „Speichern“. Darunter steht, ob das Gerät erreichbar ist („Verbunden“).
+Gnotchi meldet jede Sekunde, eine Taste am Gerät wirkt also nach höchstens einer Sekunde. Beim ersten
+Senden fragt macOS nach dem Zugriff aufs lokale Netzwerk. Titel und Interpret gehen im Heimnetz
+unverschlüsselt, aber signiert.
+
 ## Große Insel
 
 Fährst du mit der Maus auf die kleine Insel, klappt sie auf. Groß zeigt sie **eine Sache**: dieselbe, die

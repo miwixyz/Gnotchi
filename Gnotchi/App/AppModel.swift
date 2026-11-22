@@ -294,6 +294,8 @@ extension AppModel {
         (kalli.map { [NotchFeature(part: $0) { $0.kalliEvents || $0.quickEntry }] } ?? [])
             + (kalli.map { [NotchFeature(part: QuickEntryLink(activity: activity, prefs: prefs, kalli: $0)) { $0.quickEntry }] } ?? [])
             + (awake.map { [NotchFeature(part: $0) { _ in true }] } ?? [])
+            // 0.41.0 (G62): „Läuft gerade“ an Tippis Schreibtischgerät im Heimnetz, signiert, ab Werk aus.
+            + [NotchFeature(part: TippiDeviceLink(media: activity.media)) { $0.tippiDevice }]
     }
 }
 

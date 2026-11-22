@@ -229,6 +229,12 @@ extension SettingsView {
             toggleRow("Updates der App-Familie", isOn: $prefs.familyUpdates)
                 .onChange(of: prefs.familyUpdates) { model.applyNotchSetting() }
         }
+        // G62: „Läuft gerade“ an Tippis Schreibtischgerät, ab Werk aus.
+        card("Tippi-Gerät") {
+            toggleRow("Läuft gerade an Tippis Schreibtischgerät", isOn: $prefs.tippiDevice)
+                .onChange(of: prefs.tippiDevice) { model.applyNotchSetting() }
+            if prefs.tippiDevice { TippiDeviceKeyRow { model.applyNotchSetting() } }
+        }
         // G61: Schnelleingabe, ab Werk aus. Gespeichert wird über Kalli, Gnotchi hat keinen Kalenderzugriff.
         card("Schnelleingabe") {
             toggleRow("Termine und Erinnerungen per Kürzel anlegen", isOn: $prefs.quickEntry)

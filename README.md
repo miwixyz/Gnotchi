@@ -178,6 +178,8 @@ Freigabe nicht und fragt nie danach.
 - **Qotti-Kontingent:** Kurze Warnung, wenn das 5-Stunden-Limit von Claude oder Codex 80 % und 95 %
   erreicht oder Claude drosselt; in der großen Insel „Claude 42 % · Codex 17 %“ über der Musik, im Band daneben
   (ab Qotti 1.5.0).
+- **Tippi-Gerät (ab 0.41.0, ab Werk aus):** Tippis Schreibtischgerät zeigt, was läuft, und seine Tasten
+  steuern Wiedergabe und Lautstärke des Macs. Signierte Meldungen im Heimnetz, am Mac läuft kein Server.
 - **Live-Aktivitäten:** Läuft mehr als eine Sache gleichzeitig, wechselt die kleine Insel alle
   4 Sekunden zwischen Musik, Kopfhörern, Claude und Updates. Mit der Maus darauf bleibt sie stehen.
   Tippi-Aufnahme und kurze Hinweise haben Vorrang.
@@ -268,6 +270,9 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   gespeichert noch protokolliert ([G21](docs/SECURE-DESIGN.md)).
 - **Qotti:** nur Prozente, Zeitpunkt der Zurücksetzung und Zustand über die Systemmeldungen, nie
   Konto, E-Mail oder Plan; Qotti sendet nur, solange ein signiertes Gnotchi läuft ([G22](docs/SECURE-DESIGN.md)).
+- **Tippi-Gerät:** ab Werk aus. Eingeschaltet gehen Titel, Interpret und App-Name jede Sekunde an
+  `tippi.local` im Heimnetz, per HTTP und mit HMAC-SHA256 signiert, aber **nicht verschlüsselt**. Tasten
+  führt Gnotchi nur aus einer signierten Antwort aus, aus einer festen Liste ([G62](docs/SECURE-DESIGN.md)).
 - **Updates der App-Familie:** Die Meldung enthält nur das Kürzel der App und die Versionsnummer
   ([G23](docs/SECURE-DESIGN.md)). Auf deinen Klick öffnet Gnotchi nur die echte App, nachdem es ihre
   Signatur geprüft hat ([G24](docs/SECURE-DESIGN.md)).

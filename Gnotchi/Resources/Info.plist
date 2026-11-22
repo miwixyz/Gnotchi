@@ -27,6 +27,13 @@
 	<true/>
 	<!-- AppleScript-Rückfall (docs/SECURE-DESIGN.md G7): nur Spotify und Musik, feste Skripte.
 	     macOS zeigt diesen Text, wenn Gnotchi zum ersten Mal eine der beiden Apps steuert. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Gnotchi kann anzeigen, was gerade läuft, auf Tippis Schreibtischgerät in deinem Heimnetz. Gesendet werden nur Titel, Interpret und App.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Gnotchi steuert Spotify und Musik in der Notch, wenn macOS den systemweiten Zugriff sperrt.</string>
 	<!-- Spiegel (docs/SECURE-DESIGN.md G27): macOS zeigt diesen Text beim ersten Klick auf „Spiegel“. -->
