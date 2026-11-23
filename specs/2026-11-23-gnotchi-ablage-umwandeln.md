@@ -60,12 +60,14 @@ Zwei Wege, **sie schließen sich nicht aus**:
 **Frage an Michael:** reicht A, oder soll Gnotchi überhaupt beliebige Ordner beobachten (Downloads, Fotos-Export, Scans)? Sagt er „reicht A“,
 entfällt B.
 
-## Entscheidungen (offen, Michael)
+## Entscheidungen (Michael, 23.11.)
 
-1. Welche Umwandlungen zuerst? Vorschlag: **Bild verkleinern**, **Bildformat**, **zu PDF**; Video erst nach Messung.
-2. Ziel der Ergebnisse: **Downloads** (wie ZIP) oder **neben dem Original**? Vorschlag: Downloads, einheitlich mit ZIP.
-3. A (Knippi markiert Fotos), B (überwachte Ordner) oder beides?
-4. Schalter ab Werk: Umwandeln **an** (nur auf Klick, keine Hintergrundarbeit); überwachte Ordner **leer**.
+1. **Umfang 0.43.0:** Bild verkleinern, Bildformat ändern, zu einem PDF zusammenfügen. **Video erst nach Messung** an echten Dateien (eigene Stufe).
+2. **Ziel:** **Downloads**, einheitlich mit ZIP; das Ergebnis liegt danach auch in der Ablage.
+3. **Überwachte Ordner (B): entfällt.** Knippi 0.5.4 markiert seine Fotos als Bildschirmfoto, Ende zu Ende am echten Gerät bestätigt (23.11.). Idee A ist erledigt.
+4. **Ortsdaten beim Verkleinern ab Werk entfernen** (Schalter, abschaltbar). Umwandeln selbst läuft nur auf Klick, keine Hintergrundarbeit.
+
+**Nächster Schritt:** Messung an Michaels echten Dateien (siehe „Vor dem Bau messen“), dann Sicherheitsentwurf G63 ausarbeiten, dann bauen. Nummer 0.43.0 bei Baubeginn bestätigen.
 
 ## Sicherheitsentwurf G63 – Umwandeln fremder Dateien (Skizze, vor dem Bau auszuarbeiten)
 
@@ -80,8 +82,8 @@ Dateien** · Schreiben nach Downloads · (B) Ordner → neue Einträge.
 - **Quarantäne-Merkmal** vom Original auf das Ergebnis übertragen (`ShelfZip.copyQuarantine`).
 - **Ortsdaten:** Beim Verkleinern ab Werk entfernen, damit ein Foto, das zum Teilen verkleinert wird, nicht den Aufnahmeort mitgibt.
 - **Fehler sichtbar:** kein stilles Weglassen; „3 von 4 umgewandelt, 1 fehlgeschlagen: Name“.
-- (B) **Überwachte Ordner:** nur Lesen, nie ändern oder löschen; macOS fragt bei geschützten Ordnern selbst nach Freigabe, Gnotchi
-  fragt nicht nach Vollzugriff; Pfad aus Knippis `exportLocation` wird nur als Vorschlag angezeigt, nie ungefragt übernommen.
+- ~~(B) **Überwachte Ordner:** nur Lesen, nie ändern oder löschen; macOS fragt bei geschützten Ordnern selbst nach Freigabe, Gnotchi
+  fragt nicht nach Vollzugriff; Pfad aus Knippis `exportLocation` wird nur als Vorschlag angezeigt, nie ungefragt übernommen.~~ (entfällt, siehe Entscheidung 3)
 
 ## Testfälle (Skizze)
 
@@ -92,7 +94,7 @@ Dateien** · Schreiben nach Downloads · (B) Ordner → neue Einträge.
 5. Drei Bilder + ein PDF → ein PDF: Seitenzahl und Reihenfolge.
 6. Defekte, leere und zu große Datei: sichtbare Meldung, Rest läuft weiter.
 7. Symbolischer Link in der Auswahl: übersprungen und gemeldet.
-8. (B) Neue Datei im überwachten Ordner erscheint genau einmal in der Ablage, auch wenn 0.10.0 sie schon kennt.
+8. ~~(B) überwachte Ordner~~ (entfällt).
 
 ## Umfang
 
