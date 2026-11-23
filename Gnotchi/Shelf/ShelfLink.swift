@@ -56,6 +56,8 @@ final class ShelfLink: NotchPart {
     /// Nimmt abgelaufene Bildschirmfotos aus der Ablage (0.16.0), solange die Ablage läuft.
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
     nonisolated static let expiryInterval: Duration = .seconds(30)
+    /// So lange gilt „Rückgängig“ (Hinweis 6 s plus Puffer); danach werden eigene Kopien gelöscht.
+    nonisolated static let undoWindow: Duration = .seconds(8)
     @ObservationIgnored private let promiseQueue: OperationQueue = {
         let q = OperationQueue()
         q.qualityOfService = .userInitiated
@@ -302,6 +304,13 @@ final class ShelfLink: NotchPart {
         guard !items.isEmpty else { return }
         lastRemoved = items
         publish()
+        // Nach der Frist (Hinweis ~6 s) die eigenen Kopien wirklich löschen, wie vor 0.42 beim Entfernen.
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: Self.undoWindow)
+            guard let self else { return }
+            self.store.discardKept(items)
+            if self.lastRemoved == items { self.lastRemoved = [] }
+        }
         activity.post(.init(symbol: "tray.fill", title: "Entfernt", subtitle: items.count == 1 ? "1 Eintrag" : "\(items.count) Einträge",
                             action: .undoShelf))
     }

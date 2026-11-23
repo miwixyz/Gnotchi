@@ -84,6 +84,26 @@ final class ShelfSelectionUndoTests: XCTestCase {
         XCTAssertEqual(f.store.items.count, 3)
     }
 
+    /// Entfernte eigene Kopien (Dateiversprechen) bleiben nur für die Rückgängig-Frist auf der Platte.
+    func testOwnCopyIsDeletedAfterUndoWindowButKeptByUndo() throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("gnotchi-copy-\(UUID().uuidString.prefix(6))")
+        let store = ShelfStore(directory: dir)
+        let folder = try XCTUnwrap(store.newCopyFolder())
+        let file = folder.appendingPathComponent("anhang.txt")
+        FileManager.default.createFile(atPath: file.path, contents: Data("x".utf8))
+        store.release(folder)
+        XCTAssertEqual(store.add([file]), 1)
+        let item = store.items[0]
+        let gone = store.removeKeepingCopies([item.id])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file.path), "für Rückgängig noch da")
+        store.restore(gone)                       // Rückgängig → bleibt
+        store.discardKept(gone)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file.path))
+        let gone2 = store.removeKeepingCopies([item.id])
+        store.discardKept(gone2)                  // Frist um → weg
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+    }
+
     func testSelectionIsPrunedWhenItemsDisappear() {
         let f = makeLink()
         f.link.click([f.store.items[0]], modifiers: .shift)

@@ -163,6 +163,17 @@ final class ShelfStore {
         return gone
     }
 
+    /// Nach Ablauf der Rückgängig-Frist (0.42): eigene Kopien der entfernten Einträge freigeben und aufräumen – sonst
+    /// blieben sie bis zum nächsten Start auf der Platte, obwohl der Nutzer sie entfernt hat. Wieder abgelegte
+    /// (Rückgängig) bleiben, weil `cleanCopies` benutzte Ordner auslässt.
+    func discardKept(_ gone: [Item]) {
+        guard let copies else { return }
+        for item in gone {
+            if let url = resolve(item), let folder = Self.copyFolder(of: url, in: copies) { pending.remove(folder.lastPathComponent) }
+        }
+        cleanCopies()
+    }
+
     /// „Zurückholen“ (0.18): rausgezogene Einträge unverändert zurück, ihre eigenen Kopien gelten wieder als benutzt.
     /// Schon wieder vorhandene Einträge und alles über der Höchstzahl bleiben draußen.
     func restore(_ restored: [Item]) {
