@@ -1860,7 +1860,7 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
 - **Nur Systemdecoder im Prozess** (ImageIO, PDFKit), keine Shell, kein ffmpeg, keine Argumente aus Dateinamen. Dateiname des Ergebnisses aus dem Original, über `ShelfZip.safeComponent` gesäubert.
 - **Grenzen je Datei:** kein symbolischer Link (`lstat`), kein Ordner, nicht leer, ≤ 200 MB, ≤ 400 Megapixel (sonst abgelehnt, ohne zu öffnen), PDF ≤ 500 Seiten, Bild auf PDF-Seite ≤ 2480 px, passwortgeschützte PDF abgelehnt. Gemessen: 16000×16000-PNG 68 MB Speicherspitze (ImageIO liest gestreift), zehn Bilder nacheinander 130 MB.
 - **Ortsdaten:** Umwandeln läuft immer über das Vorschaubild (trägt weder Ort noch Kamera, Ausrichtung eingerechnet). Ab Werk bleibt es so (`shelfStripLocation` an); aus = übrige Angaben werden übernommen (Maße und Ausrichtung nie).
-- **Abbruch und Fehler:** Abbrechen räumt die Hilfsdatei weg (Test); jede Datei meldet ihren Grund, die übrigen laufen weiter („Nicht umgewandelt“/„N umgewandelt“ mit erstem Grund). Protokoll nur Zahlen, nie Namen.
+- **Abbruch und Fehler:** Abbrechen räumt die Hilfsdatei weg (Test); Hilfsdateien eines abgestürzten Laufs (älter als 1 Stunde, eigener Name, eigene Datei) räumt der nächste Lauf weg (Audit 23.11.); jede Datei meldet ihren Grund, die übrigen laufen weiter („Nicht umgewandelt“/„N umgewandelt“ mit erstem Grund). Protokoll nur Zahlen, nie Namen.
 - **Quarantäne-Merkmal** der Quellen wird aufs Ergebnis übertragen (`ShelfZip.copyQuarantine`). Ein Ergebnis kann so nie „sauberer“ sein als sein Original.
 - **Restrisiko:** ImageIO/PDFKit lesen fremde Dateien im Prozess (wie G64); ein bösartiges Bild kann den Prozess zum Absturz bringen. Video ist nicht Teil von 0.43.0.
 

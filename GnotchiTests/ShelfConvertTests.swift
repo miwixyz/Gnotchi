@@ -147,6 +147,19 @@ final class ShelfConvertTests: XCTestCase {
         XCTAssertEqual((try? FileManager.default.contentsOfDirectory(atPath: out.path))?.count, 0)
     }
 
+    func testStaleTempFilesAreSweptButFreshAndForeignOnesStay() throws {
+        let old = out.appendingPathComponent(".gnotchi-umwandeln-alt00000.tmp")
+        let fresh = out.appendingPathComponent(".gnotchi-umwandeln-neu00000.tmp")
+        let foreign = out.appendingPathComponent(".andere-datei.tmp")
+        for u in [old, fresh, foreign] { try Data("x".utf8).write(to: u) }
+        ShelfConvert.sweepStaleTemps(in: out, now: Date().addingTimeInterval(7_200))   // zwei Stunden später
+        XCTAssertFalse(FileManager.default.fileExists(atPath: old.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: foreign.path), "fremde Dateien bleiben")
+        try Data("x".utf8).write(to: fresh)
+        ShelfConvert.sweepStaleTemps(in: out)   // jetzt: frisch → bleibt
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fresh.path))
+    }
+
     func testQuarantineIsCarriedOver() throws {
         let src = make("q.png", .png, width: 100, height: 100)
         let value = "0083;5f5e1000;Test;"

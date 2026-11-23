@@ -66,6 +66,7 @@ enum ShelfConvert {
     // MARK: Einstieg
 
     nonisolated static func run(_ kind: Kind, sources: [URL], in ctx: Context) -> Outcome {
+        sweepStaleTemps(in: ctx.directory)
         if kind == .pdf { return mergePDF(sources, ctx) }
         var outcome = Outcome()
         for src in sources {
@@ -267,6 +268,20 @@ enum ShelfConvert {
         }
         discard(temp)
         return .failure(.writeFailed)
+    }
+
+    /// Hilfsdateien eines abgestürzten früheren Laufs (versteckt, `.gnotchi-umwandeln-….tmp`, älter als eine Stunde)
+    /// wegräumen – sonst blieben sie für immer im Zielordner.
+    nonisolated static func sweepStaleTemps(in directory: URL, olderThan age: TimeInterval = 3_600, now: Date = Date()) {
+        let fm = FileManager.default
+        guard let names = try? fm.contentsOfDirectory(atPath: directory.path) else { return }
+        for name in names where name.hasPrefix(".gnotchi-umwandeln-") && name.hasSuffix(".tmp") {
+            let url = directory.appendingPathComponent(name)
+            var st = stat()
+            guard lstat(url.path, &st) == 0, (st.st_mode & S_IFMT) == S_IFREG, st.st_uid == getuid(),
+                  now.timeIntervalSince1970 - Double(st.st_mtimespec.tv_sec) > age else { continue }
+            discard(url)
+        }
     }
 
     nonisolated private static func discard(_ url: URL) { try? FileManager.default.removeItem(at: url) }
