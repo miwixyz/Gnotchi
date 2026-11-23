@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.42.0] — 2026-11-23
 
 ### Neu
 - **Größere Vorschau in der Ablage.** Ruht der Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel, erscheint die Datei groß in einem eigenen Fenster direkt unter der Insel (bis 760 × 560 Punkte, bei PDFs die erste Seite). Wegbewegen schließt sie. Einstellungen → Dateiablage → „Vorschau beim Überfahren“ (ab Werk an). Das Fenster nimmt weder Maus noch Tasten an und ist nie in einer Bildschirmfreigabe oder -aufnahme sichtbar. Bilder über 400 Megapixel und Dateien über 200 MB werden nicht geöffnet, die Kachel bleibt dann wie sie ist. Stapel, Ordner und andere Dateitypen haben keine Vorschau.
