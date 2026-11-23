@@ -8,8 +8,8 @@ Stand 2026-11-23 (Mac mini). Entwurf, **noch kein Code, keine Entscheidung gefal
 
 In `specs/` ist **0.6.0 = Mitteilungen und Anrufe**. Die **Dateiablage ist seit 0.8.0 gebaut** (`specs/2026-10-22-gnotchi-0.8.0-ablage.md`,
 Sicherheitsentwurf G32), die Zeile „0.6.0 Dateiablage“ im Fahrplan vom 21.10. ist überholt. Gnotchi steht bei **0.41.0**
-(CHANGELOG, 22.11.). Dieser Entwurf erweitert die bestehende Ablage und bekommt die **nächste freie Stufe**, bei Baubeginn
-festlegen (heute 0.42.0).
+(CHANGELOG, 22.11.). Dieser Entwurf erweitert die bestehende Ablage und bekommt die **nächste freie Stufe nach dem Feinschliff**
+(`2026-11-23-gnotchi-ablage-feinschliff.md`, Vorschlag 0.42.0): also **0.43.0**, bei Baubeginn festlegen.
 
 ## Stand der Ablage (gemessen im Code, 23.11.)
 
