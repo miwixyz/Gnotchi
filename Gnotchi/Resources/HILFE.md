@@ -367,6 +367,7 @@ Space und ziehst sie dort wieder heraus.
   ab zwei Dateien.
 - **Vorschau (ab 0.42):** Lass den Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel ruhen, dann zeigt Gnotchi
   die Datei groß unter der Insel. Wegbewegen schließt sie. Unter Einstellungen → Dateiablage → „Vorschau beim Überfahren“ abschaltbar.
+- **Umwandeln (ab 0.43):** Unten **„Umwandeln“** (oder Rechtsklick → Umwandeln): Bilder **verkleinern** (2048, 1280, 800 Pixel), in **JPEG, PNG oder HEIC** wandeln oder mit **„Zu einem PDF zusammenfügen“** Bilder und PDFs in einer Datei sammeln. Gilt für die Auswahl, sonst für alle. Das Ergebnis liegt als neue Datei in Downloads und danach auch in der Ablage; dein Original bleibt, nichts wird überschrieben. Orts- und Kameradaten werden dabei entfernt (abschaltbar unter Einstellungen → Dateiablage). Wichtig: HEIC nach JPEG in voller Größe macht die Datei **größer**; zum Platzsparen **verkleinern**.
 - **Mehrfachauswahl (ab 0.42):** Mit Umschalt- oder Befehlstaste auf Kacheln klicken wählt sie (blauer Rand), noch einmal klicken nimmt sie
   heraus, ein normaler Klick hebt alles auf. Teilen, AirDrop, ZIP und „Alle ziehen“ gelten dann nur für die Auswahl.
 - **Rückgängig (ab 0.42):** Nach Entfernen oder Leeren steht kurz „Entfernt“ mit **„Rückgängig“**.

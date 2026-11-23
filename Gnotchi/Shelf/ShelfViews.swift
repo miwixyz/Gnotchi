@@ -78,6 +78,8 @@ struct ShelfBig: View {
     let items: [ShelfStore.Item]
     let link: ShelfLink
     @State private var anchor = ShelfPreviewAnchor()
+    /// Erklärung zum Knopf unter dem Zeiger: Die Hinweisblasen des Systems erscheinen im nie aktiven Insel-Fenster nicht.
+    @State private var hint: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -98,16 +100,32 @@ struct ShelfBig: View {
                     ShareLink(items: link.urls()) { bar("square.and.arrow.up", "Teilen") }.buttonStyle(.plain)
                     Button { link.airDrop(link.urls()) } label: { bar("airplayaudio", "AirDrop") }.buttonStyle(.plain)
                     Button { link.zip(password: false) } label: { bar("doc.zipper", "ZIP") }.buttonStyle(.plain)
-                    Button { link.zip(password: true) } label: { bar("lock.doc", "ZIP mit Passwort") }.buttonStyle(.plain)
+                    Button { link.zip(password: true) } label: {
+                        bar("lock.doc", "ZIP mit Passwort", iconOnly: true, help: "ZIP mit Passwort (AES-256) packen")
+                    }
+                    .buttonStyle(.plain)
+                    convertMenu
                 } else {
                     ProgressView().controlSize(.small)
-                    Text(verbatim: "Packt …").font(.system(size: 12, weight: .medium))
+                    Text(verbatim: link.converting ? "Wandelt um …" : "Packt …").font(.system(size: 12, weight: .medium))
+                    if link.converting {
+                        Button { link.cancelConvert() } label: { bar("xmark.circle", "Abbrechen") }.buttonStyle(.plain)
+                    }
                 }
                 Spacer(minLength: 0)
                 Button { link.clear() } label: { bar("trash", "Leeren") }.buttonStyle(.plain)
             }
         }
         .foregroundStyle(.white)
+        .overlay(alignment: .bottomLeading) {
+            if let hint {
+                Text(verbatim: hint).font(.system(size: 11, weight: .medium)).lineLimit(2)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(Capsule().fill(.black.opacity(0.85)))
+                    .overlay(Capsule().strokeBorder(.white.opacity(0.25)))
+                    .offset(y: -34).allowsHitTesting(false).transition(.opacity)
+            }
+        }
         .background(ShelfPreviewAnchor.Reader(anchor: anchor))
         .onDisappear { anchor.show(nil); link.clearSelection() }
     }
@@ -135,16 +153,38 @@ struct ShelfBig: View {
         }
     }
 
-    private func bar(_ symbol: String, _ title: String) -> some View {
+    /// Umwandeln (G63): Bild verkleinern, Format, zu PDF – wirkt auf die Auswahl, sonst auf alle.
+    private var convertMenu: some View {
+        Menu {
+            ForEach(ShelfConvert.shrinkSides, id: \.self) { side in
+                Button("Verkleinern auf \(side) px") { link.convert(.shrink(longSide: side)) }
+            }
+            Divider()
+            ForEach(ShelfConvert.Format.allCases, id: \.self) { f in
+                Button("In \(f.title) umwandeln") { link.convert(.format(f)) }
+            }
+            Divider()
+            Button("Zu einem PDF zusammenfügen") { link.convert(.pdf) }
+        } label: {
+            bar("arrow.triangle.2.circlepath", "Umwandeln",
+                help: "Umwandeln: Bilder verkleinern, in JPEG/PNG/HEIC wandeln oder zu einem PDF zusammenfügen – "
+                    + (link.selected.isEmpty ? "für alle Dateien der Ablage" : "für die gewählten Dateien"))
+        }
+        .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+        .help("Umwandeln: Bilder verkleinern, in JPEG/PNG/HEIC wandeln oder zu einem PDF zusammenfügen")
+    }
+
+    private func bar(_ symbol: String, _ title: String, iconOnly: Bool = false, help: String? = nil) -> some View {
         HStack(spacing: 4) {
             Image(systemName: symbol).font(.system(size: 12, weight: .semibold))
             // Mit Auswahl nur Symbole: sonst ist die Leiste breiter als die Insel und der Inhalt rutscht (0.42).
-            if link.selected.isEmpty { Text(verbatim: title).font(.system(size: 12, weight: .medium)).lineLimit(1) }
+            if link.selected.isEmpty && !iconOnly { Text(verbatim: title).font(.system(size: 12, weight: .medium)).lineLimit(1) }
         }
-        .padding(.horizontal, link.selected.isEmpty ? 10 : 8).padding(.vertical, 5)
+        .padding(.horizontal, link.selected.isEmpty && !iconOnly ? 10 : 8).padding(.vertical, 5)
         .background(Capsule().fill(.white.opacity(0.14)))
         .contentShape(Capsule())
-        .help(title)
+        .help(help ?? title)
+        .onHover { inside in hint = inside ? (help ?? title) : nil }
     }
 }
 

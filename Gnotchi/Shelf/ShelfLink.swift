@@ -46,12 +46,12 @@ final class PromiseBatch {
 @Observable
 final class ShelfLink: NotchPart {
 
-    @ObservationIgnored private static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "ablage")
+    @ObservationIgnored static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "ablage")
 
-    @ObservationIgnored private let activity: ActivityModel
-    @ObservationIgnored private let prefs: Preferences
+    @ObservationIgnored let activity: ActivityModel
+    @ObservationIgnored let prefs: Preferences
     var previewEnabled: Bool { prefs.shelfPreview }
-    @ObservationIgnored private let store: ShelfStore
+    @ObservationIgnored let store: ShelfStore
     @ObservationIgnored private var watcher: DragWatcher?
     /// Nimmt abgelaufene Bildschirmfotos aus der Ablage (0.16.0), solange die Ablage läuft.
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
@@ -64,7 +64,7 @@ final class ShelfLink: NotchPart {
         return q
     }()
     /// ZIP wird gerade gepackt.
-    private(set) var busy = false
+    var busy = false
 
     init(activity: ActivityModel, prefs: Preferences, store: ShelfStore = ShelfStore()) {
         self.activity = activity
@@ -370,7 +370,7 @@ final class ShelfLink: NotchPart {
         publish()
     }
 
-    private func publish() {
+    func publish() {
         let ids = Set(store.items.map(\.id))
         if !selected.isSubset(of: ids) { selected.formIntersection(ids) }
         if activity.shelfItems != store.items { activity.shelfItems = store.items }
@@ -402,6 +402,11 @@ final class ShelfLink: NotchPart {
         })
         m.addItem(ClosureMenuItem(title: "AirDrop") { [weak self] in self?.airDrop(urls) })
         m.addItem(.separator())
+        if urls.contains(where: ShelfConvert.isConvertible) {
+            let convertItem = NSMenuItem(title: "Umwandeln", action: nil, keyEquivalent: "")
+            convertItem.submenu = convertMenu(for: items)
+            m.addItem(convertItem)
+        }
         if items.count > 1, let stack = items.first?.stack {
             m.addItem(ClosureMenuItem(title: "Stapel auflösen") { [weak self] in self?.unstack(stack) })
         }
@@ -409,6 +414,12 @@ final class ShelfLink: NotchPart {
                                                           : "Aus der Ablage entfernen") { [weak self] in self?.remove(items) })
         return m
     }
+
+    // MARK: Umwandeln (G63) – Logik in `ShelfLink+Convert.swift`
+
+    /// Läuft gerade eine Umwandlung (für den Abbrechen-Knopf).
+    var converting = false
+    @ObservationIgnored var convertCancel = ShelfCancelFlag()
 
     // MARK: ZIP (G32)
 

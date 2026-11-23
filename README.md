@@ -138,7 +138,8 @@ Freigabe nicht und fragt nie danach.
   abgelegte Dateien ein **Stapel**: eine Kachel mit Anzahl, die zusammen herausgezogen wird (Rechtsklick löst ihn auf).
   **Ab 0.42** zeigt eine Bild- oder PDF-Kachel beim Überfahren eine große Vorschau (eigenes Fenster, nie in der
   Bildschirmfreigabe), Umschalt- oder Befehl-Klick wählt mehrere Kacheln für Teilen, ZIP und Entfernen, und nach
-  Entfernen oder Leeren gibt es „Rückgängig“.
+  Entfernen oder Leeren gibt es „Rückgängig“. **Ab 0.43** wandelt „Umwandeln“ Bilder um (verkleinern, JPEG/PNG/HEIC,
+  zu einem PDF zusammenfügen), lokal, als neue Datei in Downloads, ohne Orts- und Kameradaten.
 - **Bildschirmfotos in die Ablage (0.10):** Jedes neue Bildschirmfoto von macOS oder CleanShot (auch in iCloud Drive)
   landet von selbst in der Ablage und lässt sich gleich in Chat, Mail oder Dokument ziehen. Ab Werk aus; Fotos auf dem
   Schreibtisch brauchen einmal macOS' Zugriffsfreigabe, iCloud-Fotos erscheinen bis zu einer Minute verzögert.

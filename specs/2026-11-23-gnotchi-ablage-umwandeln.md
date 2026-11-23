@@ -1,4 +1,6 @@
-# Gnotchi – Ablage: Umwandeln und überwachte Ordner (Entwurf, Sicherheitsentwurf G63)
+# Gnotchi – Ablage: Umwandeln (gebaut in 0.43.0, Sicherheitsentwurf G63)
+
+> **Stand 23.11.:** Umgesetzt, Testversion von Michael geprüft (Menü, Auswahl, Hinweise, Ziel Downloads bestätigt). Überwachte Ordner entfallen, Video ist nicht Teil von 0.43.0.
 
 Stand 2026-11-23 (Mac mini). Entwurf, **noch kein Code, keine Entscheidung gefallen**. Anlass: Vergleich mit Droppy
 (getdroppy.app, geschlossen, nur Ideenquelle, kein Code und keine Texte übernehmen). Wunsch Michael 23.11.: „Transform in die

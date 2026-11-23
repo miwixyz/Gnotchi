@@ -426,6 +426,8 @@ extension SettingsView {
                 .disabled(!prefs.shelf)
             toggleRow("Vorschau beim Überfahren", isOn: $prefs.shelfPreview)
                 .disabled(!prefs.shelf)
+            toggleRow("Beim Umwandeln Ortsdaten entfernen", isOn: $prefs.shelfStripLocation)
+                .disabled(!prefs.shelf)
             toggleRow("Bildschirmfotos automatisch ablegen", isOn: $prefs.shelfScreenshots)
                 .disabled(!prefs.shelf)
                 .onChange(of: prefs.shelfScreenshots) { model.applyNotchSetting() }

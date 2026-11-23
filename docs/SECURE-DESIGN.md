@@ -1855,6 +1855,15 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
   (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.
 
+### G63 – Umwandeln fremder Dateien (neu, 2026-11-23, 0.43.0, Spec `specs/2026-11-23-gnotchi-ablage-umwandeln.md`)
+- **Datenfluss:** Auswahl (oder alle) → Lesezeichen aufgelöst (wie ZIP) → `ShelfConvert.run` auf einem Hintergrund-Faden → Hilfsdatei `.gnotchi-umwandeln-….tmp` in Downloads → `link()` auf einen eindeutigen Namen (scheitert, wenn er existiert; nie überschreiben) → Hilfsdatei weg → Ergebnis wird in die Ablage gelegt.
+- **Nur Systemdecoder im Prozess** (ImageIO, PDFKit), keine Shell, kein ffmpeg, keine Argumente aus Dateinamen. Dateiname des Ergebnisses aus dem Original, über `ShelfZip.safeComponent` gesäubert.
+- **Grenzen je Datei:** kein symbolischer Link (`lstat`), kein Ordner, nicht leer, ≤ 200 MB, ≤ 400 Megapixel (sonst abgelehnt, ohne zu öffnen), PDF ≤ 500 Seiten, Bild auf PDF-Seite ≤ 2480 px, passwortgeschützte PDF abgelehnt. Gemessen: 16000×16000-PNG 68 MB Speicherspitze (ImageIO liest gestreift), zehn Bilder nacheinander 130 MB.
+- **Ortsdaten:** Umwandeln läuft immer über das Vorschaubild (trägt weder Ort noch Kamera, Ausrichtung eingerechnet). Ab Werk bleibt es so (`shelfStripLocation` an); aus = übrige Angaben werden übernommen (Maße und Ausrichtung nie).
+- **Abbruch und Fehler:** Abbrechen räumt die Hilfsdatei weg (Test); jede Datei meldet ihren Grund, die übrigen laufen weiter („Nicht umgewandelt“/„N umgewandelt“ mit erstem Grund). Protokoll nur Zahlen, nie Namen.
+- **Quarantäne-Merkmal** der Quellen wird aufs Ergebnis übertragen (`ShelfZip.copyQuarantine`). Ein Ergebnis kann so nie „sauberer“ sein als sein Original.
+- **Restrisiko:** ImageIO/PDFKit lesen fremde Dateien im Prozess (wie G64); ein bösartiges Bild kann den Prozess zum Absturz bringen. Video ist nicht Teil von 0.43.0.
+
 ### G64 – Vorschau in der Ablage (neu, 2026-11-23, Teil 1 des Feinschliffs, Spec `specs/2026-11-23-gnotchi-ablage-feinschliff.md`)
 - **Datenfluss:** Zeiger ruht 0,6 s auf einer Einzel-Kachel → Lesezeichen aufgelöst (wie ZIP) → `ShelfPreview.load` (ImageIO-Vorschaubild bzw. erste PDF-Seite, längste Seite 1600 px) → Anzeige in einem eigenen Vorschau-Fenster unter der Insel, nur im Speicher.
 - **Grenzen:** Nur Bilder und PDFs (UTType), Ordner und symbolische Links nie; Datei ≤ 200 MB, Bild ≤ 400 Megapixel (sonst keine Vorschau); Laden abseits des Hauptthreads, Fehler → Kachel bleibt. Schalter „Vorschau beim Überfahren“ (ab Werk an).

@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Umwandeln in der Ablage.** In der unteren Leiste (und per Rechtsklick auf eine Kachel) gibt es „Umwandeln“: Bilder auf 2048, 1280 oder 800 Pixel verkleinern, ins Format JPEG, PNG oder HEIC wandeln, oder mehrere Bilder und PDFs zu einem PDF zusammenfügen. Es wirkt auf die Auswahl, sonst auf alle. Das Ergebnis ist immer eine neue Datei in Downloads (Original bleibt, nie überschrieben, bei gleichem Namen „… 2“) und liegt danach auch in der Ablage. Alles läuft lokal. Ordner, Verknüpfungen, Dateien über 200 MB und Bilder über 400 Megapixel werden übersprungen und mit Grund gemeldet; die übrigen laufen weiter. „Abbrechen“ lässt nichts Halbes zurück.
+- **Ortsdaten raus.** Beim Umwandeln von Bildern entfernt Gnotchi Orts- und Kameradaten ab Werk (Einstellungen → Dateiablage → „Beim Umwandeln Ortsdaten entfernen“).
+
+### Intern
+- Neu `ShelfConvert` (ImageIO, PDFKit, Grenzen, Hilfsdatei + `link`, Quarantäne wird übernommen), `ShelfLink+Convert`, Test `ShelfConvertTests`, Sicherheitsentwurf G63, Messprogramm `tools/transform-probe`.
+
 ## [0.42.0] — 2026-11-23
 
 ### Neu
