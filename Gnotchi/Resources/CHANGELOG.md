@@ -7,6 +7,9 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 ### Neu
 - **Größere Vorschau in der Ablage.** Ruht der Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel, erscheint die Datei groß in einem eigenen Fenster direkt unter der Insel (bis 760 × 560 Punkte, bei PDFs die erste Seite). Wegbewegen schließt sie. Einstellungen → Dateiablage → „Vorschau beim Überfahren“ (ab Werk an). Das Fenster nimmt weder Maus noch Tasten an und ist nie in einer Bildschirmfreigabe oder -aufnahme sichtbar. Bilder über 400 Megapixel und Dateien über 200 MB werden nicht geöffnet, die Kachel bleibt dann wie sie ist. Stapel, Ordner und andere Dateitypen haben keine Vorschau.
 
+- **Mehrfachauswahl in der Ablage.** Umschalt- oder Befehl-Klick wählt Kacheln (blauer Rand), ein weiterer Klick nimmt sie heraus, ein normaler Klick hebt die Auswahl auf. Teilen, AirDrop, ZIP, ZIP mit Passwort und „Alle ziehen“ wirken dann nur auf die Auswahl, dazu „Entfernen“ und „Aufheben“. „Leeren“ gilt immer für alles. Mit Auswahl zeigt die Leiste nur Symbole.
+- **Rückgängig nach Entfernen und Leeren.** Der Hinweis „Entfernt“ hat einen Knopf „Rückgängig“ (etwa 6 Sekunden). Er holt die Einträge ans Ende der Ablage zurück, soweit Platz ist (höchstens 50); nur der letzte Vorgang. Es gehen nur Verweise, nie Dateien.
+
 ### Intern
 - Neu `ShelfPreview` mit Pixel- und Größengrenze, Test `ShelfPreviewTests`, Sicherheitsentwurf G64 (Vorschau).
 

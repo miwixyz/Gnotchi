@@ -255,16 +255,62 @@ final class ShelfLink: NotchPart {
 
     func url(for item: ShelfStore.Item) -> URL? { store.resolve(item) }
 
-    func urls() -> [URL] { store.items.compactMap(store.resolve) }
+    func urls() -> [URL] { actionItems.compactMap(store.resolve) }
 
     /// Zuletzt rausgezogen, für „Zurückholen“ (nur im Speicher, bis zum nächsten Rausziehen).
     @ObservationIgnored private var lastDragged: [ShelfStore.Item] = []
 
     func remove(_ item: ShelfStore.Item) { remove([item]) }
 
-    /// Kachel entfernen: bei einem Stapel alle seine Einträge.
+    /// Kachel entfernen: bei einem Stapel alle seine Einträge. Mit „Rückgängig“ (0.42).
     func remove(_ items: [ShelfStore.Item]) {
-        for item in items { store.remove(item.id) }
+        removed(store.removeKeepingCopies(Set(items.map(\.id))))
+    }
+
+    // MARK: Auswahl (0.42, G64) – nur im Speicher
+
+    /// Gewählte Einträge (Umschalt- oder Befehlstaste beim Klick, gelesen aus dem Klick-Ereignis).
+    private(set) var selected: Set<UUID> = []
+
+    func isSelected(_ items: [ShelfStore.Item]) -> Bool { !items.isEmpty && items.allSatisfy { selected.contains($0.id) } }
+
+    /// Klick auf eine Kachel: mit Umschalt/Befehl wählen oder abwählen, sonst Auswahl aufheben.
+    func click(_ items: [ShelfStore.Item], modifiers: NSEvent.ModifierFlags) {
+        guard modifiers.contains(.shift) || modifiers.contains(.command) else { return clearSelection() }
+        let ids = Set(items.map(\.id))
+        if isSelected(items) { selected.subtract(ids) } else { selected.formUnion(ids) }
+    }
+
+    func clearSelection() { if !selected.isEmpty { selected = [] } }
+
+    /// Auswahl, sonst alle (ohne Auswahl wirken die Knöpfe wie bisher auf alles).
+    var actionItems: [ShelfStore.Item] { selected.isEmpty ? store.items : store.items.filter { selected.contains($0.id) } }
+
+    func removeSelection() {
+        let items = actionItems
+        guard !selected.isEmpty else { return }
+        selected = []
+        remove(items)
+    }
+
+    // MARK: Rückgängig (0.42, G64)
+
+    /// Zuletzt entfernte Einträge (nur Verweise im Speicher); nur der letzte Vorgang.
+    @ObservationIgnored private var lastRemoved: [ShelfStore.Item] = []
+
+    private func removed(_ items: [ShelfStore.Item]) {
+        guard !items.isEmpty else { return }
+        lastRemoved = items
+        publish()
+        activity.post(.init(symbol: "tray.fill", title: "Entfernt", subtitle: items.count == 1 ? "1 Eintrag" : "\(items.count) Einträge",
+                            action: .undoShelf))
+    }
+
+    /// „Rückgängig“: nur so viele zurück, wie Platz ist (`restore`); beim Beenden verfällt es.
+    func undoRemove() {
+        guard !lastRemoved.isEmpty else { return }
+        store.restore(lastRemoved)
+        lastRemoved = []
         publish()
     }
 
@@ -274,8 +320,8 @@ final class ShelfLink: NotchPart {
     }
 
     func clear() {
-        store.clear()
-        publish()
+        selected = []
+        removed(store.removeKeepingCopies(Set(store.items.map(\.id))))
     }
 
     /// 0.16.0: nur der Verweis geht, die Datei bleibt. Protokoll nur die Zahl.
@@ -316,6 +362,8 @@ final class ShelfLink: NotchPart {
     }
 
     private func publish() {
+        let ids = Set(store.items.map(\.id))
+        if !selected.isSubset(of: ids) { selected.formIntersection(ids) }
         if activity.shelfItems != store.items { activity.shelfItems = store.items }
         if store.items.isEmpty { activity.shelfActive = false }
     }

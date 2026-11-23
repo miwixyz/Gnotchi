@@ -84,7 +84,8 @@ struct ShelfBig: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(ShelfStore.stacks(items)) { stack in
-                        ShelfTile(stack: stack, link: link, onPreview: { anchor.show($0) })
+                        ShelfTile(stack: stack, link: link, selected: link.isSelected(stack.items),
+                                  onSelect: { link.click(stack.items, modifiers: $0) }, onPreview: { anchor.show($0) })
                     }
                 }
                 .padding(.vertical, 2)
@@ -92,6 +93,7 @@ struct ShelfBig: View {
             .frame(height: 104)
             HStack(spacing: 6) {
                 if !link.busy {
+                    if !link.selected.isEmpty { selectionBar }
                     if items.count > 1 { dragAll }
                     ShareLink(items: link.urls()) { bar("square.and.arrow.up", "Teilen") }.buttonStyle(.plain)
                     Button { link.airDrop(link.urls()) } label: { bar("airplayaudio", "AirDrop") }.buttonStyle(.plain)
@@ -107,13 +109,13 @@ struct ShelfBig: View {
         }
         .foregroundStyle(.white)
         .background(ShelfPreviewAnchor.Reader(anchor: anchor))
-        .onDisappear { anchor.show(nil) }
+        .onDisappear { anchor.show(nil); link.clearSelection() }
     }
 
     /// Alle Dateien in einem Zug herausziehen (0.18, Michael 28.10.). Nur Einträge, deren Datei noch auffindbar ist,
     /// werden mitgenommen und danach (Schalter „Nach dem Rausziehen entfernen“) aus der Ablage genommen.
     private var dragAll: some View {
-        let present = items.filter { link.url(for: $0) != nil }
+        let present = link.actionItems.filter { link.url(for: $0) != nil }
         return bar("square.stack.3d.up", "Alle ziehen")
             .overlay(DragSource(urls: present.compactMap { link.url(for: $0) },
                                 onEnded: { moved in if moved { link.draggedOut(present) } },
@@ -123,14 +125,26 @@ struct ShelfBig: View {
             .accessibilityLabel(Text(verbatim: "Alle \(present.count) Dateien herausziehen"))
     }
 
+    /// Auswahl (0.42): Anzahl, Aufheben und Entfernen; Teilen, AirDrop, ZIP und „Alle ziehen“ wirken dann nur auf sie.
+    private var selectionBar: some View {
+        HStack(spacing: 6) {
+            Text(verbatim: "\(link.selected.count) gewählt").font(.system(size: 12, weight: .semibold))
+            Button { link.removeSelection() } label: { bar("xmark.circle", "Entfernen") }.buttonStyle(.plain)
+            Button { link.clearSelection() } label: { bar("minus.circle", "Aufheben") }.buttonStyle(.plain)
+            Divider().frame(height: 14).overlay(.white.opacity(0.3))
+        }
+    }
+
     private func bar(_ symbol: String, _ title: String) -> some View {
         HStack(spacing: 4) {
             Image(systemName: symbol).font(.system(size: 12, weight: .semibold))
-            Text(verbatim: title).font(.system(size: 12, weight: .medium)).lineLimit(1)
+            // Mit Auswahl nur Symbole: sonst ist die Leiste breiter als die Insel und der Inhalt rutscht (0.42).
+            if link.selected.isEmpty { Text(verbatim: title).font(.system(size: 12, weight: .medium)).lineLimit(1) }
         }
-        .padding(.horizontal, 10).padding(.vertical, 5)
+        .padding(.horizontal, link.selected.isEmpty ? 10 : 8).padding(.vertical, 5)
         .background(Capsule().fill(.white.opacity(0.14)))
         .contentShape(Capsule())
+        .help(title)
     }
 }
 
@@ -203,6 +217,9 @@ struct ShelfTile: View {
     let link: ShelfLink
     /// Kleine Kachel für die Reihe unter der großen Sache.
     var compact = false
+    /// Gewählt (0.42): blauer Rand. Auswählen nur in der großen Ablage (`onSelect` gesetzt).
+    var selected = false
+    var onSelect: ((NSEvent.ModifierFlags) -> Void)?
     /// Meldet die Datei, auf der der Zeiger ruht (nil = Vorschau schließen). Nur in der großen Ablage gesetzt.
     var onPreview: ((URL?) -> Void)?
     @State private var hovered = false
@@ -231,8 +248,9 @@ struct ShelfTile: View {
             }
             .frame(width: compact ? 68 : 92, height: compact ? 56 : 98)
             .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(hovered ? 0.14 : 0.06)))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
             .overlay(DragSource(urls: urls, onEnded: { moved in if moved { link.draggedOut(items) } },
-                                menu: { link.menu(for: items, anchor: $0) }))
+                                menu: { link.menu(for: items, anchor: $0) }).clicked(onSelect))
             if hovered {
                 Button { link.remove(items) } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 15)).foregroundStyle(.white, .black.opacity(0.6))
@@ -275,6 +293,14 @@ struct DragSource: NSViewRepresentable {
     let urls: [URL]
     let onEnded: (Bool) -> Void
     let menu: (NSView) -> NSMenu?
+    /// Klick ohne Ziehen, mit den gehaltenen Tasten (0.42, Auswahl).
+    var onClick: ((NSEvent.ModifierFlags) -> Void)?
+
+    func clicked(_ handler: ((NSEvent.ModifierFlags) -> Void)?) -> DragSource {
+        var copy = self
+        copy.onClick = handler
+        return copy
+    }
 
     init(url: URL?, onEnded: @escaping (Bool) -> Void, menu: @escaping (NSView) -> NSMenu?) {
         self.init(urls: url.map { [$0] } ?? [], onEnded: onEnded, menu: menu)
@@ -292,16 +318,23 @@ struct DragSource: NSViewRepresentable {
         v.urls = urls
         v.onEnded = onEnded
         v.makeMenu = menu
+        v.onClick = onClick
     }
 
     final class SourceView: NSView, NSDraggingSource {
         var urls: [URL] = []
         var onEnded: (Bool) -> Void = { _ in }
         var makeMenu: (NSView) -> NSMenu? = { _ in nil }
+        var onClick: ((NSEvent.ModifierFlags) -> Void)?
         private var down: NSEvent?
 
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
         override func mouseDown(with event: NSEvent) { down = event }
+
+        override func mouseUp(with event: NSEvent) {
+            if down != nil { onClick?(event.modifierFlags) }
+            down = nil
+        }
 
         override func mouseDragged(with event: NSEvent) {
             guard let start = down, !urls.isEmpty else { return }

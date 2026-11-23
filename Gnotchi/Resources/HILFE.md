@@ -367,6 +367,9 @@ Space und ziehst sie dort wieder heraus.
   ab zwei Dateien.
 - **Vorschau (ab 0.42):** Lass den Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel ruhen, dann zeigt Gnotchi
   die Datei groß unter der Insel. Wegbewegen schließt sie. Unter Einstellungen → Dateiablage → „Vorschau beim Überfahren“ abschaltbar.
+- **Mehrfachauswahl (ab 0.42):** Mit Umschalt- oder Befehlstaste auf Kacheln klicken wählt sie (blauer Rand), noch einmal klicken nimmt sie
+  heraus, ein normaler Klick hebt alles auf. Teilen, AirDrop, ZIP und „Alle ziehen“ gelten dann nur für die Auswahl.
+- **Rückgängig (ab 0.42):** Nach Entfernen oder Leeren steht kurz „Entfernt“ mit **„Rückgängig“**.
 - **Zurückholen (ab 0.18):** Nach dem Rausziehen steht kurz „Rausgezogen“ mit einem Knopf **„Zurückholen“**. Für den
   Fall, dass am Ziel nichts angekommen ist, etwa weil der Finder dort schon eine gleichnamige Datei hat.
 - **Volle Ablage:** Klick auf das Ablage-Symbol. Rechtsklick auf eine Datei oder einen Stapel: Im Finder zeigen, Teilen …, AirDrop,

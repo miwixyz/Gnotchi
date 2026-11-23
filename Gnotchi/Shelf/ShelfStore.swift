@@ -155,6 +155,14 @@ final class ShelfStore {
         remove(id)
     }
 
+    /// Entfernen mit Rückgängig (0.42): eigene Kopien bleiben in dieser Sitzung stehen (wie beim Rausziehen), damit
+    /// `restore` sie zurückholen kann. Liefert die entfernten Einträge in Ablage-Reihenfolge.
+    func removeKeepingCopies(_ ids: Set<UUID>) -> [Item] {
+        let gone = items.filter { ids.contains($0.id) }
+        for item in gone { removeAfterDrag(item.id) }
+        return gone
+    }
+
     /// „Zurückholen“ (0.18): rausgezogene Einträge unverändert zurück, ihre eigenen Kopien gelten wieder als benutzt.
     /// Schon wieder vorhandene Einträge und alles über der Höchstzahl bleiben draußen.
     func restore(_ restored: [Item]) {

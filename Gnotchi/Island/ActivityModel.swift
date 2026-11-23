@@ -21,10 +21,13 @@ final class ActivityModel {
     enum NoticeAction: Equatable, Sendable {
         /// Rausgezogene Ablage-Einträge zurücklegen – für Ziele, die „kopiert“ melden und nichts anlegen.
         case restoreShelf
+        /// Zuletzt entfernte Ablage-Einträge zurücklegen („Rückgängig“ nach Entfernen oder Leeren, 0.42).
+        case undoShelf
 
         var title: String {
             switch self {
             case .restoreShelf: "Zurückholen"
+            case .undoShelf: "Rückgängig"
             }
         }
     }
@@ -302,6 +305,7 @@ final class ActivityModel {
         notice = nil
         switch action {
         case .restoreShelf: shelf?.restoreLastDrag()
+        case .undoShelf: shelf?.undoRemove()
         }
     }
 
