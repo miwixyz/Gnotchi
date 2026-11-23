@@ -10,6 +10,10 @@ import UniformTypeIdentifiers
 setvbuf(stdout, nil, _IOLBF, 0)
 guard CommandLine.arguments.count > 1 else { print("Aufruf: probe <ordner>"); exit(2) }
 let src = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+var isDir: ObjCBool = false
+guard FileManager.default.fileExists(atPath: src.path, isDirectory: &isDir), isDir.boolValue else {
+    print("FEHLER: Ordner existiert nicht: \(src.path)"); exit(1)
+}
 let out = FileManager.default.temporaryDirectory.appendingPathComponent("transform-probe-\(UUID().uuidString.prefix(6))")
 try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: out) }
@@ -50,6 +54,7 @@ for f in files {
     let t = (try? f.resourceValues(forKeys: [.contentTypeKey]))?.contentType
     if t?.conforms(to: .image) == true { images.append(f) } else if t?.conforms(to: .pdf) == true { pdfs.append(f) }
 }
+if images.isEmpty && pdfs.isEmpty { print("FEHLER: Keine Bilder oder PDFs in \(src.path) (\(files.count) Dateien gefunden)"); exit(1) }
 print("Bilder: \(images.count), PDFs: \(pdfs.count), Start-Speicher \(String(format: "%.0f", peakMB())) MB")
 print("Nr | Typ | Pixel (MP) | Orig KB | GPS | → JPEG 0,85 (ms, KB, GPS) | → lange Seite 2048 (ms, KB) | 1280 (ms, KB) | 800 (ms, KB) | Spitze MB")
 
