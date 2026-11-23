@@ -65,7 +65,7 @@ entfällt B.
 1. **Umfang 0.43.0:** Bild verkleinern, Bildformat ändern, zu einem PDF zusammenfügen. **Video erst nach Messung** an echten Dateien (eigene Stufe).
 2. **Ziel:** **Downloads**, einheitlich mit ZIP; das Ergebnis liegt danach auch in der Ablage.
 3. **Überwachte Ordner (B): entfällt.** Knippi 0.5.4 markiert seine Fotos als Bildschirmfoto, Ende zu Ende am echten Gerät bestätigt (23.11.). Idee A ist erledigt.
-4. **Ortsdaten beim Verkleinern ab Werk entfernen** (Schalter, abschaltbar). Umwandeln selbst läuft nur auf Klick, keine Hintergrundarbeit.
+4. **Ortsdaten bei jeder Bildumwandlung ab Werk entfernen** (Verkleinern **und** Formatwechsel; Schalter „Ortsdaten entfernen“, abschaltbar; Michael 23.11. „ja, ab Werk entfernen“). Technisch: beide Wege über das Vorschaubild (kein Metadaten-Pfad), Ausrichtung wird eingerechnet. Umwandeln selbst läuft nur auf Klick, keine Hintergrundarbeit.
 
 **Nächster Schritt:** Messung an Michaels echten Dateien (siehe „Vor dem Bau messen“), dann Sicherheitsentwurf G63 ausarbeiten, dann bauen. Nummer 0.43.0 bei Baubeginn bestätigen.
 
@@ -75,7 +75,7 @@ Erfundene Bilder (Verläufe plus bunte Flächen als „Details“): 5 Screenshot
 
 - **Zeit:** jede Umwandlung 40 bis 210 ms, auch das 36-MP-Bild (JPEG 0,85 voll 205 ms, auf 2048 px 94 ms). Kein Fortschrittsbalken nötig für Bilder.
 - **Speicherspitze:** 130 MB für alle zehn Bilder nacheinander (inkl. 36 MP), PDF aus 3 Bildern + 2 PDFs 173 MB, 331 ms Aufbau. Unkritisch.
-- **Ortsdaten:** Der reine Formatwechsel (Pfad „Metadaten behalten“) **behält GPS** (HEIC und JPEG „ja“ → „ja“). Der Verkleinern-Weg (Vorschaubild) **entfernt** sie in allen Fällen. Folge: Wer GPS ab Werk loswerden will, muss den Formatwechsel ebenfalls über den Vorschaubild-Weg schicken oder die Metadaten gezielt streichen. **Vorschlag: auch beim Formatwechsel ab Werk entfernen** (Schalter), Michael entscheidet.
+- **Ortsdaten:** Der reine Formatwechsel (Pfad „Metadaten behalten“) **behält GPS** (HEIC und JPEG „ja“ → „ja“). Der Verkleinern-Weg (Vorschaubild) **entfernt** sie in allen Fällen. Folge: Wer GPS ab Werk loswerden will, muss den Formatwechsel ebenfalls über den Vorschaubild-Weg schicken oder die Metadaten gezielt streichen. **Entschieden: auch beim Formatwechsel ab Werk entfernen** (Schalter).
 - **Format ≠ Verkleinern:** HEIC → JPEG in voller Größe wird **größer** (1440 → 3345 KB). Wer Platz sparen will, braucht „Verkleinern“, nicht „Format“; im Menü beides klar trennen, bei HEIC → JPEG den Zweck „zum Weitergeben“ nennen.
 - **Nicht gemessen:** echte Fotos und Screenshots (Dateigrößen), Video, sehr große PDFs. Die Probe kommt mit Michaels Dateien erneut (`/tmp/transform-probe <ordner>`).
 
