@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.42.0</title>
-            <pubDate>Mon, 23 Nov 2026 19:47:54 +0100</pubDate>
+            <title>0.43.0</title>
+            <pubDate>Mon, 23 Nov 2026 21:12:29 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>291</sparkle:version>
-            <sparkle:shortVersionString>0.42.0</sparkle:shortVersionString>
+            <sparkle:version>299</sparkle:version>
+            <sparkle:shortVersionString>0.43.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Größere Vorschau in der Ablage.</b> Ruht der Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel, erscheint die Datei groß in einem eigenen Fenster direkt unter der Insel (bis 760 × 560 Punkte, bei PDFs die erste Seite). Wegbewegen schließt sie. Einstellungen → Dateiablage → „Vorschau beim Überfahren“ (ab Werk an). Das Fenster nimmt weder Maus noch Tasten an und ist nie in einer Bildschirmfreigabe oder -aufnahme sichtbar. Bilder über 400 Megapixel und Dateien über 200 MB werden nicht geöffnet, die Kachel bleibt dann wie sie ist. Stapel, Ordner und andere Dateitypen haben keine Vorschau.</li><li><b>Mehrfachauswahl in der Ablage.</b> Umschalt- oder Befehl-Klick wählt Kacheln (blauer Rand), ein weiterer Klick nimmt sie heraus, ein normaler Klick hebt die Auswahl auf. Teilen, AirDrop, ZIP, ZIP mit Passwort und „Alle ziehen“ wirken dann nur auf die Auswahl, dazu „Entfernen“ und „Aufheben“. „Leeren“ gilt immer für alles. Mit Auswahl zeigt die Leiste nur Symbole.</li><li><b>Rückgängig nach Entfernen und Leeren.</b> Der Hinweis „Entfernt“ hat einen Knopf „Rückgängig“ (etwa 6 Sekunden). Er holt die Einträge ans Ende der Ablage zurück, soweit Platz ist (höchstens 50); nur der letzte Vorgang. Es gehen nur Verweise, nie Dateien. Eigene Kopien aus Dateiversprechen (zum Beispiel ein Mail-Anhang) löscht Gnotchi nach 8 Sekunden, wenn du nicht rückgängig machst.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.42.0/Gnotchi-0.42.0.zip" length="8643725" type="application/octet-stream" sparkle:edSignature="HGy4SBSDxLMranQao5NwoSrO1tRMk+q8E6SH5Loy5rIuJcNLk25PH7ZQROZgWR2H38eUjKRs3JQuT7/wF5euCg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Umwandeln in der Ablage.</b> In der unteren Leiste (und per Rechtsklick auf eine Kachel) gibt es „Umwandeln“: Bilder auf 2048, 1280 oder 800 Pixel verkleinern, ins Format JPEG, PNG oder HEIC wandeln, oder mehrere Bilder und PDFs zu einem PDF zusammenfügen. Es wirkt auf die Auswahl, sonst auf alle. Das Ergebnis ist immer eine neue Datei in Downloads (Original bleibt, nie überschrieben, bei gleichem Namen „… 2“) und liegt danach auch in der Ablage. Alles läuft lokal. Ordner, Verknüpfungen, Dateien über 200 MB und Bilder über 400 Megapixel werden übersprungen und mit Grund gemeldet; die übrigen laufen weiter. „Abbrechen“ lässt nichts Halbes zurück.</li><li><b>Ortsdaten raus.</b> Beim Umwandeln von Bildern entfernt Gnotchi Orts- und Kameradaten ab Werk (Einstellungen → Dateiablage → „Beim Umwandeln Ortsdaten entfernen“).</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.43.0/Gnotchi-0.43.0.zip" length="8676136" type="application/octet-stream" sparkle:edSignature="utCUTCBdi/aDuVD4+6xOBWZEGMwE/pX161iJ5iiMsHRampWhDIB/R5zKfMfZSNXw02Y9DpRywU6aU/8cEBQ0Bw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: GtlpTCVshzQ3IFdqoum+qk/REpKWUAhSOy51eLpNYHo+bStlN6DpWBg1GADbVUYEKgr4rUI02WGdDzTGiNS+Bw==
-length: 2641
+edSignature: Mfl6jQUfKGKstGiAfuYxv4apcTksWwoineoLuJHxewcKbOiFN5wT0yvG94kT41EWmmBBZTZlVB0U8vMmYaRzBA==
+length: 2070
 -->
