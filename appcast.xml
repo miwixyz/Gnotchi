@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.41.0</title>
-            <pubDate>Sun, 22 Nov 2026 13:17:55 +0100</pubDate>
+            <title>0.42.0</title>
+            <pubDate>Mon, 23 Nov 2026 19:47:54 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>283</sparkle:version>
-            <sparkle:shortVersionString>0.41.0</sparkle:shortVersionString>
+            <sparkle:version>291</sparkle:version>
+            <sparkle:shortVersionString>0.42.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Läuft gerade auf Tippis Schreibtischgerät.</b> Einschalten unter Einstellungen → Aktivitäten → „Tippi-Gerät“ (ab Werk aus) und den Schlüssel eintragen, der auch im Gerät steht. Gnotchi meldet dem Gerät im Heimnetz jede Sekunde Titel, Interpret und App, egal ob Spotify, Musik oder ein Video im Browser. Die Tasten am Gerät steuern die Wiedergabe (Zurück, Wiedergabe/Pause, Weiter) und die Lautstärke des Macs (Leiser, Stumm, Lauter). Unter dem Schalter steht, ob das Gerät erreichbar ist.</li><li><b>Sicher im Heimnetz.</b> Jede Meldung ist mit dem Schlüssel signiert, und Gnotchi führt eine Taste nur aus, wenn auch die Antwort des Geräts richtig signiert ist. Am Mac läuft dafür kein Server. Titel und Interpret gehen unverschlüsselt durchs WLAN, nur signiert: Wer im selben WLAN mitliest, sieht, was läuft.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.41.0/Gnotchi-0.41.0.zip" length="8619649" type="application/octet-stream" sparkle:edSignature="AIljfxHuRmNB6VOYwlrelK1MKh6e1xCTdbppDmwSdcVws0N+Jk9Ux6j42woTBwicYU+mxY8f8xXk8oWQUu5iCA=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Größere Vorschau in der Ablage.</b> Ruht der Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel, erscheint die Datei groß in einem eigenen Fenster direkt unter der Insel (bis 760 × 560 Punkte, bei PDFs die erste Seite). Wegbewegen schließt sie. Einstellungen → Dateiablage → „Vorschau beim Überfahren“ (ab Werk an). Das Fenster nimmt weder Maus noch Tasten an und ist nie in einer Bildschirmfreigabe oder -aufnahme sichtbar. Bilder über 400 Megapixel und Dateien über 200 MB werden nicht geöffnet, die Kachel bleibt dann wie sie ist. Stapel, Ordner und andere Dateitypen haben keine Vorschau.</li><li><b>Mehrfachauswahl in der Ablage.</b> Umschalt- oder Befehl-Klick wählt Kacheln (blauer Rand), ein weiterer Klick nimmt sie heraus, ein normaler Klick hebt die Auswahl auf. Teilen, AirDrop, ZIP, ZIP mit Passwort und „Alle ziehen“ wirken dann nur auf die Auswahl, dazu „Entfernen“ und „Aufheben“. „Leeren“ gilt immer für alles. Mit Auswahl zeigt die Leiste nur Symbole.</li><li><b>Rückgängig nach Entfernen und Leeren.</b> Der Hinweis „Entfernt“ hat einen Knopf „Rückgängig“ (etwa 6 Sekunden). Er holt die Einträge ans Ende der Ablage zurück, soweit Platz ist (höchstens 50); nur der letzte Vorgang. Es gehen nur Verweise, nie Dateien. Eigene Kopien aus Dateiversprechen (zum Beispiel ein Mail-Anhang) löscht Gnotchi nach 8 Sekunden, wenn du nicht rückgängig machst.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.42.0/Gnotchi-0.42.0.zip" length="8643725" type="application/octet-stream" sparkle:edSignature="HGy4SBSDxLMranQao5NwoSrO1tRMk+q8E6SH5Loy5rIuJcNLk25PH7ZQROZgWR2H38eUjKRs3JQuT7/wF5euCg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: gDV4WsU4vRQG57+6rDFEcCfEf94MLmm/OeoPJbr5ooBroL9JFjQgIJKxh2bpATgVze4lwMUrR3kx22kuUjJWBw==
-length: 2045
+edSignature: GtlpTCVshzQ3IFdqoum+qk/REpKWUAhSOy51eLpNYHo+bStlN6DpWBg1GADbVUYEKgr4rUI02WGdDzTGiNS+Bw==
+length: 2641
 -->
