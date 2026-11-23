@@ -424,6 +424,8 @@ extension SettingsView {
                 .onChange(of: prefs.shelf) { model.applyNotchSetting() }
             toggleRow("Nach dem Rausziehen entfernen", isOn: $prefs.shelfRemoveOnDrag)
                 .disabled(!prefs.shelf)
+            toggleRow("Vorschau beim Überfahren", isOn: $prefs.shelfPreview)
+                .disabled(!prefs.shelf)
             toggleRow("Bildschirmfotos automatisch ablegen", isOn: $prefs.shelfScreenshots)
                 .disabled(!prefs.shelf)
                 .onChange(of: prefs.shelfScreenshots) { model.applyNotchSetting() }

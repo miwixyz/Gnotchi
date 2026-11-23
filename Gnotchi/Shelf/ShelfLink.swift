@@ -50,6 +50,7 @@ final class ShelfLink: NotchPart {
 
     @ObservationIgnored private let activity: ActivityModel
     @ObservationIgnored private let prefs: Preferences
+    var previewEnabled: Bool { prefs.shelfPreview }
     @ObservationIgnored private let store: ShelfStore
     @ObservationIgnored private var watcher: DragWatcher?
     /// Nimmt abgelaufene Bildschirmfotos aus der Ablage (0.16.0), solange die Ablage läuft.

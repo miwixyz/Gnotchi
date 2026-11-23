@@ -1855,6 +1855,12 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   Gnotchis 5-Minuten-Uhr ins Leere, der Schlüssel blieb unbegrenzt; jetzt geleert wie Vertrauliches.
   (2) Zweiter Druck innerhalb 1 s ging verloren; jetzt fügt er noch einmal ein. osv, Swift-Advisories, gitleaks sauber.
 
+### G64 – Vorschau in der Ablage (neu, 2026-11-23, Teil 1 des Feinschliffs, Spec `specs/2026-11-23-gnotchi-ablage-feinschliff.md`)
+- **Datenfluss:** Zeiger ruht 0,6 s auf einer Einzel-Kachel → Lesezeichen aufgelöst (wie ZIP) → `ShelfPreview.load` (ImageIO-Vorschaubild bzw. erste PDF-Seite, längste Seite 1600 px) → Anzeige in einem eigenen Vorschau-Fenster unter der Insel, nur im Speicher.
+- **Grenzen:** Nur Bilder und PDFs (UTType), Ordner und symbolische Links nie; Datei ≤ 200 MB, Bild ≤ 400 Megapixel (sonst keine Vorschau); Laden abseits des Hauptthreads, Fehler → Kachel bleibt. Schalter „Vorschau beim Überfahren“ (ab Werk an).
+- **Eigenes Fenster** wie die große Ansicht der Zwischenablage (G40): `sharingType = .none` (nie in Freigabe/Aufnahme, G58), `nonactivatingPanel`, `ignoresMouseEvents`, nie Tastatur; **kein Tasten-Beobachter** (G1). Nichts im Protokoll, nichts auf der Platte, kein Dateiname im Titel.
+- **Restrisiko:** ImageIO/PDFKit lesen fremde Dateien im Prozess (wie bei Bildtext-Suche und Kacheln); Absturz bei bösartiger Datei nicht ausgeschlossen, Pixel- und Größengrenze mindern es.
+
 ### G62 – „Läuft gerade“ an Tippis Schreibtischgerät (neu, 2026-11-22, 0.41.0)
 - **Anlass:** Michael, 22.11.: „Now Playing Widget mit Spotify, Music, YouTube“, dann „Ja, bau das mit Gnotchi so“.
   Geräteseite: tippi-firmware `SICHERHEIT.md`, „Entwurf 0.10“ (privates Repo).

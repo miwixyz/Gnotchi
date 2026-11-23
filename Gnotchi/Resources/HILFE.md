@@ -365,6 +365,8 @@ Space und ziehst sie dort wieder heraus.
   du sie heraus, kommen alle mit. Rechtsklick → **Stapel auflösen** macht wieder einzelne Kacheln daraus.
 - **Alle auf einmal (ab 0.18):** In der vollen Ablage unten links **„Alle ziehen“** greifen und ans Ziel ziehen. Erscheint
   ab zwei Dateien.
+- **Vorschau (ab 0.42):** Lass den Zeiger etwa eine halbe Sekunde auf einer Bild- oder PDF-Kachel ruhen, dann zeigt Gnotchi
+  die Datei groß unter der Insel. Wegbewegen schließt sie. Unter Einstellungen → Dateiablage → „Vorschau beim Überfahren“ abschaltbar.
 - **Zurückholen (ab 0.18):** Nach dem Rausziehen steht kurz „Rausgezogen“ mit einem Knopf **„Zurückholen“**. Für den
   Fall, dass am Ziel nichts angekommen ist, etwa weil der Finder dort schon eine gleichnamige Datei hat.
 - **Volle Ablage:** Klick auf das Ablage-Symbol. Rechtsklick auf eine Datei oder einen Stapel: Im Finder zeigen, Teilen …, AirDrop,

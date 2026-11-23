@@ -77,12 +77,15 @@ struct ShelfDropTarget: NSViewRepresentable {
 struct ShelfBig: View {
     let items: [ShelfStore.Item]
     let link: ShelfLink
+    @State private var anchor = ShelfPreviewAnchor()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(ShelfStore.stacks(items)) { stack in ShelfTile(stack: stack, link: link) }
+                    ForEach(ShelfStore.stacks(items)) { stack in
+                        ShelfTile(stack: stack, link: link, onPreview: { anchor.show($0) })
+                    }
                 }
                 .padding(.vertical, 2)
             }
@@ -103,6 +106,8 @@ struct ShelfBig: View {
             }
         }
         .foregroundStyle(.white)
+        .background(ShelfPreviewAnchor.Reader(anchor: anchor))
+        .onDisappear { anchor.show(nil) }
     }
 
     /// Alle Dateien in einem Zug herausziehen (0.18, Michael 28.10.). Nur Einträge, deren Datei noch auffindbar ist,
@@ -198,7 +203,10 @@ struct ShelfTile: View {
     let link: ShelfLink
     /// Kleine Kachel für die Reihe unter der großen Sache.
     var compact = false
+    /// Meldet die Datei, auf der der Zeiger ruht (nil = Vorschau schließen). Nur in der großen Ablage gesetzt.
+    var onPreview: ((URL?) -> Void)?
     @State private var hovered = false
+    @State private var dwell: Task<Void, Never>?
 
     var body: some View {
         let items = stack.items
@@ -233,7 +241,20 @@ struct ShelfTile: View {
                 .accessibilityLabel(Text(verbatim: "Aus der Ablage entfernen"))
             }
         }
-        .onHover { hovered = $0 }
+        .onHover { inside in
+            hovered = inside
+            dwell?.cancel()
+            guard let onPreview else { return }
+            guard inside, link.previewEnabled, items.count == 1, let url = urls.first, ShelfPreview.canPreview(url) else {
+                onPreview(nil)
+                return
+            }
+            dwell = Task {
+                try? await Task.sleep(for: ShelfPreview.dwell)
+                if !Task.isCancelled { onPreview(url) }
+            }
+        }
+        .onDisappear { dwell?.cancel(); onPreview?(nil) }
         .help(items.count > 1 ? "\(items.count) Dateien – zusammen herausziehen. Rechtsklick: Stapel auflösen" : first.name)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: items.count > 1 ? "Stapel, \(items.count) Dateien: \(first.name) und weitere"

@@ -84,6 +84,7 @@ final class Preferences {
         /// 0.8.0 Dateiablage (G32): Schalter, nach dem Rausziehen entfernen.
         static let shelf = "shelf"
         static let shelfRemoveOnDrag = "shelfRemoveOnDrag"
+        static let shelfPreview = "shelfPreview"
         static let shelfScreenshots = "shelfScreenshots"
         /// 0.16.0: Bildschirmfotos nach so vielen Minuten aus der Ablage nehmen (0 = behalten).
         static let shelfScreenshotMinutes = "shelfScreenshotMinutes"
@@ -266,6 +267,8 @@ final class Preferences {
     /// Dateiablage (0.8.0). Ab Werk an: keine Freigabe, kein Netz (G32).
     var shelf: Bool { didSet { defaults.set(shelf, forKey: Key.shelf) } }
     var shelfRemoveOnDrag: Bool { didSet { defaults.set(shelfRemoveOnDrag, forKey: Key.shelfRemoveOnDrag) } }
+    /// 0.42.0 (G64): größere Vorschau in der Insel, wenn der Zeiger auf einer Bild- oder PDF-Kachel ruht. Ab Werk an.
+    var shelfPreview: Bool { didSet { defaults.set(shelfPreview, forKey: Key.shelfPreview) } }
     /// 0.10.0 (G36): Bildschirmfotos automatisch ablegen. Ab Werk aus (Michael 23.10.).
     var shelfScreenshots: Bool { didSet { defaults.set(shelfScreenshots, forKey: Key.shelfScreenshots) } }
     /// 0.16.0 (Michael 27.10.): automatisch abgelegte Bildschirmfotos nach so vielen Minuten nur aus der Ablage
@@ -404,6 +407,7 @@ final class Preferences {
         weather = defaults.object(forKey: Key.weather) as? Bool ?? false
         shelf = defaults.object(forKey: Key.shelf) as? Bool ?? true
         shelfRemoveOnDrag = defaults.object(forKey: Key.shelfRemoveOnDrag) as? Bool ?? true
+        shelfPreview = defaults.object(forKey: Key.shelfPreview) as? Bool ?? true
         shelfScreenshots = defaults.object(forKey: Key.shelfScreenshots) as? Bool ?? false
         shelfScreenshotMinutes = Self.validScreenshotMinutes(defaults.object(forKey: Key.shelfScreenshotMinutes))
         quietIsland = defaults.object(forKey: Key.quietIsland) as? Bool ?? true
