@@ -59,6 +59,15 @@ if [ -d "$HOOK" ]; then
     done
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$HOOK"
 fi
+# Terminalfenster „Gnotchi Terminal“ (0.44.0, G65): ohne Berechtigungen, wie das Hook-Programm.
+TERM_APP="$STAGE/Gnotchi.app/Contents/Helpers/Gnotchi Terminal.app"
+if [ -d "$TERM_APP" ]; then
+    for part in "$TERM_APP"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --timestamp --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$TERM_APP"
+fi
 # Stream-Deck-Plugin (0.35.0, G59) – fehlte hier bis 17.11.: blieb adhoc signiert, Gnotchi hätte es weder übergeben
 # noch am Socket angenommen. Kennung wie in dev-signed.sh und der Prüfung in release.sh.
 DECK="$STAGE/Gnotchi.app/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/gnotchideck"

@@ -49,7 +49,8 @@ for part in "$APP/Contents/MacOS/MediaRemoteAdapterTestClient" "$APP/Contents/Fr
     [ -e "$part" ] || continue
     codesign --force --options runtime --sign "$IDENTITY" "$part"
 done
-for helper in "$APP/Contents/Library/LoginItems/Gnotchi Mitteilungen.app" "$APP/Contents/Helpers/Gnotchi Claude.app"; do
+for helper in "$APP/Contents/Library/LoginItems/Gnotchi Mitteilungen.app" "$APP/Contents/Helpers/Gnotchi Claude.app" \
+            "$APP/Contents/Helpers/Gnotchi Terminal.app"; do
     [ -d "$helper" ] || continue
     for part in "$helper"/Contents/MacOS/*.dylib; do
         [ -e "$part" ] || continue

@@ -409,6 +409,14 @@ Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt 
 - **Aus PastePal:** Exportiere in PastePal (Einstellungen → Exportieren). Dann in Gnotchi „Aus PastePal importieren …“ wählen und je Sammlung entscheiden, ob sie in den Tresor kommt. Formatierungen kommen nicht mit, denn PastePal exportiert nur reinen Text. Die Exportdatei landet danach im Papierkorb. Leere ihn.
 - **Löschen:** „Verlauf löschen …“ entfernt alles außerhalb der Sammlungen. „Alles zurücksetzen …“ löscht auch Sammlungen, Tresor und die Schlüssel. Danach ist nichts mehr lesbar, auch nicht in Sicherungen.
 
+## Terminal
+
+Ab 0.44 kann Gnotchi ein Terminalfenster öffnen: **Einstellungen → Allgemein → Terminal → „Terminal-Fenster anbieten“** einschalten (ab Werk aus), dann im Menüleisten-Fenster unter **Funktionen → Werkzeuge** auf **Terminal** klicken.
+- Es öffnet sich ein normales Fenster mit deiner Anmelde-Shell (meist zsh) im Home-Ordner. **⌘N** öffnet ein weiteres Fenster, **⌘F** sucht, **⌘+** und **⌘−** ändern die Schrift, **⌘0** setzt sie zurück.
+- Schließt du ein Fenster, während noch ein Programm läuft, fragt es vorher. Beendest du die Shell mit `exit`, schließt sich das Fenster.
+- Das Fenster ist ein eigenes Programm, **„Gnotchi Terminal“**, ohne Gnotchis Freigaben (Kamera, Apple Events). Programme im Terminal können weder die Zwischenablage mitlesen noch ändern.
+- Die Shell hat deine Nutzerrechte, wie in Terminal.app. Für Ordner wie Dokumente, Schreibtisch oder Downloads fragt macOS unter **„Gnotchi Terminal“** nach.
+
 ## Wetter
 
 Einstellungen → Tasten → **Wetter in der Notch** einschalten (ab Werk aus), dann unter „Stadt suchen“ deinen Ort eingeben,
@@ -454,6 +462,7 @@ dem Schreibtisch speichert, erlaubt Gnotchi einmal den Zugriff auf den Schreibti
 Nur wer „Mitteilungen in der Notch“ einschaltet, erteilt die Freigabe „Gerätesteuerung und Datenzugriff“ dem eigenen Hilfsprogramm
 „Gnotchi Mitteilungen“, nicht Gnotchi. Dasselbe Hilfsprogramm liest für die Ungelesen-Zahlen die Abzeichen im Dock
 und drückt beim Einfügen aus der Zwischenablage ⌘V, sonst keine Taste.
+Das Terminal („Gnotchi Terminal“) ist ein eigenes Programm ohne Freigaben; macOS fragt für Ordner wie Dokumente oder Schreibtisch unter diesem Namen.
 „Claude Code in der Notch“ braucht keine Freigabe, Gnotchi trägt nur Einträge in `~/.claude/settings.json` ein.
 Auch die Zwischenablage braucht keine Freigabe. Für den Tresor fragt macOS nach Touch ID oder deinem Mac-Passwort.
 Ob eine App Mikrofon oder Kamera nutzt, erfährt es ohne eigene Freigabe.

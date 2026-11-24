@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Terminalfenster.** Einstellungen → Allgemein → „Terminal-Fenster anbieten“ (ab Werk aus) zeigt unter „Funktionen“ den Knopf „Terminal“. Er öffnet ein verschiebbares Fenster mit deiner Anmelde-Shell, ⌘N für weitere Fenster, ⌘F Suche, ⌘+/⌘− Schriftgröße. Schließen mit laufendem Programm fragt vorher.
+- Das Terminal ist ein **eigenes Programm („Gnotchi Terminal“) ohne Berechtigungen**: Die Shell erbt nichts von Gnotchis Freigaben. Programme im Terminal können die Zwischenablage weder lesen noch schreiben (OSC 52 aus). Ordnerzugriffe fragt macOS unter „Gnotchi Terminal“ ab.
+
+### Intern
+- Neu `GnotchiTerminal/` (Fenster, Menü, `TerminalRules`, `GuardedTerminalView`), `Gnotchi/Terminal/TerminalLauncher` (Start nur nach Signaturprüfung), Test `TerminalTests` (13 Fälle). SwiftTerm v1.99.3 (MIT) als Quelltext in `Vendor/SwiftTerm`, kein Paket (Sparkle bleibt die einzige). Sicherheitsentwurf G65, Spec `specs/2026-11-24-gnotchi-terminal.md`. Signier- und Prüfskripte kennen den Helfer.
+
 ## [0.43.0] — 2026-11-23
 
 ### Neu

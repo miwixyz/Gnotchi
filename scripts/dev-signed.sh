@@ -80,6 +80,16 @@ if [ -d "$HOOK" ]; then
     done
     codesign --force --options runtime --sign "$IDENTITY" "$HOOK"
 fi
+# 2d2. Terminalfenster „Gnotchi Terminal“ (0.44.0, G65): ohne Berechtigungen, eigene Kennung – Gnotchi startet es nur
+# signaturgeprüft; die Shell darin erbt so nichts von Gnotchis Freigaben.
+TERM_APP="$APP/Contents/Helpers/Gnotchi Terminal.app"
+if [ -d "$TERM_APP" ]; then
+    for part in "$TERM_APP"/Contents/MacOS/*.dylib; do
+        [ -e "$part" ] || continue
+        codesign --force --options runtime --sign "$IDENTITY" "$part"
+    done
+    codesign --force --options runtime --sign "$IDENTITY" "$TERM_APP"
+fi
 # 2b. Schreibtisch-Widget (0.26.0, G49): eigene, kleinstmögliche Berechtigungen (Sandbox + App-Gruppe), vor der App.
 # 2e. Stream-Deck-Plugin (0.35.0, G59): blankes Programm in Resources, ohne Berechtigungen, eigene Kennung – Gnotchi prüft
 # es am Socket, „Plugin installieren“ übergibt nur ein so signiertes.

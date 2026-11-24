@@ -189,6 +189,9 @@ private struct FunctionsView: View {
                     }
                     chip(speedLabel) { model.activity.speed.start() }
                         .disabled(model.activity.speed.state == .running)
+                    if model.prefs.terminal {
+                        chip("Terminal") { TerminalLauncher.open() }
+                    }
                 }
                 if case .done(let r) = model.activity.speed.state {
                     Text(verbatim: "↓ \(SpeedTest.mbpsText(r.downMbps)) · ↑ \(SpeedTest.mbpsText(r.upMbps)) Mbit/s"

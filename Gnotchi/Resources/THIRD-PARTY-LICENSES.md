@@ -1,8 +1,8 @@
 # Drittanbieter-Lizenzen
 
-Gnotchi liefert vier Komponenten mit, die nicht von Michael Wildenauer stammen: das
+Gnotchi liefert fünf Komponenten mit, die nicht von Michael Wildenauer stammen: das
 Update-Framework Sparkle, die Schriften Plus Jakarta Sans und Neonderthaw (ab 0.17.0) und
-den Medien-Adapter mediaremote-adapter. Ihre Lizenzen verlangen, dass Urheberhinweis und Lizenztext der
+den Medien-Adapter mediaremote-adapter und (ab 0.44.0) den Terminalemulator SwiftTerm. Ihre Lizenzen verlangen, dass Urheberhinweis und Lizenztext der
 Auslieferung beigefügt werden. Dafür gibt es diese Datei. Sie liegt im App-Bundle und ist
 in Gnotchi unter „Hilfe …“ → „Fremdcode“ erreichbar.
 
@@ -328,4 +328,67 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+---
+
+## SwiftTerm
+
+Terminalemulator im Hilfsprogramm „Gnotchi Terminal“ (ab 0.44.0). Als Quelltext eingespielt, nicht als Paket.
+
+- Projekt: <https://github.com/migueldeicaza/SwiftTerm>
+- Version: **v1.99.3** (Commit `282c3c3a`, siehe `Vendor/SwiftTerm/VENDOR.md`)
+- Lizenz: **MIT**
+
+```
+Copyright (c) 2019-2026 Miguel de Icaza (https://github.com/migueldeicaza)
+Copyright (c) 2017-2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)
+Copyright (c) 2014-2016, SourceLair Private Company (https://www.sourcelair.com)
+Copyright (c) 2012-2013, Christopher Jeffrey (https://github.com/chjj/)
+Copyright (c) 2016 Ryan L McIntyre (Powerline Extra Symbols flame silhouette, https://github.com/ryanoasis/powerline-extra-symbols)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+Die Prüfung von Links aus dem Terminal (`TerminalLinkOpening`, `UntrustedTerminalLink`) ist aus Ghostty übernommen:
+
+```
+MIT License
+
+Copyright (c) 2024 Mitchell Hashimoto, Ghostty contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```

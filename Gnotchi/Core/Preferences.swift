@@ -71,6 +71,7 @@ final class Preferences {
         static let compactUnread = "compactUnread"
         /// 0.9.0 Code & KI (G34/G35): Claude-Code-Sitzungen in der Notch.
         static let claudeCode = "claudeCode"
+        static let terminal = "terminal"
         /// 0.35.0 Stream Deck (G59): Socket für das eigene Plugin. Ab Werk aus.
         static let streamDeck = "streamDeck"
         /// Stream Deck, Browser-Weg (G59 Punkt 10): YouTube in Helium gezielt steuern. Ab Werk aus.
@@ -253,6 +254,8 @@ final class Preferences {
     var compactUnread: Bool { didSet { defaults.set(compactUnread, forKey: Key.compactUnread) } }
     /// Claude-Code-Sitzungen in der Notch (0.9.0). Ab Werk **aus**: trägt Hooks in `~/.claude/settings.json` ein (G35).
     var claudeCode: Bool { didSet { defaults.set(claudeCode, forKey: Key.claudeCode) } }
+    /// Terminalfenster (0.44.0, G65): Knopf in den Funktionen, der „Gnotchi Terminal“ öffnet. Ab Werk **aus**; aus = kein Knopf.
+    var terminal: Bool { didSet { defaults.set(terminal, forKey: Key.terminal) } }
     /// Stream Deck (0.35.0, G59): Befehle vom eigenen, geprüften Plugin. Ab Werk **aus**; aus = kein Socket.
     var streamDeck: Bool { didSet { defaults.set(streamDeck, forKey: Key.streamDeck) } }
     /// Stream Deck: Play/Pause und Titel für YouTube in Helium per Apple Events am Tab (G59 Punkt 10). Ab Werk **aus**.
@@ -403,6 +406,7 @@ final class Preferences {
         notifyBadges = defaults.object(forKey: Key.notifyBadges) as? Bool ?? false
         compactUnread = defaults.object(forKey: Key.compactUnread) as? Bool ?? true
         claudeCode = defaults.object(forKey: Key.claudeCode) as? Bool ?? false
+        terminal = defaults.object(forKey: Key.terminal) as? Bool ?? false
         streamDeck = defaults.object(forKey: Key.streamDeck) as? Bool ?? false
         deckBrowserTab = defaults.object(forKey: Key.deckBrowserTab) as? Bool ?? false
         deckCover = defaults.object(forKey: Key.deckCover) as? Bool ?? false

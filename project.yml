@@ -79,6 +79,14 @@ targets:
         copy:
           destination: wrapper
           subpath: Contents/Helpers
+      # Terminalfenster (0.44.0, docs/SECURE-DESIGN.md G65): eigenes Programm, eigene Kennung, ohne Berechtigungen.
+      - target: GnotchiTerminal
+        embed: true
+        link: false
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
       # Schreibtisch-Widget (0.26.0, docs/SECURE-DESIGN.md G49): echte WidgetKit-Erweiterung unter Contents/PlugIns.
       - target: GnotchiWidget
         embed: true
@@ -175,6 +183,38 @@ targets:
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
 
+  # „Gnotchi Terminal“ (G65): Terminalfenster mit echter Shell. Eigenes Programm mit eigener Kennung und KEINEN Berechtigungen,
+  # damit die Shell nichts von Gnotchis Freigaben (Kamera, Apple Events, Gruppen) erbt. Der Emulator SwiftTerm (MIT) liegt als
+  # Quelltext in Vendor/SwiftTerm (kein Paket, erzeugte Dateien eingespielt, siehe VENDOR.md) und wird NUR hier kompiliert.
+  GnotchiTerminal:
+    type: application
+    platform: macOS
+    sources:
+      - path: GnotchiTerminal
+        excludes:
+          - Info.plist
+      - path: Vendor/SwiftTerm/Sources
+        excludes:
+          - Mac/README.md
+      - path: Gnotchi/Resources/AppIcon.icon
+    settings:
+      base:
+        PRODUCT_NAME: Gnotchi Terminal
+        INFOPLIST_FILE: GnotchiTerminal/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi.terminal
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+        # SwiftTerm nennt sich im eigenen Quelltext beim Modulnamen (`SwiftTerm.Terminal`): Das Modul heißt deshalb so,
+        # statt den fremden Quelltext zu ändern. Eigener Code und Emulator bilden ein Modul (Unterklasse ohne `open`, G65).
+        PRODUCT_MODULE_NAME: SwiftTerm
+        # Ganzes Modul auf einmal: Im Debug-Build mit Einzeldateien fand der Linker `setProcessOutputHandler` nicht
+        # (24.11., Unterklasse von LocalProcessTerminalView). Zugleich schneller beim Emulator.
+        SWIFT_COMPILATION_MODE: wholemodule
+        # Fremder Quelltext: Parallelität nicht streng prüfen (Gnotchis eigene Ziele bleiben bei „complete“).
+        SWIFT_STRICT_CONCURRENCY: minimal
+
   # Stream-Deck-Plugin „GnotchiDeck“ (0.35.0, G59): wird von Elgatos Stream Deck gestartet, spricht dessen WebSocket und
   # Gnotchis geprüften Socket `deck.sock`. Keine Berechtigungen. Nachrichtenformat = dieselbe Datei wie in Gnotchi (DeckWire).
   # Kennung im Programm (eingebettete Info.plist), weil Gnotchi den Peer an `dev.mwlr.gnotchi.deck` erkennt.
@@ -217,6 +257,8 @@ targets:
       - path: GnotchiDeck/Marquee.swift
       # 0.38: Tasten „Ausgabe“ und „Mikrofon“ mittesten.
       - path: GnotchiDeck/DeviceKey.swift
+      # 0.44.0 (G65): Regeln des Terminalfensters (Shell, Umgebung, Titel) mittesten; der Emulator selbst gehört nicht ins Testziel.
+      - path: GnotchiTerminal/TerminalRules.swift
       - path: Gnotchi
         excludes:
           - App/GnotchiApp.swift

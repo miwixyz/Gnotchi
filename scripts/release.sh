@@ -269,6 +269,16 @@ HOOK_APP="${APP_PATH}/Contents/Helpers/Gnotchi Claude.app"
     || fail "Hook-Programm hat die falsche Kennung"
 codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.claude"' "${HOOK_APP}" \
     || fail "Hook-Programm nicht gültig mit Developer ID signiert"
+# 0.44.0 (G65): Terminalfenster – da, eigene Kennung, gültig mit Developer ID und OHNE Berechtigungen (die Shell darin
+# darf nichts von Gnotchis Freigaben erben). Gnotchi startet es nur nach dieser Signaturprüfung.
+TERM_APP="${APP_PATH}/Contents/Helpers/Gnotchi Terminal.app"
+[ -d "${TERM_APP}" ] || fail "Gnotchi Terminal.app fehlt im Bundle"
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${TERM_APP}/Contents/Info.plist")" = "dev.mwlr.gnotchi.terminal" ] \
+    || fail "Terminal-Hilfsprogramm hat die falsche Kennung"
+codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "LTKJ6Z2VYB" and identifier "dev.mwlr.gnotchi.terminal"' "${TERM_APP}" \
+    || fail "Terminal-Hilfsprogramm nicht gültig mit Developer ID signiert"
+[ -z "$(codesign -d --entitlements - "${TERM_APP}" 2>/dev/null | grep -a 'com.apple.security')" ] \
+    || fail "Terminal-Hilfsprogramm trägt Berechtigungen (G65: keine erlaubt)"
 # 0.35.0 (G59): Stream-Deck-Plugin – da, ausführbar, Kennung dev.mwlr.gnotchi.deck, gültig mit Developer ID (Gnotchi prüft
 # es am Socket; „Plugin installieren“ übergibt nur ein signaturgeprüftes Programm).
 DECK_BIN="${APP_PATH}/Contents/Resources/dev.mwlr.gnotchi.deck.sdPlugin/gnotchideck"
