@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.44.1</title>
-            <pubDate>Tue, 24 Nov 2026 13:17:49 +0100</pubDate>
+            <title>0.45.0</title>
+            <pubDate>Tue, 24 Nov 2026 14:11:23 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>306</sparkle:version>
-            <sparkle:shortVersionString>0.44.1</sparkle:shortVersionString>
+            <sparkle:version>311</sparkle:version>
+            <sparkle:shortVersionString>0.45.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Terminal-Taste an der großen Insel.</b> Mit „Terminal-Fenster anbieten“ erscheint unten an der großen Insel eine runde Taste mit dem Symbol <code>&gt;_</code>. Ein Klick schließt die Insel und öffnet das Terminal. Sie hat keinen eigenen Schalter unter „Tasten“, sie folgt „Terminal-Fenster anbieten“.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.44.1/Gnotchi-0.44.1.zip" length="11845880" type="application/octet-stream" sparkle:edSignature="JTgsQfNP+DED/YugxleuzkIvP5M/OEBXTdL5mdoiqr3qgGvKuQBiUmvoXjGjIrk9loZ5bs75HvfZU2S0ArFuCg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>YouTube am Stream Deck jetzt in mehreren Browsern.</b> Der Schalter heißt „YouTube in Browsern gezielt steuern“ und gilt für Chrome, Edge, Helium und Safari (bisher nur Helium). Jede Taste „Wiedergabe“ gehört dem Browser, dessen App sie gewählt hat; im Plugin kommt dafür „Chrome“ zur Auswahl dazu (Plugin neu installieren). Im Browser muss „JavaScript von Apple Events“ eingeschaltet sein; die Einstellungen nennen den Menüweg je Browser, und fehlt die Freigabe, zeigt die Taste „&lt;Browser&gt; freigeben“. Gnotchi fragt nur Browser ab, die laufen und auf dem Deck liegen, zusammen höchstens einmal je Sekunde, reihum und nie zwei gleichzeitig.</li><li><b>Search und Firefox sind nicht steuerbar</b> und stehen deshalb nicht in der Liste: Search erlaubt Skripten nur das Lesen von Adresse und Titel (kein JavaScript, kein Play/Pause), Firefox hat keine Skriptschnittstelle. Für beide bleibt der bisherige Weg über die macOS-Wiedergabe (nur als aktive Quelle). Die Einstellungen sagen das offen.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.45.0/Gnotchi-0.45.0.zip" length="11848512" type="application/octet-stream" sparkle:edSignature="1kQ1OLtoDN9T14zEN2/tcEeYFHAfLtcUw9pOSSLVuIDoZP4tziJLZ3sX1Em2013GXSOVTBloY8FEnuqD5ayFDQ=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 2Nhoj3/bY9p27BRDESAlzGxqMo4McFN+2Rprl8mJTgIlbNp1TOA1mOXXmQn6NIGXp31WzUAr0aQZiJayy/a2BQ==
-length: 1527
+edSignature: D/SdP+pLMrRulxScmetIDy7quko3VchHb1B6bEuVqJoUlBnAjYQ58SuK9LLtU8UzZYnVxkGxJf4BdCi2SVf9AQ==
+length: 2236
 -->
