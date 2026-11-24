@@ -92,7 +92,7 @@ final class TerminalTests: XCTestCase {
     func testFontSizeIsClamped() {
         XCTAssertEqual(TerminalRules.clampedFontSize(2), 9)
         XCTAssertEqual(TerminalRules.clampedFontSize(99), 36)
-        XCTAssertEqual(TerminalRules.clampedFontSize(.nan), 13)
+        XCTAssertEqual(TerminalRules.clampedFontSize(.nan), 16)
         XCTAssertEqual(TerminalRules.clampedFontSize(14), 14)
     }
 

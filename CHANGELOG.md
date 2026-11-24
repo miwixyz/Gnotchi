@@ -2,10 +2,10 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.44.0] — 2026-11-24
 
 ### Neu
-- **Terminalfenster.** Einstellungen → Allgemein → „Terminal-Fenster anbieten“ (ab Werk aus) zeigt unter „Funktionen“ den Knopf „Terminal“. Er öffnet ein verschiebbares Fenster mit deiner Anmelde-Shell, ⌘N für weitere Fenster, ⌘F Suche, ⌘+/⌘− Schriftgröße. Schließen mit laufendem Programm fragt vorher.
+- **Terminalfenster.** Einstellungen → Allgemein → „Terminal-Fenster anbieten“ (ab Werk aus) zeigt unter „Funktionen“ den Knopf „Terminal“. Er öffnet ein verschiebbares Fenster mit deiner Anmelde-Shell, ⌘N für weitere Fenster, ⌘F Suche, ⌘+/⌘− Schriftgröße. Schließen mit laufendem Programm fragt vorher. Die Schrift ist von Anfang an groß (16 Punkt), mit ⌘0 kehrst du dorthin zurück.
 - Das Terminal ist ein **eigenes Programm („Gnotchi Terminal“) ohne Berechtigungen**: Die Shell erbt nichts von Gnotchis Freigaben. Programme im Terminal können die Zwischenablage weder lesen noch schreiben (OSC 52 aus). Ordnerzugriffe fragt macOS unter „Gnotchi Terminal“ ab.
 
 ### Intern

@@ -95,7 +95,7 @@ enum TerminalRules {
 
     static let minFontSize: CGFloat = 9
     static let maxFontSize: CGFloat = 36
-    static let defaultFontSize: CGFloat = 13
+    static let defaultFontSize: CGFloat = 16
 
     static func clampedFontSize(_ size: CGFloat) -> CGFloat {
         guard size.isFinite else { return defaultFontSize }

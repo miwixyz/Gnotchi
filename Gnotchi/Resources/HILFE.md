@@ -412,7 +412,7 @@ Einschalten unter Einstellungen → Zwischenablage (ab Werk aus). Ab dann merkt 
 ## Terminal
 
 Ab 0.44 kann Gnotchi ein Terminalfenster öffnen: **Einstellungen → Allgemein → Terminal → „Terminal-Fenster anbieten“** einschalten (ab Werk aus), dann im Menüleisten-Fenster unter **Funktionen → Werkzeuge** auf **Terminal** klicken.
-- Es öffnet sich ein normales Fenster mit deiner Anmelde-Shell (meist zsh) im Home-Ordner. **⌘N** öffnet ein weiteres Fenster, **⌘F** sucht, **⌘+** und **⌘−** ändern die Schrift, **⌘0** setzt sie zurück.
+- Es öffnet sich ein normales Fenster mit deiner Anmelde-Shell (meist zsh) im Home-Ordner. **⌘N** öffnet ein weiteres Fenster, **⌘F** sucht, **⌘+** und **⌘−** ändern die Schrift, **⌘0** setzt sie zurück (ab Werk 16 Punkt).
 - Schließt du ein Fenster, während noch ein Programm läuft, fragt es vorher. Beendest du die Shell mit `exit`, schließt sich das Fenster.
 - Das Fenster ist ein eigenes Programm, **„Gnotchi Terminal“**, ohne Gnotchis Freigaben (Kamera, Apple Events). Programme im Terminal können weder die Zwischenablage mitlesen noch ändern.
 - Die Shell hat deine Nutzerrechte, wie in Terminal.app. Für Ordner wie Dokumente, Schreibtisch oder Downloads fragt macOS unter **„Gnotchi Terminal“** nach.
