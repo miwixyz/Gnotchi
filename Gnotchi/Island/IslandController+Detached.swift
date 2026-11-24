@@ -200,6 +200,11 @@ extension IslandController {
                                                configuration: NSWorkspace.OpenConfiguration())
             collapseTasks[id]?.cancel()
             Task { await self.collapse(id) }
+        case .terminal:
+            // Terminalfenster (G65): Insel zu, „Gnotchi Terminal“ auf (signaturgeprüft).
+            collapseTasks[id]?.cancel()
+            Task { await self.collapse(id) }
+            TerminalLauncher.open()
         case .quickEntry:
             // Schnelleingabe (G61): Insel zu, Zeile aus der Notch auf.
             collapseTasks[id]?.cancel()

@@ -277,6 +277,19 @@ final class RingActionsTests: XCTestCase {
         XCTAssertTrue(activity.ringAvailable.contains(.awake))
     }
 
+    /// G65: Die Terminal-Taste folgt dem Schalter „Terminal-Fenster anbieten“, nicht den Tasten-Schaltern.
+    @MainActor func testTerminalButtonFollowsTerminalSwitch() {
+        let activity = ActivityModel(media: NowPlayingModel())
+        XCTAssertFalse(activity.ringButtons.contains(.terminal), "Schalter aus → keine Taste")
+        activity.terminalAvailable = true
+        XCTAssertTrue(activity.ringButtons.contains(.terminal))
+        activity.ringOn = []   // auch ohne Eintrag in den gespeicherten Tasten (ältere Einstellungen)
+        XCTAssertTrue(activity.ringButtons.contains(.terminal))
+        activity.terminalAvailable = false
+        XCTAssertFalse(activity.ringButtons.contains(.terminal))
+        XCTAssertEqual(RingButton.terminal.side, .bottomLeading)
+    }
+
     func testActionButtonsAreAvailableButOffByDefault() {
         let activity = ActivityModel(media: NowPlayingModel())
         XCTAssertTrue(activity.ringAvailable.isSuperset(of: [.screenshot, .speedtest]))

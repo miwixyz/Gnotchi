@@ -179,6 +179,7 @@ final class AppModel {
         activity.compactControls = prefs.compactControls
         activity.ringEnabled = prefs.ring
         activity.ringOn = prefs.ringButtons
+        activity.terminalAvailable = prefs.terminal
         activity.ringMicAlways = prefs.ringMicAlways
         activity.batteryIdle = prefs.batteryIdle
         activity.quietIsland = prefs.quietIsland

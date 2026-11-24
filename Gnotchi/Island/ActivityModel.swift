@@ -164,6 +164,8 @@ final class ActivityModel {
     var clipboard: ClipboardLink?
     /// Schnelleingabe öffnen (G61); `nil` = aus (dann keine Ring-Taste).
     var openQuickEntry: (() -> Void)?
+    /// Terminal-Taste im Ring (G65): an, solange „Terminal-Fenster anbieten“ an ist.
+    var terminalAvailable = false
     var clipboardActive = false
     /// Geschwindigkeitstest (0.28.0, G51): Ergebnis groß gezeigt, Zustand in `speed`.
     var speedtestActive = false

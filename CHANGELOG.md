@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Terminal-Taste an der großen Insel.** Mit „Terminal-Fenster anbieten“ erscheint unten an der großen Insel eine runde Taste mit dem Symbol `>_`. Ein Klick schließt die Insel und öffnet das Terminal. Sie hat keinen eigenen Schalter unter „Tasten“, sie folgt „Terminal-Fenster anbieten“.
+
 ## [0.44.0] — 2026-11-24
 
 ### Neu

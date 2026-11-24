@@ -13,7 +13,7 @@ extension IslandView {
                                running: activity.ringRunning(b), count: b == .shelf ? activity.shelfItems.count : nil,
                                multicolor: b == .weather, dot: b == .mic ? .red : .orange, onHover: onHover) {
                     activity.ringTap(b)
-                    if b == .settings || b == .screenshot || b == .quickEntry { onRingAction(b) }
+                    if b == .settings || b == .screenshot || b == .quickEntry || b == .terminal { onRingAction(b) }
                 }
                 .offset(x: ring.margins.side + r.minX, y: r.minY)
             }
@@ -34,6 +34,7 @@ extension IslandView {
         case .mic: activity.mic.isMuted ? "mic.slash.fill" : "mic.fill"
         case .screenshot: "camera.viewfinder"
         case .speedtest: "speedometer"
+        case .terminal: "terminal"
         case .settings: "gearshape"
         }
     }

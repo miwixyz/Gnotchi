@@ -14,6 +14,9 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
     case pin
     /// Neue Tasten mit Nebenwirkung (0.28.0): ab Werk aus.
     case mic, screenshot, speedtest
+    /// Terminalfenster (0.44.1, G65): öffnet „Gnotchi Terminal“. Nur sichtbar mit Schalter „Terminal-Fenster anbieten“;
+    /// folgt diesem Schalter, hat keinen eigenen in „Tasten“.
+    case terminal
     case settings
 
     enum Side: Sendable { case left, right, bottomLeading, bottomTrailing }
@@ -23,7 +26,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
         switch self {
         case .timer, .awake, .mirror, .quickEntry: .left
         case .weather, .shelf, .clipboard, .mixer: .right
-        case .pin, .mic, .screenshot, .speedtest: .bottomLeading
+        case .pin, .mic, .screenshot, .speedtest, .terminal: .bottomLeading
         case .settings: .bottomTrailing
         }
     }
@@ -43,6 +46,7 @@ enum RingButton: String, CaseIterable, Sendable, Hashable {
         case .mic: "Mikrofon stumm"
         case .screenshot: "Bildschirmfoto"
         case .speedtest: "Geschwindigkeitstest"
+        case .terminal: "Terminal"
         case .settings: "Einstellungen"
         }
     }
@@ -84,7 +88,7 @@ enum Ring {
     /// Welche Tasten stehen im Ring: eingeschaltet **und** verfügbar (ihre Funktion ist an bzw. hat etwas zu zeigen),
     /// in der festen Reihenfolge von `RingButton.allCases`. Anheften und Einstellungen sind immer da.
     nonisolated static func visible(enabled: Set<RingButton>, available: Set<RingButton>) -> [RingButton] {
-        RingButton.allCases.filter { ($0.alwaysOn || enabled.contains($0)) && ($0.alwaysOn || available.contains($0)) }
+        RingButton.allCases.filter { ($0.alwaysOn || $0 == .terminal || enabled.contains($0)) && ($0.alwaysOn || available.contains($0)) }
     }
 
     /// Platz jeder Taste, Ursprung oben links an der Insel, y nach unten (SwiftUI-Richtung). Links und rechts je eine

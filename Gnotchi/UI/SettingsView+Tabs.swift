@@ -51,7 +51,7 @@ extension SettingsView {
         card("Terminal") {
             // 0.44.0 (G65): echte Shell in einem eigenen Fenster, im eigenen Hilfsprogramm „Gnotchi Terminal“.
             toggleRow("Terminal-Fenster anbieten", isOn: $prefs.terminal)
-            note("Zeigt unter „Funktionen“ einen Knopf „Terminal“. Das Fenster ist ein eigenes Programm („Gnotchi Terminal“) "
+            note("Zeigt einen Knopf „Terminal“ unter „Funktionen“ und als Taste unten an der großen Insel. Das Fenster ist ein eigenes Programm („Gnotchi Terminal“) "
                  + "ohne Gnotchis Freigaben wie Kamera oder Apple Events. Die Shell hat deine Nutzerrechte, wie in Terminal.app; "
                  + "macOS fragt für Ordner wie Dokumente oder Schreibtisch unter „Gnotchi Terminal“ nach. Ab Werk aus.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
@@ -375,7 +375,7 @@ extension SettingsView {
             toggleRow("Tasten um die große Insel", isOn: $prefs.ring)
                 .onChange(of: prefs.ring) { model.applyNotchSetting() }
             if prefs.ring {
-                ForEach(RingButton.allCases.filter { !$0.alwaysOn }, id: \.self) { b in
+                ForEach(RingButton.allCases.filter { !$0.alwaysOn && $0 != .terminal }, id: \.self) { b in
                     toggleRow(b.label, isOn: Binding(
                         get: { prefs.isRingButtonOn(b) },
                         set: { on in
