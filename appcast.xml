@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.44.0</title>
-            <pubDate>Tue, 24 Nov 2026 12:13:03 +0100</pubDate>
+            <title>0.44.1</title>
+            <pubDate>Tue, 24 Nov 2026 13:17:49 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>302</sparkle:version>
-            <sparkle:shortVersionString>0.44.0</sparkle:shortVersionString>
+            <sparkle:version>306</sparkle:version>
+            <sparkle:shortVersionString>0.44.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Terminalfenster.</b> Einstellungen → Allgemein → „Terminal-Fenster anbieten“ (ab Werk aus) zeigt unter „Funktionen“ den Knopf „Terminal“. Er öffnet ein verschiebbares Fenster mit deiner Anmelde-Shell, ⌘N für weitere Fenster, ⌘F Suche, ⌘+/⌘− Schriftgröße. Schließen mit laufendem Programm fragt vorher. Die Schrift ist von Anfang an groß (16 Punkt), mit ⌘0 kehrst du dorthin zurück.</li><li>Das Terminal ist ein <b>eigenes Programm („Gnotchi Terminal“) ohne Berechtigungen</b>: Die Shell erbt nichts von Gnotchis Freigaben. Programme im Terminal können die Zwischenablage weder lesen noch schreiben (OSC 52 aus). Ordnerzugriffe fragt macOS unter „Gnotchi Terminal“ ab.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.44.0/Gnotchi-0.44.0.zip" length="11845429" type="application/octet-stream" sparkle:edSignature="uohfjRIOdwmd8FW1LLYwElEqzB49BhY982HSL105vLcW6fNkrK4M00ZvU8lGS04Z1x9NxTpgeuVCzTRxPBPeBA=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Terminal-Taste an der großen Insel.</b> Mit „Terminal-Fenster anbieten“ erscheint unten an der großen Insel eine runde Taste mit dem Symbol <code>&gt;_</code>. Ein Klick schließt die Insel und öffnet das Terminal. Sie hat keinen eigenen Schalter unter „Tasten“, sie folgt „Terminal-Fenster anbieten“.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.44.1/Gnotchi-0.44.1.zip" length="11845880" type="application/octet-stream" sparkle:edSignature="JTgsQfNP+DED/YugxleuzkIvP5M/OEBXTdL5mdoiqr3qgGvKuQBiUmvoXjGjIrk9loZ5bs75HvfZU2S0ArFuCg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: FSNNYyRMp/zkQbyPbN/FAG4MXvMaL5UaibLAmATdqgs5LgFyRvzXSdy4YPYfZ+Efagnme3QumKCG2mhsPL8QBA==
-length: 1922
+edSignature: 2Nhoj3/bY9p27BRDESAlzGxqMo4McFN+2Rprl8mJTgIlbNp1TOA1mOXXmQn6NIGXp31WzUAr0aQZiJayy/a2BQ==
+length: 1527
 -->
