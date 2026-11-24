@@ -1,7 +1,7 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "Gnotchi",
-  "Version": "0.44.1.0",
+  "Version": "0.45.0.0",
   "Author": "MWLR",
   "Description": "Lautstärke, Wiedergabe und Lautsprecher je App über Gnotchi: Spotify, Musik, Safari, Helium, Edge, Teams. Dazu Ausgabe und Mikrofon des Macs.",
   "URL": "https://github.com/miwixyz/Gnotchi",
