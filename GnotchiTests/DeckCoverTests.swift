@@ -127,11 +127,13 @@ final class DeckCoverTests: XCTestCase {
     func testCoverScriptsAreConstantsWithHostCheck() {
         for js in [BrowserTab.coverStartJavaScript, BrowserTab.coverCollectJavaScript] {
             XCTAssertTrue(js.hasPrefix("(function(){var h=location.hostname;if(h!=='www.youtube.com'&&h!=='music.youtube.com')"))
-            XCTAssertNotNil(BrowserTab.tabScript(window: 1, index: 2, javascript: js), "keine Anführungszeichen/Backslashes")
+            for b in DeckBrowser.all {
+                XCTAssertNotNil(BrowserTab.tabScript(b, window: 1, index: 2, javascript: js), "keine Anführungszeichen/Backslashes")
+            }
         }
         XCTAssertTrue(BrowserTab.coverStartJavaScript.contains("credentials:'omit'"))
         XCTAssertTrue(BrowserTab.coverCollectJavaScript.contains("delete window.__gnotchiCover"))
-        XCTAssertNil(BrowserTab.tabScript(window: 1, index: 2, javascript: "alert(\"x\")"))
+        for b in DeckBrowser.all { XCTAssertNil(BrowserTab.tabScript(b, window: 1, index: 2, javascript: "alert(\"x\")")) }
     }
 
     func testCollectOutcome() {

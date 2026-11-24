@@ -19,7 +19,10 @@ final class DeckLink: NotchPart {
     private let activity: ActivityModel
     private let controller: DeckController
     private let prefs: Preferences
-    private let browser = BrowserTab()
+    /// Je Browser eine Instanz (G59 Punkt 10); erst bei eingeschaltetem Schalter an den Controller übergeben.
+    private let browserTabs: [String: BrowserTab] = Dictionary(uniqueKeysWithValues: DeckBrowser.all.map { ($0.id, BrowserTab($0)) })
+    /// Reihum: wer zuletzt eine Abfrage startete (jede Sekunde höchstens eine, abwechselnd).
+    private var lastBrowserTick: String?
     private var server: PeerSocketServer<DeckWire.Command>?
     private var connected = false
     private var timer: Timer?
@@ -35,7 +38,7 @@ final class DeckLink: NotchPart {
         self.activity = activity
         self.prefs = prefs
         controller = DeckController(mixer: activity.mixer, media: activity.media)
-        browser.onChange = { [weak self] in self?.push(all: false) }
+        for tab in browserTabs.values { tab.onChange = { [weak self] in self?.push(all: false) } }
     }
 
     func start() {
@@ -102,28 +105,40 @@ final class DeckLink: NotchPart {
         pluginTakesCover = false
         lastCover = [:]
         controller.reset()
-        controller.browser = nil
-        browser.reset()
+        controller.browsers = [:]
+        for tab in browserTabs.values { tab.reset() }
+        lastBrowserTick = nil
         mixer.setVisible(Self.viewer, false)
         Self.log.notice("Stream Deck: Plugin getrennt")
     }
 
-    /// Browser-Weg nur bei eingeschalteter Einstellung (G59/10a); aus = `nil`, Helium bekommt nie ein Apple Event.
+    /// Browser-Weg nur bei eingeschalteter Einstellung (G59/10a); aus = leer, kein Browser bekommt je ein Apple Event.
     private func updateBrowser() {
-        browser.coverWanted = prefs.deckCover
+        for tab in browserTabs.values { tab.coverWanted = prefs.deckCover }
         let on = prefs.deckBrowserTab
-        if on, controller.browser == nil { controller.browser = browser }
-        if !on, controller.browser != nil {
-            controller.browser = nil
-            browser.reset()
+        if on, controller.browsers.isEmpty { controller.browsers = browserTabs }
+        if !on, !controller.browsers.isEmpty {
+            controller.browsers = [:]
+            for tab in browserTabs.values { tab.reset() }
+            lastBrowserTick = nil
         }
     }
 
-    /// Abfrage des Tabs höchstens 1/s und nur, solange Helium auf dem Deck beobachtet wird (G59/10f).
+    /// Abfrage der Tabs: nur Browser, die auf dem Deck beobachtet werden, reihum, insgesamt höchstens 1/s und nie zwei
+    /// gleichzeitig (G59/10f; die Sperre liegt in `BrowserTab`). Der erste, der starten darf, ist dran.
     private func tickBrowser() {
         updateBrowser()
-        guard controller.browser != nil, controller.watched.contains(BrowserTab.bundleID) else { return }
-        browser.refresh()
+        guard !controller.browsers.isEmpty else { return }
+        let ids = DeckBrowser.all.map(\.id).filter { controller.watched.contains($0) }
+        guard !ids.isEmpty else { return }
+        let start = lastBrowserTick.flatMap { ids.firstIndex(of: $0) }.map { $0 + 1 } ?? 0
+        for k in 0..<ids.count {
+            let id = ids[(start + k) % ids.count]
+            if browserTabs[id]?.refresh() == true {
+                lastBrowserTick = id
+                return
+            }
+        }
     }
 
     /// Stand der beobachteten Apps senden; ohne `all` nur, was sich geändert hat.

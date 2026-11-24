@@ -315,11 +315,36 @@ signaturgeprüft), (3) Gnotchi → Core Audio / Apple Events (bestehende Freigab
   vorher über eigenes AppleScript auch (mit eigenem Freigabe-Dialog). Neu ist nur, dass dieser Dialog entfällt – begrenzt auf
   Lautstärke, stumm, Play/Pause, Weiter/Zurück und Ausgabegerät aus Michaels Favoriten. Kein Zugriff auf Ton-Inhalte.
 - Titel und Interpret liegen im Arbeitsspeicher von Elgatos Stream-Deck-App (Michaels Entscheidung, G59 Punkt 6).
-- **Helium-Schalter (Punkt 10):** Wer „JavaScript von Apple Events erlauben“ einschaltet, öffnet Helium für jedes Programm mit
+- **Browser-Schalter (Punkt 10, ab 0.45 je Browser):** Wer „JavaScript von Apple Events“ im Browser einschaltet, öffnet ihn für jedes Programm mit
   Automation-Freigabe, nicht nur für Gnotchi. Gnotchi kann das nicht begrenzen, nur selbst eng bleiben (Positivliste, feste
   Texte). Michael entscheidet, ob er den Schalter dauerhaft an lässt; Rückfall ohne Schalter: Browser nur als aktive Quelle.
 - Elgatos Stream-Deck-App ist Teil der Vertrauenskette. Wird sie kompromittiert, kann sie unser Plugin fernsteuern (im selben
   engen Befehlsumfang).
+
+### 10g – Mehrere Browser (neu 24.11., 0.45)
+
+Auftrag (Michael 24.11.): Der Browser-Weg soll für alle Browser gelten, auch für den neu installierten „Search“. Umsetzung: Tabelle `DeckBrowser.all` mit Dialekt (`BrowserTab.swift`), je Browser eine `BrowserTab`-Instanz, gemeinsame Warteschlange und gemeinsamer Takt, Reihum-Abfrage in `DeckLink.tickBrowser`. Sicherheitsentwurf: `docs/SECURE-DESIGN.md`, G59 Punkt 10g.
+
+| Browser | Bundle-ID (Info.plist) | Version | sdef | Dialekt | Steuerbar |
+|---|---|---|---|---|---|
+| Chrome | `com.google.Chrome` | 158 | `scripting.sdef`: `execute` am Tab, Tab-/Fenster-`id` | Chromium | ja (Skript), nicht am echten Tab gemessen |
+| Edge | `com.microsoft.edgemac` | 158 | wie Chrome | Chromium | ja |
+| Helium | `net.imput.helium` | 0.22 | wie Chrome | Chromium | ja (gemessen 17.11.) |
+| Safari | `com.apple.Safari` | 27.2 | `do JavaScript … in tab`, Fenster mit `id`, Tab nur `index` | Safari | ja (Skript), Weg gemessen bis zur Freigabe |
+| Search | `com.officecommun.search` | 1.0.19 | `Search.sdef`: nur lesend (URL, Titel, Fenster-`id`, `current tab`, Space, Profil; private Tabs nie), **kein JavaScript** | – | **nein** |
+| Firefox | `org.mozilla.firefox` | – | keine Skriptschnittstelle | – | **nein** |
+
+Search und Firefox bleiben beim Weg über MediaRemote. „Nur Titel lesen“ wurde verworfen (Lesefläche über alle Tabs ohne Nutzen am Deck).
+
+**Gemessen 24.11. (Mac mini, macOS 27, mit `osascript`, die gleichen Skriptformen wie im Code):**
+- Tab-Liste: Edge (30 Tabs), Helium (7), Safari (7, Fenster-ID + Position) liefern „Fenster⇥Tab⇥Adresse“. Chromium-IDs sind lange Ganzzahlen, Safari-Tabs 1…n.
+- „JavaScript von Apple Events“ aus: Edge **Fehler 12**, Safari **Fehler 8** (Text: „You must enable ‚Allow JavaScript from Apple Events‘ in the Developer section of Safari Settings“). Edge nennt den Menüweg auf Deutsch: „Ansicht > Entwickler > JavaScript von Apple Events zulassen“.
+- Search: Tab-Liste mit Titeln lesbar, nichts anderes versucht.
+- Für den Test geöffnete YouTube-Tabs (Edge, Safari) wurden danach wieder geschlossen; das dabei in Safari entstandene Fenster „Persönlich“ blieb mit den Tabs des Profils offen.
+
+**Nicht gemessen (ehrlich):** Play/Pause, Titel und Cover am **zweiten** Browser neben Helium. In Edge und Safari ist der Browser-Schalter aus (den schaltet Gnotchi nie, ich auch nicht); das auf diesem Mac laufende „Google Chrome“ ist nur der Headless-Prozess des KVB-Wächters (`--headless`, ohne Fenster, antwortet nicht auf Apple Events, `-1712`). Ebenfalls ungemessen: Reihum-Takt mit zwei laufenden, beobachteten Browsern an der echten Taste, der Automation-Dialog je Browser, Safari-Tab-Position nach Verschieben von Tabs.
+
+**Bekannte Grenze:** `NSRunningApplication` unterscheidet den Headless-Chrome nicht von einem sichtbaren (beide `.regular`). Ist „Chrome“ auf dem Deck beobachtet und der Schalter an, meldet der Headless-Prozess Zeitüberschreitung (5 s, `Failure.other`); es wird nichts ausgeführt, die Taste fällt auf MediaRemote zurück.
 
 ## Messpunkte vor dem Bauen
 

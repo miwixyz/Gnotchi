@@ -127,32 +127,102 @@ final class BrowserTabTests: XCTestCase {
     }
 
     func testTabScriptOnlyTakesBoundedIntegers() throws {
-        let s = try XCTUnwrap(BrowserTab.tabScript(window: 2, index: 7, action: .pause))
+        let s = try XCTUnwrap(BrowserTab.tabScript(.helium, window: 2, index: 7, action: .pause))
         XCTAssertTrue(s.contains("execute tab id 7 of window id 2 javascript"))
         XCTAssertTrue(s.contains("net.imput.helium"))
-        XCTAssertNil(BrowserTab.tabScript(window: 0, index: 1, action: .read))
-        XCTAssertNil(BrowserTab.tabScript(window: 1, index: 99_999_999_999, action: .read))
-        XCTAssertNil(BrowserTab.tabScript(window: -1, index: 1, action: .read))
+        for b in DeckBrowser.all {
+            XCTAssertNil(BrowserTab.tabScript(b, window: 0, index: 1, action: .read), b.name)
+            XCTAssertNil(BrowserTab.tabScript(b, window: 1, index: 99_999_999_999, action: .read), b.name)
+            XCTAssertNil(BrowserTab.tabScript(b, window: -1, index: 1, action: .read), b.name)
+        }
+    }
+
+    // MARK: Mehrere Browser (G59 Punkt 10, 0.45)
+
+    func testBrowserTableHasOnlyMeasuredScriptableBrowsers() {
+        XCTAssertEqual(DeckBrowser.all.map(\.id),
+                       ["com.google.Chrome", "com.microsoft.edgemac", "net.imput.helium", "com.apple.Safari"])
+        // Search (nur lesendes sdef) und Firefox (keine Skriptschnittstelle) dürfen nie in die Tabelle.
+        XCTAssertNil(DeckBrowser.with(id: "com.officecommun.search"))
+        XCTAssertNil(DeckBrowser.with(id: "org.mozilla.firefox"))
+        XCTAssertEqual(Set(DeckBrowser.all.map(\.id)).count, DeckBrowser.all.count)
+        for b in DeckBrowser.all {
+            XCTAssertTrue(DeckWire.isValidApp(b.id), b.name)
+            XCTAssertTrue(DeckWire.choices.contains { $0.id == b.id }, "\(b.name) wählbar im Plugin")
+        }
+    }
+
+    func testChromiumDialectUsesTabAndWindowIDs() throws {
+        for b in [DeckBrowser.chrome, .edge, .helium] {
+            let s = try XCTUnwrap(BrowserTab.tabScript(b, window: 3, index: 9, action: .read))
+            XCTAssertTrue(s.contains("tell application id \"\(b.id)\" to return execute tab id 9 of window id 3 javascript"), b.name)
+            XCTAssertTrue(BrowserTab.listScript(b).contains("(id of w) & tb & (id of t) & tb & (URL of t)"), b.name)
+        }
+    }
+
+    func testSafariDialectUsesDoJavaScriptInTabPosition() throws {
+        let s = try XCTUnwrap(BrowserTab.tabScript(.safari, window: 3, index: 2, action: .pause))
+        XCTAssertTrue(s.contains("tell application id \"com.apple.Safari\" to return do JavaScript \""))
+        XCTAssertTrue(s.contains("\" in tab 2 of window id 3"))
+        XCTAssertFalse(s.contains("execute tab id"))
+        let list = BrowserTab.listScript(.safari)
+        XCTAssertTrue(list.contains("set i to 0"))
+        XCTAssertFalse(list.contains("id of t"), "Safari kennt keine Tab-IDs")
+        XCTAssertFalse(list.contains("javascript") || list.contains("JavaScript"))
+    }
+
+    /// Jedes Skript ist an seinen Browser gebunden und nie eine fremde Kennung.
+    func testScriptsNameOnlyTheirOwnBrowser() throws {
+        for b in DeckBrowser.all {
+            let list = BrowserTab.listScript(b)
+            XCTAssertEqual(list.components(separatedBy: "application id \"").count - 1, 2, "Laufprüfung + tell")
+            XCTAssertTrue(list.contains("application id \"\(b.id)\" is not running then return"), b.name)
+            let tab = try XCTUnwrap(BrowserTab.tabScript(b, window: 1, index: 1, action: .read))
+            XCTAssertEqual(tab.components(separatedBy: "application id \"").count - 1, 1)
+            XCTAssertTrue(tab.contains("application id \"\(b.id)\""), b.name)
+        }
     }
 
     /// Gemessen 17.11.: Im tell-Block von Helium ist „tab“ eine Klasse, kein Tabulator – die Liste kam als „1tab1tab…“ zurück.
     func testListScriptTakesTabCharacterBeforeTellBlock() throws {
-        let s = BrowserTab.listScript
-        XCTAssertFalse(s.contains("& tab &"))
-        let tb = try XCTUnwrap(s.range(of: "set tb to ASCII character 9"))
-        let tell = try XCTUnwrap(s.range(of: "tell application id"))
-        XCTAssertLessThan(tb.lowerBound, tell.lowerBound)
+        for b in DeckBrowser.all {
+            let s = BrowserTab.listScript(b)
+            XCTAssertFalse(s.contains("& tab &"), b.name)
+            let tb = try XCTUnwrap(s.range(of: "set tb to ASCII character 9"))
+            let tell = try XCTUnwrap(s.range(of: "tell application id"))
+            XCTAssertLessThan(tb.lowerBound, tell.lowerBound, b.name)
+        }
     }
 
-    func testListScriptNeverStartsHeliumAndRunsNoJavascript() {
-        XCTAssertTrue(BrowserTab.listScript.contains("is not running then return"))
-        XCTAssertFalse(BrowserTab.listScript.contains("javascript"))
+    func testListScriptNeverStartsTheBrowserAndRunsNoJavascript() {
+        for b in DeckBrowser.all {
+            XCTAssertTrue(BrowserTab.listScript(b).contains("is not running then return"), b.name)
+            XCTAssertFalse(BrowserTab.listScript(b).lowercased().contains("javascript"), b.name)
+        }
+    }
+
+    /// Gemessen 24.11. mit osascript: Safari meldet Fehler 8, Edge (Chromium) 12, wenn „JavaScript von Apple Events“ aus ist.
+    func testJavascriptOffErrorCodesPerDialect() {
+        XCTAssertEqual(BrowserTab.failure(12, .edge), .javascriptOff)
+        XCTAssertEqual(BrowserTab.failure(12, .helium), .javascriptOff)
+        XCTAssertEqual(BrowserTab.failure(8, .safari), .javascriptOff)
+        XCTAssertEqual(BrowserTab.failure(12, .safari), .other, "Chromium-Nummer gilt nicht für Safari")
+        XCTAssertEqual(BrowserTab.failure(8, .chrome), .other, "Safari-Nummer gilt nicht für Chromium")
+        XCTAssertEqual(BrowserTab.failure(AppleScriptSource.deniedError, .safari), .denied)
+        XCTAssertEqual(BrowserTab.failure(-1712, .edge), .other)
+    }
+
+    func testHintsNameTheRealMenuPaths() {
+        XCTAssertEqual(DeckBrowser.helium.javascriptSettingPath, "Darstellung → Entwickler")
+        XCTAssertEqual(DeckBrowser.chrome.javascriptSettingPath, "Ansicht → Entwickler")
+        XCTAssertEqual(DeckBrowser.edge.javascriptSettingPath, "Ansicht → Entwickler")
+        XCTAssertTrue(DeckBrowser.safari.javascriptSettingPath.hasPrefix("Einstellungen → Entwickler"))
     }
 
     // MARK: Wire
 
     func testNeedsBrowserRoundTripsAndIsOptional() throws {
-        var s = DeckWire.Status(app: BrowserTab.bundleID, name: "Helium", title: nil, artist: nil, percent: nil, muted: false,
+        var s = DeckWire.Status(app: DeckBrowser.helium.id, name: "Helium", title: nil, artist: nil, percent: nil, muted: false,
                                 playing: false, canPlay: false, state: .silent)
         XCTAssertNil(DeckWire.encode(s)["needsBrowser"])
         s.needsBrowser = true

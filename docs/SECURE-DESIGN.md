@@ -59,7 +59,7 @@ Die Entscheidungen heißen hier **G1 …**. Wo eine aus Seam stammt, steht die a
 | G54 | – (neu, 0.30.0) | Mixer und Menüleisten-Popover: Standard-Core-Audio ohne Freigabe, Ändern nur auf Klick/Ziehen, Abfrage nur bei sichtbarem Popover, Regler je App nur Spotify/Musik |
 | G56 | – (neu, 0.30.0) | Ersatzquelle Spotify/Musik per AppleScript, wenn hörbar aber nicht bei MediaRemote gemeldet; nur bei bereits erteilter Automation, nie neuer Dialog |
 | G55 | – (neu, 0.30.0) | Mixer Stufe 2: Regler je App über Prozess-Taps, Freigabe „Audio-Aufnahme“ ab Werk aus, Tap nur bei Regler ≠ 100 %, Ton nur im Speicher, nie stumm hängen lassen |
-| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Helium gezielt per Apple Events (eigener Schalter, nur youtube.com), 10e: Cover auf dem Deck (eigener Schalter, ≤ 144 px, Gnotchi skaliert) |
+| G59 | – (neu, unveröffentlicht) | Stream Deck: G13 gelockert für genau einen Absender – eigenes Plugin (Developer ID) **und** Elternprozess Elgatos Stream Deck; feste Befehle, Titel bewusst an Elgato, gemerkte Lautstärken; Punkt 10: YouTube in Chrome, Edge, Helium und Safari gezielt per Apple Events (eigener Schalter, nur youtube.com; ab 0.45 mehrere Browser, 10g), 10e: Cover auf dem Deck (eigener Schalter, ≤ 144 px, Gnotchi skaliert) |
 | G65 | – (neu, 0.44.0) | Terminalfenster: echte Shell nur im eigenen Hilfsprogramm ohne Berechtigungen (erbt nichts von Gnotchi), Schalter ab Werk aus, Start nur signaturgeprüft, OSC 52 Lesen/Schreiben aus, SwiftTerm als Quelltext ohne Paket |
 | G61 | – (neu, 0.40.0) | Schnelleingabe: kein Kalenderzugriff für Gnotchi, Eintrag nur auf ↵ an das geprüfte Kalli, Kalli prüft selbst und löscht nur Frisches, Eingaben nie im Protokoll, Zeile nicht in Bildschirmfreigaben |
 | G60 | – (neu, 0.39.0) | Reiner Text per Kürzel: eigener Schalter ab Werk aus, nur echter Tastendruck, ⌘V über G42, Original nach 1 s zurück, vertrauliche Kopien nie zurück |
@@ -1771,8 +1771,8 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
 - **Anlass:** macOS (MediaRemote) kennt nur eine aktive Quelle. Läuft Spotify, ist ein YouTube-Tab im Browser für das Deck unsichtbar
   und nicht steuerbar. Gemessen 17.11. (Mac mini, Helium, macOS 27): Helium nimmt Apple Events an; JavaScript im Tab nur, wenn
   „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an ist (sonst Fehler 12); gezieltes Pause/Play neben Spotify 10 von 10.
-- **Neue Vertrauensgrenze:** Gnotchi führt JavaScript in einem Browser-Tab aus. Deshalb: eigener Schalter „YouTube in Helium gezielt
-  steuern“ (`deckBrowserTab`), **ab Werk aus**, unabhängig von „Stream Deck“. Aus = Helium bekommt nie ein Apple Event.
+- **Neue Vertrauensgrenze:** Gnotchi führt JavaScript in einem Browser-Tab aus. Deshalb: eigener Schalter „YouTube in Browsern gezielt
+  steuern“ (`deckBrowserTab`, bis 0.44 „…in Helium…“), **ab Werk aus**, unabhängig von „Stream Deck“. Aus = Helium bekommt nie ein Apple Event.
   Gnotchi schaltet Heliums Schalter nie selbst.
 - **Nur YouTube:** JavaScript läuft ausschließlich in Tabs mit dem Host `www.youtube.com` oder `music.youtube.com` (geparste URL,
   https, ohne Zugangsdaten, nie „enthält“). Zusätzlich prüft das Skript im Tab selbst `location.hostname` und tut sonst nichts; so
@@ -1807,6 +1807,24 @@ Spezifikation, Messungen und STRIDE: `specs/2026-11-17-gnotchi-stream-deck-plus.
   - Gemessen 17.11.: Tab-Skripte 144×81 / 4182 Byte, Variable danach `undefined`; Cover an der Taste und Wechsel beim nächsten Video (Michael, Plugin 0.36.0.4); keine Netzverbindung
     am Gnotchi-Prozess (`lsof -a -i`), Plugin blieb verbunden. Restrisiko: Fetch, der nach 5 Nachfragen noch läuft, hinterlässt die
     Variable bis zum nächsten Start im Tab (eigenes Vorschaubild der Seite, harmlos).
+
+#### G59 Punkt 10g – Mehrere Browser (neu, 2026-11-24, 0.45, unveröffentlicht)
+
+Erweitert Punkt 10 von Helium auf Chrome, Edge, Helium und Safari. Code: `DeckBrowser` und `BrowserTab` in `Gnotchi/Deck/BrowserTab.swift`, Reihum-Takt in `DeckLink.tickBrowser`.
+
+- **Messgrundlage (24.11., Mac mini):** Bundle-IDs aus der `Info.plist` der installierten Apps; Dialekt aus dem sdef der App. Chrome 158, Edge 158 und Helium 0.22: Chromium-Dialekt wie Punkt 10 (`execute tab id N of window id M javascript`, Fenster und Tabs mit ID). Safari 27.2: `do JavaScript … in tab N of window id M`, Fenster mit ID, **Tabs nur mit Position**.
+- **Search und Firefox sind nicht steuerbar und stehen nicht in der Tabelle** (`DeckBrowser.all`, Test `testBrowserTableHasOnlyMeasuredScriptableBrowsers`). Search (`com.officecommun.search`, 1.0.19): das sdef ist ausdrücklich nur lesend (URL und Titel der Tabs, Fenster-ID, privates Fenster nie gelistet), kein JavaScript, kein Play/Pause. Firefox hat keine Skriptschnittstelle. Beide bleiben beim Weg über MediaRemote, also nur als aktive Quelle. Es gibt kein „Titel nur lesen“: Search würde Adresse und Titel aller Tabs liefern, ohne dass das Deck damit etwas steuern könnte; der Gewinn wäre eine Lesefläche ohne Nutzen.
+- **Fragen aus `rafter-secure-design`:**
+  - *Eingaben:* Vom Deck kommt kein Text, nur die feste App-Kennung. Die Kennung muss in `DeckBrowser.all` stehen, sonst kein Apple Event (Tabelle statt Durchreichen: `controller.browsers[app]`).
+  - *Skript-Einschleusung:* AppleScript- und JavaScript-Texte sind Konstanten ohne Anführungszeichen und Rückwärtsschrägstrich; variabel nur Fenster-ID und Tab-ID/Position als geprüfte Ganzzahlen 1…Int32.max. Die Bundle-ID wird aus der Tabelle in den Skripttext gesetzt, nie von außen (Test `testScriptsNameOnlyTheirOwnBrowser`).
+  - *Safari-Tab-Position:* Safari kennt keine Tab-IDs. Zwischen Liste und Befehl kann sich die Position verschieben. Folge: Das JavaScript landet im falschen Tab desselben Fensters. Gegenmaßnahme wie bei Punkt 10: Das Skript prüft `location.hostname` selbst und tut in jedem anderen Host nichts; ein verschobener Tab kann so höchstens einen anderen YouTube-Tab im selben Fenster treffen (Pause/Play dort).
+  - *Dienstverweigerung und Takt:* **Eine** Warteschlange und **ein** Takt für alle Browser (`BrowserTab.queue`, `lastStart`, `anyBusy`): höchstens eine Abfrage je Sekunde insgesamt, nie zwei gleichzeitig, auch nicht an zwei Browser. Abgefragt wird nur ein Browser, der läuft **und** auf dem Deck beobachtet wird; mehrere werden reihum bedient (je Browser dann etwa alle 2 s). Läuft ein Browser nicht, geht kein Apple Event raus.
+  - *Welcher Browser steht auf der Taste:* Der, dem die Taste in den Plugin-Einstellungen zugewiesen ist (`watch`-Kennung). „Gerade spielend“ geht nie über den Browser-Weg. Ein Druck wirkt nur auf den Browser der Taste.
+  - *Automation-Dialog:* macOS fragt je Browser beim ersten Apple Event einmal. Verweigert → `needsBrowser`, Taste zeigt „<Browser> freigeben“; kein Wiederholen in Schleife (nächster Versuch erst im regulären Takt).
+  - *Browser-Schalter:* Gnotchi schaltet „JavaScript von Apple Events erlauben“ in keinem Browser selbst. Restrisiko je Browser wie Punkt 10: Wer den Schalter einschaltet, öffnet ihn für jedes Programm mit Automation-Freigabe.
+  - *Fremde Daten, Rückkanal:* unverändert (Punkt 10): Titel und Kanal gekürzt und bereinigt, JSON mit Schema, kein neuer `state`-Wert, `needsBrowser` bleibt ein optionales Zusatzfeld.
+- **Gemessen 24.11.:** Tab-Listen in Edge, Helium, Safari; Fehler bei ausgeschaltetem Schalter (Edge 12, Safari 8). **Nicht gemessen:** Play/Pause, Titel und Cover an einem zweiten Browser neben Helium (Schalter in Edge/Safari aus, das laufende Chrome ist der Headless-Prozess des KVB-Wächters), Reihum-Takt an der echten Taste, Automation-Dialog je Browser. Details: Spec, Abschnitt „10g“.
+- **Bekannte Grenze:** Ein Headless-Chrome zählt als laufender Browser; Apple Events laufen dort in die Zeitgrenze (5 s, `Failure.other`), ohne etwas auszuführen.
 
 ### G60 – Als reinen Text einfügen per Kürzel (neu, 2026-11-18, 0.39.0)
 - **Anlass:** Michael, 18.11.: „als Tastenkürzel, zum Beispiel ⇧⌘V“. Danach soll die Zwischenablage ihre

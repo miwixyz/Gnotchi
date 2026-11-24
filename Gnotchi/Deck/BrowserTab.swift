@@ -1,10 +1,47 @@
 import AppKit
 import OSLog
 
-/// Stream Deck, Stufe 1 des Browser-Wegs (G59 Punkt 10): Play/Pause und Titel für YouTube in Helium, **gezielt am Tab**, auch
-/// wenn macOS gerade eine andere Quelle (Spotify) als aktiv führt. MediaRemote kennt nur die aktive Quelle (Messpunkt M3).
+/// Welche Browser Gnotchi am Tab steuern kann, und in welchem AppleScript-Dialekt (G59 Punkt 10, ab 0.45 mehrere Browser).
+/// Nur Browser, deren Wörterbuch (sdef) am System gelesen wurde und die JavaScript im Tab ausführen können. Bundle-IDs stammen aus
+/// der `Info.plist` der installierten App (gemessen 24.11., Mac mini), nicht aus dem Gedächtnis.
 ///
-/// - Ab Werk aus („Browser-Tab steuern“). Aus = Gnotchi schickt Helium nie ein Apple Event.
+/// **Nicht steuerbar, bewusst nicht in der Tabelle:** Search (`com.officecommun.search`, sdef nur lesend: URL und Titel der Tabs,
+/// kein JavaScript, kein Play/Pause) und Firefox (keine Skriptschnittstelle). Für sie bleibt nur der Weg über MediaRemote,
+/// solange sie die aktive Quelle sind.
+struct DeckBrowser: Equatable, Sendable {
+    enum Dialect: Sendable {
+        /// Chrome, Edge, Helium & Co.: Fenster und Tabs haben stabile IDs, `execute tab id N of window id M javascript "…"`.
+        case chromium
+        /// Safari: Fenster haben eine ID, Tabs nur die Position im Fenster, `do JavaScript "…" in tab N of window id M`.
+        case safari
+    }
+
+    let id: String
+    let name: String
+    let dialect: Dialect
+
+    static let chrome = DeckBrowser(id: "com.google.Chrome", name: "Chrome", dialect: .chromium)
+    static let edge = DeckBrowser(id: "com.microsoft.edgemac", name: "Edge", dialect: .chromium)
+    static let helium = DeckBrowser(id: "net.imput.helium", name: "Helium", dialect: .chromium)
+    static let safari = DeckBrowser(id: "com.apple.Safari", name: "Safari", dialect: .safari)
+    static let all = [chrome, edge, helium, safari]
+
+    static func with(id: String) -> DeckBrowser? { all.first { $0.id == id } }
+
+    /// Menüweg des Browser-Schalters „JavaScript von Apple Events erlauben“ (für Hinweise an Michael).
+    var javascriptSettingPath: String {
+        switch dialect {
+        case .chromium: id == Self.helium.id ? "Darstellung → Entwickler" : "Ansicht → Entwickler"
+        case .safari: "Einstellungen → Entwickler (dort erst das Entwickeln-Menü unter Erweitert einschalten; Wortlaut vermutet)"
+        }
+    }
+}
+
+/// Stream Deck, Stufe 1 des Browser-Wegs (G59 Punkt 10): Play/Pause und Titel für YouTube in einem Browser (`DeckBrowser`),
+/// **gezielt am Tab**, auch wenn macOS gerade eine andere Quelle (Spotify) als aktiv führt. MediaRemote kennt nur die aktive
+/// Quelle (Messpunkt M3). Je Browser eine Instanz; alle teilen sich eine Warteschlange und einen Takt (siehe `queue`, `lastStart`).
+///
+/// - Ab Werk aus („Browser-Tab steuern“). Aus = Gnotchi schickt keinem Browser je ein Apple Event.
 /// - JavaScript nur in Tabs mit Host `www.youtube.com` / `music.youtube.com` (geparst, nicht per Teilzeichenfolge) und
 ///   zusätzlich im Skript selbst geprüft (`location.hostname`) – Tab-Nummern können sich zwischen zwei Aufrufen verschieben.
 /// - Alle Skripte sind Konstanten. Einzige variable Größen sind zwei Ganzzahlen (Fenster-ID, Tab-ID) im Bereich 1…Int32.max.
@@ -12,33 +49,44 @@ import OSLog
 /// - Titel und Kanal kommen aus der Seite, sind also fremde Daten: gekürzt, ohne Steuerzeichen (`LiveText.sanitize`).
 /// - Kein Netz. Die Seite lädt der Browser, nicht Gnotchi.
 ///
-/// Ablauf: `DeckLink` ruft `refresh()` im 0,5-s-Takt auf, aber nur, solange das Plugin verbunden ist und Helium auf dem Deck
+/// Ablauf: `DeckLink` ruft reihum `refresh()` im 0,5-s-Takt auf, aber nur, solange das Plugin verbunden ist und der Browser auf dem Deck
 /// beobachtet wird. `refresh()` fragt höchstens einmal je Sekunde: erst die Tab-Liste (`listScript`), dann je passendem Tab das
 /// Lese-JavaScript. Das Ergebnis liegt in `latest`; `DeckController` baut daraus Titel, Zustand und `canPlay`. Ein Tastendruck
 /// ruft `toggle()`, das den Tab per Fenster-/Tab-ID umschaltet.
 ///
 /// Gemessen am 17.11. (Mac mini, Helium, macOS 27) und im Code berücksichtigt:
-/// - Im `tell`-Block von Helium ist `tab` eine Klasse, kein Tabulator → Tabulator vorher holen (`listScript`).
+/// - Im `tell`-Block von Helium (und Chrome/Edge, gleicher Dialekt) ist `tab` eine Klasse, kein Tabulator → Tabulator vorher holen (`listScript`).
 /// - Fenster-/Tab-**Positionen** wandern, sobald ein anderes Fenster nach vorn kommt → IDs verwenden.
 /// - Ist „JavaScript von Apple Events erlauben“ aus, meldet Helium Fehler 12 → `Failure.javascriptOff`.
 /// - Der erste Apple-Event löst den Automation-Dialog von macOS aus; die Skripte laufen mit 5-s-Zeitgrenze, damit die Queue
 ///   nicht ewig hängt. `busy` verhindert, dass sich Abfragen stauen, solange der Dialog offen ist.
-/// Nicht gemessen: mehrere YouTube-Tabs gleichzeitig, Verhalten im laufenden Gnotchi bei ausgeschaltetem Helium-Schalter.
+/// Nicht gemessen: mehrere YouTube-Tabs gleichzeitig, Verhalten im laufenden Gnotchi bei ausgeschaltetem Browser-Schalter.
 @MainActor
 final class BrowserTab {
 
-    nonisolated static let bundleID = "net.imput.helium"
     nonisolated static let allowedHosts: Set<String> = ["www.youtube.com", "music.youtube.com"]
     /// So viele passende Tabs fragt Gnotchi höchstens ab (ein Fenster voller YouTube-Tabs soll keine Last erzeugen).
     nonisolated static let maxCandidates = 6
-    /// Heliums Fenster- und Tab-IDs sind stabil (Positionen verschieben sich, sobald ein anderes Fenster nach vorn kommt).
+    /// Fenster- und Tab-IDs der Chromium-Browser sind stabil (Positionen verschieben sich, sobald ein anderes Fenster nach vorn kommt).
     nonisolated static let idRange = 1...Int(Int32.max)
-    /// Heliums Fehlernummer, wenn „JavaScript von Apple Events erlauben“ aus ist (gemessen 17.11. mit osascript: „(12)“).
-    nonisolated static let javascriptOffError = 12
+    /// Fehlernummer, wenn „JavaScript von Apple Events erlauben“ aus ist. Chromium: 12 (gemessen 17.11. mit osascript an Helium).
+    /// Safari: 8 („You must enable 'Allow JavaScript from Apple Events' in the Developer section of Safari Settings“, gemessen 24.11.).
+    nonisolated static func javascriptOffError(_ browser: DeckBrowser) -> Int {
+        switch browser.dialect {
+        case .chromium: 12
+        case .safari: 8
+        }
+    }
     nonisolated static let minInterval: TimeInterval = 1
+    /// Eine Warteschlange für alle Browser: nie zwei Apple Events gleichzeitig (auch nicht an zwei Browser).
+    private nonisolated static let queue = DispatchQueue(label: "dev.mwlr.gnotchi.browsertab", qos: .utility)
+    /// Start der letzten Abfrage **irgendeines** Browsers: höchstens eine Abfrage je Sekunde insgesamt (G59/10f).
+    private static var lastStart = Date.distantPast
+    /// Läuft gerade irgendeine Abfrage? Dann startet keine weitere.
+    private static var anyBusy = 0
     private nonisolated static let log = Logger(subsystem: "dev.mwlr.gnotchi", category: "streamdeck")
 
-    /// Ein Tab mit Video, wie ihn die Seite meldet. `window`/`index` sind Heliums Fenster- und Tab-**IDs**.
+    /// Ein Tab mit Video, wie ihn die Seite meldet. `window`/`index` sind Fenster- und Tab-**IDs** (Safari: Fenster-ID und Position).
     struct Tab: Equatable, Sendable {
         let window: Int
         let index: Int
@@ -48,11 +96,11 @@ final class BrowserTab {
     }
 
     enum Failure: Equatable, Sendable {
-        /// Helium läuft nicht.
+        /// Der Browser läuft nicht.
         case notRunning
-        /// „JavaScript von Apple Events erlauben“ ist in Helium aus.
+        /// „JavaScript von Apple Events erlauben“ ist im Browser aus.
         case javascriptOff
-        /// macOS hat die Automation für Helium verweigert (-1743).
+        /// macOS hat die Automation für den Browser verweigert (-1743).
         case denied
         case other
     }
@@ -66,14 +114,17 @@ final class BrowserTab {
     private(set) var latest = Snapshot()
     var onChange: (() -> Void)?
 
-    private let queue = DispatchQueue(label: "dev.mwlr.gnotchi.browsertab", qos: .utility)
-    private var busy = false
-    private var lastStart = Date.distantPast
+    let browser: DeckBrowser
+    private var busy = false {
+        didSet { if busy != oldValue { Self.anyBusy += busy ? 1 : -1 } }
+    }
     private var generation = 0
     /// Ein Befehl läuft: weitere werden verworfen, nicht angestaut.
     private var commandRunning = false
     /// Zuletzt aktiver Tab (siehe `active(_:previous:)`); nur im Speicher.
     private(set) var active: TabID?
+    init(_ browser: DeckBrowser) { self.browser = browser }
+
     /// Der Tab auf der Taste.
     var shown: Tab? { Self.displayed(latest.tabs, active: active) }
 
@@ -151,23 +202,26 @@ final class BrowserTab {
         coverPending = nil
     }
 
-    /// Eine Abfrage, höchstens eine je Sekunde und nie zwei gleichzeitig. Läuft Helium nicht: keine Apple Events (G59/10a).
-    func refresh() {
-        guard !busy, Date().timeIntervalSince(lastStart) >= Self.minInterval else { return }
-        guard Self.isRunning else {
+    /// Eine Abfrage, höchstens eine je Sekunde (über alle Browser) und nie zwei gleichzeitig. Läuft der Browser nicht: keine
+    /// Apple Events (G59/10a). `true` = eine Abfrage wurde gestartet (der Aufrufer reicht sonst an den nächsten Browser weiter).
+    @discardableResult
+    func refresh() -> Bool {
+        guard Self.anyBusy == 0, Date().timeIntervalSince(Self.lastStart) >= Self.minInterval else { return false }
+        guard Self.isRunning(browser) else {
             if latest != Snapshot(tabs: [], failure: .notRunning) {
                 latest = Snapshot(tabs: [], failure: .notRunning)
                 onChange?()
             }
-            return
+            return false
         }
         busy = true
-        lastStart = Date()
+        Self.lastStart = Date()
         let gen = generation
         let step = nextCoverStep()
-        queue.async { [weak self] in
-            let snap = Self.measure()
-            let outcome = snap.failure == nil ? Self.runCover(step) : .none
+        let browser = browser
+        Self.queue.async { [weak self] in
+            let snap = Self.measure(browser)
+            let outcome = snap.failure == nil ? Self.runCover(step, browser: browser) : .none
             Task { @MainActor in
                 guard let self, gen == self.generation else { return }
                 self.busy = false
@@ -180,6 +234,7 @@ final class BrowserTab {
                 self.apply(outcome, step: step)
             }
         }
+        return true
     }
 
     /// Play/Pause für die YouTube-Tabs (Michael 17.11.): spielt etwas → **alle** spielenden pausieren; spielt nichts → den
@@ -196,14 +251,15 @@ final class BrowserTab {
         commandRunning = true
         let gen = generation
         let previous = active
-        queue.async { [weak self] in
-            let snap = Self.measure()
+        let browser = browser
+        Self.queue.async { [weak self] in
+            let snap = Self.measure(browser)
             let now = Self.active(snap.tabs, previous: previous)
             var tabs = snap.tabs
             var played: TabID?
             if snap.failure == nil, let plan = Self.plan(snap.tabs, active: now) {
                 for t in plan.tabs {
-                    guard let state = Self.run(window: t.window, index: t.index, action: plan.action),
+                    guard let state = Self.run(browser, window: t.window, index: t.index, action: plan.action),
                           let i = tabs.firstIndex(where: { $0.window == t.window && $0.index == t.index }) else { continue }
                     tabs[i] = state
                     if plan.action == .play { played = TabID(t) }
@@ -217,7 +273,7 @@ final class BrowserTab {
                 self.active = played ?? Self.active(result.tabs, previous: now)
                 self.latest = result
                 self.onChange?()
-                self.lastStart = .distantPast
+                Self.lastStart = .distantPast
             }
         }
         return true
@@ -247,7 +303,7 @@ final class BrowserTab {
         return out
     }
 
-    /// Heliums Fenster- und Tab-ID eines Tabs.
+    /// Fenster- und Tab-ID eines Tabs (bei Safari: Fenster-ID und Position).
     struct TabID: Equatable, Sendable {
         let window: Int
         let index: Int
@@ -290,25 +346,6 @@ final class BrowserTab {
         return Tab(window: window, index: index, paused: p, title: clean(obj["t"] as? String), artist: clean(obj["a"] as? String))
     }
 
-    /// Listenskript: nur Adressen, kein JavaScript. Startet Helium nie (`tell application id` ohne Laufprüfung würde es starten –
-    /// die Prüfung steht davor in Swift und im Skript).
-    nonisolated static let listScript = """
-        if application id "\(bundleID)" is not running then return ""
-        -- Tabulator VOR dem tell holen: im tell-Block liest AppleScript „tab“ als Heliums Klasse (gemessen 17.11.).
-        set tb to ASCII character 9
-        with timeout of 5 seconds
-            tell application id "\(bundleID)"
-                set out to ""
-                repeat with w in windows
-                    repeat with t in tabs of w
-                        set out to out & (id of w) & tb & (id of t) & tb & (URL of t) & linefeed
-                    end repeat
-                end repeat
-                return out
-            end tell
-        end timeout
-        """
-
     /// JavaScript im Tab. Konstante; `action` ist eine der drei Zeichenketten aus `Action`. Prüft den Host selbst und tut sonst nichts.
     nonisolated static func javascript(_ action: Action) -> String {
         "(function(){var h=location.hostname;if(h!=='www.youtube.com'&&h!=='music.youtube.com')return '';"
@@ -340,25 +377,29 @@ final class BrowserTab {
             + "return typeof c==='string'&&c.length<=24000?c:'';})()"
 
     /// Skript für einen Tab. Fenster und Tab sind geprüfte Ganzzahlen; das JavaScript enthält keine Anführungszeichen.
-    nonisolated static func tabScript(window: Int, index: Int, action: Action) -> String? {
-        tabScript(window: window, index: index, javascript: javascript(action))
+    nonisolated static func tabScript(_ browser: DeckBrowser, window: Int, index: Int, action: Action) -> String? {
+        tabScript(browser, window: window, index: index, javascript: javascript(action))
     }
 
     /// Wie oben für die festen Cover-Skripte. Nur Konstanten aus dieser Datei, nie Text von außen.
-    nonisolated static func tabScript(window: Int, index: Int, javascript js: String) -> String? {
+    nonisolated static func tabScript(_ browser: DeckBrowser, window: Int, index: Int, javascript js: String) -> String? {
         guard idRange.contains(window), idRange.contains(index) else { return nil }
         guard !js.contains("\"") && !js.contains("\\") else { return nil }
+        let command = switch browser.dialect {
+        case .chromium: "execute tab id \(index) of window id \(window) javascript \"\(js)\""
+        case .safari: "do JavaScript \"\(js)\" in tab \(index) of window id \(window)"
+        }
         return """
             with timeout of 5 seconds
-                tell application id "\(bundleID)" to return execute tab id \(index) of window id \(window) javascript "\(js)"
+                tell application id "\(browser.id)" to return \(command)
             end timeout
             """
     }
 
     // MARK: Ausführen (auf der Queue)
 
-    private nonisolated static var isRunning: Bool {
-        !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
+    private nonisolated static func isRunning(_ browser: DeckBrowser) -> Bool {
+        !NSRunningApplication.runningApplications(withBundleIdentifier: browser.id).isEmpty
     }
 
     /// NSAppleScript ist nicht Sendable – hier erzeugt, nie geteilt.
@@ -368,9 +409,9 @@ final class BrowserTab {
         return (out?.stringValue, err?[NSAppleScript.errorNumber] as? Int)
     }
 
-    private nonisolated static func failure(_ code: Int) -> Failure {
+    nonisolated static func failure(_ code: Int, _ browser: DeckBrowser) -> Failure {
         switch code {
-        case javascriptOffError: .javascriptOff
+        case javascriptOffError(browser): .javascriptOff
         case AppleScriptSource.deniedError: .denied
         case AppleScriptSource.notRunningError: .notRunning
         default: .other
@@ -378,24 +419,24 @@ final class BrowserTab {
     }
 
     /// Eine volle Messung (auf der Queue). Beim ersten Fehler wird abgebrochen: Alle Fehlerarten (Schalter aus, Automation
-    /// verweigert, Zeitgrenze) gelten für Helium insgesamt, weitere Tabs würden dasselbe melden. Bereits gelesene Tabs bleiben
+    /// verweigert, Zeitgrenze) gelten für den Browser insgesamt, weitere Tabs würden dasselbe melden. Bereits gelesene Tabs bleiben
     /// im Ergebnis, damit die Anzeige nicht flackert.
-    private nonisolated static func measure() -> Snapshot {
-        guard isRunning else { return Snapshot(tabs: [], failure: .notRunning) }
-        let (listing, error) = execute(listScript)
-        if let error { return Snapshot(tabs: [], failure: failure(error)) }
+    private nonisolated static func measure(_ browser: DeckBrowser) -> Snapshot {
+        guard isRunning(browser) else { return Snapshot(tabs: [], failure: .notRunning) }
+        let (listing, error) = execute(listScript(browser))
+        if let error { return Snapshot(tabs: [], failure: failure(error, browser)) }
         var tabs: [Tab] = []
         for c in candidates(from: listing ?? "") {
-            guard let source = tabScript(window: c.window, index: c.index, action: .read) else { continue }
+            guard let source = tabScript(browser, window: c.window, index: c.index, action: .read) else { continue }
             let (text, err) = execute(source)
-            if let err { return Snapshot(tabs: tabs, failure: failure(err)) }
+            if let err { return Snapshot(tabs: tabs, failure: failure(err, browser)) }
             if let tab = text.flatMap({ parseState($0, window: c.window, index: c.index) }) { tabs.append(tab) }
         }
         return Snapshot(tabs: tabs, failure: nil)
     }
 
-    private nonisolated static func run(window: Int, index: Int, action: Action) -> Tab? {
-        guard isRunning, let source = tabScript(window: window, index: index, action: action) else { return nil }
+    private nonisolated static func run(_ browser: DeckBrowser, window: Int, index: Int, action: Action) -> Tab? {
+        guard isRunning(browser), let source = tabScript(browser, window: window, index: index, action: action) else { return nil }
         let (text, error) = execute(source)
         if let error {
             // G8: nur die Fehlernummer, nie Inhalte.
@@ -406,18 +447,18 @@ final class BrowserTab {
     }
 
     /// Ein Cover-Schritt (auf der Queue, nach `measure`). Fehler zählen als „kein Cover für dieses Video“, nie als Dauerversuch.
-    nonisolated static func runCover(_ step: CoverStep) -> CoverOutcome {
+    nonisolated static func runCover(_ step: CoverStep, browser: DeckBrowser) -> CoverOutcome {
         switch step {
         case .none: return .none
         case .start(let t):
-            guard isRunning, let source = tabScript(window: t.window, index: t.index, javascript: coverStartJavaScript) else {
+            guard isRunning(browser), let source = tabScript(browser, window: t.window, index: t.index, javascript: coverStartJavaScript) else {
                 return .none
             }
             let (text, error) = execute(source)
             if let error { log.error("Browser-Tab: Cover nicht gestartet (\(error, privacy: .public))") }
             return text == "1" ? .started : .done(nil)
         case .collect(let t):
-            guard isRunning, let source = tabScript(window: t.window, index: t.index, javascript: coverCollectJavaScript) else {
+            guard isRunning(browser), let source = tabScript(browser, window: t.window, index: t.index, javascript: coverCollectJavaScript) else {
                 return .none
             }
             let (text, error) = execute(source)
@@ -431,5 +472,57 @@ final class BrowserTab {
         guard let text else { return .done(nil) }
         if text == "wait" { return .waiting }
         return .done(DeckCover.image(dataURL: text).flatMap(DeckCover.render))
+    }
+}
+
+// MARK: Listenskript je Dialekt
+
+extension BrowserTab {
+
+    /// Listenskript: nur Adressen, kein JavaScript. Startet den Browser nie (`tell application id` ohne Laufprüfung würde ihn
+    /// starten – die Prüfung steht davor in Swift und im Skript). Ausgabe je Tab: „Fenster⇥Tab⇥Adresse“. Bei Chromium sind Fenster
+    /// und Tab IDs (stabil); bei Safari ist die Fenster-ID stabil, die „Tab-ID“ ist die Position im Fenster (1…n, Safari kennt
+    /// keine Tab-IDs, gemessen am sdef 24.11.) – deshalb prüft das JavaScript im Tab den Host nochmal.
+    nonisolated static func listScript(_ browser: DeckBrowser) -> String {
+        let head = """
+            if application id "\(browser.id)" is not running then return ""
+            -- Tabulator VOR dem tell holen: im tell-Block liest AppleScript „tab“ als Klasse des Browsers (gemessen 17.11.).
+            set tb to ASCII character 9
+            with timeout of 5 seconds
+                tell application id "\(browser.id)"
+                    set out to ""
+            """
+        let body: String
+        switch browser.dialect {
+        case .chromium:
+            body = """
+                        repeat with w in windows
+                            repeat with t in tabs of w
+                                set out to out & (id of w) & tb & (id of t) & tb & (URL of t) & linefeed
+                            end repeat
+                        end repeat
+                """
+        case .safari:
+            // URL kann bei leeren Tabs fehlen („missing value“): dann Adresse leer, Tab wird später verworfen.
+            body = """
+                        repeat with w in windows
+                            set i to 0
+                            repeat with t in tabs of w
+                                set i to i + 1
+                                set u to ""
+                                try
+                                    set u to URL of t
+                                end try
+                                set out to out & (id of w) & tb & i & tb & u & linefeed
+                            end repeat
+                        end repeat
+                """
+        }
+        return head + "\n" + body + """
+
+                    return out
+                end tell
+            end timeout
+            """
     }
 }

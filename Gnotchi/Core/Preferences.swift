@@ -74,7 +74,7 @@ final class Preferences {
         static let terminal = "terminal"
         /// 0.35.0 Stream Deck (G59): Socket für das eigene Plugin. Ab Werk aus.
         static let streamDeck = "streamDeck"
-        /// Stream Deck, Browser-Weg (G59 Punkt 10): YouTube in Helium gezielt steuern. Ab Werk aus.
+        /// Stream Deck, Browser-Weg (G59 Punkt 10): YouTube in Browsern gezielt steuern (Chrome, Edge, Helium, Safari). Ab Werk aus.
         static let deckBrowserTab = "deckBrowserTab"
         /// Stream Deck, Cover auf den Tasten (G59 Punkt 10e). Ab Werk aus.
         static let deckCover = "deckCover"
@@ -258,7 +258,7 @@ final class Preferences {
     var terminal: Bool { didSet { defaults.set(terminal, forKey: Key.terminal) } }
     /// Stream Deck (0.35.0, G59): Befehle vom eigenen, geprüften Plugin. Ab Werk **aus**; aus = kein Socket.
     var streamDeck: Bool { didSet { defaults.set(streamDeck, forKey: Key.streamDeck) } }
-    /// Stream Deck: Play/Pause und Titel für YouTube in Helium per Apple Events am Tab (G59 Punkt 10). Ab Werk **aus**.
+    /// Stream Deck: Play/Pause und Titel für YouTube in Browsern per Apple Events am Tab (G59 Punkt 10). Ab Werk **aus**.
     var deckBrowserTab: Bool { didSet { defaults.set(deckBrowserTab, forKey: Key.deckBrowserTab) } }
     /// Stream Deck: Cover auf der Wiedergabe-Taste (G59 Punkt 10e). Ab Werk **aus**: das Bild geht an Elgatos Prozess.
     var deckCover: Bool { didSet { defaults.set(deckCover, forKey: Key.deckCover) } }

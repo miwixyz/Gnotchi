@@ -350,15 +350,18 @@ extension SettingsView {
                          : e == .missing ? "Das Plugin fehlt in diesem Gnotchi." : "Das Paket ließ sich nicht packen.",
                          symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
                 }
-                // G59 Punkt 10: Browser-Weg, ab Werk aus. Gnotchi schaltet Heliums Schalter nie selbst.
-                toggleRow("YouTube in Helium gezielt steuern", isOn: $prefs.deckBrowserTab)
+                // G59 Punkt 10: Browser-Weg, ab Werk aus. Gnotchi schaltet den Schalter im Browser nie selbst.
+                toggleRow("YouTube in Browsern gezielt steuern", isOn: $prefs.deckBrowserTab)
                 // swiftlint:disable:next line_length
-                note("Play/Pause und Titel für YouTube-Tabs in Helium, auch wenn gleichzeitig Spotify läuft. Dafür muss in Helium „Darstellung → Entwickler → JavaScript von Apple Events erlauben“ an sein, und macOS fragt nach der Steuerung von Helium. Achtung: Mit diesem Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in Tabs von youtube.com aus und schaltet den Helium-Schalter nie selbst.",
+                note("Play/Pause und Titel für YouTube-Tabs in Chrome, Edge, Helium und Safari, auch wenn gleichzeitig Spotify läuft. Dafür muss im Browser „JavaScript von Apple Events“ eingeschaltet sein (Edge: Ansicht → Entwickler → „JavaScript von Apple Events zulassen“, so gemessen · Chrome vermutlich gleich · Helium: Darstellung → Entwickler → „…erlauben“ · Safari: Einstellungen → Entwickler, dazu vorher unter Erweitert das Entwickeln-Menü einschalten, Wortlaut vermutet), und macOS fragt je Browser einmal nach der Steuerung. Achtung: Mit dem Schalter kann in diesem Browser jedes Programm mit Steuerungsfreigabe JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in Tabs von youtube.com aus, fragt nur Browser ab, die laufen und auf dem Deck liegen, und schaltet den Browser-Schalter nie selbst.",
                      symbol: "exclamationmark.triangle", color: FamilyTheme.warning)
+                // swiftlint:disable:next line_length
+                note("Nicht steuerbar: Search und Firefox. Search erlaubt Skripten nur das Lesen von Adresse und Titel, kein JavaScript; Firefox hat gar keine Skriptschnittstelle. Beide laufen nur über die normale Wiedergabe-Steuerung von macOS, also nur, solange sie die aktive Quelle sind.",
+                     symbol: "info.circle", color: FamilyTheme.textSecondary)
                 // G59 Punkt 10e: Cover, ab Werk aus.
                 toggleRow("Cover auf dem Deck", isOn: $prefs.deckCover)
                 // swiftlint:disable:next line_length
-                note("Zeigt das Cover (bei YouTube in Helium das Vorschaubild) auf der Wiedergabe-Taste. Das Bild geht dafür an die Stream-Deck-App von Elgato, auch private Cover. Gnotchi verkleinert es vorher selbst und lädt nichts aus dem Netz. Braucht das aktuelle Plugin.",
+                note("Zeigt das Cover (bei YouTube im Browser das Vorschaubild) auf der Wiedergabe-Taste. Das Bild geht dafür an die Stream-Deck-App von Elgato, auch private Cover. Gnotchi verkleinert es vorher selbst und lädt nichts aus dem Netz. Braucht das aktuelle Plugin.",
                      symbol: "info.circle", color: FamilyTheme.textSecondary)
                 if !prefs.appVolume {
                     note("Für Browser & Co. braucht der Regler „Lautstärke je App“ oben. Spotify und Musik gehen auch ohne.",

@@ -321,10 +321,10 @@ final class Plugin {
         case .needsSetting: return "„Lautstärke je App“ in Gnotchi einschalten"
         case .needsPermission: return "Freigabe „Audio-Aufnahme“ fehlt"
         case .ok, .silent:
-            // G59 Punkt 10: Browser-Weg gestört (Heliums Schalter aus oder Automation verweigert) → nie stumm scheitern.
+            // G59 Punkt 10: Browser-Weg gestört (Schalter im Browser aus oder Automation verweigert) → nie stumm scheitern.
             // Beide Ursachen nennen: Das Plugin erfährt nur „gestört“, nicht welche (Audit 17.11.).
             if s.needsBrowser {
-                return "Helium: „JavaScript von Apple Events erlauben“ einschalten – oder Gnotchi in den Systemeinstellungen die Steuerung von Helium erlauben"
+                return "\(s.name): „JavaScript von Apple Events“ einschalten – oder Gnotchi in den Systemeinstellungen die Steuerung von \(s.name) erlauben"
             }
             if let t = s.title { return s.artist.map { "\(t) – \($0)" } ?? t }
             return s.state == .silent ? "kein Ton" : ""
@@ -335,7 +335,7 @@ final class Plugin {
     nonisolated static func playTitle(_ s: DeckWire.Status?, name: String, connected: Bool) -> String {
         guard connected else { return "Gnotchi aus" }
         // Neutral statt „JS erlauben“: Ursache kann auch die verweigerte Steuerung sein, Details stehen auf der Leiste (Audit 17.11.).
-        return s?.needsBrowser == true ? "Helium\nfreigeben" : name
+        return s?.needsBrowser == true ? "\(name)\nfreigeben" : name
     }
 
     nonisolated static func percentText(_ s: DeckWire.Status?) -> String {

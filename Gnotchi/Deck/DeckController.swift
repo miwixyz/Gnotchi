@@ -14,8 +14,9 @@ final class DeckController {
     private(set) var watched: [String] = []
     /// Wert vor dem Stummschalten je Bundle-ID (nur im Speicher, nie gemerkt).
     private var beforeMute: [String: Int] = [:]
-    /// Browser-Weg (G59 Punkt 10). `nil` = Einstellung „Browser-Tab steuern“ aus: Helium bekommt dann nie ein Apple Event.
-    var browser: BrowserTab?
+    /// Browser-Weg (G59 Punkt 10), je Browser eine Instanz. Leer = Einstellung „Browser-Tab steuern“ aus: Kein Browser bekommt
+    /// dann je ein Apple Event.
+    var browsers: [String: BrowserTab] = [:]
 
     init(mixer: MixerModel, media: NowPlayingModel) {
         self.mixer = mixer
@@ -32,10 +33,10 @@ final class DeckController {
     /// Hält das Bild selbst (Vergleich per `===`): eine bloße Adresse könnte nach dem Freigeben an ein neues Bild gehen.
     private var artCache: (image: NSImage, data: Data?)?
 
-    /// Cover für eine beobachtete App (G59 Punkt 10e). Helium mit Browser-Weg und YouTube-Tab: Bild aus dem Tab. Sonst das Cover
+    /// Cover für eine beobachtete App (G59 Punkt 10e). Browser mit Browser-Weg und YouTube-Tab: Bild aus dem Tab. Sonst das Cover
     /// der Insel, aber nur für die App, die gerade spielt (der Adapter kennt nur die aktive Quelle). Kein Bild → nil.
     func cover(_ app: String) -> Data? {
-        if app == BrowserTab.bundleID, let browser, browser.shown != nil { return browser.cover }
+        if let browser = browsers[app], browser.shown != nil { return browser.cover }
         guard let id = resolve(app), media.info?.appBundleID == id, let art = media.artwork else { return nil }
         if let c = artCache, c.image === art { return c.data }
         let data = DeckCover.render(art)
@@ -70,9 +71,9 @@ final class DeckController {
             guard let id = resolve(app) else { return }
             toggleMute(id)
         case .play(let app, let what):
-            // Helium mit eingeschaltetem Browser-Weg: gezielt am YouTube-Tab, egal welche Quelle macOS als aktiv führt.
+            // Browser mit eingeschaltetem Browser-Weg: gezielt am YouTube-Tab, egal welche Quelle macOS als aktiv führt.
             // Kein Tab bekannt (andere Seite spielt) → normaler Weg wie bisher.
-            if app == BrowserTab.bundleID, what == .toggle, browser?.toggle() == true { return }
+            if what == .toggle, browsers[app]?.toggle() == true { return }
             let cmd: MediaAdapter.Command = switch what {
             case .toggle: .toggle
             case .next: .next
@@ -134,7 +135,7 @@ final class DeckController {
 
     /// Titel, Zustand und Steuerbarkeit aus dem YouTube-Tab statt aus MediaRemote (das nur die aktive Quelle kennt).
     private func applyBrowser(to s: inout DeckWire.Status, app: String) {
-        guard app == BrowserTab.bundleID, let browser else { return }
+        guard let browser = browsers[app] else { return }
         if let tab = browser.shown {
             s.title = tab.title
             s.artist = tab.artist

@@ -127,16 +127,18 @@ Mit einem Elgato Stream Deck steuerst du Lautstärke, Wiedergabe und Lautspreche
 
 **Wiedergabe** (Taste): Play/Pause, Weiter oder Zurück, je Taste einstellbar.
 
-**YouTube in Helium** (Taste „Wiedergabe“ mit der App „Helium“, neu, ab Werk aus)
-- Spotify läuft und daneben YouTube im Browser? Dann schaltet die Taste gezielt nur den YouTube-Tab, und die Leiste zeigt seinen Titel.
-- Einschalten: Einstellungen → Stream Deck → **„YouTube in Helium gezielt steuern“**. In Helium **Darstellung → Entwickler → JavaScript von Apple Events erlauben** einschalten; macOS fragt beim ersten Mal, ob Gnotchi Helium steuern darf.
-- Achtung: Mit diesem Helium-Schalter kann jedes Programm mit Steuerungsfreigabe für Helium JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in YouTube-Tabs aus und schaltet den Helium-Schalter nie selbst.
+**YouTube im Browser** (Taste „Wiedergabe“ mit der App „Safari“, „Chrome“, „Helium“ oder „Edge“, ab Werk aus; bis 0.44 nur Helium)
+- Spotify läuft und daneben YouTube im Browser? Dann schaltet die Taste gezielt nur den YouTube-Tab dieses Browsers, und die Leiste zeigt seinen Titel.
+- Einschalten: Einstellungen → Stream Deck → **„YouTube in Browsern gezielt steuern“**. Im Browser muss **„JavaScript von Apple Events“** eingeschaltet sein: in Edge **Ansicht → Entwickler → JavaScript von Apple Events zulassen** (so gemessen), in Chrome vermutlich genauso, in Helium **Darstellung → Entwickler**, in Safari **Einstellungen → Entwickler** (vorher unter Erweitert das Entwickeln-Menü einschalten; Wortlaut vermutet). macOS fragt je Browser beim ersten Mal, ob Gnotchi ihn steuern darf.
+- Achtung: Mit dem Schalter in einem Browser kann in diesem Browser jedes Programm mit Steuerungsfreigabe JavaScript in allen Tabs ausführen, auch in angemeldeten. Gnotchi selbst führt es nur in YouTube-Tabs aus, fragt nur Browser ab, die laufen und auf dem Deck liegen, und schaltet den Schalter im Browser nie selbst.
 - Mehrere YouTube-Tabs: Ein Druck pausiert alle Videos, die spielen; der nächste startet das, das zuletzt lief.
-- Läuft nichts von YouTube in Helium, gilt der bisherige Weg (Helium nur als aktive Quelle).
+- Mehrere Browser gleichzeitig: Jede Taste gehört dem Browser, dessen App sie gewählt hat. Gnotchi fragt alle zusammen höchstens einmal pro Sekunde ab, reihum, nie zwei gleichzeitig.
+- **Search und Firefox lassen sich nicht so steuern.** Search erlaubt Skripten nur das Lesen von Adresse und Titel (kein JavaScript, kein Play/Pause), Firefox hat keine Skriptschnittstelle. Für beide gilt der bisherige Weg: nur, solange sie die aktive Quelle sind.
+- Läuft nichts von YouTube im gewählten Browser, gilt ebenfalls der bisherige Weg.
 
 **Cover auf dem Deck** (ab Werk aus)
 - Einschalten: Einstellungen → Stream Deck → **„Cover auf dem Deck“**, danach einmal **„Plugin installieren“**.
-- Die Wiedergabe-Taste zeigt das Cover der App, die gerade spielt, bei YouTube in Helium das Vorschaubild. Oben rechts steht, ob sie spielt oder pausiert.
+- Die Wiedergabe-Taste zeigt das Cover der App, die gerade spielt, bei YouTube im Browser das Vorschaubild. Oben rechts steht, ob sie spielt oder pausiert.
 - Das Bild geht an die Stream-Deck-App von Elgato, auch private Cover. Gnotchi verkleinert es vorher und lädt nichts aus dem Netz.
 
 **App-Lautsprecher** (Regler oder Taste, ab 0.36): auf welchem Gerät die App spielt.

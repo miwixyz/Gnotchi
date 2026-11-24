@@ -71,16 +71,18 @@ Freigabe nicht und fragt nie danach.
 - **Stream Deck (0.35, ab Werk aus):** Eigenes Plugin für Elgatos Stream Deck, auf jedem Modell mit Tasten (ab 0.36 auch
   Lautstärke per Taste: Stumm, Lauter, Leiser). Regler „App-Lautstärke“: drehen = Lautstärke,
   drücken = stumm, gedrückt drehen = Titel vor/zurück, auf die Leiste tippen = Play/Pause; die Leiste zeigt den Titel als
-  Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Helium, Edge,
+  Lauftext. Taste „Wiedergabe“: Play/Pause, Weiter, Zurück. Je Aktion eine App (Spotify, Musik, Safari, Chrome, Helium, Edge,
   gerade spielend). Gnotchi nimmt Befehle nur vom eigenen, signierten Plugin an, gestartet von Elgatos Stream Deck
   ([G59](docs/SECURE-DESIGN.md)). Ab 0.37.1 einheitliche Symbole: dunkles Glas, weiße Linien, warmes Leuchten.
-- **YouTube in Helium und Cover am Stream Deck (0.37, beides ab Werk aus):** Läuft Spotify und daneben YouTube in Helium,
-  schaltet die Taste „Wiedergabe“ mit der App „Helium“ gezielt nur den YouTube-Tab (in Helium muss „Darstellung → Entwickler →
-  JavaScript von Apple Events erlauben“ an sein; Gnotchi führt nur festes JavaScript in YouTube-Tabs aus). Fehlt die Freigabe,
-  zeigt die Taste „Helium freigeben“. Laufen mehrere YouTube-Tabs, pausiert ein Druck alle, der nächste startet das zuletzt
-  aktive Video wieder (0.37.2). „Cover auf dem Deck“ zeigt das Cover der spielenden App, bei YouTube das Vorschaubild;
-  Gnotchi verkleinert es selbst, bei detailreichen Covern bis 96 oder 72 px, damit es auf die Taste passt (0.37.3), und lädt
-  nichts aus dem Netz.
+- **YouTube im Browser und Cover am Stream Deck (0.37, beides ab Werk aus; mehrere Browser ab 0.45):** Läuft Spotify und
+  daneben YouTube in Chrome, Edge, Helium oder Safari, schaltet die Taste „Wiedergabe“ mit der App dieses Browsers gezielt nur
+  den YouTube-Tab (im Browser muss „JavaScript von Apple Events“ an sein, z. B. Edge: „Ansicht → Entwickler“; Gnotchi führt
+  nur festes JavaScript in YouTube-Tabs aus, fragt nur laufende Browser ab, höchstens einmal je Sekunde über alle zusammen).
+  Fehlt die Freigabe, zeigt die Taste „<Browser> freigeben“. **Search und Firefox sind so nicht steuerbar** (Search erlaubt
+  Skripten nur das Lesen von Adresse und Titel, Firefox hat keine Skriptschnittstelle). Laufen mehrere YouTube-Tabs, pausiert
+  ein Druck alle, der nächste startet das zuletzt aktive Video wieder (0.37.2). „Cover auf dem Deck“ zeigt das Cover der
+  spielenden App, bei YouTube das Vorschaubild; Gnotchi verkleinert es selbst, bei detailreichen Covern bis 96 oder 72 px,
+  damit es auf die Taste passt (0.37.3), und lädt nichts aus dem Netz.
 - **Lautsprecher je App (0.36):** Im Mixer auf das Gerät einer App klicken und ein anderes wählen, oder am Stream Deck mit
   „App-Lautsprecher“: Spotify auf die Lautsprecher, der Browser auf die Kopfhörer. Gleicher Prozess-Tap wie „Lautstärke je
   App“, nur mit anderem Ausgabegerät. Beim Gerätewechsel und nach einem Absturz spielt die App wieder auf ihrem eigenen Gerät.

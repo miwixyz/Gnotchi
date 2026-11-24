@@ -76,7 +76,8 @@ final class DeckTests: XCTestCase {
     func testAckAndChoices() {
         XCTAssertTrue(DeckWire.isAck(data(["v": 1, "ok": true])))
         XCTAssertFalse(DeckWire.isAck(data(["v": 1, "ok": false])))
-        XCTAssertEqual(DeckWire.choices.map(\.name), ["Gerade spielend", "Spotify", "Musik", "Podcasts", "Safari", "Helium", "Edge", "Teams"])
+        XCTAssertEqual(DeckWire.choices.map(\.name),
+                       ["Gerade spielend", "Spotify", "Musik", "Podcasts", "Safari", "Chrome", "Helium", "Edge", "Teams"])
         XCTAssertTrue(DeckWire.choices.allSatisfy { DeckWire.isValidApp($0.id) })
     }
 
