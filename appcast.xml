@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.43.0</title>
-            <pubDate>Mon, 23 Nov 2026 21:12:29 +0100</pubDate>
+            <title>0.44.0</title>
+            <pubDate>Tue, 24 Nov 2026 12:13:03 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>299</sparkle:version>
-            <sparkle:shortVersionString>0.43.0</sparkle:shortVersionString>
+            <sparkle:version>302</sparkle:version>
+            <sparkle:shortVersionString>0.44.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Umwandeln in der Ablage.</b> In der unteren Leiste (und per Rechtsklick auf eine Kachel) gibt es „Umwandeln“: Bilder auf 2048, 1280 oder 800 Pixel verkleinern, ins Format JPEG, PNG oder HEIC wandeln, oder mehrere Bilder und PDFs zu einem PDF zusammenfügen. Es wirkt auf die Auswahl, sonst auf alle. Das Ergebnis ist immer eine neue Datei in Downloads (Original bleibt, nie überschrieben, bei gleichem Namen „… 2“) und liegt danach auch in der Ablage. Alles läuft lokal. Ordner, Verknüpfungen, Dateien über 200 MB und Bilder über 400 Megapixel werden übersprungen und mit Grund gemeldet; die übrigen laufen weiter. „Abbrechen“ lässt nichts Halbes zurück.</li><li><b>Ortsdaten raus.</b> Beim Umwandeln von Bildern entfernt Gnotchi Orts- und Kameradaten ab Werk (Einstellungen → Dateiablage → „Beim Umwandeln Ortsdaten entfernen“).</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.43.0/Gnotchi-0.43.0.zip" length="8676136" type="application/octet-stream" sparkle:edSignature="utCUTCBdi/aDuVD4+6xOBWZEGMwE/pX161iJ5iiMsHRampWhDIB/R5zKfMfZSNXw02Y9DpRywU6aU/8cEBQ0Bw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Terminalfenster.</b> Einstellungen → Allgemein → „Terminal-Fenster anbieten“ (ab Werk aus) zeigt unter „Funktionen“ den Knopf „Terminal“. Er öffnet ein verschiebbares Fenster mit deiner Anmelde-Shell, ⌘N für weitere Fenster, ⌘F Suche, ⌘+/⌘− Schriftgröße. Schließen mit laufendem Programm fragt vorher. Die Schrift ist von Anfang an groß (16 Punkt), mit ⌘0 kehrst du dorthin zurück.</li><li>Das Terminal ist ein <b>eigenes Programm („Gnotchi Terminal“) ohne Berechtigungen</b>: Die Shell erbt nichts von Gnotchis Freigaben. Programme im Terminal können die Zwischenablage weder lesen noch schreiben (OSC 52 aus). Ordnerzugriffe fragt macOS unter „Gnotchi Terminal“ ab.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.44.0/Gnotchi-0.44.0.zip" length="11845429" type="application/octet-stream" sparkle:edSignature="uohfjRIOdwmd8FW1LLYwElEqzB49BhY982HSL105vLcW6fNkrK4M00ZvU8lGS04Z1x9NxTpgeuVCzTRxPBPeBA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: Mfl6jQUfKGKstGiAfuYxv4apcTksWwoineoLuJHxewcKbOiFN5wT0yvG94kT41EWmmBBZTZlVB0U8vMmYaRzBA==
-length: 2070
+edSignature: FSNNYyRMp/zkQbyPbN/FAG4MXvMaL5UaibLAmATdqgs5LgFyRvzXSdy4YPYfZ+Efagnme3QumKCG2mhsPL8QBA==
+length: 1922
 -->
