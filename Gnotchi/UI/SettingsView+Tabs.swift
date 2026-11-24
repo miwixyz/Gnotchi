@@ -51,8 +51,9 @@ extension SettingsView {
         card("Terminal") {
             // 0.44.0 (G65): echte Shell in einem eigenen Fenster, im eigenen Hilfsprogramm „Gnotchi Terminal“.
             toggleRow("Terminal-Fenster anbieten", isOn: $prefs.terminal)
-            note("Zeigt einen Knopf „Terminal“ unter „Funktionen“ und als Taste unten an der großen Insel. Das Fenster ist ein eigenes Programm („Gnotchi Terminal“) "
-                 + "ohne Gnotchis Freigaben wie Kamera oder Apple Events. Die Shell hat deine Nutzerrechte, wie in Terminal.app; "
+            note("Zeigt einen Knopf „Terminal“ unter „Funktionen“ und als Taste unten an der großen Insel. "
+                 + "Das Fenster ist ein eigenes Programm („Gnotchi Terminal“) ohne Gnotchis Freigaben wie Kamera oder "
+                 + "Apple Events. Die Shell hat deine Nutzerrechte, wie in Terminal.app; "
                  + "macOS fragt für Ordner wie Dokumente oder Schreibtisch unter „Gnotchi Terminal“ nach. Ab Werk aus.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
         }
