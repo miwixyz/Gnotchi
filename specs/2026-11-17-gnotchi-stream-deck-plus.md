@@ -342,7 +342,9 @@ Search und Firefox bleiben beim Weg über MediaRemote. „Nur Titel lesen“ wur
 - Search: Tab-Liste mit Titeln lesbar, nichts anderes versucht.
 - Für den Test geöffnete YouTube-Tabs (Edge, Safari) wurden danach wieder geschlossen; das dabei in Safari entstandene Fenster „Persönlich“ blieb mit den Tabs des Profils offen.
 
-**Nicht gemessen (ehrlich):** Play/Pause, Titel und Cover am **zweiten** Browser neben Helium. In Edge und Safari ist der Browser-Schalter aus (den schaltet Gnotchi nie, ich auch nicht); das auf diesem Mac laufende „Google Chrome“ ist nur der Headless-Prozess des KVB-Wächters (`--headless`, ohne Fenster, antwortet nicht auf Apple Events, `-1712`). Ebenfalls ungemessen: Reihum-Takt mit zwei laufenden, beobachteten Browsern an der echten Taste, der Automation-Dialog je Browser, Safari-Tab-Position nach Verschieben von Tabs.
+- **Edge mit eingeschaltetem Schalter (24.11., nach Freigabe durch Michael):** Lesen liefert Titel und Zustand als JSON (`{"p":false,"t":"Ich im Zoo","a":"jawed"}`), `v.pause()` setzt `p` auf `true`, `v.play()` auf dem schon laufenden Video ließ es `false`. Test-Tab danach geschlossen. **Spotify lief dabei nicht**, „parallel zu Spotify“ ist daher auch für Edge ungemessen (Helium: gemessen 17.11., 10 von 10).
+
+**Nicht gemessen (ehrlich):** Cover und Pause/Play-Wechsel von einem pausierten Zustand an Edge, sowie alles an **Safari** (dort ist der Browser-Schalter aus (den schaltet Gnotchi nie, ich auch nicht); das auf diesem Mac laufende „Google Chrome“ ist nur der Headless-Prozess des KVB-Wächters (`--headless`, ohne Fenster, antwortet nicht auf Apple Events, `-1712`). Ebenfalls ungemessen: Reihum-Takt mit zwei laufenden, beobachteten Browsern an der echten Taste, der Automation-Dialog je Browser, Safari-Tab-Position nach Verschieben von Tabs.
 
 **Bekannte Grenze:** `NSRunningApplication` unterscheidet den Headless-Chrome nicht von einem sichtbaren (beide `.regular`). Ist „Chrome“ auf dem Deck beobachtet und der Schalter an, meldet der Headless-Prozess Zeitüberschreitung (5 s, `Failure.other`); es wird nichts ausgeführt, die Taste fällt auf MediaRemote zurück.
 

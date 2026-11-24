@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.45.0] — 2026-11-24
 
 ### Neu
 - **YouTube am Stream Deck jetzt in mehreren Browsern.** Der Schalter heißt „YouTube in Browsern gezielt steuern“ und gilt für Chrome, Edge, Helium und Safari (bisher nur Helium). Jede Taste „Wiedergabe“ gehört dem Browser, dessen App sie gewählt hat; im Plugin kommt dafür „Chrome“ zur Auswahl dazu (Plugin neu installieren). Im Browser muss „JavaScript von Apple Events“ eingeschaltet sein; die Einstellungen nennen den Menüweg je Browser, und fehlt die Freigabe, zeigt die Taste „<Browser> freigeben“. Gnotchi fragt nur Browser ab, die laufen und auf dem Deck liegen, zusammen höchstens einmal je Sekunde, reihum und nie zwei gleichzeitig.
