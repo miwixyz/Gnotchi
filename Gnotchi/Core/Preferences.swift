@@ -92,6 +92,8 @@ final class Preferences {
         static let shelfScreenshotMinutes = "shelfScreenshotMinutes"
         /// 0.16.0: ruhige Insel ohne Notch.
         static let quietIsland = "quietIsland"
+        /// Bildschirme (UUID), auf denen die Insel nicht erscheint. Leer = überall (ab Werk).
+        static let islandHiddenScreens = "islandHiddenScreens"
         /// 0.11.0 Zwischenablage (G37–G41): Schalter, ausgeschlossene Apps, Pause, Seitenansicht, Tastenkürzel.
         static let clipboard = "clipboard"
         static let clipboardExcluded = "clipboardExcluded"
@@ -283,6 +285,8 @@ final class Preferences {
     /// 0.16.0 (Michael 27.10.): ohne Hardware-Notch und ohne Live-Aktivität sieht die Insel aus wie die Menüleiste
     /// statt schwarz. Ab Werk an.
     var quietIsland: Bool { didSet { defaults.set(quietIsland, forKey: Key.quietIsland) } }
+    /// Bildschirme ohne Insel (UUID). Nur über `setIslandScreen`; ein abgesteckter Bildschirm bleibt eingetragen.
+    private(set) var islandHiddenScreens: [String] { didSet { defaults.set(islandHiddenScreens, forKey: Key.islandHiddenScreens) } }
     var weatherUnit: Weather.Unit { didSet { defaults.set(weatherUnit.rawValue, forKey: Key.weatherUnit) } }
     /// 0.11.0 Zwischenablage-Verlauf (G37). Ab Werk **aus**: liest mit, was der Nutzer kopiert (Michael 24.10.).
     var clipboard: Bool { didSet { defaults.set(clipboard, forKey: Key.clipboard) } }
@@ -419,6 +423,7 @@ final class Preferences {
         shelfScreenshots = defaults.object(forKey: Key.shelfScreenshots) as? Bool ?? false
         shelfScreenshotMinutes = Self.validScreenshotMinutes(defaults.object(forKey: Key.shelfScreenshotMinutes))
         quietIsland = defaults.object(forKey: Key.quietIsland) as? Bool ?? true
+        islandHiddenScreens = Self.validScreens(defaults.object(forKey: Key.islandHiddenScreens))
         weatherUnit = (defaults.string(forKey: Key.weatherUnit)).flatMap(Weather.Unit.init(rawValue:)) ?? .celsius
         weatherPlace = Self.validPlace(defaults.object(forKey: Key.weatherPlace))
         clipboard = defaults.object(forKey: Key.clipboard) as? Bool ?? false
@@ -529,5 +534,31 @@ final class Preferences {
     nonisolated static func validScreenshotMinutes(_ stored: Any?) -> Int {
         guard let n = stored as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return defaultScreenshotMinutes }
         return screenshotMinuteChoices.first { $0 == n.intValue && Double($0) == n.doubleValue } ?? defaultScreenshotMinutes
+    }
+}
+
+/// Bildschirmauswahl der Insel (0.46), eigener Block, damit die Klasse unter der Längengrenze bleibt.
+extension Preferences {
+    func isIslandScreenShown(_ uuid: String) -> Bool {
+        !islandHiddenScreens.contains(uuid)
+    }
+
+    func setIslandScreen(_ uuid: String, shown: Bool) {
+        var list = islandHiddenScreens.filter { $0 != uuid }
+        if !shown { list.append(uuid) }
+        let valid = Self.validScreens(list)
+        if valid != islandHiddenScreens { islandHiddenScreens = valid }
+    }
+
+    /// Nur Zeichenketten aus `[0-9A-Fa-f-]` (Bildschirm-UUID), je höchstens 64 Zeichen, ohne Doppelte, höchstens 16.
+    nonisolated static func validScreens(_ stored: Any?) -> [String] {
+        guard let raw = stored as? [Any] else { return [] }
+        var out: [String] = []
+        for case let id as String in raw
+        where !id.isEmpty && id.count <= 64 && id.allSatisfy({ $0.isHexDigit || $0 == "-" }) && !out.contains(id) {
+            out.append(id)
+            if out.count == 16 { break }
+        }
+        return out
     }
 }

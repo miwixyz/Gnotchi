@@ -33,7 +33,8 @@ final class AppModel {
         activity: activity, expandDelay: { [prefs] in prefs.expandDelay },
         openWindow: { [weak self] id in self?.showWindow(id) },
         openUpdate: { [weak self] app in self?.openUpdate(app) },
-        openEvent: { KalliEventLink.openCalendar() })
+        openEvent: { KalliEventLink.openCalendar() },
+        hiddenScreens: { [prefs] in Set(prefs.islandHiddenScreens) })
     /// `openWindow` aus einer SwiftUI-Szene (Menüleisten-Symbol, Menü). Das Insel-Panel liegt außerhalb
     /// jeder Szene und hat keins – es öffnet Fenster über `showWindow`.
     @ObservationIgnored private var windowOpener: ((String) -> Void)?
@@ -256,6 +257,11 @@ final class AppModel {
         }
     }
 
+    /// Auswahl der Bildschirme geändert: nur wirksam, solange die Insel läuft (das Panel wird nie vorab angelegt).
+    func applyIslandScreens() {
+        if notchRunning { island.screensChanged() }
+    }
+
     /// Einstellungen geöffnet: Insel und Hinweis auf eine zweite Notch-App neu prüfen (nur wenn sie läuft –
     /// sonst entstünde hier erst die Insel).
     func recheckNotch() {
@@ -306,10 +312,12 @@ protocol NotchPart: AnyObject {
     func start()
     func stop()
     func recheck()
+    func screensChanged()
 }
 
 extension NotchPart {
     func recheck() {}
+    func screensChanged() {}
 }
 
 /// Quelle der Insel mit ihrem Schalter in den Einstellungen.

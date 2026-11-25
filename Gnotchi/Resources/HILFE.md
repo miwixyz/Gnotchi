@@ -4,7 +4,7 @@
 
 Gnotchi macht aus der Notch deines MacBook eine kleine Insel für Musik und Videos. Du siehst, was
 gerade läuft, und steuerst es, ohne die App zu suchen. Auf Bildschirmen ohne Notch erscheint
-dieselbe Insel als Pille oben in der Mitte. Jeder Bildschirm hat seine eigene. Zeigt die Pille nur Wetter, Ablage oder
+dieselbe Insel als Pille oben in der Mitte. Jeder Bildschirm hat seine eigene; welche Bildschirme eine bekommen, wählst du unter Einstellungen → Allgemein → Aussehen (ab 0.46, ab zwei Bildschirmen). Zeigt die Pille nur Wetter, Ablage oder
 Ungelesen-Zahlen, sieht sie aus wie die Menüleiste. Sobald etwas läuft, wird sie schwarz (ab 0.16, abschaltbar unter
 Einstellungen → Allgemein → Aussehen → „Ruhige Insel ohne Notch“).
 

@@ -297,4 +297,27 @@ final class IslandControllerTests: XCTestCase {
         XCTAssertEqual(IslandController.panelFrame(mode: .expanded, layout: layout), layout.expanded)
         XCTAssertNil(IslandController.panelFrame(mode: .hidden, layout: layout))
     }
+
+    // MARK: Bildschirmauswahl
+
+    func testNoSelectionShowsEveryScreen() {
+        let screens: [(id: CGDirectDisplayID, uuid: String)] = [(1, "AA"), (2, "BB")]
+        XCTAssertEqual(IslandController.shownScreens(screens, hidden: []), [1, 2])
+    }
+
+    func testHiddenScreenGetsNoIsland() {
+        let screens: [(id: CGDirectDisplayID, uuid: String)] = [(1, "AA"), (2, "BB")]
+        XCTAssertEqual(IslandController.shownScreens(screens, hidden: ["BB"]), [1])
+    }
+
+    func testSelectionIgnoredWhenNothingWouldRemain() {
+        let screens: [(id: CGDirectDisplayID, uuid: String)] = [(1, "AA")]
+        XCTAssertEqual(IslandController.shownScreens(screens, hidden: ["AA"]), [1], "nie ganz ohne Insel")
+    }
+
+    func testStoredScreenListIsValidated() {
+        XCTAssertEqual(Preferences.validScreens(["AB-12", "AB-12", "zz", "", 5, String(repeating: "A", count: 65)]), ["AB-12"])
+        XCTAssertEqual(Preferences.validScreens("AB"), [])
+        XCTAssertEqual(Preferences.validScreens((0..<40).map { String(format: "%02X", $0) }).count, 16)
+    }
 }

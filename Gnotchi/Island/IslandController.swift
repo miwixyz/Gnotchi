@@ -29,6 +29,8 @@ final class IslandController {
 
     // Intern statt privat (0.22.0): auch IslandController+Detached.swift greift zu.
     let activity: ActivityModel
+    /// Bildschirme ohne Insel (UUID), bei jedem Aufbau neu gelesen.
+    private let hiddenScreens: @MainActor () -> Set<String>
     /// Musik: Hinweis auf eine zweite Notch-App und „Insel gezeigt“ gehören zum Wiedergabe-Modell.
     private var model: NowPlayingModel { activity.media }
     var panels: [CGDirectDisplayID: Entry] = [:]
@@ -74,8 +76,10 @@ final class IslandController {
     init(activity: ActivityModel, expandDelay: @escaping @MainActor () -> TimeInterval = { 0 },
          openWindow: @escaping @MainActor (String) -> Void = { _ in },
          openUpdate: @escaping @MainActor (FamilyApp) -> Void = { _ in },
-         openEvent: @escaping @MainActor () -> Void = {}) {
+         openEvent: @escaping @MainActor () -> Void = {},
+         hiddenScreens: @escaping @MainActor () -> Set<String> = { [] }) {
         self.activity = activity
+        self.hiddenScreens = hiddenScreens
         self.expandDelay = expandDelay
         self.openWindow = openWindow
         self.openUpdate = openUpdate
@@ -233,21 +237,12 @@ final class IslandController {
         }
     }
 
-    private static func currentLayouts() -> [CGDirectDisplayID: IslandGeometry.Layout] {
-        var result: [CGDirectDisplayID: IslandGeometry.Layout] = [:]
-        for screen in NSScreen.screens {
-            guard let id = screen.displayID else { continue }
-            result[id] = IslandGeometry.layout(for: IslandGeometry.metrics(of: screen))
-        }
-        return result
-    }
-
     private func screenParametersChanged() {
         screenDebounce?.cancel()
         screenDebounce = Task { [weak self] in
             try? await Task.sleep(for: Self.screenDebounceDelay)
             guard !Task.isCancelled, let self, self.running else { return }
-            let new = Self.currentLayouts()
+            let new = self.currentLayouts()
             if Self.layoutsChanged(old: self.panels.mapValues { $0.state.layout }, new: new) {
                 self.rebuild(layouts: new)
             } else {
@@ -257,7 +252,8 @@ final class IslandController {
     }
 
     /// Bildschirme dazu/weg, Auflösung geändert: alle Panels neu, Maße frisch gemessen.
-    private func rebuild(layouts: [CGDirectDisplayID: IslandGeometry.Layout] = currentLayouts()) {
+    private func rebuild(layouts: [CGDirectDisplayID: IslandGeometry.Layout]? = nil) {
+        let layouts = layouts ?? currentLayouts()
         cancelTasks()
         panels.values.forEach { $0.panel.orderOut(nil); $0.big.orderOut(nil) }
         panels.removeAll()
@@ -593,5 +589,34 @@ extension IslandController {
         activity.setRotationPaused(pointerInside.values.contains(true))
         state.hoverEpoch += 1
         Self.hoverLog.notice("Überfahren nach dem Ablegen zurückgesetzt")
+    }
+}
+
+/// Bildschirmauswahl (0.46), eigener Block, damit die Klasse unter der Längengrenze bleibt.
+extension IslandController {
+    /// Auswahl der Bildschirme geändert (Einstellungen): nur neu aufbauen, wenn sich die Menge wirklich ändert.
+    func screensChanged() {
+        guard running else { return }
+        let new = currentLayouts()
+        if Set(new.keys) != Set(panels.keys) { rebuild(layouts: new) }
+    }
+
+    /// Welche Bildschirme eine Insel bekommen. Wäre danach keiner übrig (der letzte gewählte ist abgesteckt),
+    /// gilt die Auswahl nicht – sonst verschwände die Insel ohne Erklärung.
+    nonisolated static func shownScreens(_ screens: [(id: CGDirectDisplayID, uuid: String)], hidden: Set<String>)
+        -> Set<CGDirectDisplayID> {
+        let shown = screens.filter { !hidden.contains($0.uuid) }
+        return Set((shown.isEmpty ? screens : shown).map(\.id))
+    }
+
+    private func currentLayouts() -> [CGDirectDisplayID: IslandGeometry.Layout] {
+        let screens = NSScreen.screens.compactMap { s in s.displayID.map { (id: $0, uuid: DesktopMusicLink.uuid(of: s)) } }
+        let shown = Self.shownScreens(screens, hidden: hiddenScreens())
+        var result: [CGDirectDisplayID: IslandGeometry.Layout] = [:]
+        for screen in NSScreen.screens {
+            guard let id = screen.displayID, shown.contains(id) else { continue }
+            result[id] = IslandGeometry.layout(for: IslandGeometry.metrics(of: screen))
+        }
+        return result
     }
 }

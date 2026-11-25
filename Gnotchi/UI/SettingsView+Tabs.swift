@@ -47,6 +47,20 @@ extension SettingsView {
             note("Auf Bildschirmen ohne Notch sieht die Insel aus wie die Menüleiste, solange sie nur Wetter, Ablage oder "
                  + "Ungelesen-Zahlen zeigt. Bei Musik, Timer, Termin, Anruf, Aufnahme oder Mitteilung wird sie wieder schwarz.",
                  symbol: "info.circle", color: FamilyTheme.textSecondary)
+            // Nur sinnvoll mit mehr als einem Bildschirm; der letzte gewählte lässt sich nicht abwählen.
+            if NSScreen.screens.count > 1 {
+                let screens = NSScreen.screens.map { (screen: $0, uuid: DesktopMusicLink.uuid(of: $0)) }
+                let shownCount = screens.filter { prefs.isIslandScreenShown($0.uuid) }.count
+                ForEach(screens, id: \.uuid) { entry in
+                    let on = prefs.isIslandScreenShown(entry.uuid)
+                    toggleRow(verbatim: "Insel auf \(entry.screen.localizedName)", isOn: Binding(
+                        get: { on },
+                        set: { prefs.setIslandScreen(entry.uuid, shown: $0); model.applyIslandScreens() }))
+                        .disabled(on && shownCount <= 1)
+                }
+                note("Wähle, auf welchen Bildschirmen die Insel erscheint. Ein Bildschirm bleibt immer an.",
+                     symbol: "display.2", color: FamilyTheme.textSecondary)
+            }
         }
         card("Terminal") {
             // 0.44.0 (G65): echte Shell in einem eigenen Fenster, im eigenen Hilfsprogramm „Gnotchi Terminal“.

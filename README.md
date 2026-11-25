@@ -171,7 +171,8 @@ Freigabe nicht und fragt nie danach.
   oben im Menü und in den Einstellungen ein Hinweis mit ihrem Namen.
 - **Unaufdringlich:** Die Insel verschwindet 5 Sekunden nach dem Pausieren, und sie blendet sich
   auf einem Bildschirm aus, solange dort eine App im Vollbild läuft. Jeder Bildschirm hat seine
-  eigene Insel.
+  eigene Insel; ab 0.46 wählst du unter Einstellungen → Allgemein → Aussehen, auf welchen Bildschirmen sie
+  erscheint (ab zwei Bildschirmen, ab Werk überall, ein Bildschirm bleibt immer an).
 - **Audio-Ausgang wählen:** Oben rechts in der großen Insel sitzt das Ausgabe-Symbol. Ein Klick
   zeigt alle Ausgabegeräte; die Auswahl setzt den Ausgang von macOS (wie Systemeinstellungen → Ton).
 - **Kopfhörer-Hinweis:** Wechselt der Ton auf Bluetooth-Kopfhörer oder zurück, zeigt die Insel

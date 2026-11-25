@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.46.0] — 2026-11-25
+
+### Neu
+- **Bildschirme für die Insel wählen.** Einstellungen → Allgemein → Aussehen zeigt ab zwei Bildschirmen je Bildschirm den Schalter „Insel auf …“. Ab Werk erscheint die Insel überall wie bisher. Abgewählte Bildschirme bekommen keine Insel, die Änderung wirkt sofort. Der letzte gewählte Bildschirm lässt sich nicht abwählen. Ist ein gewählter Bildschirm abgesteckt und bliebe sonst keiner übrig, erscheint die Insel vorübergehend überall. Der Plattenspieler auf dem Schreibtisch hat weiter seine eigene Bildschirmwahl.
+
+### Intern
+- `Preferences.islandHiddenScreens` (UUIDs, geprüft), `IslandController.shownScreens` und `screensChanged()`, vier Tests.
+
 ## [0.45.0] — 2026-11-24
 
 ### Neu
