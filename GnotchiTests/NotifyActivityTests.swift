@@ -71,6 +71,19 @@ final class NotifyActivityTests: XCTestCase {
         XCTAssertEqual(sent.list, [.shown("a")])
     }
 
+    func testClickOnHomeNoteOpensHomeAppOthersDont() {
+        let (m, _) = model()
+        var opened: [String] = []
+        m.openApp = { opened.append($0) }
+        m.receiveNote(note("a"))   // com.example.app
+        m.openNote()
+        XCTAssertTrue(opened.isEmpty, "andere Apps: nur der Banner-Klick")
+        m.receiveNote(NotifyWire.Note(id: "h", kind: .note, app: "Home", bundle: "com.apple.Home", title: "Klingel",
+                                      subtitle: "", body: "", actions: []))
+        m.openNote()
+        XCTAssertEqual(opened, ["com.apple.Home"])
+    }
+
     func testClicksSendOnlyListedActions() {
         let (m, sent) = model()
         m.receiveNote(note("a"))

@@ -107,10 +107,16 @@ extension ActivityModel {
 
     // MARK: Klicks (G30)
 
-    /// Klick auf die Mitteilung: macOS öffnet die App an der richtigen Stelle (`AXPress` am Banner).
+    /// Kennung der Home-App. Gespiegelte iPhone-Banner (Türklingel) öffnen am Mac nichts Brauchbares → Home selbst
+    /// öffnen, dort läuft das Livebild. Feste Kennung, nie aus der Mitteilung übernommen.
+    nonisolated static let homeBundle = "com.apple.Home"
+
+    /// Klick auf die Mitteilung: macOS öffnet die App an der richtigen Stelle (`AXPress` am Banner). Bei Home zusätzlich
+    /// die Home-App nach vorn (Livebild der Türklingel).
     func openNote() {
         guard let n = notes.first else { return }
         notifyCommand(.act(id: n.id, action: NotifyWire.openAction))
+        if n.bundle == Self.homeBundle { openApp(Self.homeBundle) }
         advanceNote()
     }
 

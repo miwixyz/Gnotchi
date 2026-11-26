@@ -204,6 +204,8 @@ final class ActivityModel {
     var deckPluginOutdated: String?
     /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
     @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
+    /// App per Kennung öffnen (Klingel-Hinweis → Home). Austauschbar für Tests.
+    @ObservationIgnored var openApp: (String) -> Void = { UnreadMini.open($0) }
     @ObservationIgnored let noteDuration: Duration
     @ObservationIgnored let callArmDelay: Duration
 
