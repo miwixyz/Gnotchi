@@ -37,7 +37,7 @@ final class Preferences {
         static let kalliEvents = "kalliEvents"
         /// 0.5.0 Spiegel (G27).
         static let mirror = "mirror"
-        /// 0.5.0 Ton bei Ablauf des Timers (Name aus CountdownTimer.sounds, leer = kein Ton).
+        /// 0.5.0 Ton bei Ablauf des Timers (Name aus CountdownTimer.sounds oder familySound, leer = kein Ton).
         static let timerSound = "timerSound"
         /// 0.5.0 Timer-Ablauf: Insel pulsiert bis Klick (aus = kurzer Hinweis).
         static let timerAlarm = "timerAlarm"
@@ -234,7 +234,7 @@ final class Preferences {
     /// Aufklappen als Band (0.5.0): seitlich breit in Menüleisten-Höhe statt nach unten. Ab Werk aus (Insel).
     var bandStyle: Bool { didSet { defaults.set(bandStyle, forKey: Key.bandStyle) } }
 
-    /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds`; leer = kein Ton.
+    /// Ton bei Ablauf des Timers (0.5.0). Nur Namen aus `CountdownTimer.sounds` oder `familySound`; leer = kein Ton.
     var timerSound: String {
         didSet {
             let valid = CountdownTimer.validSound(timerSound)

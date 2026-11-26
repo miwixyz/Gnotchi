@@ -50,12 +50,15 @@ enum SelfTest {
         return Step(name: "Abschottung", ok: ok, detail: "Kennung \(id), Datenordner \(folder)")
     }
 
-    /// Schrift und Texte im Bündel – fehlt eine, fällt die Oberfläche still auf die Systemschrift zurück.
+    /// Schrift, Texte, Timer-Ton und Menüleisten-Symbol (App-Familie, 26.11.) im Bündel – fehlt eine Schrift,
+    /// fällt die Oberfläche still auf die Systemschrift zurück.
     private static func resources() -> Step {
         let families = NSFontManager.shared.availableFontFamilies
         let font = families.contains("Plus Jakarta Sans")
         let names: [String] = ["HILFE", "CHANGELOG", "THIRD-PARTY-LICENSES"]
-        let missing: [String] = names.filter { AppResources.bundle.url(forResource: $0, withExtension: "md") == nil }
+        var missing: [String] = names.filter { AppResources.bundle.url(forResource: $0, withExtension: "md") == nil }
+        if CountdownTimer.sound(named: CountdownTimer.familySound) == nil { missing.append("gnotchi.caf") }
+        if NSImage(named: MenuBarGlyph.assetName) == nil { missing.append(MenuBarGlyph.assetName) }
         let ok = font && missing.isEmpty
         let fontText = font ? "da" : "FEHLT"
         let missingText = missing.isEmpty ? "" : ", fehlt: " + missing.joined(separator: ", ")

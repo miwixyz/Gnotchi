@@ -231,7 +231,7 @@ stehen das Timer-Symbol, der Spiegel, die Stecknadel und die Punkte für Mikrofo
 - **Mixer in der Insel (ab 0.30):** Die Ring-Taste „Mixer“ (rechts neben der großen Insel, ab Werk an) zeigt denselben Mixer wie das Menüleisten-Symbol groß in der Insel, in zwei Spalten. Er fragt nur ab, solange er zu sehen ist.
 - **Favoriten im Mixer (ab 0.31):** Öffne das Auswahlfeld für Ausgabe oder Mikrofon und wähle unten „Favoriten …“. Mit einem Klick auf ein Gerät setzt oder entfernst du den Stern. Favoriten stehen danach als Tasten direkt unter dem Auswahlfeld; ein Klick schaltet um. Bis zu 6 je Liste. Ist ein Favorit gerade nicht angeschlossen, fehlt seine Taste, er bleibt aber gemerkt.
 - **Warnton-Lautstärke (ab 0.33):** Unter „Systemtöne“ im Mixer steht ein Regler für die Lautstärke der Warn- und Hinweistöne des Macs. Das ist dieselbe Einstellung wie „Warntonlautstärke“ in Systemeinstellungen → Ton: Sie gilt dauerhaft für den ganzen Mac, nicht nur für Gnotchi, und braucht keine Freigabe. Die Zeile steht nur da, wenn mehrere Ausgabegeräte vorhanden sind.
-- **Mixer und Menü (ab 0.30):** Ein Klick auf das Gnotchi-Symbol in der Menüleiste öffnet ein Fenster mit zwei Reitern. **Mixer:** Ausgabegerät mit Lautstärke und Stumm, Gerät für Systemtöne, Mikrofon, darunter eine Zeile je App, die gerade Ton ausgibt, mit ihrem Ausgabegerät (AirPlay und Bluetooth farbig). Für Spotify und Musik gibt es einen Regler (nur, wenn Gnotchi sie steuern darf). **Funktionen:** Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest und Status. Unten Einstellungen, Hilfe, Updates und Beenden. Die Tastenkürzel ⌘, und ⌘Q des alten Menüs gibt es nicht mehr.
+- **Mixer und Menü (ab 0.30):** Ein Klick auf das Gnotchi-Symbol in der Menüleiste (Kopf mit Panda-Ohren, darin Notch-Pille und Play-Dreieck) öffnet ein Fenster mit zwei Reitern. **Mixer:** Ausgabegerät mit Lautstärke und Stumm, Gerät für Systemtöne, Mikrofon, darunter eine Zeile je App, die gerade Ton ausgibt, mit ihrem Ausgabegerät (AirPlay und Bluetooth farbig). Für Spotify und Musik gibt es einen Regler (nur, wenn Gnotchi sie steuern darf). **Funktionen:** Timer, Wach bleiben, Bildschirmfoto, Geschwindigkeitstest und Status. Unten Einstellungen, Hilfe, Updates und Beenden. Die Tastenkürzel ⌘, und ⌘Q des alten Menüs gibt es nicht mehr.
 - **Meeting-Leiser (ab 0.29):** Einstellungen → Audio → „Meeting-Leiser“. Nutzt eine gewählte App (Teams, Zoom, FaceTime, Webex, Slack, weitere wählbar) das Mikrofon, wird Spotify und Musik auf 20, 30 oder 50 % leiser und nach dem Meeting wieder auf die alte Lautstärke gestellt. Tippi-Diktat zählt nicht. Änderst du die Lautstärke selbst, gilt dein Wert. Gnotchi fragt nie mitten im Meeting nach einer Erlaubnis: Fehlt sie für Spotify oder Musik, steht das in den Einstellungen; macOS fragt beim ersten Spulen (Spotify) bzw. beim ersten Shuffle-Klick (Musik).
 - **Batterie (ab 0.28):** Einstellungen → Aktivitäten → „Batterie in der Ruhe-Insel“ zeigt Prozent und Ladezustand, solange nichts anderes läuft. Nur auf Macs mit Batterie.
 - **Schwebend (ab 0.22):** Die große Insel hängt nicht mehr an der Notch, sondern schwebt mit kleinem Abstand darunter, in durchscheinendem Glas und für alle Ansichten gleich breit. Mitteilungen, Anrufe, Hinweise, das Band und das Ablagefeld beim Ziehen bleiben an der Notch.
@@ -290,7 +290,9 @@ neuer ersetzt den alten.
 
 Ist die Zeit um, **pulsiert die Insel orange, bis du sie anklickst**, und der Ton wiederholt sich höchstens
 eine Minute lang. Das geht auch über Apps im Vollbild. Schalter „Timer-Ablauf bis Klick anzeigen“ aus: nur
-ein kurzer Hinweis und ein Ton. Den Ton wählst du unter **Timer → Ton** oder in den Einstellungen.
+ein kurzer Hinweis und ein Ton. Den Ton wählst du unter Einstellungen → Tasten → „Timer und Spiegel“ →
+**Timer-Ton**: kein Ton, **Gnotchi** (neu: der kurze „Blubb“ der App-Familie) oder ein Systemton.
+Ab Werk bleibt es „Glass“. Beim Auswählen hörst du den Ton einmal zur Probe.
 
 ## Wach bleiben
 

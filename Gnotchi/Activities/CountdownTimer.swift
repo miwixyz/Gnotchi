@@ -33,11 +33,36 @@ struct CountdownTimer: Equatable, Sendable {
     nonisolated static let defaultSound = "Glass"
     /// Leerer Name = kein Ton.
     nonisolated static let silent = ""
+    /// Ton der App-Familie (26.11.): „Blubb“ mit fallender Tonhöhe, 0,22 s, als `gnotchi.caf` im Bündel.
+    /// Zusätzliche Auswahl, die Werkseinstellung bleibt `defaultSound`.
+    nonisolated static let familySound = "Gnotchi"
+    nonisolated static let familySoundFile = "gnotchi"
 
     /// Gespeicherter Wert → gültiger Ton (unbekannt → Werkseinstellung).
     nonisolated static func validSound(_ value: Any?) -> String {
         guard let s = value as? String else { return defaultSound }
-        return s == silent || sounds.contains(s) ? s : defaultSound
+        return s == silent || s == familySound || sounds.contains(s) ? s : defaultSound
+    }
+
+    /// Ton zum Namen: Systemton über den Namen; der Familien-Ton beim ersten Mal aus dem Bündel geladen und unter
+    /// seinem Namen angemeldet (`setName`), danach findet ihn `NSSound(named:)` wie einen Systemton. Fehlt etwas,
+    /// steht es im Protokoll (Kategorie „timer“) – nie stumm.
+    nonisolated static func sound(named sound: String) -> NSSound? {
+        if let s = NSSound(named: NSSound.Name(sound)) { return s }
+        guard sound == familySound else {
+            soundLog.notice("Ton \(sound, privacy: .public) nicht gefunden")
+            return nil
+        }
+        guard let url = AppResources.bundle.url(forResource: familySoundFile, withExtension: "caf") else {
+            soundLog.notice("Ton \(familySoundFile, privacy: .public).caf fehlt im Bündel")
+            return nil
+        }
+        guard let s = NSSound(contentsOf: url, byReference: true) else {
+            soundLog.notice("Ton \(familySoundFile, privacy: .public).caf nicht lesbar")
+            return nil
+        }
+        s.setName(NSSound.Name(sound))
+        return s
     }
 
     /// Abspielen abseits des Hauptthreads (gemessen 28.10. im Nachbau: erstes `play()` 160–275 ms, danach 11–31 ms –
@@ -48,10 +73,10 @@ struct CountdownTimer: Equatable, Sendable {
     nonisolated private static let soundLog = Logger(subsystem: "dev.mwlr.gnotchi", category: "timer")
 
     nonisolated static func play(_ sound: String) {
-        guard sounds.contains(sound) else { return }
+        guard sound == familySound || sounds.contains(sound) else { return }
         soundQueue.async {
             let start = ContinuousClock.now
-            guard let s = NSSound(named: NSSound.Name(sound)) else { return }
+            guard let s = Self.sound(named: sound) else { return }
             let started = s.play()
             let ms = (ContinuousClock.now - start) / .milliseconds(1)
             soundLog.notice("Ton \(started ? "gestartet" : "NICHT gestartet", privacy: .public) in \(Int(ms), privacy: .public) ms")

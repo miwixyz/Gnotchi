@@ -111,7 +111,8 @@ Freigabe nicht und fragt nie danach.
   deutsche Erkennung statt `NSDataDetector` (der lag bei 3 von 20 Sätzen ohne Warnung falsch). Gespeichert wird
   über Kalli (ab 0.16.0), Gnotchi selbst hat keinen Kalenderzugriff.
 - **Timer (0.5):** 5, 10, 15, 25 Minuten oder eigene Zeit, mit Pause und Stopp. Bei Ablauf pulsiert
-  die Insel orange bis zum Klick, der Ton (wählbar) wiederholt sich höchstens eine Minute. **Ab 0.19**
+  die Insel orange bis zum Klick, der Ton (wählbar: Systemtöne oder „Gnotchi“, der Ton der App-Familie; ab Werk
+  „Glass“) wiederholt sich höchstens eine Minute. **Ab 0.19**
   steht die Restzeit neben dem Menüleisten-Symbol, und ein Timer kann einen Namen tragen („Tee“). **Ab 0.21** hat
   die große Insel eine neue Auswahl: Namensfeld mit Start, Lineal zum Ziehen, 1m bis 1h.
 - **Wach bleiben (0.21):** Kaffeetasse in der großen Insel. Der Mac schläft nicht ein, für 1, 2 oder 4 Stunden, bis aus
@@ -204,7 +205,7 @@ Freigabe nicht und fragt nie danach.
 - **Nicht hängen bleiben:** Scheitert die Prüfung des Medien-Adapters beim Start (etwa direkt
   nach dem Einschalten), versucht Gnotchi es nach 5 s, 30 s, 2 Minuten und dann alle 5 Minuten
   erneut und schaltet von selbst zurück.
-- Menüleisten-Symbol mit Timer, Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
+- Menüleisten-Symbol (Kopf der App-Familie mit Notch-Pille und Play-Dreieck) mit Timer, Einstellungen, Hilfe, Update-Suche und Beenden. Einstellungen: „Musik in
   der Notch“, „Kopfhörer-Hinweis“, „Mikrofon & Kamera anzeigen“, „Tippi-Aufnahme anzeigen“,
   „Qotti-Kontingent anzeigen“ (alle ab Werk an), „Aufklappen nach“, „Bei Anmeldung starten“.
   Bereich „Live-Aktivitäten“: „Rotation“, „Kopfhörer-Aktivität“, „Updates der App-Familie“ (alle

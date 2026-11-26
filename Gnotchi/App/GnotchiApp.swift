@@ -7,7 +7,7 @@ struct GnotchiApp: App {
     @State private var model = AppModel()
 
     var body: some Scene {
-        // Menüleisten-Symbol „Insel mit Pegel“ (Michael, 18.10.: Variante C) als Vorlagenbild:
+        // Menüleisten-Symbol der App-Familie (26.11., vorher „Insel mit Pegel“) als Vorlagenbild:
         // macOS färbt es selbst für hell, dunkel, Glas und getönt.
         // 0.30.0: Popover mit Mixer und Funktionen statt der einfachen Menüliste (Fenster-Stil).
         MenuBarExtra {

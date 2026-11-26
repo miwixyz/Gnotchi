@@ -105,8 +105,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.gnotchi
         CODE_SIGN_ENTITLEMENTS: Gnotchi/Resources/Gnotchi.entitlements
         ENABLE_HARDENED_RUNTIME: YES
-        # Ebenen-Symbol aus Icon Composer (Gnocchi-Notch + Pegel, 18.10.). Liegt unter
-        # Gnotchi/Resources/AppIcon.icon und kommt über `sources: Gnotchi` ins Bundle.
+        # Maskottchen der App-Familie (26.11.) als klassisches AppIcon.appiconset (wie Tippi, Seam): kein Glas,
+        # eigenes Squircle im Bild. Liegt in Gnotchi/Resources/Assets.xcassets und kommt über `sources: Gnotchi`
+        # ins Bundle, ebenso der Timer-Ton gnotchi.caf. Das alte Icon-Composer-Symbol liegt unter design/.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
         COMBINE_HIDPI_IMAGES: YES
@@ -129,7 +130,7 @@ targets:
           - Info.plist
       - path: Gnotchi/Notify/NotifyWire.swift
       - path: Gnotchi/Media/LiveText.swift
-      - path: Gnotchi/Resources/AppIcon.icon
+      - path: Gnotchi/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_NAME: Gnotchi Mitteilungen
@@ -196,7 +197,7 @@ targets:
       - path: Vendor/SwiftTerm/Sources
         excludes:
           - Mac/README.md
-      - path: Gnotchi/Resources/AppIcon.icon
+      - path: Gnotchi/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_NAME: Gnotchi Terminal
@@ -266,6 +267,9 @@ targets:
       - path: Gnotchi/Resources/Turntable
         buildPhase: resources
       - path: Gnotchi/Resources/PlusJakartaSans-Variable.ttf
+        buildPhase: resources
+      # 26.11.: Timer-Ton der App-Familie, damit CountdownTimerTests das Laden prüfen kann.
+      - path: Gnotchi/Resources/gnotchi.caf
         buildPhase: resources
     dependencies:
       - package: Sparkle

@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unveröffentlicht]
+
+### Neu
+- **Timer-Ton „Gnotchi“.** Einstellungen → Tasten → „Timer und Spiegel“ → Timer-Ton bietet zusätzlich „Gnotchi“ an, den kurzen Ton der App-Familie (ein „Blubb“ mit fallender Tonhöhe, 0,22 s). Ab Werk bleibt „Glass“.
+
+### Geändert
+- **Neues App-Symbol:** das Gnotchi-Maskottchen der App-Familie statt des Glas-Symbols (Notch + Pegel). Auch die Hilfsprogramme „Gnotchi Mitteilungen“ und „Gnotchi Terminal“ tragen es.
+- **Neues Menüleisten-Symbol:** Kopf mit Panda-Ohren, darin die Notch-Pille mit Play-Dreieck. Die Restzeit eines laufenden Timers steht weiter daneben.
+
+### Intern
+- Klassischer Asset-Katalog `Gnotchi/Resources/Assets.xcassets` (AppIcon, Vorlagenbild `MenuBarGnotchi`); das alte Icon-Composer-Symbol liegt unter `design/AppIcon-glas-alt.icon`, die SVG-Vorlage der Menüleiste unter `design/menueleiste/`. Ton `gnotchi.caf` im Bündel, `CountdownTimer.sound(named:)` lädt ihn und protokolliert Fehlen (Kategorie „timer“). Selbsttest prüft Ton und Menüleisten-Bild, zwei neue Tests.
+
 ## [0.46.0] — 2026-11-25
 
 ### Neu

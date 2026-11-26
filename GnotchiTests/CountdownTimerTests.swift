@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 
 /// 0.5.0 Eigener Timer: Zeitlogik, Pause/Weiter, Anzeige, Modell.
@@ -89,6 +90,25 @@ final class CountdownTimerTests: XCTestCase {
         let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-test-\(UUID().uuidString)")!)
         prefs.timerSound = "../../evil"
         XCTAssertEqual(prefs.timerSound, "Glass", "ungültiger Wert wird nie gespeichert")
+    }
+
+    /// App-Familie (26.11.): „Gnotchi“ ist zusätzliche Auswahl, die Werkseinstellung bleibt „Glass“.
+    func testFamilySoundIsChoiceNotDefault() {
+        XCTAssertEqual(CountdownTimer.validSound("Gnotchi"), "Gnotchi")
+        XCTAssertEqual(CountdownTimer.defaultSound, "Glass")
+        XCTAssertEqual(CountdownTimer.validSound("gnotchi.caf"), "Glass", "nie ein Dateiname")
+        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-test-\(UUID().uuidString)")!)
+        XCTAssertEqual(prefs.timerSound, "Glass", "frische Einstellungen: unverändert Glass")
+        prefs.timerSound = "Gnotchi"
+        XCTAssertEqual(prefs.timerSound, "Gnotchi")
+    }
+
+    /// Die Datei liegt im Bündel und ist ein spielbarer Ton von etwa 0,22 s.
+    func testFamilySoundLoadsFromBundle() throws {
+        let url = try XCTUnwrap(AppResources.bundle.url(forResource: CountdownTimer.familySoundFile, withExtension: "caf"))
+        let sound = try XCTUnwrap(NSSound(contentsOf: url, byReference: true))
+        XCTAssertEqual(sound.duration, 0.22, accuracy: 0.03)
+        XCTAssertNotNil(CountdownTimer.sound(named: CountdownTimer.familySound))
     }
 
     func testShortClockFitsNotchWing() {

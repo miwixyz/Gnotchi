@@ -430,6 +430,8 @@ extension SettingsView {
                 Picker("Timer-Ton", selection: $prefs.timerSound) {
                     Text(verbatim: "Kein Ton").tag(CountdownTimer.silent)
                     Divider()
+                    Text(verbatim: CountdownTimer.familySound).tag(CountdownTimer.familySound)
+                    Divider()
                     ForEach(CountdownTimer.sounds, id: \.self) { Text(verbatim: $0).tag($0) }
                 }
                 .labelsHidden()
