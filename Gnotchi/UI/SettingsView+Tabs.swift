@@ -529,7 +529,7 @@ extension SettingsView {
                 Text("Türklingel-Kamera")
                     .font(FamilyTheme.font(.callout, weight: .medium))
                     .foregroundStyle(FamilyTheme.textSecondary)
-                DoorbellCameraRow(address: $prefs.doorbellCameraURL)
+                DoorbellCameraRow(address: $prefs.doorbellCameraURL) { model.activity.showTestDoorbell(url: $0) }
                 toggleRow("Ungelesen-Zahlen zeigen", isOn: $prefs.notifyBadges)
                     .onChange(of: prefs.notifyBadges) { model.applyNotchSetting() }
                 if prefs.notifyBadges {

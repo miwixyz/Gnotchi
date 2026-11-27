@@ -3,6 +3,8 @@ import SwiftUI
 /// Einstellungen → Mitteilungen → Türklingel-Kamera (27.11.): Bildadresse eintragen und einmal testen.
 struct DoorbellCameraRow: View {
     @Binding var address: String
+    /// „Insel testen“: zeigt einen erfundenen Klingel-Hinweis mit Bild in der Insel.
+    let showTest: (URL) -> Void
     @State private var result: String?
     @State private var testing = false
 
@@ -15,6 +17,9 @@ struct DoorbellCameraRow: View {
                     .onChange(of: address) { result = nil }
                 Button(testing ? "Teste …" : "Testen") { Task { await test() } }
                     .disabled(testing || DoorbellCamera.validURL(address) == nil)
+                Button("Insel testen") { if let url = DoorbellCamera.validURL(address) { showTest(url) } }
+                    .disabled(DoorbellCamera.validURL(address) == nil)
+                    .help("Zeigt einen erfundenen Klingel-Hinweis mit dem Kamerabild, ohne dass jemand klingelt.")
             }
             Text(verbatim: DoorbellCamera.problem(address) ?? result
                  ?? "Beim Klingeln zeigt die Insel das Bild dieser Adresse (JPEG oder PNG, z. B. von einem Dienst im Heimnetz). Leer = aus. Nichts wird gespeichert.")

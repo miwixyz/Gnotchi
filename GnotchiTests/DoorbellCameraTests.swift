@@ -122,6 +122,32 @@ final class DoorbellCameraTests: XCTestCase {
         XCTAssertEqual(cam.maxY, plain.maxY, "oben bündig, wächst nach unten")
     }
 
+    func testTestDoorbellShowsCameraNoteWithoutTouchingTheHelper() async throws {
+        let m = ActivityModel(media: NowPlayingModel(), noteDuration: .seconds(60), callArmDelay: .milliseconds(1))
+        var sent: [NotifyWire.Command] = []
+        var opened: [String] = []
+        m.notifyCommand = { sent.append($0) }
+        m.openApp = { opened.append($0) }
+        m.appInstalled = { _ in false }
+        m.doorbellAutoOpen = true
+        m.doorbellNoteDuration = .milliseconds(50)
+        let url = try XCTUnwrap(URL(string: "http://host/x.jpg"))
+        m.showTestDoorbell(url: url)
+        m.showTestDoorbell(url: url)   // doppelt gedrückt
+        XCTAssertEqual(m.notes.count, 1)
+        XCTAssertEqual(m.doorbellFeed.url, url)
+        XCTAssertTrue(m.showsDoorbellCamera(m.currentNote), "wie ein echter Klingel-Hinweis")
+        XCTAssertTrue(opened.isEmpty, "öffnet keine App von selbst")
+        m.noteDisplayed()
+        try await waitUntil { m.currentNote == nil }
+        XCTAssertTrue(sent.isEmpty, "nichts ans Hilfsprogramm: \(sent)")
+
+        m.showTestDoorbell(url: url)
+        m.openNote()
+        XCTAssertTrue(sent.isEmpty)
+        XCTAssertEqual(opened, ["com.apple.Home"], "Klick öffnet die Klingel-App wie beim echten Hinweis")
+    }
+
     func testClearNotifyStopsFeed() {
         let m = ActivityModel(media: NowPlayingModel())
         m.doorbellFeed.url = URL(string: "http://host/x.jpg")

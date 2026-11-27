@@ -86,7 +86,7 @@ extension ActivityModel {
     func noteDisplayed() {
         guard let n = notes.first, noteShownID != n.id else { return }
         noteShownID = n.id
-        notifyCommand(.shown(n.id))
+        if n.id != Self.testDoorbellID { notifyCommand(.shown(n.id)) }
         noteTask?.cancel()
         let duration = showsDoorbellCamera(n) ? doorbellNoteDuration : noteDuration
         noteTask = Task { [weak self] in
@@ -96,7 +96,7 @@ extension ActivityModel {
                 try? await Task.sleep(for: .milliseconds(500))
             }
             guard !Task.isCancelled, let self, self.notes.first?.id == n.id else { return }
-            self.notifyCommand(.release(n.id))
+            if n.id != Self.testDoorbellID { self.notifyCommand(.release(n.id)) }
             self.advanceNote()
         }
     }
@@ -119,6 +119,20 @@ extension ActivityModel {
     /// nimmt ihr Fenster dann für den Fernseher auf. Feste Kennung, nie aus der Mitteilung übernommen.
     nonisolated static let aqaraBundle = "com.lumiunited.pre.homekit"
 
+    /// Kennung des Test-Hinweises aus den Einstellungen. Geht nie ans Hilfsprogramm (dort gibt es kein Banner dazu).
+    nonisolated static let testDoorbellID = "gnotchi-test-tuerklingel"
+
+    /// Knopf „Insel testen“ (Michael 27.11.: Klingeln lässt sich nicht jederzeit testen): ein erfundener Home-Hinweis
+    /// mit dem Bild der eingetragenen Adresse, genau wie beim Klingeln. Öffnet keine App von selbst. Steht schon ein
+    /// Test-Hinweis an, passiert nichts.
+    func showTestDoorbell(url: URL) {
+        guard !notes.contains(where: { $0.id == Self.testDoorbellID }) else { return }
+        doorbellFeed.url = url
+        notes.append(NotifyWire.Note(id: Self.testDoorbellID, kind: .note, app: "Home", bundle: Self.homeBundle,
+                                     title: "Test: Es hat geklingelt", subtitle: "", body: "", actions: []))
+        if notes.count > Self.maxQueuedNotes { notes.remove(at: 1) }
+    }
+
     /// Zeigt die Insel zu dieser Mitteilung das Kamerabild? Nur Home-Hinweise (Türklingel) und nur mit eingetragener Adresse.
     func showsDoorbellCamera(_ n: NotifyWire.Note?) -> Bool {
         n?.bundle == Self.homeBundle && doorbellFeed.url != nil
@@ -131,7 +145,7 @@ extension ActivityModel {
     /// die Klingel-App nach vorn (Livebild der Türklingel).
     func openNote() {
         guard let n = notes.first else { return }
-        notifyCommand(.act(id: n.id, action: NotifyWire.openAction))
+        if n.id != Self.testDoorbellID { notifyCommand(.act(id: n.id, action: NotifyWire.openAction)) }
         if n.bundle == Self.homeBundle { openApp(doorbellApp) }
         advanceNote()
     }
