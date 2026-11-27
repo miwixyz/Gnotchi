@@ -126,6 +126,10 @@ Freigabe nicht und fragt nie danach.
   mit ihren Knöpfen (z. B. „Erledigt“); Klick öffnet die App. Anrufe mit Annehmen, Ablehnen und im Gespräch
   Auflegen. Ein eigenes Hilfsprogramm mit der Freigabe „Gerätesteuerung und Datenzugriff“ liest Apples Banner; Gnotchi selbst bleibt
   ohne. Ab Werk aus.
+- **Türklingel (0.47):** Ein Home-Hinweis öffnet per Klick (oder mit eigenem Schalter sofort) die Klingel-App,
+  Aqara Home oder Home. Mit eingetragener Bildadresse zeigt die Insel darunter das Kamerabild, alle halbe Sekunde
+  neu, solange der Hinweis steht. Gnotchi holt nur fertige Einzelbilder (JPEG/PNG) per HTTP, kein RTSP. Mit Knopf
+  „Insel testen“. Ab Werk aus.
 - **Claude Code in der Notch (0.9):** laufende Claude-Code-Sitzungen mit „arbeitet“, „wartet auf Erlaubnis“
   (Werkzeug + Befehl) und „fertig“ (Anfang der Antwort); Klick holt das Programm der Sitzung nach vorn. Nur
   Anzeige, keine Entscheidung. Eigene Hooks in `~/.claude/settings.json`, byte-genau ein- und austragbar. Ab Werk aus.
@@ -310,6 +314,9 @@ Widerrufen: Systemeinstellungen → Datenschutz & Sicherheit → Automation bzw.
   der ausgewählten Apps an Gnotchi weiter, über einen eigenen lokalen Socket (`notify.sock`), nachdem beide die
   Developer-ID-Signatur des anderen geprüft haben. Texte nie gespeichert, nie protokolliert; gespeichert wird
   nur die App-Liste. Knöpfe wirken nur auf deinen Klick ([G28–G30](docs/SECURE-DESIGN.md)).
+- **Türklingel-Kamera:** ab Werk aus. Gnotchi fragt nur die Adresse ab, die du einträgst, nur solange der
+  Klingel-Hinweis zu sehen ist, ohne Cookies, Cache und Weiterleitungen. Das Bild bleibt im Arbeitsspeicher, die
+  Adresse nie im Protokoll, Zugangsdaten in der Adresse lehnt Gnotchi ab ([G66](docs/SECURE-DESIGN.md)).
 - **Claude Code:** Das Hook-Programm „Gnotchi Claude“ schickt nur Projektname, Status, Werkzeug, gekürzten Befehl und
   gekürzte Antwort über `claude.sock`, nachdem es Gnotchis Signatur geprüft hat (Gnotchi prüft umgekehrt genauso). Nie
   Eingabe, Verlauf oder Dateiinhalte, nie gespeichert oder protokolliert, nie eine Entscheidung an Claude Code

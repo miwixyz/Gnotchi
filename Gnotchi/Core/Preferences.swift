@@ -533,14 +533,6 @@ final class Preferences {
         (defaults.object(forKey: Key.lockScreenMusic) as? Bool ?? false, defaults.object(forKey: Key.lockScreenHideTitle) as? Bool ?? false)
     }
 
-    nonisolated static func validScreen(_ defaults: UserDefaults) -> String {
-        String((defaults.string(forKey: Key.desktopMusicScreen) ?? "").prefix(64))
-    }
-
-    nonisolated static func validStyle(_ defaults: UserDefaults) -> DesktopStyle {
-        defaults.string(forKey: Key.desktopMusicStyle).flatMap(DesktopStyle.init(rawValue:)) ?? .card
-    }
-
     /// Nur Werte aus der Auswahl; alles andere → ab Werk (30 Min.).
     nonisolated static func validScreenshotMinutes(_ stored: Any?) -> Int {
         guard let n = stored as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return defaultScreenshotMinutes }
@@ -550,6 +542,14 @@ final class Preferences {
 
 /// Bildschirmauswahl der Insel (0.46), eigener Block, damit die Klasse unter der Längengrenze bleibt.
 extension Preferences {
+    nonisolated static func validScreen(_ defaults: UserDefaults) -> String {
+        String((defaults.string(forKey: Key.desktopMusicScreen) ?? "").prefix(64))
+    }
+
+    nonisolated static func validStyle(_ defaults: UserDefaults) -> DesktopStyle {
+        defaults.string(forKey: Key.desktopMusicStyle).flatMap(DesktopStyle.init(rawValue:)) ?? .card
+    }
+
     func isIslandScreenShown(_ uuid: String) -> Bool {
         !islandHiddenScreens.contains(uuid)
     }

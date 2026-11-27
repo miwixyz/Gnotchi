@@ -21,12 +21,14 @@ struct DoorbellCameraRow: View {
                     .disabled(DoorbellCamera.validURL(address) == nil)
                     .help("Zeigt einen erfundenen Klingel-Hinweis mit dem Kamerabild, ohne dass jemand klingelt.")
             }
-            Text(verbatim: DoorbellCamera.problem(address) ?? result
-                 ?? "Beim Klingeln zeigt die Insel das Bild dieser Adresse (JPEG oder PNG, z. B. von einem Dienst im Heimnetz). Leer = aus. Nichts wird gespeichert.")
+            Text(verbatim: DoorbellCamera.problem(address) ?? result ?? Self.explanation)
                 .font(.caption)
                 .foregroundStyle(DoorbellCamera.problem(address) == nil ? Color.secondary : Color.orange)
         }
     }
+
+    private static let explanation = "Beim Klingeln zeigt die Insel das Bild dieser Adresse (JPEG oder PNG, "
+        + "z. B. von einem Dienst im Heimnetz). Leer = aus. Nichts wird gespeichert."
 
     private func test() async {
         guard let url = DoorbellCamera.validURL(address) else { return }

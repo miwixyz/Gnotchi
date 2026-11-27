@@ -67,6 +67,7 @@ App aus. Ich wollte eine Insel, die so aussieht, als hätte Apple sie gebaut, un
 - Groß zeigt die Insel immer nur eine Sache. Was sonst läuft, steht als kleines Symbol darüber. Wer
   mag, heftet sie fest oder lässt sie als schmales Band über die Menüleiste aufgehen.
 - Mitteilungen von Apps, die du auswählst, erscheinen in der Notch statt oben rechts, mit ihren Knöpfen. Ein Klick öffnet die App. Ruft dich jemand auf dem iPhone an, nimmst du in der Notch an oder lehnst ab, und Apples Anruf-Fenster bleibt weg. Oder du lässt mitlesen, was der Anrufer auf die Mailbox spricht.
+- Klingelt es an der Tür, öffnet ein Klick auf den Hinweis die Klingel-App. Hast du ein Kamerabild im Heimnetz, steht es gleich in der Insel.
 - Wie viele ungelesene Mails und Nachrichten warten, steht im Band. Ein Klick, und die App ist offen.
 - Arbeitet Claude Code für dich, siehst du es in der Notch. Ist die Antwort fertig, klappt sie kurz auf. Wartet Claude auf deine Erlaubnis, wird der Punkt gelb. Ein Klick bringt dich zurück zur Sitzung.
 - Hinter einem Symbol in der großen Insel steckt das Wetter für deinen Ort, von jetzt bis zum Ende der Woche.

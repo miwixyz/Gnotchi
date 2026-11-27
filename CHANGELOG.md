@@ -2,9 +2,12 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unveröffentlicht]
+## [0.47.0] — 2026-11-27
 
 ### Neu
+- **Türklingel-Livebild in der Insel.** Einstellungen → Mitteilungen → „Türklingel-Kamera“: Trägst du die Adresse eines Kamera-Einzelbilds ein (JPEG oder PNG über `http://` oder `https://`, z. B. von einem kleinen Dienst in deinem Heimnetz), zeigt die Insel beim Hinweis der Home-App das Bild darunter und holt es alle halbe Sekunde neu, solange der Hinweis zu sehen ist. Der Hinweis bleibt dann 30 Sekunden stehen. Ab Werk leer, also aus. „Testen“ holt ein Bild und nennt seine Größe, „Insel testen“ zeigt einen erfundenen Klingel-Hinweis mit Bild, ohne dass jemand klingelt. Gnotchi spricht kein RTSP; die Kamera direkt anzufragen störte im Test den Dienst, der sie schon abholte.
+- **Türklingel: App automatisch öffnen.** Neuer Schalter unter Mitteilungen (ab Werk aus): Ein Hinweis der Home-App holt sofort die Klingel-App nach vorn, Aqara Home, falls installiert, sonst Home. Das nimmt dir den Fokus, auch mitten beim Tippen.
+- **Klick auf einen Home-Hinweis** öffnet die Klingel-App (Aqara Home oder Home), dort läuft das Livebild. Vorher öffnete der gespiegelte iPhone-Hinweis am Mac nichts Brauchbares.
 - **Timer-Ton „Gnotchi“.** Einstellungen → Tasten → „Timer und Spiegel“ → Timer-Ton bietet zusätzlich „Gnotchi“ an, den kurzen Ton der App-Familie (ein „Blubb“ mit fallender Tonhöhe, 0,22 s). Ab Werk bleibt „Glass“.
 
 ### Geändert
@@ -12,6 +15,7 @@ Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https:
 - **Neues Menüleisten-Symbol:** Kopf mit Panda-Ohren, darin die Notch-Pille mit Play-Dreieck. Die Restzeit eines laufenden Timers steht weiter daneben.
 
 ### Intern
+- Türklingel: `DoorbellCamera`/`DoorbellFeed` (nur `http`/`https`, keine Zugangsdaten in der Adresse, keine Weiterleitungen, kein Cache, höchstens 4 MB und 4096 px, nur JPEG/PNG), Bild nur im Arbeitsspeicher, im Protokoll nur der Statuscode. Test-Hinweis `gnotchi-test-tuerklingel` geht nie ans Hilfsprogramm. SECURE-DESIGN G66, 16 neue Tests.
 - Klassischer Asset-Katalog `Gnotchi/Resources/Assets.xcassets` (AppIcon, Vorlagenbild `MenuBarGnotchi`); das alte Icon-Composer-Symbol liegt unter `design/AppIcon-glas-alt.icon`, die SVG-Vorlage der Menüleiste unter `design/menueleiste/`. Ton `gnotchi.caf` im Bündel, `CountdownTimer.sound(named:)` lädt ihn und protokolliert Fehlen (Kategorie „timer“). Selbsttest prüft Ton und Menüleisten-Bild, zwei neue Tests.
 
 ## [0.46.0] — 2026-11-25

@@ -333,6 +333,16 @@ bekommt keine Freigabe.
   Gespräch gibt es rot Auflegen, und Apples Gesprächsleiste bleibt mit Stumm und Ziffernblock sichtbar. Solange es
   klingelt, ist Apples Anruf-Fenster versteckt. Die Knöpfe werden eine halbe Sekunde nach dem Erscheinen klickbar.
   Ganz ohne Mailbox auflegen kann macOS nicht, auch nicht in Apples Fenster.
+- **Türklingel:** Ein Hinweis der Home-App (etwa „Es hat geklingelt“) öffnet beim Klick die Klingel-App, Aqara Home,
+  falls installiert, sonst Home. Mit dem Schalter „Türklingel: App automatisch öffnen“ (ab Werk aus) passiert das
+  sofort, ohne Klick; die App nimmt dir dann den Fokus.
+- **Türklingel-Kamera:** Trägst du unter „Türklingel-Kamera“ die Adresse eines Kamera-Einzelbilds ein (JPEG oder PNG,
+  `http://` oder `https://`, ohne Benutzername und Passwort in der Adresse), zeigt die Insel beim Home-Hinweis das
+  Bild darunter und erneuert es alle halbe Sekunde, 30 Sekunden lang bzw. solange die Maus darauf ist. Gnotchi
+  spricht kein RTSP: Die Adresse muss ein fertiges Bild liefern, z. B. ein kleiner Dienst in deinem Heimnetz, der den
+  Kamera-Stream abholt. **Testen** holt ein Bild und nennt die Größe, **Insel testen** zeigt einen erfundenen
+  Klingel-Hinweis mit Bild, ohne dass jemand klingelt. Kommt kein Bild, steht der Grund in der Insel (etwa
+  „Kamerabild: Fehler 503“). Beim ersten Abruf fragt macOS nach dem Zugriff aufs lokale Netzwerk. Leer = aus.
 - **Ungelesen-Zahlen** (Schalter „Ungelesen-Zahlen zeigen“, ab Werk aus): Die Zahlen auf den Dock-Symbolen der
   ausgewählten Apps stehen im Band und in der großen Insel, ein Klick öffnet die App. Läuft keine Musik, zeigt die
   kleine Insel die Summe („Zähler auch in der kleinen Insel“). Es zählen nur Apps, die im Dock liegen.
@@ -505,6 +515,9 @@ nicht wirkt.
 - Von Claude Code bekommt Gnotchi nur Projektname, Status, Werkzeug, einen gekürzten Befehl und den gekürzten
   Anfang der Antwort, über einen eigenen Weg, auf dem beide Seiten die Signatur prüfen. Nie deine Eingabe, nie den
   Verlauf, nie Dateiinhalte. Nichts davon wird gespeichert oder protokolliert.
+- Das Türklingel-Bild holt Gnotchi nur von der Adresse, die du einträgst, und nur, solange der Klingel-Hinweis zu
+  sehen ist. Es liegt nur im Arbeitsspeicher, wird nie gespeichert und ist mit dem Hinweis weg. Im Protokoll steht
+  nur der Statuscode, nie die Adresse.
 - Für die Ungelesen-Zahlen liest das Hilfsprogramm nur die Zahl am Dock-Symbol der ausgewählten Apps, nie deren Text.
 - Die Dateiablage speichert nur, wo die Dateien liegen (nur für dich lesbar), nie ihren Inhalt. Ausnahme: Fotos aus
   der Fotos-App und Mail-Anhänge aus Outlook oder Gmail liegen als Kopie in Gnotchis Ordner (nur für dich lesbar),

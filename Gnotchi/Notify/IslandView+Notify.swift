@@ -91,7 +91,7 @@ struct DoorbellImage: View {
         ZStack {
             RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.08))
             if let frame = feed.frame {
-                Image(nsImage: frame).resizable().interpolation(.medium).aspectRatio(contentMode: .fit)
+                Image(nsImage: frame).resizable().interpolation(.medium).scaledToFit()
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             } else if let error = feed.error {
                 Label { Text(verbatim: error) } icon: { Image(systemName: "video.slash") }
