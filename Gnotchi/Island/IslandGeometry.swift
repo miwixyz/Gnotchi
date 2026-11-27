@@ -89,6 +89,8 @@ enum IslandGeometry {
         if buttons { h += 2 + 28 }
         return min(h, messageSize.height)
     }
+    /// Türklingel-Livebild unter dem Hinweis (27.11.): Höhe des Bildfelds, 4:3 → 280 × 210 pt.
+    static let doorbellImageHeight: CGFloat = 210
     /// Anruf (0.6.0, Vorbild DynamicLake): eine Zeile mit Anrufer und zwei Knöpfen.
     static let callSize = CGSize(width: 400, height: 60)
 

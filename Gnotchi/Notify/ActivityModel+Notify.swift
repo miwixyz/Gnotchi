@@ -35,6 +35,9 @@ extension ActivityModel {
         case .note:
             guard !notes.contains(where: { $0.id == n.id }) else { return }
             notes.append(n)
+            // Türklingel (Michael 27.11.: „automatisch“): Klingel-App sofort nach vorn, damit Mac und Fernseher
+            // (CleanFrame) das Livebild zeigen. Nimmt bewusst den Fokus, deshalb nur mit eigenem Schalter.
+            if doorbellAutoOpen, n.bundle == Self.homeBundle { openApp(doorbellApp) }
             // Flut: die älteste **wartende** fliegt raus (nie gezeigt → Apples Banner war nie versteckt).
             if notes.count > Self.maxQueuedNotes { notes.remove(at: 1) }
         }
@@ -61,6 +64,7 @@ extension ActivityModel {
         callDismissedID = nil
         if !unread.isEmpty { unread = [] }
         notifyTrust = nil
+        doorbellFeed.stop()
     }
 
     /// Ungelesen-Zahlen vom Hilfsprogramm (Schema geprüft, G33). `allowed` = ausgewählte Apps: Gnotchi filtert selbst noch
@@ -84,8 +88,9 @@ extension ActivityModel {
         noteShownID = n.id
         notifyCommand(.shown(n.id))
         noteTask?.cancel()
-        noteTask = Task { [weak self, noteDuration] in
-            try? await Task.sleep(for: noteDuration)
+        let duration = showsDoorbellCamera(n) ? doorbellNoteDuration : noteDuration
+        noteTask = Task { [weak self] in
+            try? await Task.sleep(for: duration)
             // Maus darüber: stehen lassen (Spec).
             while !Task.isCancelled, self?.rotationPaused == true {
                 try? await Task.sleep(for: .milliseconds(500))
@@ -110,13 +115,24 @@ extension ActivityModel {
     /// Kennung der Home-App. Gespiegelte iPhone-Banner (Türklingel) öffnen am Mac nichts Brauchbares → Home selbst
     /// öffnen, dort läuft das Livebild. Feste Kennung, nie aus der Mitteilung übernommen.
     nonisolated static let homeBundle = "com.apple.Home"
+    /// Aqara-App (Türklingel G410). Zeigt das Livebild ohne Klick, sobald sie vorn ist (gemessen 27.11.); CleanFrame
+    /// nimmt ihr Fenster dann für den Fernseher auf. Feste Kennung, nie aus der Mitteilung übernommen.
+    nonisolated static let aqaraBundle = "com.lumiunited.pre.homekit"
+
+    /// Zeigt die Insel zu dieser Mitteilung das Kamerabild? Nur Home-Hinweise (Türklingel) und nur mit eingetragener Adresse.
+    func showsDoorbellCamera(_ n: NotifyWire.Note?) -> Bool {
+        n?.bundle == Self.homeBundle && doorbellFeed.url != nil
+    }
+
+    /// Wohin ein Home-Hinweis (Türklingel) führt: Aqara, falls installiert, sonst Home.
+    var doorbellApp: String { appInstalled(Self.aqaraBundle) ? Self.aqaraBundle : Self.homeBundle }
 
     /// Klick auf die Mitteilung: macOS öffnet die App an der richtigen Stelle (`AXPress` am Banner). Bei Home zusätzlich
-    /// die Home-App nach vorn (Livebild der Türklingel).
+    /// die Klingel-App nach vorn (Livebild der Türklingel).
     func openNote() {
         guard let n = notes.first else { return }
         notifyCommand(.act(id: n.id, action: NotifyWire.openAction))
-        if n.bundle == Self.homeBundle { openApp(Self.homeBundle) }
+        if n.bundle == Self.homeBundle { openApp(doorbellApp) }
         advanceNote()
     }
 

@@ -83,6 +83,7 @@ struct IslandView: View {
         case .message:
             if let n = activity.currentNote {
                 NoteIsland(note: n, queued: activity.queuedNotes, topInset: state.layout.notch?.height ?? 0,
+                           camera: activity.showsDoorbellCamera(n) ? activity.doorbellFeed : nil,
                            onOpen: { activity.openNote() }, onAction: { activity.performNoteAction($0) })
             }
         case .shelfDrop:
@@ -645,7 +646,8 @@ extension IslandView {
         case .expanded: IslandController.detachedSize(activity)   // nur schwebend (0.22.0), dieselbe Rechnung wie das Panel
         case .notice: state.layout.notice.size
         case .live: state.layout.live.size
-        case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote).size
+        case .message: IslandController.messageFrame(layout: state.layout, note: activity.currentNote,
+                                                       camera: activity.showsDoorbellCamera(activity.currentNote)).size
         case .call: state.layout.call.size
         case .shelfDrop: state.layout.shelfDrop.size
         }

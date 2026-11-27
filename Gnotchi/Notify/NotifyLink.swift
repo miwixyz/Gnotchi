@@ -77,6 +77,8 @@ final class NotifyLink: NotchPart {
             activity.notifyTrust = t
             sendFilter()
         case .note(let n)?:
+            activity.doorbellAutoOpen = prefs.notifyDoorbellOpen
+            activity.doorbellFeed.url = DoorbellCamera.validURL(prefs.doorbellCameraURL)
             activity.receiveNote(n)
         case .gone(let id)?:
             activity.noteGone(id)

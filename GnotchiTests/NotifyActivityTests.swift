@@ -71,17 +71,49 @@ final class NotifyActivityTests: XCTestCase {
         XCTAssertEqual(sent.list, [.shown("a")])
     }
 
+    private func homeNote(_ id: String) -> NotifyWire.Note {
+        NotifyWire.Note(id: id, kind: .note, app: "Home", bundle: "com.apple.Home", title: "Klingel", subtitle: "",
+                        body: "", actions: [])
+    }
+
     func testClickOnHomeNoteOpensHomeAppOthersDont() {
         let (m, _) = model()
         var opened: [String] = []
         m.openApp = { opened.append($0) }
+        m.appInstalled = { _ in false }
+        m.doorbellAutoOpen = true
         m.receiveNote(note("a"))   // com.example.app
         m.openNote()
         XCTAssertTrue(opened.isEmpty, "andere Apps: nur der Banner-Klick")
-        m.receiveNote(NotifyWire.Note(id: "h", kind: .note, app: "Home", bundle: "com.apple.Home", title: "Klingel",
-                                      subtitle: "", body: "", actions: []))
+        m.receiveNote(homeNote("h"))
+        XCTAssertEqual(opened, ["com.apple.Home"], "Klingel: sofort beim Eintreffen")
         m.openNote()
-        XCTAssertEqual(opened, ["com.apple.Home"])
+        XCTAssertEqual(opened, ["com.apple.Home", "com.apple.Home"], "und noch einmal beim Klick")
+    }
+
+    func testDoorbellPrefersAqaraWhenInstalled() {
+        let (m, _) = model()
+        var opened: [String] = []
+        m.openApp = { opened.append($0) }
+        m.appInstalled = { $0 == "com.lumiunited.pre.homekit" }
+        m.doorbellAutoOpen = true
+        m.receiveNote(homeNote("h"))
+        m.receiveNote(homeNote("h"))   // doppelt gemeldet → kein zweites Öffnen
+        XCTAssertEqual(opened, ["com.lumiunited.pre.homekit"])
+        m.receiveNote(note("a"))
+        XCTAssertEqual(opened.count, 1, "andere Apps öffnen nichts beim Eintreffen")
+    }
+
+    func testDoorbellAutoOpenOffOnlyClickOpens() {
+        let (m, _) = model()
+        var opened: [String] = []
+        m.openApp = { opened.append($0) }
+        m.appInstalled = { $0 == "com.lumiunited.pre.homekit" }
+        XCTAssertFalse(m.doorbellAutoOpen, "ab Werk aus")
+        m.receiveNote(homeNote("h"))
+        XCTAssertTrue(opened.isEmpty, "Schalter aus: beim Eintreffen nichts öffnen")
+        m.openNote()
+        XCTAssertEqual(opened, ["com.lumiunited.pre.homekit"], "Klick öffnet weiter")
     }
 
     func testClicksSendOnlyListedActions() {

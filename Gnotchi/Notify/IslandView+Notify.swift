@@ -10,6 +10,8 @@ struct NoteIsland: View {
     let queued: Int
     /// Mit Notch: deren Höhe – die Hardware verdeckt den oberen Streifen.
     let topInset: CGFloat
+    /// Türklingel-Livebild (27.11.): gesetzt nur bei Home-Hinweisen mit eingetragener Bildadresse.
+    var camera: DoorbellFeed? = nil
     let onOpen: () -> Void
     let onAction: (String) -> Void
 
@@ -57,6 +59,9 @@ struct NoteIsland: View {
                     }
                     .padding(.top, 4)
                 }
+                if let camera {
+                    DoorbellImage(feed: camera).padding(.top, 8)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -75,6 +80,32 @@ struct NoteIsland: View {
         } else {
             Image(systemName: "app.badge").font(.system(size: 20)).foregroundStyle(.white).frame(width: 30, height: 30)
         }
+    }
+}
+
+/// Kamerabild der Türklingel (27.11.). Holt Bilder nur, solange es zu sehen ist; ohne Bild steht sichtbar, warum.
+struct DoorbellImage: View {
+    let feed: DoorbellFeed
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.08))
+            if let frame = feed.frame {
+                Image(nsImage: frame).resizable().interpolation(.medium).aspectRatio(contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else if let error = feed.error {
+                Label { Text(verbatim: error) } icon: { Image(systemName: "video.slash") }
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(.orange)
+            } else {
+                Label { Text(verbatim: "Kamerabild wird geladen …") } icon: { Image(systemName: "video") }
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: IslandGeometry.doorbellImageHeight * 4 / 3, height: IslandGeometry.doorbellImageHeight)
+        .frame(maxWidth: .infinity)
+        .onAppear { feed.attach() }
+        .onDisappear { feed.detach() }
+        .accessibilityLabel(Text(verbatim: "Türklingel-Kamera"))
     }
 }
 

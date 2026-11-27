@@ -39,6 +39,11 @@ struct UnreadMini: View {
               let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle) else { return }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
     }
+
+    /// Ist eine App mit genau dieser Kennung installiert (LaunchServices)?
+    static func installed(_ bundle: String) -> Bool {
+        NotifyWire.isValidBundleID(bundle) && NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle) != nil
+    }
 }
 
 /// Kleine Insel: Summe als Glas-Kapsel mit kleinem roten Punkt (Michael 22.10.: „dezenter, passend zum Glass Look“ –

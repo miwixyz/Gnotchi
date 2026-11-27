@@ -204,8 +204,16 @@ final class ActivityModel {
     var deckPluginOutdated: String?
     /// Befehl ans Hilfsprogramm (NotifyLink setzt ihn).
     @ObservationIgnored var notifyCommand: (NotifyWire.Command) -> Void = { _ in }
-    /// App per Kennung öffnen (Klingel-Hinweis → Home). Austauschbar für Tests.
+    /// App per Kennung öffnen (Klingel-Hinweis → Aqara bzw. Home). Austauschbar für Tests.
     @ObservationIgnored var openApp: (String) -> Void = { UnreadMini.open($0) }
+    /// Einstellung „Türklingel: App automatisch öffnen“ (NotifyLink setzt sie vor jeder Mitteilung). Ab Werk aus.
+    @ObservationIgnored var doorbellAutoOpen = false
+    /// Ist eine App mit dieser Kennung installiert? Austauschbar für Tests.
+    @ObservationIgnored var appInstalled: (String) -> Bool = { UnreadMini.installed($0) }
+    /// Türklingel-Livebild (27.11.): Einzelbilder von der eingetragenen Adresse, nur solange der Hinweis zu sehen ist.
+    @ObservationIgnored let doorbellFeed = DoorbellFeed()
+    /// Klingel-Hinweis mit Kamerabild bleibt länger stehen als andere Mitteilungen (Maus darüber: unbegrenzt).
+    @ObservationIgnored var doorbellNoteDuration: Duration = .seconds(30)
     @ObservationIgnored let noteDuration: Duration
     @ObservationIgnored let callArmDelay: Duration
 

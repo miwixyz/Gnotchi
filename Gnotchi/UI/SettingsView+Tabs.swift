@@ -521,6 +521,15 @@ extension SettingsView {
                 }
                 toggleRow("Anrufe in der Notch", isOn: $prefs.notifyCalls)
                     .onChange(of: prefs.notifyCalls) { model.applyNotchSetting() }
+                toggleRow("Türklingel: App automatisch öffnen", isOn: $prefs.notifyDoorbellOpen)
+                if prefs.notifyDoorbellOpen {
+                    note("Ein Hinweis der Home-App holt Aqara Home (sonst Home) sofort nach vorn – auch mitten beim Tippen.",
+                         symbol: "info.circle", color: FamilyTheme.textSecondary)
+                }
+                Text("Türklingel-Kamera")
+                    .font(FamilyTheme.font(.callout, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textSecondary)
+                DoorbellCameraRow(address: $prefs.doorbellCameraURL)
                 toggleRow("Ungelesen-Zahlen zeigen", isOn: $prefs.notifyBadges)
                     .onChange(of: prefs.notifyBadges) { model.applyNotchSetting() }
                 if prefs.notifyBadges {

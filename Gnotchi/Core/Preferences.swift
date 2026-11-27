@@ -66,6 +66,10 @@ final class Preferences {
         static let notifications = "notifications"
         static let notifyApps = "notifyApps"
         static let notifyCalls = "notifyCalls"
+        /// Türklingel: Home-Hinweis holt die Klingel-App (Aqara, sonst Home) von selbst nach vorn.
+        static let notifyDoorbellOpen = "notifyDoorbellOpen"
+        /// Türklingel: Adresse eines Einzelbilds (JPEG/PNG) der Klingel-Kamera, leer = aus.
+        static let doorbellCameraURL = "doorbellCameraURL"
         /// 0.9.0 Ungelesen-Zahlen aus dem Dock (G33).
         static let notifyBadges = "notifyBadges"
         static let compactUnread = "compactUnread"
@@ -250,6 +254,11 @@ final class Preferences {
     var notifications: Bool { didSet { defaults.set(notifications, forKey: Key.notifications) } }
     /// Anrufe in der Notch (0.6.0), wirkt nur bei eingeschalteten Mitteilungen.
     var notifyCalls: Bool { didSet { defaults.set(notifyCalls, forKey: Key.notifyCalls) } }
+    /// Türklingel (Michael 27.11.): Home-Hinweis öffnet die Klingel-App sofort, nimmt dabei den Fokus. Ab Werk aus.
+    var notifyDoorbellOpen: Bool { didSet { defaults.set(notifyDoorbellOpen, forKey: Key.notifyDoorbellOpen) } }
+    /// Türklingel-Livebild (27.11.): Bildadresse, die Gnotchi beim Klingeln abfragt. Ab Werk leer = aus. Kein Teil der
+    /// Adresse steht im Code; Zugangsdaten in der Adresse lehnt `DoorbellCamera.validURL` ab.
+    var doorbellCameraURL: String { didSet { defaults.set(doorbellCameraURL, forKey: Key.doorbellCameraURL) } }
     /// Ungelesen-Zahlen der ausgewählten Apps (0.9.0, G33), wirkt nur bei eingeschalteten Mitteilungen. Ab Werk aus.
     var notifyBadges: Bool { didSet { defaults.set(notifyBadges, forKey: Key.notifyBadges) } }
     /// Zähler auch in der kleinen Insel (0.9.0). Ab Werk an, wirkt nur mit `notifyBadges`.
@@ -407,6 +416,8 @@ final class Preferences {
         mediaExcluded = Self.validExcluded(defaults.object(forKey: Key.mediaExcluded))
         notifications = defaults.object(forKey: Key.notifications) as? Bool ?? false
         notifyCalls = defaults.object(forKey: Key.notifyCalls) as? Bool ?? true
+        notifyDoorbellOpen = defaults.object(forKey: Key.notifyDoorbellOpen) as? Bool ?? false
+        doorbellCameraURL = String((defaults.string(forKey: Key.doorbellCameraURL) ?? "").prefix(DoorbellCamera.maxURLLength))
         notifyBadges = defaults.object(forKey: Key.notifyBadges) as? Bool ?? false
         compactUnread = defaults.object(forKey: Key.compactUnread) as? Bool ?? true
         claudeCode = defaults.object(forKey: Key.claudeCode) as? Bool ?? false

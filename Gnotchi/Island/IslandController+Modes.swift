@@ -117,11 +117,13 @@ extension IslandController {
     }
 
     /// Mitteilung (0.6.0): oben bündig wie `layout.message`, unten nur so lang wie der Inhalt.
-    nonisolated static func messageFrame(layout: IslandGeometry.Layout, note: NotifyWire.Note?) -> CGRect {
+    nonisolated static func messageFrame(layout: IslandGeometry.Layout, note: NotifyWire.Note?, camera: Bool = false) -> CGRect {
         var r = layout.message
         guard let note else { return r }
-        let h = IslandGeometry.messageHeight(title: !note.title.isEmpty, subtitle: !note.subtitle.isEmpty,
+        var h = IslandGeometry.messageHeight(title: !note.title.isEmpty, subtitle: !note.subtitle.isEmpty,
                                              bodyChars: note.body.count, buttons: !NotifyWire.buttonActions(note).isEmpty)
+        // Türklingel-Livebild (27.11.): Insel wächst nach unten um das Bild (darf höher werden als `messageSize`).
+        if camera { h += IslandGeometry.doorbellImageHeight + 8 }
         let cut = IslandGeometry.messageSize.height - h
         r.origin.y += cut
         r.size.height -= cut

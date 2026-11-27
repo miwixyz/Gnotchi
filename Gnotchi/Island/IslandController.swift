@@ -553,7 +553,10 @@ extension IslandController {
 
     /// Panelgröße für den aktuellen Inhalt (0.5.0 ausgelagert: Klassenrumpf ≤ 350 Zeilen).
     fileprivate func frame(_ mode: IslandState.Mode, _ layout: IslandGeometry.Layout) -> CGRect? {
-        if mode == .message { return Self.messageFrame(layout: layout, note: activity.currentNote) }
+        if mode == .message {
+            return Self.messageFrame(layout: layout, note: activity.currentNote,
+                                     camera: activity.showsDoorbellCamera(activity.currentNote))
+        }
         // 0.22.0: Groß schwebt im eigenen Panel (`detachedSize`, IslandController+Detached) – dieses bleibt klein.
         return Self.panelFrame(mode: mode == .expanded ? .compact : mode, layout: layout)
     }
