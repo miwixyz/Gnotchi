@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.46.0</title>
-            <pubDate>Wed, 25 Nov 2026 19:15:18 +0100</pubDate>
+            <title>0.47.0</title>
+            <pubDate>Fri, 27 Nov 2026 17:29:32 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>316</sparkle:version>
-            <sparkle:shortVersionString>0.46.0</sparkle:shortVersionString>
+            <sparkle:version>322</sparkle:version>
+            <sparkle:shortVersionString>0.47.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Bildschirme für die Insel wählen.</b> Einstellungen → Allgemein → Aussehen zeigt ab zwei Bildschirmen je Bildschirm den Schalter „Insel auf …“. Ab Werk erscheint die Insel überall wie bisher. Abgewählte Bildschirme bekommen keine Insel, die Änderung wirkt sofort. Der letzte gewählte Bildschirm lässt sich nicht abwählen. Ist ein gewählter Bildschirm abgesteckt und bliebe sonst keiner übrig, erscheint die Insel vorübergehend überall. Der Plattenspieler auf dem Schreibtisch hat weiter seine eigene Bildschirmwahl.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.46.0/Gnotchi-0.46.0.zip" length="11858369" type="application/octet-stream" sparkle:edSignature="vXZ3E9clHjDnTTCKP1S3iZnpHkvtw8USst3PWFOIv28p8nHnXf/ySAXcEuSUAovC3AgEeUpzbdAR9Dbm9qK+Dw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Türklingel-Livebild in der Insel.</b> Einstellungen → Mitteilungen → „Türklingel-Kamera“: Trägst du die Adresse eines Kamera-Einzelbilds ein (JPEG oder PNG über <code>http://</code> oder <code>https://</code>, z. B. von einem kleinen Dienst in deinem Heimnetz), zeigt die Insel beim Hinweis der Home-App das Bild darunter und holt es alle halbe Sekunde neu, solange der Hinweis zu sehen ist. Der Hinweis bleibt dann 30 Sekunden stehen. Ab Werk leer, also aus. „Testen“ holt ein Bild und nennt seine Größe, „Insel testen“ zeigt einen erfundenen Klingel-Hinweis mit Bild, ohne dass jemand klingelt. Gnotchi spricht kein RTSP; die Kamera direkt anzufragen störte im Test den Dienst, der sie schon abholte.</li><li><b>Türklingel: App automatisch öffnen.</b> Neuer Schalter unter Mitteilungen (ab Werk aus): Ein Hinweis der Home-App holt sofort die Klingel-App nach vorn, Aqara Home, falls installiert, sonst Home. Das nimmt dir den Fokus, auch mitten beim Tippen.</li><li><b>Klick auf einen Home-Hinweis</b> öffnet die Klingel-App (Aqara Home oder Home), dort läuft das Livebild. Vorher öffnete der gespiegelte iPhone-Hinweis am Mac nichts Brauchbares.</li><li><b>Timer-Ton „Gnotchi“.</b> Einstellungen → Tasten → „Timer und Spiegel“ → Timer-Ton bietet zusätzlich „Gnotchi“ an, den kurzen Ton der App-Familie (ein „Blubb“ mit fallender Tonhöhe, 0,22 s). Ab Werk bleibt „Glass“.</li></ul><h3>Geändert</h3><ul><li><b>Neues App-Symbol:</b> das Gnotchi-Maskottchen der App-Familie statt des Glas-Symbols (Notch + Pegel). Auch die Hilfsprogramme „Gnotchi Mitteilungen“ und „Gnotchi Terminal“ tragen es.</li><li><b>Neues Menüleisten-Symbol:</b> Kopf mit Panda-Ohren, darin die Notch-Pille mit Play-Dreieck. Die Restzeit eines laufenden Timers steht weiter daneben.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.47.0/Gnotchi-0.47.0.zip" length="14001525" type="application/octet-stream" sparkle:edSignature="yFD/7E4LaddEDrJCHjGUAj2TxBioPHcQY8dkvt23KQKyxJiKphkTCKYcL54dwCwUVw/C19H7Gb+ncVDWFgCJCA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: ToWXjv95YJ4i3m/YVDKGJVw+l7GW3JMi7VfsshbM2VeP0IZdpP6YidoY5GjxCIy/yQuUg8i1q/EKeHvlAZ5RCQ==
-length: 1748
+edSignature: U0Lz/Z/pYAO2sU0dav+6Fq3E5TnwVeTv1bw0AsckERbOy83KAodKX23Hgp+LV4coC6Hh0rALS8s4wWhKV//ZDQ==
+length: 3031
 -->
