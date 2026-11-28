@@ -11,7 +11,6 @@ struct ClipCard: View {
     let number: Int?
     let selected: Bool
     let compactWidth: Bool
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let store = link.store
@@ -19,58 +18,60 @@ struct ClipCard: View {
         let secret = store?.secretKind(entry)
         let title = store?.title(entry) ?? secret
         let concealed = store?.isConcealed(entry) ?? true
-        // 0.50.0: Kopfleiste in der Farbe der Quell-App (wie die Kacheln unter der Notch), unten die Angabe.
+        // 0.50.0: feste Karte der App-Familie; Quell-App als Symbol-Kachel mit 18 % App-Farbe und leisem Schimmer
+        // oben (wie die Kacheln unter der Notch), unten die Angabe.
         let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
         let isColor = payload.map { ClipTile.color(entry, $0) != nil } ?? false
         let detail = concealed ? nil : payload.flatMap {
             ClipMeta.detail(kind: entry.kind, payload: $0, isColor: isColor, id: entry.id)
         }
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 if secret != nil {
                     Image(systemName: "key.fill").font(.system(size: 11)).foregroundStyle(.orange)
                 } else if let source = entry.sourceBundleID {
                     AppSymbol(bundleID: source, size: 16)
+                        .padding(3)
+                        .background(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill((tint?.color ?? FamilyTheme.textSecondary).opacity(0.18)))
                 } else {
                     Image(systemName: entry.isVault ? "lock.fill" : "doc.on.clipboard").font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
                 Text(verbatim: title ?? ClipMeta.kindLabel(entry.kind, isColor: isColor, concealed: concealed,
                                                            vault: entry.isVault))
-                    .font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                    .font(FamilyTheme.font(12, weight: .semibold)).foregroundStyle(FamilyTheme.textPrimary).lineLimit(1)
                 Spacer(minLength: 0)
                 Text(entry.lastUsedAt, format: .relative(presentation: .named))
-                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
-                if let number { Text(verbatim: "⌘\(number)").font(.system(size: 10)).opacity(0.7) }
-            }
-            .padding(.horizontal, 10).padding(.vertical, 6)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .foregroundStyle(tint.map { $0.prefersDarkText ? Color.black : Color.white } ?? Color.primary)
-            .environment(\.colorScheme, tint.map { $0.prefersDarkText ? .light : .dark } ?? colorScheme)
-            .background(tint?.color ?? Color.white.opacity(0.06))
-            VStack(alignment: .leading, spacing: 6) {
-                preview(payload)
-                if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
-                if let detail {
-                    Text(verbatim: detail).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
+                    .font(FamilyTheme.font(10)).foregroundStyle(FamilyTheme.textSecondary).lineLimit(1)
+                if let number {
+                    Text(verbatim: "⌘\(number)").font(FamilyTheme.font(10)).foregroundStyle(FamilyTheme.textSecondary)
                 }
             }
-            .padding(10)
+            preview(payload)
+            if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
+            if let detail {
+                Text(verbatim: detail).font(FamilyTheme.font(10)).foregroundStyle(FamilyTheme.textSecondary).lineLimit(1)
+            }
         }
+        .padding(10)
         .frame(width: compactWidth ? 220 : nil, alignment: .leading)
         .frame(maxWidth: compactWidth ? 220 : .infinity, minHeight: 54, maxHeight: compactWidth ? .infinity : 180,
                alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.white.opacity(selected ? 0.16 : 0.07)))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color.accentColor.opacity(selected ? 0.9 : 0), lineWidth: 1.5))
-        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .background(ZStack {
+            FamilyTheme.card
+            if let tint { LinearGradient(colors: [tint.color.opacity(0.14), .clear], startPoint: .top, endPoint: .center) }
+        })
+        .clipShape(RoundedRectangle(cornerRadius: ClipTile.radius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: ClipTile.radius, style: .continuous)
+            .stroke(selected ? FamilyTheme.accent : FamilyTheme.cardStroke, lineWidth: selected ? 1.5 : 0.8))
+        .contentShape(RoundedRectangle(cornerRadius: ClipTile.radius))
         .modifier(DragOut(entry: entry, payload: payload, concealed: store?.isConcealed(entry) ?? true))
     }
 
     @ViewBuilder private func preview(_ payload: ClipPayload?) -> some View {
         if link.store?.isConcealed(entry) ?? true {
-            Text(verbatim: "••••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(.secondary)
+            Text(verbatim: "••••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(FamilyTheme.textSecondary)
         } else if let payload {
             switch entry.kind {
             case .image:
@@ -79,15 +80,15 @@ struct ClipCard: View {
                         .frame(maxHeight: 120).clipShape(RoundedRectangle(cornerRadius: 8))
                 }
             case .file:
-                Label(payload.plain, systemImage: "doc").font(.system(size: 12)).lineLimit(2)
+                Label(payload.plain, systemImage: "doc").font(FamilyTheme.font(12)).lineLimit(2)
             case .link:
                 // 0.14.0 Kartenbild: Domain groß, Pfad klein – nichts laden (G40).
                 let url = URL(string: payload.plain.trimmingCharacters(in: .whitespacesAndNewlines))
                 VStack(alignment: .leading, spacing: 2) {
                     Label(url?.host() ?? payload.plain, systemImage: "link")
-                        .font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                        .font(FamilyTheme.font(13, weight: .semibold)).lineLimit(1)
                     if let path = url?.path(), path.count > 1 {
-                        Text(verbatim: path).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(verbatim: path).font(FamilyTheme.font(11)).foregroundStyle(FamilyTheme.textSecondary).lineLimit(1)
                     }
                 }
             case .text, .richText:
@@ -101,7 +102,7 @@ struct ClipCard: View {
                     }
                 } else {
                     Text(verbatim: String(payload.plain.prefix(400)))
-                        .font(.system(size: 12)).lineLimit(compactWidth ? 8 : 5)
+                        .font(FamilyTheme.font(12)).lineLimit(compactWidth ? 8 : 5)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

@@ -14,7 +14,6 @@ final class AppTintTests: XCTestCase {
     func testRedIconGivesRedHue() throws {
         let t = try XCTUnwrap(AppTint.tint(rgba: px(230, 30, 40, 255, 64)))
         XCTAssertTrue(t.hue < 0.03 || t.hue > 0.97, "Rot, auch über die 0-Grenze gemittelt: \(t.hue)")
-        XCTAssertFalse(t.prefersDarkText)
     }
 
     /// Rot an beiden Enden des Farbkreises darf nicht zu Türkis (Mittelwert 0,5) werden.
@@ -49,9 +48,8 @@ final class AppTintTests: XCTestCase {
         XCTAssertEqual(t.hue, 0.6, accuracy: 0.05, "Blau überwiegt")
     }
 
-    func testYellowPrefersDarkTextAndBrightnessIsClamped() throws {
+    func testBrightnessIsClamped() throws {
         let t = try XCTUnwrap(AppTint.tint(rgba: px(250, 210, 30, 255, 64)))
-        XCTAssertTrue(t.prefersDarkText)
         XCTAssertLessThanOrEqual(t.brightness, 0.85)
         let dark = try XCTUnwrap(AppTint.tint(rgba: px(40, 10, 120, 255, 64)))
         XCTAssertGreaterThanOrEqual(dark.brightness, 0.62, "dunkles Lila aufgehellt")
@@ -102,21 +100,26 @@ final class AppTintRenderTests: XCTestCase {
         let view = VStack(alignment: .leading, spacing: 6) {
             ForEach(ids, id: \.self) { id in
                 let tint = AppTint.tint(for: id)
-                HStack(spacing: 4) {
+                HStack(spacing: 5) {
+                    AppSymbol(bundleID: id, size: 12).padding(2.5)
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .fill((tint?.color ?? FamilyTheme.textSecondary).opacity(0.18)))
                     Text(verbatim: AppIcons.name(for: id) ?? id).font(.system(size: 10, weight: .semibold))
-                    Text(verbatim: "vor 5 Min.").font(.system(size: 9)).opacity(0.75)
+                        .foregroundStyle(FamilyTheme.textPrimary)
                     Spacer(minLength: 0)
-                    AppSymbol(bundleID: id, size: 14)
                 }
-                .foregroundStyle(tint?.prefersDarkText == true ? Color.black : Color.white)
-                .padding(.horizontal, 8)
-                .frame(width: 160, height: 20)
-                .background(tint?.color ?? Color.white.opacity(0.14))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(.horizontal, 7)
+                .frame(width: 160, height: 26)
+                .background(ZStack {
+                    FamilyTheme.card
+                    if let tint { LinearGradient(colors: [tint.color.opacity(0.16), .clear], startPoint: .top, endPoint: .bottom) }
+                })
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }
         .padding(12)
         .background(Color.black)
+        .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2
         let cg = try XCTUnwrap(renderer.cgImage)

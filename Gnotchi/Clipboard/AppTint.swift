@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Farbe einer App für die Kopfleiste der Zwischenablage-Karten (0.50.0, Vorbild Paste: Karte von Weitem an der
+/// Farbe einer App als leiser Hinweis auf den Zwischenablage-Karten (0.50.0, Idee aus Paste: Karte von Weitem an der
 /// Quell-App erkennen). Aus dem App-Symbol auf dem Mac berechnet: häufigster kräftiger Farbton, auf eine lesbare
 /// Helligkeit gebracht. Kein Netz, keine feste Markenliste. Graue/schwarze Symbole → `nil` (neutrale Leiste).
 enum AppTint {
@@ -12,18 +12,6 @@ enum AppTint {
         let brightness: Double
 
         var color: Color { Color(hue: hue, saturation: saturation, brightness: brightness) }
-
-        /// Dunkle Schrift auf hellen Tönen (Gelb, Hellgrün), sonst weiß. Relative Luminanz nach WCAG.
-        var prefersDarkText: Bool {
-            let c = NSColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1)
-                .usingColorSpace(.sRGB) ?? .gray
-            func lin(_ v: CGFloat) -> Double {
-                let v = Double(v)
-                return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
-            }
-            let l = 0.2126 * lin(c.redComponent) + 0.7152 * lin(c.greenComponent) + 0.0722 * lin(c.blueComponent)
-            return l > 0.4
-        }
     }
 
     @MainActor private static var cache = BoundedCache<String, Tint?>(limit: 32)

@@ -6,8 +6,10 @@ import SwiftUI
 /// Beim Drüberfahren Stern (anheften) und Papierkorb.
 struct ClipTile: View {
     static let size = CGSize(width: 132, height: 100)
-    /// Kopfleiste in der Farbe der Quell-App (0.50.0, Vorbild Paste): Art · Zeit · App-Symbol.
-    static let headerHeight: CGFloat = 20
+    /// Kopfzeile (0.50.0, Idee aus Paste, in der Sprache der App-Familie): Symbol-Kachel der Quell-App, Art, Alter.
+    static let headerHeight: CGFloat = 22
+    /// Kleine Karte nach Design-System (Feld/kleine Karte 14).
+    static let radius: CGFloat = FamilyTheme.Radius.field
 
     let link: ClipboardLink
     let entry: ClipEntry
@@ -31,12 +33,13 @@ struct ClipTile: View {
                     .frame(width: Self.size.width, height: Self.size.height - Self.headerHeight)
                     .background(background(color: color, concealed: concealed))
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(cardBackground(concealed: concealed))
+            .clipShape(RoundedRectangle(cornerRadius: Self.radius, style: .continuous))
             if hovering { actions }
         }
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color.accentColor.opacity(selected ? 0.95 : 0), lineWidth: 2))
-        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: Self.radius, style: .continuous)
+            .stroke(selected ? FamilyTheme.accent : FamilyTheme.cardStroke, lineWidth: selected ? 2 : 0.8))
+        .contentShape(RoundedRectangle(cornerRadius: Self.radius))
         .modifier(DragOut(entry: entry, payload: payload, concealed: concealed))
         .onHover { hovering = $0 }
         .help(Text(verbatim: store?.title(entry) ?? store?.secretKind(entry) ?? ""))
@@ -63,7 +66,7 @@ struct ClipTile: View {
                 LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 2) {
                     if let name = store?.title(entry) {
-                        Text(verbatim: name).font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                        Text(verbatim: name).font(FamilyTheme.font(11, weight: .semibold)).lineLimit(1)
                     }
                     footer(detail, light: false)
                 }
@@ -77,10 +80,10 @@ struct ClipTile: View {
                 case .file: fileBody(payload.plain)
                 default:
                     if let title = store?.title(entry) {
-                        Text(verbatim: title).font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                        Text(verbatim: title).font(FamilyTheme.font(11, weight: .semibold)).lineLimit(1)
                     }
                     Text(verbatim: String(payload.plain.prefix(300)))
-                        .font(.system(size: 11)).lineLimit(store?.title(entry) == nil ? 3 : 2)
+                        .font(FamilyTheme.font(11)).lineLimit(store?.title(entry) == nil ? 3 : 2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 Spacer(minLength: 0)
@@ -96,9 +99,9 @@ struct ClipTile: View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: entry.isVault ? "lock.fill" : "key.fill")
                 .font(.system(size: 13, weight: .semibold)).foregroundStyle(.orange)
-            Text(verbatim: "••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(.secondary)
+            Text(verbatim: "••••••").font(.system(size: 13, design: .monospaced)).foregroundStyle(FamilyTheme.textSecondary)
             Text(verbatim: store?.title(entry) ?? store?.secretKind(entry) ?? "")
-                .font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                .font(FamilyTheme.font(11, weight: .semibold)).lineLimit(1)
             Spacer(minLength: 0)
             footer(detail, light: false)
         }
@@ -109,9 +112,9 @@ struct ClipTile: View {
         let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines))
         let host = url?.host() ?? text
         Text(verbatim: host.hasPrefix("www.") ? String(host.dropFirst(4)) : host)
-            .font(.system(size: 13, weight: .semibold)).lineLimit(1)
+            .font(FamilyTheme.font(13, weight: .semibold)).lineLimit(1)
         Text(verbatim: url.map { $0.path() + ($0.query().map { "?" + $0 } ?? "") } ?? "")
-            .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
+            .font(FamilyTheme.font(10)).foregroundStyle(FamilyTheme.textSecondary).lineLimit(2)
     }
 
     @ViewBuilder private func fileBody(_ text: String) -> some View {
@@ -120,25 +123,50 @@ struct ClipTile: View {
         Image(nsImage: exists ? NSWorkspace.shared.icon(forFile: url.path) : NSImage(systemSymbolName: "doc",
                                                                                      accessibilityDescription: nil)!)
             .resizable().frame(width: 34, height: 34)
-        Text(verbatim: url.lastPathComponent).font(.system(size: 11)).lineLimit(2)
+        Text(verbatim: url.lastPathComponent).font(FamilyTheme.font(11)).lineLimit(2)
     }
 
-    /// Kopfleiste: Art und Zeit links, App-Symbol rechts, Grund in der App-Farbe (ohne Quell-App neutral).
+    /// Kopfzeile auf der festen Karte: App-Symbol in einer Symbol-Kachel mit 18 % App-Farbe (Design-System:
+    /// „Symbol-Kachel, Farbe 14 %“), daneben Art und Alter. Keine bunte Leiste (Verbot „bunte Kacheln“).
     private func header(color: ColorCode?, concealed: Bool) -> some View {
-        let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
-        let dark = tint?.prefersDarkText ?? false
         let label = ClipMeta.kindLabel(entry.kind, isColor: color != nil, concealed: concealed, vault: entry.isVault)
-        return HStack(spacing: 4) {
-            Text(verbatim: label).font(.system(size: 10, weight: .semibold))
-            age.font(.system(size: 9)).opacity(0.75)
+        return HStack(spacing: 5) {
+            symbolTile(concealed: concealed)
+            Text(verbatim: label).font(FamilyTheme.font(10, weight: .semibold)).foregroundStyle(FamilyTheme.textPrimary)
+            age.font(FamilyTheme.font(9)).foregroundStyle(FamilyTheme.textSecondary)
             Spacer(minLength: 0)
-            if let source = entry.sourceBundleID { AppSymbol(bundleID: source, size: 14) }
         }
         .lineLimit(1)
-        .foregroundStyle(dark ? Color.black : Color.white)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 7)
         .frame(width: Self.size.width, height: Self.headerHeight)
-        .background(tint?.color ?? Color.white.opacity(selected ? 0.22 : 0.14))
+    }
+
+    @ViewBuilder private func symbolTile(concealed: Bool) -> some View {
+        let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
+        Group {
+            if !concealed, let source = entry.sourceBundleID {
+                AppSymbol(bundleID: source, size: 12)
+            } else {
+                Image(systemName: concealed ? (entry.isVault ? "lock.fill" : "key.fill") : "doc.on.clipboard")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(concealed ? Color.orange : FamilyTheme.textSecondary)
+                    .frame(width: 12, height: 12)
+            }
+        }
+        .padding(2.5)
+        .background(RoundedRectangle(cornerRadius: 5, style: .continuous)
+            .fill((tint?.color ?? FamilyTheme.textSecondary).opacity(0.18)))
+    }
+
+    /// Feste Schiefer-Karte, oben ein leiser Schimmer in der App-Farbe (nur Hinweis, keine Fläche).
+    private func cardBackground(concealed: Bool) -> some View {
+        let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
+        return ZStack {
+            FamilyTheme.card
+            if let tint {
+                LinearGradient(colors: [tint.color.opacity(0.16), .clear], startPoint: .top, endPoint: .center)
+            }
+        }
     }
 
     /// Unter einer Minute „jetzt“ (sonst „in 0 s“, wenn die Uhr knapp hinter dem Eintrag liegt).
@@ -156,16 +184,15 @@ struct ClipTile: View {
             Spacer(minLength: 0)
             if let number { Text(verbatim: "⌘\(number)") }
         }
-        .font(.system(size: 9))
-        .opacity(0.7)
-        .foregroundStyle(light ? Color.black : Color.white)
+        .font(FamilyTheme.font(9))
+        .foregroundStyle(light ? Color.black.opacity(0.7) : FamilyTheme.textSecondary)
     }
 
     @ViewBuilder private func background(color: ColorCode?, concealed: Bool) -> some View {
         if let color, !concealed {
             Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: max(color.alpha, 0.15))
         } else {
-            Color.white.opacity(selected ? 0.16 : 0.08)
+            Color.clear
         }
     }
 
