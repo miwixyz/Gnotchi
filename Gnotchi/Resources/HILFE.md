@@ -429,6 +429,7 @@ Ab 0.44 kann Gnotchi ein Terminalfenster öffnen: **Einstellungen → Allgemein 
 - Es öffnet sich ein normales Fenster mit deiner Anmelde-Shell (meist zsh) im Home-Ordner. **⌘N** öffnet ein weiteres Fenster, **⌘F** sucht, **⌘+** und **⌘−** ändern die Schrift, **⌘0** setzt sie zurück (ab Werk 16 Punkt).
 - Schließt du ein Fenster, während noch ein Programm läuft, fragt es vorher. Beendest du die Shell mit `exit`, schließt sich das Fenster.
 - Das Fenster ist ein eigenes Programm, **„Gnotchi Terminal“**, ohne Gnotchis Freigaben (Kamera, Apple Events). Programme im Terminal können weder die Zwischenablage mitlesen noch ändern.
+- **Ordner hineinziehen (ab 0.48):** Ziehst du einen Ordner oder eine Datei aus dem Finder ins Fenster, steht der Pfad in der Eingabezeile, z. B. nach `cd `. Leerzeichen und Sonderzeichen sind geschützt. Ausgeführt wird erst mit Return.
 - Die Shell hat deine Nutzerrechte, wie in Terminal.app. Für Ordner wie Dokumente, Schreibtisch oder Downloads fragt macOS unter **„Gnotchi Terminal“** nach.
 
 ## Wetter

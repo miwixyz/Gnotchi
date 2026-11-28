@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.48.0] — 2026-11-28
+
+### Neu
+- **Ordner und Dateien ins Terminal ziehen.** Ziehst du einen Ordner oder eine Datei aus dem Finder ins Fenster von „Gnotchi Terminal“, steht der Pfad in der Eingabezeile, wie bei Apples Terminal: Leerzeichen und Sonderzeichen sind mit `\` geschützt, dahinter ein Leerzeichen. Mehrere auf einmal gehen auch. Der Pfad wird eingefügt wie mit ⌘V und führt nichts aus, bis du Return drückst. Namen mit Zeilenumbruch oder anderen Steuerzeichen werden nicht eingefügt.
+
+### Intern
+- `TerminalRules.shellEscapedPath`/`dropText` (Regel nach Ghostty `Ghostty.Shell.escape`, MIT), `GuardedTerminalView` nimmt nur Datei-URLs an und fügt über den Einsetzen-Weg ein (Klammermodus). SECURE-DESIGN G65 ergänzt, 4 neue Tests, einer davon prüft den Rundweg durch ein echtes zsh.
+
 ## [0.47.0] — 2026-11-27
 
 ### Neu
