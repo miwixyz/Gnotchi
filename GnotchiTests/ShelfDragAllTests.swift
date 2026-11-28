@@ -18,7 +18,7 @@ final class ShelfDragAllTests: XCTestCase {
             FileManager.default.createFile(atPath: u.path, contents: Data("x".utf8))
             return u
         }
-        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-dragall-\(UUID().uuidString)") ?? .standard)
+        let prefs = Preferences(defaults: throwawayDefaults("gnotchi-dragall"))
         prefs.shelfRemoveOnDrag = removeOnDrag
         let store = ShelfStore(directory: dir.appendingPathComponent("store"))
         let activity = ActivityModel(media: NowPlayingModel())

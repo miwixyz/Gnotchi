@@ -25,7 +25,7 @@ final class ClipboardRenderTests: XCTestCase {
     }
 
     private func makeLink() throws -> ClipboardLink {
-        let prefs = Preferences(defaults: try XCTUnwrap(UserDefaults(suiteName: "gnotchi-render-\(UUID())")))
+        let prefs = Preferences(defaults: throwawayDefaults("gnotchi-render"))
         let link = ClipboardLink(activity: ActivityModel(media: NowPlayingModel()), prefs: prefs)
         let store = try ClipboardStore(directory: nil, key: SymmetricKey(size: .bits256))
         let now = Date()

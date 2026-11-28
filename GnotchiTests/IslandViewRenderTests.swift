@@ -86,7 +86,9 @@ final class IslandViewRenderTests: XCTestCase {
             FileManager.default.createFile(atPath: u.path, contents: Data("x".utf8))
             return u
         }
-        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-render-\(UUID().uuidString)") ?? .standard)
+        // Statisch, also ohne Teardown: fester Name, vor jeder Nutzung geleert – höchstens eine Datei.
+        UserDefaults().removePersistentDomain(forName: "gnotchi-render-island-shelf")
+        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-render-island-shelf") ?? .standard)
         let link = ShelfLink(activity: activity, prefs: prefs, store: ShelfStore(directory: dir.appendingPathComponent("store")))
         activity.shelf = link
         link.drop(urls)

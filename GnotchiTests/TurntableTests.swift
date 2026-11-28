@@ -77,9 +77,7 @@ final class TurntableTests: XCTestCase {
     }
 
     func testStyleAndScreenDefaults() {
-        let suite = "gnotchi-test-\(UUID().uuidString)"
-        let d = UserDefaults(suiteName: suite)!
-        defer { d.removePersistentDomain(forName: suite) }
+        let d = throwawayDefaults("gnotchi-test")
         XCTAssertEqual(Preferences(defaults: d).desktopMusicStyle, .card, "ab Werk Karte")
         XCTAssertTrue(Preferences(defaults: d).desktopMusicNeon, "Neonschrift ab Werk an")
         XCTAssertFalse(Preferences(defaults: d).desktopMusicTonearm, "Tonarm bedienen ab Werk aus")

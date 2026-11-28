@@ -231,7 +231,7 @@ final class BrowserTabTests: XCTestCase {
     }
 
     func testBrowserSettingIsOffByDefault() {
-        let defaults = UserDefaults(suiteName: "BrowserTabTests-\(UUID().uuidString)") ?? .standard
+        let defaults = throwawayDefaults("BrowserTabTests")
         XCTAssertFalse(Preferences(defaults: defaults).deckBrowserTab)
     }
 }

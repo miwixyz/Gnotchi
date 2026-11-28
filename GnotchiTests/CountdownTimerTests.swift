@@ -87,7 +87,7 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertEqual(CountdownTimer.validSound(nil), "Glass", "Werkseinstellung")
         XCTAssertEqual(CountdownTimer.validSound("/tmp/fremd.aiff"), "Glass", "nie ein Pfad")
         XCTAssertEqual(CountdownTimer.validSound(42), "Glass")
-        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-test-\(UUID().uuidString)")!)
+        let prefs = Preferences(defaults: throwawayDefaults("gnotchi-test"))
         prefs.timerSound = "../../evil"
         XCTAssertEqual(prefs.timerSound, "Glass", "ungültiger Wert wird nie gespeichert")
     }
@@ -97,7 +97,7 @@ final class CountdownTimerTests: XCTestCase {
         XCTAssertEqual(CountdownTimer.validSound("Gnotchi"), "Gnotchi")
         XCTAssertEqual(CountdownTimer.defaultSound, "Glass")
         XCTAssertEqual(CountdownTimer.validSound("gnotchi.caf"), "Glass", "nie ein Dateiname")
-        let prefs = Preferences(defaults: UserDefaults(suiteName: "gnotchi-test-\(UUID().uuidString)")!)
+        let prefs = Preferences(defaults: throwawayDefaults("gnotchi-test"))
         XCTAssertEqual(prefs.timerSound, "Glass", "frische Einstellungen: unverändert Glass")
         prefs.timerSound = "Gnotchi"
         XCTAssertEqual(prefs.timerSound, "Gnotchi")

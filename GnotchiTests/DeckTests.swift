@@ -111,9 +111,7 @@ final class DeckTests: XCTestCase {
     }
 
     func testMemoryPersistsInDefaults() throws {
-        let suite = "deck-tests-\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let defaults = throwawayDefaults("deck-tests")
         defaults.set(["net.imput.helium": 60], forKey: MixerMemory.key)
         let mixer = MixerModel(defaults: defaults)
         XCTAssertEqual(mixer.remembered, ["net.imput.helium": 60])
@@ -265,9 +263,7 @@ final class DeckTests: XCTestCase {
     }
 
     func testSystemStatusListsFavoritesFirstAndAlwaysTheCurrentDevice() throws {
-        let suite = "DeckTests.system.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = throwawayDefaults("DeckTests.system")
         let mixer = MixerModel(interval: .seconds(3600), defaults: defaults)
         let outs = (1...10).map { dev(AudioObjectID($0), "Gerät \($0)", uid: "u\($0)") } + [dev(99, "Ohne UID", uid: nil)]
         let mic = dev(50, "AirPods", uid: "pods-in")

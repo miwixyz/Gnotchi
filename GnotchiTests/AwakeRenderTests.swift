@@ -14,7 +14,7 @@ final class AwakeRenderTests: XCTestCase {
     }
 
     private func check(schedule: Bool, name: String) throws {
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: "gnotchi-awake-render-\(UUID())"))
+        let defaults = throwawayDefaults("gnotchi-awake-render")
         let awake = StayAwake(defaults: defaults)
         awake.schedule = schedule
         awake.nudge = true

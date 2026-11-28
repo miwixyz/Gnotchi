@@ -84,7 +84,7 @@ final class StayAwakeTests: XCTestCase {
     }
 
     func testHelperNeededForManualMouseOrSchedule() {
-        let defaults = UserDefaults(suiteName: "StayAwakeTests-\(UUID().uuidString)")!
+        let defaults = throwawayDefaults("StayAwakeTests")
         let awake = StayAwake(defaults: defaults)
         XCTAssertFalse(awake.needsHelper)
         awake.schedule = true
@@ -96,7 +96,7 @@ final class StayAwakeTests: XCTestCase {
     }
 
     func testTurnOnOffFlow() {
-        let defaults = UserDefaults(suiteName: "StayAwakeTests-\(UUID().uuidString)")!
+        let defaults = throwawayDefaults("StayAwakeTests")
         let awake = StayAwake(defaults: defaults)
         XCTAssertFalse(awake.schedule, "ab Werk aus")
         XCTAssertFalse(awake.nudge, "ab Werk aus")

@@ -9,10 +9,7 @@ final class MixerFavoritesTests: XCTestCase {
     }
 
     private func freshDefaults() throws -> UserDefaults {
-        let name = "gnotchi-favtest-\(UUID().uuidString)"
-        let d = try XCTUnwrap(UserDefaults(suiteName: name))
-        addTeardownBlock { d.removePersistentDomain(forName: name) }
-        return d
+        throwawayDefaults("gnotchi-favtest")
     }
 
     func testShownKeepsFavoriteOrderNotDeviceOrder() {

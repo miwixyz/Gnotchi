@@ -43,7 +43,7 @@ final class SystemAlertVolumeTests: XCTestCase {
     }
 
     private func model(_ recorder: Recorder) -> MixerModel {
-        MixerModel(interval: .seconds(3600), defaults: UserDefaults(suiteName: "gnotchi-alerttest-\(UUID().uuidString)")!,
+        MixerModel(interval: .seconds(3600), defaults: throwawayDefaults("gnotchi-alerttest"),
                    alertSetter: { await recorder.add($0); return true })
     }
 

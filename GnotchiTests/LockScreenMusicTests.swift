@@ -48,7 +48,7 @@ final class LockScreenMusicTests: XCTestCase {
     }
 
     func testOffByDefault() {
-        let defaults = UserDefaults(suiteName: "LockScreenMusicTests-\(UUID().uuidString)")!
+        let defaults = throwawayDefaults("LockScreenMusicTests")
         let prefs = Preferences(defaults: defaults)
         XCTAssertFalse(prefs.lockScreenMusic, "neue Fläche für Fremde – ab Werk aus")
         XCTAssertFalse(prefs.lockScreenHideTitle)
