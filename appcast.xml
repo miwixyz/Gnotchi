@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.48.0</title>
-            <pubDate>Sat, 28 Nov 2026 11:42:13 +0100</pubDate>
+            <title>0.49.0</title>
+            <pubDate>Sat, 28 Nov 2026 13:56:28 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>325</sparkle:version>
-            <sparkle:shortVersionString>0.48.0</sparkle:shortVersionString>
+            <sparkle:version>330</sparkle:version>
+            <sparkle:shortVersionString>0.49.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Ordner und Dateien ins Terminal ziehen.</b> Ziehst du einen Ordner oder eine Datei aus dem Finder ins Fenster von „Gnotchi Terminal“, steht der Pfad in der Eingabezeile, wie bei Apples Terminal: Leerzeichen und Sonderzeichen sind mit <code>\</code> geschützt, dahinter ein Leerzeichen. Mehrere auf einmal gehen auch. Der Pfad wird eingefügt wie mit ⌘V und führt nichts aus, bis du Return drückst. Namen mit Zeilenumbruch oder anderen Steuerzeichen werden nicht eingefügt.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.48.0/Gnotchi-0.48.0.zip" length="14005548" type="application/octet-stream" sparkle:edSignature="uBqw7UWVPEf31ifqsoIUBXdozbzEDhtOXFR7Sh0GYONMEJylThFAuOrwGBB/s1UvNq2pi7STl7s3uEvGK7wwDw=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Filter in der Zwischenablage.</b> Neben dem Suchfeld sitzt ein Filterknopf: Zeitraum (Heute, Letzte 7 Tage, Letzte 30 Tage) und App, aus der kopiert wurde (die häufigsten zuerst). Beides gilt zusammen mit dem Suchtext, also etwa „cinesocial“ nur aus Mail der letzten 7 Tage. Ist ein Filter aktiv, ist der Knopf gefüllt und nennt ihn („Safari · 7 Tage“); „Filter zurücksetzen“ steht im selben Menü. Gilt beim Herunterklappen und in der großen Ansicht, kommt beim Vergrößern mit und ist beim nächsten Öffnen wieder leer. Vorbild: Paste.</li></ul><h3>Geändert</h3><ul><li><b>Neues Menüleisten-Symbol.</b> Gnotchi trägt in der Menüleiste jetzt eine eigene Silhouette, passend zu den anderen Apps der Familie.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.49.0/Gnotchi-0.49.0.zip" length="14019642" type="application/octet-stream" sparkle:edSignature="tzwzc7+F+YKVQnKYyeIOwPRWdyd8Abvaa0wwauwykBTtQaUn0lB15peRstfq7Zk80nlKtZgoas4HMk+az77VBg=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: Lp0JoAhhF6IbrdC6E/CWB5VfA5Ym4jYMUMAn/Dwl5kzZo+HTWGFo7zYPLOwEV/QHnwYYmNH/RcC2DMNhJ08dBg==
-length: 1693
+edSignature: rP/+4gxGk0APECveW9jfoS34NoeFy5q1MTsabOnKVJcGeCzC2kSdYug7armhc2oaA//4Rqw1/YJhoKzsnrNFCw==
+length: 1941
 -->
