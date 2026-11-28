@@ -2,13 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
-## [Unreleased]
+## [0.50.0] — 2026-11-28
 
 ### Neu
 - **Karten der Zwischenablage zeigen, woher sie kommen.** Oben auf jeder Karte steht das Symbol der App, aus der kopiert wurde, in einer leicht getönten Kachel, daneben Art („Text“, „Link“, „Bild“, „Farbe“) und Alter. Die Karte schimmert oben ganz leicht in der Farbe dieser App (Safari blau, Nachrichten grün, Notizen gelb). Unten steht, was drin ist: „49 Zeichen“ bei Text, „2400 × 1600“ bei Bildern. Die Karten sind jetzt die festen Karten der App-Familie in Schiefer bzw. Weiß, mit Plus Jakarta Sans; die gewählte Karte hat einen Rahmen in Gnotchi-Gold. Die Farbe liest Gnotchi auf deinem Mac aus dem App-Symbol; bei grauen oder vielfarbigen Symbolen (Fotos, Chrome) und ohne Quell-App bleibt alles neutral. Gilt beim Herunterklappen und in der großen Ansicht. Idee aus Paste, umgesetzt in der eigenen Designsprache.
 
 ### Intern
 - `AppTint` (Farbton-Histogramm über das Symbol in 32 × 32, Rot über die 0-Grenze gemittelt, vielfarbig ohne klaren Sieger → neutral) und `ClipMeta` (Art, Zeichen, Bildmaße aus den Kopfdaten per ImageIO, ohne Dekodieren). 11 neue Tests, Musterbogen `AppTintRenderTests` für installierte Apps. Vorführung der Bild-Testkopie mit Nachrichten, Fotos-Bild und Eintrag ohne Quell-App.
+- Vier Testdateien importierten noch das App-Modul (`@testable import Gnotchi`), obwohl die Tests seit dem 29.10. ohne Host-App laufen; das ging nur, solange ein altes Modul im Build-Ordner lag.
 
 ## [0.49.0] — 2026-11-28
 

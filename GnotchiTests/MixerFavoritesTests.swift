@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Favoriten-Geräte im Mixer (0.31.0): Reihenfolge, fehlende Geräte, Obergrenze, Speichern.
 @MainActor

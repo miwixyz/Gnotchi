@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Warnton-Lautstärke (0.33.0, G57): feste Skripte, begrenzter Wert, Vorrang des letzten Werts.
 @MainActor

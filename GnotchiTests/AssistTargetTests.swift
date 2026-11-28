@@ -1,5 +1,4 @@
 import XCTest
-@testable import Gnotchi
 
 /// Ersatzquelle für Spotify/Musik (NowPlayingModel+Assist).
 @MainActor

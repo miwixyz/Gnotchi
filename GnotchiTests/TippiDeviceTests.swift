@@ -1,7 +1,6 @@
 // SYNTHETISCH – erfundene Titel, keine echten Hördaten.
 import CryptoKit
 import XCTest
-@testable import Gnotchi
 
 /// 0.41.0 (G62): Signaturen passen zur Tippi-Firmware, nur signierte Antworten mit bekannten Befehlen wirken.
 final class TippiDeviceTests: XCTestCase {
