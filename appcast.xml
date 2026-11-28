@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Gnotchi</title>
         <item>
-            <title>0.49.0</title>
-            <pubDate>Sat, 28 Nov 2026 13:56:28 +0100</pubDate>
+            <title>0.50.0</title>
+            <pubDate>Sat, 28 Nov 2026 16:37:35 +0100</pubDate>
             <link>https://github.com/miwixyz/Gnotchi</link>
-            <sparkle:version>330</sparkle:version>
-            <sparkle:shortVersionString>0.49.0</sparkle:shortVersionString>
+            <sparkle:version>334</sparkle:version>
+            <sparkle:shortVersionString>0.50.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>27.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Filter in der Zwischenablage.</b> Neben dem Suchfeld sitzt ein Filterknopf: Zeitraum (Heute, Letzte 7 Tage, Letzte 30 Tage) und App, aus der kopiert wurde (die häufigsten zuerst). Beides gilt zusammen mit dem Suchtext, also etwa „cinesocial“ nur aus Mail der letzten 7 Tage. Ist ein Filter aktiv, ist der Knopf gefüllt und nennt ihn („Safari · 7 Tage“); „Filter zurücksetzen“ steht im selben Menü. Gilt beim Herunterklappen und in der großen Ansicht, kommt beim Vergrößern mit und ist beim nächsten Öffnen wieder leer. Vorbild: Paste.</li></ul><h3>Geändert</h3><ul><li><b>Neues Menüleisten-Symbol.</b> Gnotchi trägt in der Menüleiste jetzt eine eigene Silhouette, passend zu den anderen Apps der Familie.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.49.0/Gnotchi-0.49.0.zip" length="14019642" type="application/octet-stream" sparkle:edSignature="tzwzc7+F+YKVQnKYyeIOwPRWdyd8Abvaa0wwauwykBTtQaUn0lB15peRstfq7Zk80nlKtZgoas4HMk+az77VBg=="></enclosure>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Karten der Zwischenablage zeigen, woher sie kommen.</b> Oben auf jeder Karte steht das Symbol der App, aus der kopiert wurde, in einer leicht getönten Kachel, daneben Art („Text“, „Link“, „Bild“, „Farbe“) und Alter. Die Karte schimmert oben ganz leicht in der Farbe dieser App (Safari blau, Nachrichten grün, Notizen gelb). Unten steht, was drin ist: „49 Zeichen“ bei Text, „2400 × 1600“ bei Bildern. Die Karten sind jetzt die festen Karten der App-Familie in Schiefer bzw. Weiß, mit Plus Jakarta Sans; die gewählte Karte hat einen Rahmen in Gnotchi-Gold. Die Farbe liest Gnotchi auf deinem Mac aus dem App-Symbol; bei grauen oder vielfarbigen Symbolen (Fotos, Chrome) und ohne Quell-App bleibt alles neutral. Gilt beim Herunterklappen und in der großen Ansicht. Idee aus Paste, umgesetzt in der eigenen Designsprache.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Gnotchi/releases/download/v0.50.0/Gnotchi-0.50.0.zip" length="14034080" type="application/octet-stream" sparkle:edSignature="xqxRXA164rSIlK6NjWFKWgbiMemMnoRbuXASxtcltd3Q9fGa/sGQ+wW0tHY9MFhMnz6q2osJCejVmvGfUeH3CA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: rP/+4gxGk0APECveW9jfoS34NoeFy5q1MTsabOnKVJcGeCzC2kSdYug7armhc2oaA//4Rqw1/YJhoKzsnrNFCw==
-length: 1941
+edSignature: rppf1dom/URp1ygIEpd83eDrQDCH2tfDttwn23jMK+wDcQLSzCLxTm72XBeYeVtJ2XcLCfGKxyzL0RsD2LxCDg==
+length: 2059
 -->
