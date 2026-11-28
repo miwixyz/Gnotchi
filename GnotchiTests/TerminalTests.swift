@@ -116,4 +116,42 @@ final class TerminalTests: XCTestCase {
         defer { d.removePersistentDomain(forName: suite) }
         XCTAssertFalse(Preferences(defaults: d).terminal)
     }
+
+    // MARK: Ablegen (0.48)
+
+    func testDroppedPathIsShellEscaped() {
+        XCTAssertEqual(TerminalRules.shellEscapedPath("/Users/m/Coding/Qotti"), "/Users/m/Coding/Qotti")
+        XCTAssertEqual(TerminalRules.shellEscapedPath("/Users/m/Meine Ablage"), "/Users/m/Meine\\ Ablage")
+        XCTAssertEqual(TerminalRules.shellEscapedPath("/a/b (1)&$x;'q'"), "/a/b\\ \\(1\\)\\&\\$x\\;\\'q\\'")
+        XCTAssertEqual(TerminalRules.shellEscapedPath("/a/Übersicht ä.md"), "/a/Übersicht\\ ä.md")
+        XCTAssertEqual(TerminalRules.shellEscapedPath("/a/back\\slash"), "/a/back\\\\slash")
+    }
+
+    func testDroppedPathWithControlCharacterIsRejected() {
+        XCTAssertNil(TerminalRules.shellEscapedPath("/tmp/x\nrm -rf ~"))
+        XCTAssertNil(TerminalRules.shellEscapedPath("/tmp/x\u{1B}[201~"))
+        XCTAssertNil(TerminalRules.shellEscapedPath("/tmp/x\ty"))
+        XCTAssertNil(TerminalRules.shellEscapedPath(""))
+    }
+
+    func testDropTextJoinsPathsWithTrailingSpace() {
+        XCTAssertEqual(TerminalRules.dropText(paths: ["/a", "/b c"]), "/a /b\\ c ")
+        XCTAssertEqual(TerminalRules.dropText(paths: ["/bad\n", "/ok"]), "/ok ")
+        XCTAssertNil(TerminalRules.dropText(paths: ["/bad\n"]))
+        XCTAssertNil(TerminalRules.dropText(paths: []))
+    }
+
+    /// Zweite, unabhängige Prüfung: Was die Shell aus dem geschützten Text macht, ist wieder genau der Pfad.
+    func testEscapedPathRoundTripsThroughZsh() throws {
+        let path = "/tmp/Meine Ablage (2)/a&b;$HOME'x\"*?[1]{2}<3>|`!#~=%^,\\z"
+        let escaped = try XCTUnwrap(TerminalRules.shellEscapedPath(path))
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        p.arguments = ["-f", "-c", "print -rn -- " + escaped]
+        let out = Pipe()
+        p.standardOutput = out
+        try p.run()
+        p.waitUntilExit()
+        XCTAssertEqual(String(data: out.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8), path)
+    }
 }

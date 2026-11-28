@@ -22,6 +22,7 @@ final class TerminalWindowController: NSObject, NSWindowDelegate, LocalProcessTe
         view = GuardedTerminalView(frame: NSRect(x: 0, y: 0, width: 820, height: 500))
         view.applyFontSize(CGFloat(size ?? Double(TerminalRules.defaultFontSize)))
         view.autoresizingMask = [.width, .height]
+        view.enableFileDrop()
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 500),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         super.init()

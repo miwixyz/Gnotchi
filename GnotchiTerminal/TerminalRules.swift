@@ -93,6 +93,30 @@ enum TerminalRules {
         foregroundGroup > 0 && shellPid > 0 && foregroundGroup != shellPid
     }
 
+    // MARK: Ablegen (0.48)
+
+    /// Zeichen, die die Shell sonst deutet. Wie Ghostty (`Ghostty.Shell.escape`, MIT) und Apples Terminal: Backslash davor.
+    private static let shellSpecial: Set<Character> = Set("\\ ()[]{}<>\"'`!#$&;|*?~=%^,")
+
+    /// Ein Pfad als Eingabe: Sonderzeichen mit Backslash geschützt. Steuerzeichen im Namen (Zeilenumbruch, Tab,
+    /// Escape …) → `nil`: Ein solcher Name könnte beim Einfügen einen Befehl auslösen, er wird nicht eingefügt.
+    static func shellEscapedPath(_ path: String) -> String? {
+        guard !path.isEmpty, !path.unicodeScalars.contains(where: { $0.properties.generalCategory.isControl }) else { return nil }
+        var out = ""
+        for ch in path {
+            if shellSpecial.contains(ch) { out.append("\\") }
+            out.append(ch)
+        }
+        return out
+    }
+
+    /// Text fürs Terminal aus abgelegten Pfaden: geschützt, mit Leerzeichen getrennt, ein Leerzeichen am Ende
+    /// (wie Apples Terminal). Pfade mit Steuerzeichen fallen weg; bleibt keiner, `nil`.
+    static func dropText(paths: [String]) -> String? {
+        let parts = paths.compactMap(shellEscapedPath)
+        return parts.isEmpty ? nil : parts.joined(separator: " ") + " "
+    }
+
     static let minFontSize: CGFloat = 9
     static let maxFontSize: CGFloat = 36
     static let defaultFontSize: CGFloat = 16
