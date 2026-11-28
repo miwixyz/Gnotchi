@@ -71,6 +71,32 @@ final class ClipboardRenderTests: XCTestCase {
         try png.write(to: folder.appendingPathComponent("gnotchi-island-clipboard-drop.png"), options: .atomic)
     }
 
+    /// 0.49.0: Herunterklappen mit aktivem Filter (Safari, 7 Tage) – Knopf mit Kurzform im Suchkopf.
+    func testRenderDropWithFilter() throws {
+        let link = try makeLink()
+        let store = try XCTUnwrap(link.store)
+        try store.add(text("https://example.com/kino/trailer"), kind: .link, source: "com.apple.Safari")
+        try store.add(text("https://example.com/kino/tickets"), kind: .link, source: "com.apple.Safari")
+        let state = ClipboardPanelState(link: link, edge: .notch) {}
+        state.topInset = 32
+        state.filter = ClipFilter(period: .week, sourceBundleID: "com.apple.Safari")
+        XCTAssertEqual(state.entries.count, 2)
+        XCTAssertEqual(state.filterSources, ["com.apple.Safari"])
+        let size = CGSize(width: ClipboardPanelController.dropSize.width,
+                          height: ClipboardPanelController.dropSize.height + 32)
+        let view = ZStack(alignment: .top) {
+            Color(white: 0.55)
+            ClipboardPanelView(state: state).frame(width: size.width, height: size.height)
+        }
+        .frame(width: size.width + 80, height: size.height + 40)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 2
+        let cg = try XCTUnwrap(renderer.cgImage)
+        guard let dir = ProcessInfo.processInfo.environment["GNOTCHI_RENDER_DIR"], !dir.isEmpty else { return }
+        let png = try XCTUnwrap(NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]))
+        try png.write(to: URL(fileURLWithPath: dir).appendingPathComponent("gnotchi-island-clipboard-filter.png"))
+    }
+
     /// Die Karten je Art ohne Rollbereich (ImageRenderer zeichnet AppKit-Rollbereiche nicht).
     func testRenderTiles() throws {
         let link = try makeLink()

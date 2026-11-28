@@ -1123,7 +1123,10 @@ nur aus Klicks (G29, G30).
   Byte) gegen Developer ID + Kennung `dev.mwlr.gnotchi.ctl` + Team LTKJ6Z2VYB. `gnotchictl` prüft umgekehrt die
   Kopie, bevor es sendet. Gemessen 28.10.: signiert → Antwort; ad-hoc-signierte Kopie desselben Programms → kein `ok`.
 - **Feste Befehle** (`DebugCommand.parse`, Tests `DebugCommandTests`): `status`, `snapshot` nur für die Fenster
-  `einstellungen`/`hilfe` (Insel, Zwischenablage, Ablage zeigen echte Inhalte – G16/G40 – und sind nicht wählbar),
+  `einstellungen`/`hilfe` (Insel, Zwischenablage, Ablage zeigen echte Inhalte – G16/G40 – und sind nicht wählbar;
+  ab 0.49.0 zusätzlich `zwischenablage-notch|rand|ohne`: `DebugClipboardDemo` mit ERFUNDENEN Einträgen in einem
+  Speicher im Arbeitsspeicher, Wegwerf-Schlüssel ohne Schlüsselbund, eigene benannte Ablage statt `.general`,
+  Wegwerf-Einstellungen – der echte Verlauf wird dabei nie geöffnet),
   `appearance` light/dark/system, `selftest` (seit 16.11.2026, ohne Parameter: prüft Abschottung, Ressourcen,
   Siegel, Einstellungen in Wegwerf-Suite, beide Fenster, 3 s Rauchtest der Beobachter für Kopfhörer und
   Mikrofon/Kamera – startet nichts mit Seiteneffekten wie Claude-Hooks, Wetter-Netz, Ablage, Zwischenablage).

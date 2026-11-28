@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Gnotchi. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [Unreleased]
+
+### Neu
+- **Filter in der Zwischenablage.** Neben dem Suchfeld sitzt ein Filterknopf: Zeitraum (Heute, Letzte 7 Tage, Letzte 30 Tage) und App, aus der kopiert wurde (die häufigsten zuerst). Beides gilt zusammen mit dem Suchtext, also etwa „cinesocial“ nur aus Mail der letzten 7 Tage. Ist ein Filter aktiv, ist der Knopf gefüllt und nennt ihn („Safari · 7 Tage“); „Filter zurücksetzen“ steht im selben Menü. Gilt beim Herunterklappen und in der großen Ansicht, kommt beim Vergrößern mit und ist beim nächsten Öffnen wieder leer. Vorbild: Paste.
+
+### Intern
+- `ClipFilter` (rein, getestet) filtert nur über Felder, die schon im Klartext stehen (Quell-App, `lastUsedAt`, G38), nichts wird dafür entschlüsselt. `ClipboardStore.entries(…filter:now:)`, 9 neue Tests inkl. Sommerzeitwechsel, Render-Test mit aktivem Filter.
+
 ## [0.48.0] — 2026-11-28
 
 ### Neu

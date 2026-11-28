@@ -3,7 +3,7 @@
 // `scripts/bild-test.sh` baut und signiert es nach build-dev/gnotchictl.
 //
 //   gnotchictl status
-//   gnotchictl snapshot einstellungen|hilfe
+//   gnotchictl snapshot einstellungen|hilfe|zwischenablage-notch|zwischenablage-rand|zwischenablage-ohne
 //   gnotchictl appearance light|dark|system
 //   gnotchictl selftest          → PASS/FAIL je Schritt, Exit 0 = alles bestanden, 1 = Fehlschlag
 //
@@ -12,7 +12,7 @@ import Darwin
 import Foundation
 import Security
 
-let usage = "Nutzung: gnotchictl status | snapshot einstellungen|hilfe | appearance light|dark|system | selftest"
+let usage = "Nutzung: gnotchictl status | snapshot einstellungen|hilfe|zwischenablage-notch|zwischenablage-rand|zwischenablage-ohne | appearance light|dark|system | selftest"
 let args = Array(CommandLine.arguments.dropFirst())
 guard let cmd = args.first else { print(usage); exit(64) }
 var message: [String: Any] = ["v": 1, "cmd": cmd]

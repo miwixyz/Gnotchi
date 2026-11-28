@@ -38,11 +38,13 @@ final class ClipboardPanelController {
         guard let link, let state else { return }
         let query = state.query
         let collectionID = state.collectionID
+        let filter = state.filter
         close()
-        open(link.panelEdge, query: query, collectionID: collectionID)
+        open(link.panelEdge, query: query, collectionID: collectionID, filter: filter)
     }
 
-    func open(_ requested: Preferences.PanelEdge? = nil, query: String = "", collectionID: UUID? = nil) {
+    func open(_ requested: Preferences.PanelEdge? = nil, query: String = "", collectionID: UUID? = nil,
+              filter: ClipFilter = ClipFilter()) {
         guard let link, link.store != nil else { return }
         let edge = requested ?? (link.notchFirst ? .notch : link.panelEdge)
         let screen = NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? NSScreen.main
@@ -65,6 +67,7 @@ final class ClipboardPanelController {
         state.topInset = topInset
         state.collectionID = collectionID
         state.query = query
+        state.filter = filter
         if edge == .notch {
             state.onExpand = { [weak self] in self?.expand() }
             state.onPreviewToggle = { [weak self] on in self?.growForPreview(on) }
@@ -197,6 +200,8 @@ final class ClipboardPanelState {
     let edge: Preferences.PanelEdge
     let onClose: () -> Void
     var query = "" { didSet { selection = 0 } }
+    /// Quell-App und Zeitraum (0.49.0). Kommt beim Vergrößern mit, beim neuen Öffnen leer.
+    var filter = ClipFilter() { didSet { selection = 0 } }
     var collectionID: UUID? { didSet { selection = 0 } }
     var selection = 0
     var message: String?
@@ -246,7 +251,10 @@ final class ClipboardPanelState {
         guard let collectionID else { return nil }
         return store?.collections().first { $0.id == collectionID }
     }
-    var entries: [ClipEntry] { store?.entries(in: collection, matching: query) ?? [] }
+    var entries: [ClipEntry] { store?.entries(in: collection, matching: query, filter: filter) ?? [] }
+    /// Apps fürs Filtermenü: aus der offenen Sammlung bzw. dem Verlauf, ohne Filter, häufigste zuerst.
+    var filterSources: [String] { ClipFilter.sources(of: store?.entries(in: collection) ?? []) }
+    var isSearching: Bool { !query.isEmpty || filter.isActive }
 
     /// true = Taste verbraucht.
     func handle(keyCode: UInt16, flags: NSEvent.ModifierFlags, characters: String?) -> Bool {
@@ -331,7 +339,7 @@ struct ClipboardPanelView: View {
                 ClipPreview(link: link, entry: entry) { state.previewID = nil }
             } else if state.entries.isEmpty {
                 Spacer()
-                Text(state.query.isEmpty ? "Noch nichts kopiert" : "Nichts gefunden")
+                Text(state.isSearching ? "Nichts gefunden" : "Noch nichts kopiert")
                     .font(.system(size: 13)).foregroundStyle(.secondary)
                 Spacer()
             } else {
@@ -358,6 +366,7 @@ struct ClipboardPanelView: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 14))
                 .focused($searchFocused)
+            filterMenu
             if link.isPaused {
                 Button("Fortsetzen") { link.resume() }.buttonStyle(.borderless).font(.system(size: 11))
             }

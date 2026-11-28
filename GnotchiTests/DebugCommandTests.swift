@@ -16,6 +16,10 @@ final class DebugCommandTests: XCTestCase {
         // Fremde Befehle, fremde Fenster (Insel/Zwischenablage zeigen echte Inhalte), fremde Werte.
         XCTAssertNil(parse(#"{"v":1,"id":"a","cmd":"play"}"#))
         XCTAssertNil(parse(#"{"v":1,"id":"a","cmd":"snapshot","window":"zwischenablage"}"#))
+        // 0.49.0: nur die Vorführung mit erfundenen Einträgen, nie die echte Zwischenablage.
+        XCTAssertEqual(parse(#"{"v":1,"id":"a","cmd":"snapshot","window":"zwischenablage-notch"}"#)?.kind,
+                       .snapshot(window: "zwischenablage-notch"))
+        XCTAssertNil(parse(#"{"v":1,"id":"a","cmd":"snapshot","window":"zwischenablage-echt"}"#))
         XCTAssertNil(parse(#"{"v":1,"id":"a","cmd":"snapshot"}"#))
         XCTAssertNil(parse(#"{"v":1,"id":"a","cmd":"appearance","mode":"rot"}"#))
         // Version: Zahl 1, kein Wahrheitswert, keine 2.

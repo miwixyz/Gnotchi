@@ -102,7 +102,7 @@ extension ClipboardPanelView {
     @ViewBuilder private var row: some View {
         let list = state.entries
         if list.isEmpty {
-            Text(state.query.isEmpty ? "Noch nichts kopiert" : "Nichts gefunden")
+            Text(state.isSearching ? "Nichts gefunden" : "Noch nichts kopiert")
                 .font(.system(size: 13)).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: ClipTile.size.height + 18)
         } else {

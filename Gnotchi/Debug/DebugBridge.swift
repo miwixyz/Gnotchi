@@ -9,7 +9,8 @@ struct DebugCommand: Equatable, Sendable {
     enum Kind: Equatable, Sendable {
         /// Version, Kennung, Freigabe, offene Fenster.
         case status
-        /// Bild eines eigenen Fensters (nur Einstellungen und Hilfe – nie Insel, Zwischenablage, Ablage).
+        /// Bild eines eigenen Fensters (Einstellungen, Hilfe und die Zwischenablage-Vorführung mit ERFUNDENEN
+        /// Einträgen, `DebugClipboardDemo` – nie Insel, echte Zwischenablage, Ablage).
         case snapshot(window: String)
         /// Hell, dunkel oder wie das System.
         case appearance(String)
@@ -21,7 +22,8 @@ struct DebugCommand: Equatable, Sendable {
     let kind: Kind
 
     /// Fenster, von denen ein Bild erlaubt ist. Insel und Panels zeigen echte Inhalte (G16, G40) und fehlen bewusst.
-    nonisolated static let snapshotWindows: Set<String> = [AppModel.WindowID.settings, AppModel.WindowID.help]
+    nonisolated static let snapshotWindows: Set<String> =
+        Set([AppModel.WindowID.settings, AppModel.WindowID.help]).union(DebugClipboardDemo.windows)
     nonisolated static let appearances: Set<String> = ["light", "dark", "system"]
 
     /// Kennung des Steuerprogramms `gnotchictl` (Developer ID, Team LTKJ6Z2VYB) – nur es darf Befehle schicken.
@@ -133,7 +135,14 @@ final class DebugBridge {
             CGRequestScreenCaptureAccess()
             return ["ok": false, "fehler": "Bildschirmaufnahme nicht freigegeben – in den Systemeinstellungen erlauben, App neu starten"]
         }
-        model?.showWindow(id)
+        if DebugClipboardDemo.windows.contains(id) {
+            guard let activity = model?.activity else { return ["ok": false, "fehler": "Modell weg"] }
+            do { try DebugClipboardDemo.show(id, activity: activity) } catch {
+                return ["ok": false, "fehler": "Vorführung: \(error.localizedDescription)"]
+            }
+        } else {
+            model?.showWindow(id)
+        }
         try? await Task.sleep(for: .milliseconds(900))
         guard let win = NSApp.windows.first(where: { $0.isVisible && $0.identifier?.rawValue.hasPrefix(id) == true }) else {
             return ["ok": false, "fehler": "Fenster nicht offen"]

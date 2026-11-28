@@ -80,9 +80,11 @@ final class ClipboardStore {
 
     // MARK: - Lesen
 
-    /// Verlauf (`collection == nil`: alle Nicht-Tresor-Einträge) oder eine Sammlung, neueste zuerst, gefiltert.
+    /// Verlauf (`collection == nil`: alle Nicht-Tresor-Einträge) oder eine Sammlung, neueste zuerst, gefiltert
+    /// (Suchtext, dazu Quell-App und Zeitraum über `filter`, 0.49.0).
     /// Im Verlauf steht Angeheftetes zuerst, danach der Rest nach Zeit.
-    func entries(in collection: ClipCollection? = nil, matching query: String = "") -> [ClipEntry] {
+    func entries(in collection: ClipCollection? = nil, matching query: String = "",
+                 filter: ClipFilter = ClipFilter(), now: Date = Date()) -> [ClipEntry] {
         _ = revision
         let base: [ClipEntry]
         if let collection {
@@ -93,7 +95,7 @@ final class ClipboardStore {
         let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let pinnedFirst = collection == nil
         return base
-            .filter { needle.isEmpty || matches($0, needle) }
+            .filter { filter.includes($0, now: now) && (needle.isEmpty || matches($0, needle)) }
             .sorted { a, b in
                 if pinnedFirst, a.isPinned != b.isPinned { return a.isPinned }
                 return a.lastUsedAt > b.lastUsedAt
