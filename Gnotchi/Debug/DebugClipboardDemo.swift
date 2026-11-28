@@ -38,6 +38,19 @@ enum DebugClipboardDemo {
         panels[id] = panel
     }
 
+    /// Erfundenes Bild (Farbverlauf), 240 × 160.
+    private static func imagePayload() throws -> ClipPayload {
+        let image = NSImage(size: NSSize(width: 240, height: 160), flipped: false) { rect in
+            NSGradient(colors: [.systemTeal, .systemIndigo])?.draw(in: rect, angle: 35)
+            return true
+        }
+        guard let tiff = image.tiffRepresentation,
+              let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        return ClipPayload(formats: [.init(type: ClipboardCapture.UTI.png, data: png)], plain: "")
+    }
+
     private static func makeLink(activity: ActivityModel) throws -> ClipboardLink {
         // Fester Name: eine Wegwerf-Datei statt einer neuen je Lauf; vorher leeren.
         let suite = "gnotchi-bild-demo"
@@ -50,7 +63,7 @@ enum DebugClipboardDemo {
             ClipPayload(formats: [.init(type: ClipboardCapture.UTI.plain, data: Data(s.utf8))], plain: s)
         }
         let now = Date()
-        struct Sample { let text: String; let kind: ClipKind; let source: String; let age: TimeInterval }
+        struct Sample { let text: String; let kind: ClipKind; let source: String?; let age: TimeInterval }
         let samples = [
             Sample(text: "Erfundene Notiz: Plakat für den Filmabend bestellen, 20 Stück A1.", kind: .text,
                    source: "com.apple.Notes", age: 9 * 86_400),
@@ -61,10 +74,14 @@ enum DebugClipboardDemo {
             Sample(text: "https://example.com/kino/programm?woche=48", kind: .link, source: "com.apple.Safari", age: 86_400),
             Sample(text: "https://example.com/kino/trailer", kind: .link, source: "com.apple.Safari", age: 3_600),
             Sample(text: "https://example.com/kino/tickets", kind: .link, source: "com.apple.Safari", age: 60),
+            Sample(text: "Erfundene Nachricht: Bin in zehn Minuten am Kino.", kind: .text, source: "com.apple.MobileSMS",
+                   age: 300),
+            Sample(text: "Erfundener Eintrag ohne Quell-App", kind: .text, source: nil, age: 1_800),
         ]
         for sample in samples {
             try store.add(text(sample.text), kind: sample.kind, source: sample.source, now: now.addingTimeInterval(-sample.age))
         }
+        try store.add(imagePayload(), kind: .image, source: "com.apple.Photos", now: now.addingTimeInterval(-7_200))
         link.attachForRendering(store)
         return link
     }

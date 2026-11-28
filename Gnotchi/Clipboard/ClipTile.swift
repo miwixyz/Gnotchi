@@ -6,6 +6,8 @@ import SwiftUI
 /// Beim Drüberfahren Stern (anheften) und Papierkorb.
 struct ClipTile: View {
     static let size = CGSize(width: 132, height: 100)
+    /// Kopfleiste in der Farbe der Quell-App (0.50.0, Vorbild Paste): Art · Zeit · App-Symbol.
+    static let headerHeight: CGFloat = 20
 
     let link: ClipboardLink
     let entry: ClipEntry
@@ -19,11 +21,17 @@ struct ClipTile: View {
         let payload = store?.payload(entry)
         let concealed = store?.isConcealed(entry) ?? true
         let color = concealed ? nil : payload.flatMap { Self.color(entry, $0) }
+        let detail = concealed ? nil : payload.flatMap {
+            ClipMeta.detail(kind: entry.kind, payload: $0, isColor: color != nil, id: entry.id)
+        }
         ZStack(alignment: .topTrailing) {
-            content(payload, concealed: concealed, color: color)
-                .frame(width: Self.size.width, height: Self.size.height)
-                .background(background(color: color, concealed: concealed))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            VStack(spacing: 0) {
+                header(color: color, concealed: concealed)
+                content(payload, concealed: concealed, color: color, detail: detail)
+                    .frame(width: Self.size.width, height: Self.size.height - Self.headerHeight)
+                    .background(background(color: color, concealed: concealed))
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             if hovering { actions }
         }
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -37,27 +45,27 @@ struct ClipTile: View {
     // MARK: Inhalt je Art
 
     @ViewBuilder
-    private func content(_ payload: ClipPayload?, concealed: Bool, color: ColorCode?) -> some View {
+    private func content(_ payload: ClipPayload?, concealed: Bool, color: ColorCode?, detail: String?) -> some View {
         if concealed {
-            concealedBody
+            concealedBody(detail)
         } else if let color {
             VStack(alignment: .leading) {
                 Spacer(minLength: 0)
                 Text(verbatim: color.hex).font(.system(size: 13, weight: .semibold, design: .monospaced))
-                footer(light: color.isLight)
+                footer(detail, light: color.isLight)
             }
             .foregroundStyle(color.isLight ? Color.black : Color.white)
             .padding(9)
         } else if let payload, let image = ClipThumbnails.image(for: entry, payload: payload) {
             ZStack(alignment: .bottomLeading) {
                 Image(nsImage: image).resizable().scaledToFill()
-                    .frame(width: Self.size.width, height: Self.size.height).clipped()
+                    .frame(width: Self.size.width, height: Self.size.height - Self.headerHeight).clipped()
                 LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 2) {
                     if let name = store?.title(entry) {
                         Text(verbatim: name).font(.system(size: 11, weight: .semibold)).lineLimit(1)
                     }
-                    footer(light: false)
+                    footer(detail, light: false)
                 }
                 .foregroundStyle(.white)
                 .padding(9)
@@ -72,11 +80,11 @@ struct ClipTile: View {
                         Text(verbatim: title).font(.system(size: 11, weight: .semibold)).lineLimit(1)
                     }
                     Text(verbatim: String(payload.plain.prefix(300)))
-                        .font(.system(size: 11)).lineLimit(store?.title(entry) == nil ? 4 : 3)
+                        .font(.system(size: 11)).lineLimit(store?.title(entry) == nil ? 3 : 2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 Spacer(minLength: 0)
-                footer(light: false)
+                footer(detail, light: false)
             }
             .padding(9)
         } else {
@@ -84,7 +92,7 @@ struct ClipTile: View {
         }
     }
 
-    private var concealedBody: some View {
+    private func concealedBody(_ detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: entry.isVault ? "lock.fill" : "key.fill")
                 .font(.system(size: 13, weight: .semibold)).foregroundStyle(.orange)
@@ -92,7 +100,7 @@ struct ClipTile: View {
             Text(verbatim: store?.title(entry) ?? store?.secretKind(entry) ?? "")
                 .font(.system(size: 11, weight: .semibold)).lineLimit(1)
             Spacer(minLength: 0)
-            footer(light: false)
+            footer(detail, light: false)
         }
         .padding(9)
     }
@@ -115,18 +123,36 @@ struct ClipTile: View {
         Text(verbatim: url.lastPathComponent).font(.system(size: 11)).lineLimit(2)
     }
 
-    private func footer(light: Bool) -> some View {
+    /// Kopfleiste: Art und Zeit links, App-Symbol rechts, Grund in der App-Farbe (ohne Quell-App neutral).
+    private func header(color: ColorCode?, concealed: Bool) -> some View {
+        let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
+        let dark = tint?.prefersDarkText ?? false
+        let label = ClipMeta.kindLabel(entry.kind, isColor: color != nil, concealed: concealed, vault: entry.isVault)
+        return HStack(spacing: 4) {
+            Text(verbatim: label).font(.system(size: 10, weight: .semibold))
+            age.font(.system(size: 9)).opacity(0.75)
+            Spacer(minLength: 0)
+            if let source = entry.sourceBundleID { AppSymbol(bundleID: source, size: 14) }
+        }
+        .lineLimit(1)
+        .foregroundStyle(dark ? Color.black : Color.white)
+        .padding(.horizontal, 8)
+        .frame(width: Self.size.width, height: Self.headerHeight)
+        .background(tint?.color ?? Color.white.opacity(selected ? 0.22 : 0.14))
+    }
+
+    /// Unter einer Minute „jetzt“ (sonst „in 0 s“, wenn die Uhr knapp hinter dem Eintrag liegt).
+    @ViewBuilder private var age: some View {
+        if abs(entry.lastUsedAt.timeIntervalSinceNow) < 60 {
+            Text("jetzt")
+        } else {
+            Text(entry.lastUsedAt, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
+        }
+    }
+
+    private func footer(_ detail: String?, light: Bool) -> some View {
         HStack(spacing: 4) {
-            if let source = entry.sourceBundleID { AppSymbol(bundleID: source, size: 12) }
-            Group {
-                // Unter einer Minute „jetzt“ (sonst „in 0 s“, wenn die Uhr knapp hinter dem Eintrag liegt).
-                if abs(entry.lastUsedAt.timeIntervalSinceNow) < 60 {
-                    Text("jetzt")
-                } else {
-                    Text(entry.lastUsedAt, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
-                }
-            }
-            .lineLimit(1)
+            if let detail { Text(verbatim: detail).lineLimit(1) }
             Spacer(minLength: 0)
             if let number { Text(verbatim: "⌘\(number)") }
         }

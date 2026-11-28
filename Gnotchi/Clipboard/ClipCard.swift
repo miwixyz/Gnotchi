@@ -11,13 +11,21 @@ struct ClipCard: View {
     let number: Int?
     let selected: Bool
     let compactWidth: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let store = link.store
         let payload = store?.payload(entry)
         let secret = store?.secretKind(entry)
         let title = store?.title(entry) ?? secret
-        VStack(alignment: .leading, spacing: 6) {
+        let concealed = store?.isConcealed(entry) ?? true
+        // 0.50.0: Kopfleiste in der Farbe der Quell-App (wie die Kacheln unter der Notch), unten die Angabe.
+        let tint = concealed ? nil : entry.sourceBundleID.flatMap(AppTint.tint(for:))
+        let isColor = payload.map { ClipTile.color(entry, $0) != nil } ?? false
+        let detail = concealed ? nil : payload.flatMap {
+            ClipMeta.detail(kind: entry.kind, payload: $0, isColor: isColor, id: entry.id)
+        }
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 if secret != nil {
                     Image(systemName: "key.fill").font(.system(size: 11)).foregroundStyle(.orange)
@@ -27,20 +35,33 @@ struct ClipCard: View {
                     Image(systemName: entry.isVault ? "lock.fill" : "doc.on.clipboard").font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
-                if let title { Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1) }
+                Text(verbatim: title ?? ClipMeta.kindLabel(entry.kind, isColor: isColor, concealed: concealed,
+                                                           vault: entry.isVault))
+                    .font(.system(size: 12, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 0)
                 Text(entry.lastUsedAt, format: .relative(presentation: .named))
                     .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
-                if let number { Text(verbatim: "⌘\(number)").font(.system(size: 10)).foregroundStyle(.tertiary) }
+                if let number { Text(verbatim: "⌘\(number)").font(.system(size: 10)).opacity(0.7) }
             }
-            preview(payload)
-            if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
+            .padding(.horizontal, 10).padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .foregroundStyle(tint.map { $0.prefersDarkText ? Color.black : Color.white } ?? Color.primary)
+            .environment(\.colorScheme, tint.map { $0.prefersDarkText ? .light : .dark } ?? colorScheme)
+            .background(tint?.color ?? Color.white.opacity(0.06))
+            VStack(alignment: .leading, spacing: 6) {
+                preview(payload)
+                if let expiry = store?.secretExpiry(entry) { SecretCountdown(expiry: expiry) }
+                if let detail {
+                    Text(verbatim: detail).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            .padding(10)
         }
-        .padding(10)
         .frame(width: compactWidth ? 220 : nil, alignment: .leading)
         .frame(maxWidth: compactWidth ? 220 : .infinity, minHeight: 54, maxHeight: compactWidth ? .infinity : 180,
                alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.white.opacity(selected ? 0.16 : 0.07)))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
             .stroke(Color.accentColor.opacity(selected ? 0.9 : 0), lineWidth: 1.5))
         .contentShape(RoundedRectangle(cornerRadius: 12))
